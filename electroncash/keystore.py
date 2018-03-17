@@ -35,7 +35,14 @@ from mnemonic import Mnemonic
 from . import bitcoin, mnemo, networks
 from .address import Address, PublicKey
 from .plugins import run_hook
-from .util import InvalidPassword, PrintError, bh2u, print_error
+from .util import (
+    BitcoinException,
+    InvalidPassword,
+    PrintError,
+    WalletFileException,
+    bh2u,
+    print_error,
+)
 
 
 class KeyStore(PrintError):
@@ -662,7 +669,7 @@ def xpubkey_to_address(x_pubkey):
         mpk, s = Old_KeyStore.parse_xpubkey(x_pubkey)
         pubkey = Old_KeyStore.get_pubkey_from_mpk(mpk, s[0], s[1])
     else:
-        raise BaseException("Cannot parse pubkey")
+        raise BitcoinException(f"Cannot parse pubkey. prefix: {x_pubkey[0:2]}")
     if pubkey:
         address = Address.from_pubkey(pubkey)
     return pubkey, address
@@ -685,14 +692,16 @@ def hardware_keystore(d):
     if hw_type in hw_keystores:
         constructor = hw_keystores[hw_type]
         return constructor(d)
-    raise BaseException("unknown hardware type", hw_type)
+    raise WalletFileException(f"unknown hardware type: {hw_type}")
 
 
 def load_keystore(storage, name):
     d = storage.get(name, {})
     t = d.get("type")
     if not t:
-        raise BaseException("wallet format requires update")
+        raise WalletFileException(
+            f"Wallet format requires update.\nCannot find keystore for name {name}"
+        )
     if t == "old":
         k = Old_KeyStore(d)
     elif t == "imported":
@@ -702,7 +711,7 @@ def load_keystore(storage, name):
     elif t == "hardware":
         k = hardware_keystore(d)
     else:
-        raise BaseException("unknown wallet type", t)
+        raise WalletFileException(f"Unknown type {t} for keystore named {name}")
     return k
 
 
@@ -856,5 +865,5 @@ def from_master_key(text):
     elif bitcoin.is_xpub(text):
         k = from_xpub(text)
     else:
-        raise BaseException("Invalid key")
+        raise BitcoinException("Invalid master key")
     return k

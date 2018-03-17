@@ -64,8 +64,10 @@ from electroncash import i18n
 from electroncash.plugins import run_hook
 from electroncash import WalletStorage
 from electroncash.util import (
+    BitcoinException,
     Handlers,
     UserCancelled,
+    WalletFileException,
     Weak,
     get_new_wallet_name,
     standardize_path,
@@ -636,6 +638,14 @@ class ElectrumGui(QtCore.QObject, PrintError):
                         pass
                     except GoBack as e:
                         self.print_error('[start_new_window] Exception caught (GoBack)', e)
+                    except (WalletFileException, BitcoinException) as e:
+                        traceback.print_exc(file=sys.stderr)
+                        d = QtWidgets.QMessageBox(
+                            QtWidgets.QMessageBox.Warning,
+                            _('Error'),
+                            _('Cannot load wallet') + ' (2):\n' + str(e))
+                        d.exec_()
+                        return
                     finally:
                         wizard.terminate()
                         del wizard
@@ -649,7 +659,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
                 traceback.print_exc(file=sys.stdout)
                 self.warning(
                     title=_('Error'),
-                    message = 'Cannot load wallet:\n' + str(e),
+                    message = 'Cannot load wallet (1):\n' + str(e),
                     icon=QtWidgets.QMessageBox.Critical
                 )
                 return
