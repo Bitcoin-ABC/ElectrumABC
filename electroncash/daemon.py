@@ -36,7 +36,6 @@ from .constants import PROJECT_NAME, SCRIPT_NAME
 import jsonrpclib
 from .jsonrpc import VerifyingJSONRPCServer
 
-from .version import PACKAGE_VERSION
 from .network import Network
 from .util import (json_decode, DaemonThread, print_error, to_string,
                    standardize_path)
@@ -201,7 +200,7 @@ class Daemon(DaemonThread):
         server.register_function(self.ping, 'ping')
         server.register_function(self.run_gui, 'gui')
         server.register_function(self.run_daemon, 'daemon')
-        self.cmd_runner = Commands(self.config, None, self.network)
+        self.cmd_runner = Commands(self.config, None, self.network, self)
         for cmdname in known_commands:
             server.register_function(getattr(self.cmd_runner, cmdname), cmdname)
         server.register_function(self.run_cmdline, 'run_cmdline')
@@ -214,42 +213,10 @@ class Daemon(DaemonThread):
         sub = config.get('subcommand')
         subargs = config.get('subargs')
         plugin_cmd = self.plugins and self.plugins.daemon_commands.get(sub)
-        if subargs and sub in [None, 'start', 'stop', 'status']:
+        if subargs and sub in [None, 'start', 'stop']:
             return "Unexpected arguments: {!r}. {!r} takes no options.".format(subargs, sub)
-        if subargs and sub in ['load_wallet', 'close_wallet']:
-            return "Unexpected arguments: {!r}. Provide options to {!r} using the -w and -wp options.".format(subargs, sub)
         if sub in [None, 'start']:
             response = "Daemon already running"
-        elif sub == 'load_wallet':
-            path = config.get_wallet_path()
-            wallet = self.load_wallet(path, config.get('password'))
-            self.cmd_runner.wallet = wallet
-            response = True
-        elif sub == 'close_wallet':
-            path = config.get_wallet_path()
-            if path in self.wallets:
-                self.stop_wallet(path)
-                response = True
-            else:
-                response = False
-        elif sub == 'status':
-            if self.network:
-                p = self.network.get_parameters()
-                response = {
-                    'path': self.network.config.path,
-                    'server': p[0],
-                    'blockchain_height': self.network.get_local_height(),
-                    'server_height': self.network.get_server_height(),
-                    'spv_nodes': len(self.network.get_interfaces()),
-                    'connected': self.network.is_connected(),
-                    'auto_connect': p[4],
-                    'version': PACKAGE_VERSION,
-                    'wallets': {k: w.is_up_to_date()
-                                for k, w in self.wallets.items()},
-                    'fee_per_kb': self.config.fee_per_kb(),
-                }
-            else:
-                response = "Daemon offline"
         elif sub == 'stop':
             self.stop()
             response = "Daemon stopped"
@@ -340,7 +307,7 @@ class Daemon(DaemonThread):
         kwargs = {}
         for x in cmd.options:
             kwargs[x] = (config_options.get(x) if x in ['password', 'new_password'] else config.get(x))
-        cmd_runner = Commands(config, wallet, self.network)
+        cmd_runner = Commands(config, wallet, self.network, self)
         func = getattr(cmd_runner, cmd.name)
         try:
             result = func(*args, **kwargs)

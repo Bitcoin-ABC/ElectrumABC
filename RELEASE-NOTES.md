@@ -25,6 +25,14 @@ transactions as expected.
 
 # Release notes
 
+## Release 5.1.6
+
+- Electron Cash backports:
+  - Add `freeze_utxo`, `unfreeze_utxo` and `list_wallets` RPCs.
+  - Replace `status` daemon command with `getinfo` RPC.
+  - Turn `load_wallet` and `close_wallet` daemon commands into RPCs.
+
+
 ## Release 5.1.5
 
 - Change default block explorer to explorer.e.cash (#231).

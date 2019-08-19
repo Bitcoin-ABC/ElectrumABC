@@ -331,9 +331,9 @@ def init_cmdline(config_options: dict, server):
 
     is_storage_pw_req = storage.is_encrypted() or storage.get("use_encryption")
     # commands needing password
-    if (cmd.requires_wallet and storage.is_encrypted() and server is None) or (
-        cmd.requires_password and is_storage_pw_req
-    ):
+    if ((cmd.requires_wallet and storage.is_encrypted() and server is False)
+       or (cmdname == 'load_wallet' and storage.is_encrypted())
+       or (cmd.requires_password and is_storage_pw_req)):
         if storage.is_encrypted_with_hw_device():
             raise NotImplementedError("CLI functionality of encrypted hw wallets")
         if config.get("password"):
@@ -475,8 +475,6 @@ def run_start(config: SimpleConfig, config_options: dict, subcommand: str):
 def run_daemon(config: SimpleConfig, config_options: dict):
     """Run the daemon"""
     subcommand = config.get("subcommand")
-    if subcommand in ["load_wallet"]:
-        init_daemon(config_options)
     if subcommand in [None, "start"]:
         return run_start(config, config_options, subcommand)
     server = daemon.get_server(config)
