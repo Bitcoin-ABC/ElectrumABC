@@ -268,34 +268,6 @@ def create_wallet(simple_config: SimpleConfig) -> Abstract_Wallet:
     return d["wallet"]
 
 
-def init_daemon(config_options: dict):
-    """ Initialize the daemon """
-    config = SimpleConfig(config_options)
-    storage = WalletStorage(config.get_wallet_path())
-    if not storage.file_exists():
-        print_msg("Error: Wallet file not found.")
-        print_msg(f"Type '{SCRIPT_NAME} create' to create a new wallet, or provide a path to a wallet with the -w option")
-        sys.exit(0)
-    if storage.is_encrypted():
-        if storage.is_encrypted_with_hw_device():
-            raise NotImplementedError("CLI functionality of encrypted hw wallets")
-        if "wallet_password" in config_options:
-            print_msg(
-                'Warning: unlocking wallet with commandline argument "--walletpassword"'
-            )
-            password = config_options["wallet_password"]
-        elif config.get("password"):
-            password = config.get("password")
-        else:
-            password = prompt_password()
-            if not password:
-                print_msg("Error: Password required")
-                sys.exit(1)
-    else:
-        password = None
-    config_options["password"] = password
-
-
 def init_cmdline(config_options: dict, server):
     """ Initialize command line """
     config = SimpleConfig(config_options)
