@@ -179,5 +179,6 @@ class TestCashAddrAddress(unittest.TestCase):
             self.assertEqual(kind, cashaddr.PUBKEY_TYPE)
             self.assertEqual(addr_hash, hashbytes)
 
+
 if __name__ == '__main__':
     unittest.main()

@@ -197,3 +197,7 @@ class TestCashAccounts(unittest.TestCase):
         d = cashacct.CashAcct._calc_minimal_chashes_for_sorted_lcased_tups(sorted(l))
         self.assertEqual(sum(len(v) for k,v in d.items()), len(set(l)))
         self.assertEqual(d[myname][my_collision_hash], '03')
+
+
+if __name__ == '__main__':
+    unittest.main()

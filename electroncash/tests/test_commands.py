@@ -31,3 +31,7 @@ class TestCommands(unittest.TestCase):
         self.assertEqual("2asd", Commands._setconfig_normalize_value('rpcpassword', '2asd'))
         self.assertEqual("['file:///var/www/','https://electrum.org']",
             Commands._setconfig_normalize_value('rpcpassword', "['file:///var/www/','https://electrum.org']"))
+
+
+if __name__ == '__main__':
+    unittest.main()

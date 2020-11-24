@@ -3057,3 +3057,7 @@ class Test_ASERTDaa(unittest.TestCase):
                   (9223372036854775812, 2147492647, 0x1802b73d)]
 
         self.validate_blocksequence(9223372036854775802, 2147483047, 0x1802aee8, blocks)
+
+
+if __name__ == '__main__':
+    unittest.main()

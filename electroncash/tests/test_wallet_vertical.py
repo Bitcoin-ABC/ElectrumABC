@@ -144,3 +144,7 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
                          Address.from_string('3H3iyACDTLJGD2RMjwKZcCwpdYZLwEZzKb'))
         self.assertEqual(w.get_change_addresses()[0],
                          Address.from_string('31hyfHrkhNjiPZp1t7oky5CGNYqSqDAVM9'))
+
+
+if __name__ == '__main__':
+    unittest.main()

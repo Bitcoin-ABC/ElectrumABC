@@ -137,3 +137,15 @@ class TestCreateRestoreWallet(WalletTestCase):
         self.assertEqual('Kz7FS9Adyj6RgSVGx5YLjZPanUhuze4yvcziZ1qLA24a3GJJZvBr',
                          wallet.export_private_key(addr0, password=None))
         self.assertEqual(1, len(wallet.get_receiving_addresses()))
+
+
+def suite():
+    test_suite = unittest.TestSuite()
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
+    test_suite.addTest(loadTests(TestCreateRestoreWallet))
+    test_suite.addTest(loadTests(TestWalletStorage))
+    return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest="suite")

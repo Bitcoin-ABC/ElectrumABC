@@ -614,3 +614,6 @@ class SLPTests(unittest.TestCase):
 
         print("Completed %d OP_RETURN *build* tests"%ctr)
 
+
+if __name__ == '__main__':
+    unittest.main()

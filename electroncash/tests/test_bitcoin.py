@@ -443,3 +443,18 @@ class Test_Bip38(unittest.TestCase):
         self.assertTrue(bool(b38.decrypt('ΜΟΛΩΝ ΛΑΒΕ')))
 
         # Success!
+
+
+def suite():
+    test_suite = unittest.TestSuite()
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
+    test_suite.addTest(loadTests(Test_bitcoin))
+    test_suite.addTest(loadTests(Test_bitcoin_testnet))
+    test_suite.addTest(loadTests(Test_xprv_xpub))
+    test_suite.addTest(loadTests(Test_keyImport))
+    test_suite.addTest(loadTests(Test_Bip38))
+    return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest="suite")

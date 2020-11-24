@@ -74,3 +74,7 @@ class TestBlockchain(unittest.TestCase):
         # MTP(1010) is TimeStamp(1005), MTP(1004) is TimeStamp(999)
         hdr = {'block_height': block['block_height'] + 1}
         self.assertEqual(chain.get_bits(hdr, chunk), 0x1801b553)
+
+
+if __name__ == '__main__':
+    unittest.main()

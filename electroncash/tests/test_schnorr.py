@@ -100,3 +100,15 @@ class TestBlind(unittest.TestCase):
 
         for a,n in zip(alist, nlist):
             self.assertEqual(jac_1(a,n), jac_2(a,n), msg=(a,n))
+
+
+def suite():
+    test_suite = unittest.TestSuite()
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
+    test_suite.addTest(loadTests(TestSchnorr))
+    test_suite.addTest(loadTests(TestBlind))
+    return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest="suite")

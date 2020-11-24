@@ -1,4 +1,5 @@
 import dns
+import unittest
 
 from dns.dnssec import ValidationFailure
 
@@ -57,3 +58,7 @@ class TestDnsSec(ElectronCashTestCase):
 
         with self.assertRaises(ValidationFailure):
             dns.dnssec.validate_rrsig(rrset, rrsig, keys, origin, now)
+
+
+if __name__ == '__main__':
+    unittest.main()

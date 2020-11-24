@@ -36,3 +36,7 @@ class TestInterface(unittest.TestCase):
         self.assertFalse(i.check_host_name(
             peercert={'subject': ((('commonName', '*.bar.com'),),)},
             name='sub.foo.bar.com'))
+
+
+if __name__ == '__main__':
+    unittest.main()

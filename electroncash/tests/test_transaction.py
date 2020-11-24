@@ -303,3 +303,15 @@ class NetworkMock(object):
 
     def synchronous_get(self, arg):
         return self.unspent
+
+
+def suite():
+    test_suite = unittest.TestSuite()
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
+    test_suite.addTest(loadTests(TestBCDataStream))
+    test_suite.addTest(loadTests(TestTransaction))
+    return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest="suite")

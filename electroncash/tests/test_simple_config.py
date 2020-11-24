@@ -145,3 +145,15 @@ class TestUserConfig(unittest.TestCase):
 
         result = read_user_config(self.user_dir)
         self.assertEqual({}, result)
+
+
+def suite():
+    test_suite = unittest.TestSuite()
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
+    test_suite.addTest(loadTests(Test_SimpleConfig))
+    test_suite.addTest(loadTests(TestUserConfig))
+    return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest="suite")

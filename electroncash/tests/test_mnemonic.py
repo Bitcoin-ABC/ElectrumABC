@@ -79,3 +79,17 @@ class Test_Seeds(unittest.TestCase):
     def test_seed_type(self):
         for seed_words, _type in self.mnemonics:
             self.assertEqual(_type, mnemonic.seed_type_name(seed_words), msg=seed_words)
+
+
+def suite():
+    test_suite = unittest.TestSuite()
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
+    test_suite.addTest(loadTests(Test_NewMnemonic))
+    test_suite.addTest(loadTests(Test_OldMnemonic))
+    test_suite.addTest(loadTests(Test_BIP39Checksum))
+    test_suite.addTest(loadTests(Test_Seeds))
+    return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest="suite")

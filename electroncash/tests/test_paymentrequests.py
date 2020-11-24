@@ -144,3 +144,7 @@ class DummyServer:
     def shutdown(self):
         self.httpd.shutdown()
         self.httpd.server_close()
+
+
+if __name__ == '__main__':
+    unittest.main()

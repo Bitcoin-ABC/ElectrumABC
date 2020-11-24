@@ -110,3 +110,7 @@ class TestUtil(unittest.TestCase):
 
     def test_parse_URI_parameter_polution(self):
         self.assertRaises(Exception, parse_URI, 'bitcoincash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?amount=0.0003&label=test&amount=30.0')
+
+
+if __name__ == '__main__':
+    unittest.main()

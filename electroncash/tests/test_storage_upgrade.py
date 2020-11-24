@@ -1,5 +1,6 @@
 import shutil
 import tempfile
+import unittest
 
 from ..storage import WalletStorage
 from ..wallet import Wallet
@@ -297,3 +298,7 @@ class TestStorageUpgrade(WalletTestCase):
             f.write(wallet_json)
         storage = WalletStorage(self.wallet_path, manual_upgrades=manual_upgrades)
         return storage
+
+
+if __name__ == '__main__':
+    unittest.main()
