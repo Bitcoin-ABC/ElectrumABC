@@ -85,13 +85,10 @@ Compile libsecp256k1 (optional, yet highly recommended)::
 
 For plugin development, see the `plugin documentation <plugins/README.rst>`_.
 
-Running unit tests (very optional, advanced users only)::
+Running unit tests (optional)::
 
-    pip install tox --user
-    tox
+    python3 -m electroncash.tests
 
-Tox will take care of building a faux installation environment, and ensure that
-the mapped import paths work correctly.
 
 Running from source on old Linux
 ================================
