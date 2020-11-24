@@ -6,7 +6,7 @@ Electrum ABC - Lightweight Bitcoin Cash client
   Licence: MIT Licence
   Author: Electrum ABC Developers
   Language: Python
-  Homepage: https://github.com/PiRK/ElectrumBCHA
+  Homepage: https://www.bitcoinabc.org/electrum
 
 
 Getting started
@@ -14,12 +14,13 @@ Getting started
 
 **Note: If running from source, Python 3.6 or above is required to run Electrum ABC.**
 If your system lacks Python 3.6, you have other options, such as the
-`AppImage / binary releases <https://github.com/PiRK/ElectrumBCHA/releases/>`_
+`AppImage / binary releases <https://github.com/Bitcoin-ABC/ElectrumABC/releases/>`_
 or running from source using `pyenv` (see section `Running from source on old Linux`_ below).
 
-**macOS:** It is recommended that macOS users run `the binary .dmg <https://github.com/PiRK/ElectrumBCHA/releases/>`_
-as that's simpler to use and has everything included.  Otherwise, if you want to run from source, see section
-`Running from source on macOS`_ below.
+**macOS:** It is recommended that macOS users run
+`the binary .dmg <https://github.com/Bitcoin-ABC/ElectrumABC/releases>`_
+as that's simpler to use and has everything included.  Otherwise, if you
+want to run from source, see section `Running from source on macOS`_ below.
 
 Electrum ABC is a pure python application forked from Electron Cash.
 If you want to use the Qt interface, install the Qt dependencies::
@@ -66,7 +67,7 @@ If you are on macOS, see the `Running from source on macOS`_ section below.
 
 Check out the code from Github::
 
-    git clone https://github.com/PiRK/ElectrumBCHA
+    git clone https://github.com/Bitcoin-ABC/ElectrumABC
     cd ElectrumABC
 
 Install the python dependencies::
@@ -124,7 +125,7 @@ is required for either).
 
 1. After installing either HomeBrew or MacPorts, clone this repository and
    switch to the directory:
-   ``git clone https://github.com/PiRK/ElectrumBCHA && cd ElectrumBCHA``
+   ``git clone https://github.com/Bitcoin-ABC/ElectrumABC && cd ElectrumABC``
 2. Install python 3.6 or 3.7. For brew: ``brew install python3``
    or if using MacPorts: ``sudo port install python36``
 3. Install PyQt5: ``python3 -m pip install --user pyqt5``

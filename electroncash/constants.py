@@ -4,8 +4,8 @@ from collections import OrderedDict
 PROJECT_NAME: str = "Electrum ABC"
 PROJECT_NAME_NO_SPACES = "ElectrumABC"
 SCRIPT_NAME: str = "electrum-abc"
-REPOSITORY_URL: str = "https://github.com/PiRK/ElectrumBCHA"
-RELEASES_JSON_URL: str = "https://raw.github.com/PiRK/ElectrumBCHA/master/contrib/update_checker/releases.json"
+REPOSITORY_URL: str = "https://github.com/Bitcoin-ABC/ElectrumABC"
+RELEASES_JSON_URL: str = "https://raw.github.com/Bitcoin-ABC/ElectrumABC/master/contrib/update_checker/releases.json"
 
 POSIX_DATA_DIR: str = ".electrum-abc"
 """This is the name of the directory where the wallets, recent server lists
