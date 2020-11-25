@@ -31,7 +31,8 @@ from . import asert_daa
 from . import networks
 from . import util
 
-from .bitcoin import *
+from . import bitcoin
+
 
 class VerifyError(Exception):
     '''Exception used for blockchain verification errors.'''
@@ -85,19 +86,19 @@ NULL_HASH_BYTES = bytes([0]) * 32
 NULL_HASH_HEX = NULL_HASH_BYTES.hex()
 
 def serialize_header(res):
-    s = int_to_hex(res.get('version'), 4) \
-        + rev_hex(res.get('prev_block_hash')) \
-        + rev_hex(res.get('merkle_root')) \
-        + int_to_hex(int(res.get('timestamp')), 4) \
-        + int_to_hex(int(res.get('bits')), 4) \
-        + int_to_hex(int(res.get('nonce')), 4)
+    s = bitcoin.int_to_hex(res.get('version'), 4) \
+        + bitcoin.rev_hex(res.get('prev_block_hash')) \
+        + bitcoin.rev_hex(res.get('merkle_root')) \
+        + bitcoin.int_to_hex(int(res.get('timestamp')), 4) \
+        + bitcoin.int_to_hex(int(res.get('bits')), 4) \
+        + bitcoin.int_to_hex(int(res.get('nonce')), 4)
     return s
 
 def deserialize_header(s, height):
     h = {}
     h['version'] = int.from_bytes(s[0:4], 'little')
-    h['prev_block_hash'] = hash_encode(s[4:36])
-    h['merkle_root'] = hash_encode(s[36:68])
+    h['prev_block_hash'] = bitcoin.hash_encode(s[4:36])
+    h['merkle_root'] = bitcoin.hash_encode(s[36:68])
     h['timestamp'] = int.from_bytes(s[68:72], 'little')
     h['bits'] = int.from_bytes(s[72:76], 'little')
     h['nonce'] = int.from_bytes(s[76:80], 'little')
@@ -105,7 +106,7 @@ def deserialize_header(s, height):
     return h
 
 def hash_header_hex(header_hex):
-    return hash_encode(Hash(bfh(header_hex)))
+    return bitcoin.hash_encode(bitcoin.Hash(bytes.fromhex(header_hex)))
 
 def hash_header(header):
     if header is None:
@@ -161,7 +162,7 @@ def verify_proven_chunk(chunk_base_height, chunk_data):
 
 # Copied from electrumx
 def root_from_proof(hash, branch, index):
-    hash_func = Hash
+    hash_func = bitcoin.Hash
     for elt in branch:
         if index & 1:
             hash = hash_func(elt + hash)
@@ -356,7 +357,7 @@ class Blockchain(util.PrintError):
 
     def save_header(self, header):
         delta = header.get('block_height') - self.base_height
-        data = bfh(serialize_header(header))
+        data = bytes.fromhex(serialize_header(header))
         assert delta == self.size()
         assert len(data) == HEADER_SIZE
         self.write(data, delta*HEADER_SIZE)

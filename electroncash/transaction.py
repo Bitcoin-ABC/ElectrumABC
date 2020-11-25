@@ -22,22 +22,23 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import struct
+import warnings
 
-
+import ecdsa
+import hashlib
 
 # Note: The deserialization code originally comes from ABE.
 
 from .util import print_error, profiler
 from .caches import ExpiringCache
 
-from .bitcoin import *
+from . import bitcoin
 from .address import (PublicKey, Address, Script, ScriptOutput, hash160,
                       UnknownAddress, OpCodes as opcodes,
                       P2PKH_prefix, P2PKH_suffix, P2SH_prefix, P2SH_suffix)
 from . import schnorr
-from . import util
-import struct
-import warnings
+from .util import bh2u, bfh, to_bytes
 
 #
 # Workalike python implementation of Bitcoin's CDataStream class.
@@ -274,28 +275,28 @@ def get_address_from_output_script(_bytes):
 
     if scriptlen == 23 and _bytes.startswith(P2SH_prefix) and _bytes.endswith(P2SH_suffix):
         # Pay-to-script-hash
-        return TYPE_ADDRESS, Address.from_P2SH_hash(_bytes[2:22])
+        return bitcoin.TYPE_ADDRESS, Address.from_P2SH_hash(_bytes[2:22])
 
     if scriptlen == 25 and _bytes.startswith(P2PKH_prefix) and _bytes.endswith(P2PKH_suffix):
         # Pay-to-pubkey-hash
-        return TYPE_ADDRESS, Address.from_P2PKH_hash(_bytes[3:23])
+        return bitcoin.TYPE_ADDRESS, Address.from_P2PKH_hash(_bytes[3:23])
 
     if scriptlen == 35 and _bytes[0] == 33 and _bytes[1] in (2,3) and _bytes[34] == opcodes.OP_CHECKSIG:
         # Pay-to-pubkey (compressed)
-        return TYPE_PUBKEY, PublicKey.from_pubkey(_bytes[1:34])
+        return bitcoin.TYPE_PUBKEY, PublicKey.from_pubkey(_bytes[1:34])
 
     if scriptlen == 67 and _bytes[0] == 65 and _bytes[1] == 4 and _bytes[66] == opcodes.OP_CHECKSIG:
         # Pay-to-pubkey (uncompressed)
-        return TYPE_PUBKEY, PublicKey.from_pubkey(_bytes[1:66])
+        return bitcoin.TYPE_PUBKEY, PublicKey.from_pubkey(_bytes[1:66])
 
     # note: we don't recognize bare multisigs.
 
-    return TYPE_SCRIPT, ScriptOutput.protocol_factory(bytes(_bytes))
+    return bitcoin.TYPE_SCRIPT, ScriptOutput.protocol_factory(bytes(_bytes))
 
 
 def parse_input(vds):
     d = {}
-    prevout_hash = hash_encode(vds.read_bytes(32))
+    prevout_hash = bitcoin.hash_encode(vds.read_bytes(32))
     prevout_n = vds.read_uint32()
     scriptSig = vds.read_bytes(vds.read_compact_size())
     sequence = vds.read_uint32()
@@ -367,10 +368,8 @@ def multisig_script(public_keys, m):
     assert m <= n
     op_m = format(opcodes.OP_1 + m - 1, 'x')
     op_n = format(opcodes.OP_1 + n - 1, 'x')
-    keylist = [op_push(len(k)//2) + k for k in public_keys]
+    keylist = [bitcoin.op_push(len(k) // 2) + k for k in public_keys]
     return op_m + ''.join(keylist) + op_n + 'ae'
-
-
 
 
 class Transaction:
@@ -482,7 +481,7 @@ class Transaction:
             if sig_final in txin.get('signatures'):
                 # skip if we already have this signature
                 continue
-            pre_hash = Hash(bfh(self.serialize_preimage(i)))
+            pre_hash = bitcoin.Hash(bfh(self.serialize_preimage(i)))
             sig_bytes = bfh(sig)
             added = False
             reason = []
@@ -634,16 +633,16 @@ class Transaction:
         if _type == 'coinbase':
             raise RuntimeError('Attempted to serialize coinbase with missing scriptSig')
         pubkeys, sig_list = self.get_siglist(txin, estimate_size, sign_schnorr=sign_schnorr)
-        script = ''.join(push_script(x) for x in sig_list)
+        script = ''.join(bitcoin.push_script(x) for x in sig_list)
         if _type == 'p2pk':
             pass
         elif _type == 'p2sh':
             # put op_0 before script
             script = '00' + script
             redeem_script = multisig_script(pubkeys, txin['num_sig'])
-            script += push_script(redeem_script)
+            script += bitcoin.push_script(redeem_script)
         elif _type == 'p2pkh':
-            script += push_script(pubkeys[0])
+            script += bitcoin.push_script(pubkeys[0])
         elif _type == 'unknown':
             raise RuntimeError('Cannot serialize unknown input with missing scriptSig')
         return script
@@ -670,7 +669,7 @@ class Transaction:
             return multisig_script(pubkeys, txin['num_sig'])
         elif _type == 'p2pk':
             pubkey = txin['pubkeys'][0]
-            return public_key_to_p2pk_script(pubkey)
+            return bitcoin.public_key_to_p2pk_script(pubkey)
         elif _type == 'unknown':
             # this approach enables most P2SH smart contracts (but take care if using OP_CODESEPARATOR)
             return txin['scriptCode']
@@ -679,21 +678,21 @@ class Transaction:
 
     @classmethod
     def serialize_outpoint(self, txin):
-        return bh2u(bfh(txin['prevout_hash'])[::-1]) + int_to_hex(txin['prevout_n'], 4)
+        return bh2u(bfh(txin['prevout_hash'])[::-1]) + bitcoin.int_to_hex(txin['prevout_n'], 4)
 
     @classmethod
     def serialize_input(self, txin, script, estimate_size=False):
         # Prev hash and index
         s = self.serialize_outpoint(txin)
         # Script length, script, sequence
-        s += var_int(len(script)//2)
+        s += bitcoin.var_int(len(script) // 2)
         s += script
-        s += int_to_hex(txin.get('sequence', 0xffffffff - 1), 4)
+        s += bitcoin.int_to_hex(txin.get('sequence', 0xffffffff - 1), 4)
         # offline signing needs to know the input value
         if ('value' in txin
             and txin.get('scriptSig') is None
             and not (estimate_size or self.is_txin_complete(txin))):
-            s += int_to_hex(txin['value'], 8)
+            s += bitcoin.int_to_hex(txin['value'], 8)
         return s
 
     def BIP_LI01_sort(self):
@@ -703,9 +702,9 @@ class Transaction:
 
     def serialize_output(self, output):
         output_type, addr, amount = output
-        s = int_to_hex(amount, 8)
+        s = bitcoin.int_to_hex(amount, 8)
         script = self.pay_script(addr)
-        s += var_int(len(script)//2)
+        s += bitcoin.var_int(len(script) // 2)
         s += script
         return s
 
@@ -757,9 +756,13 @@ class Transaction:
                 else:
                     del cmeta, res, self._cached_sighash_tup
 
-        hashPrevouts = Hash(bfh(''.join(self.serialize_outpoint(txin) for txin in inputs)))
-        hashSequence = Hash(bfh(''.join(int_to_hex(txin.get('sequence', 0xffffffff - 1), 4) for txin in inputs)))
-        hashOutputs = Hash(bfh(''.join(self.serialize_output(o) for o in outputs)))
+        hashPrevouts = bitcoin.Hash(
+            bfh(''.join(self.serialize_outpoint(txin) for txin in inputs)))
+        hashSequence = bitcoin.Hash(
+            bfh(''.join(bitcoin.int_to_hex(
+                txin.get('sequence', 0xffffffff - 1), 4) for txin in inputs)))
+        hashOutputs = bitcoin.Hash(
+            bfh(''.join(self.serialize_output(o) for o in outputs)))
 
         res = hashPrevouts, hashSequence, hashOutputs
         # cach resulting value, along with some minimal metadata to defensively
@@ -772,19 +775,19 @@ class Transaction:
         if (nHashType & 0xff) != 0x41:
             raise ValueError("other hashtypes not supported; submit a PR to fix this!")
 
-        nVersion = int_to_hex(self.version, 4)
-        nHashType = int_to_hex(nHashType, 4)
-        nLocktime = int_to_hex(self.locktime, 4)
+        nVersion = bitcoin.int_to_hex(self.version, 4)
+        nHashType = bitcoin.int_to_hex(nHashType, 4)
+        nLocktime = bitcoin.int_to_hex(self.locktime, 4)
 
         txin = self.inputs()[i]
         outpoint = self.serialize_outpoint(txin)
         preimage_script = self.get_preimage_script(txin)
-        scriptCode = var_int(len(preimage_script) // 2) + preimage_script
+        scriptCode = bitcoin.var_int(len(preimage_script) // 2) + preimage_script
         try:
-            amount = int_to_hex(txin['value'], 8)
+            amount = bitcoin.int_to_hex(txin['value'], 8)
         except KeyError:
             raise InputValueMissing
-        nSequence = int_to_hex(txin.get('sequence', 0xffffffff - 1), 4)
+        nSequence = bitcoin.int_to_hex(txin.get('sequence', 0xffffffff - 1), 4)
 
         hashPrevouts, hashSequence, hashOutputs = self.calc_common_sighash(use_cache = use_cache)
 
@@ -792,12 +795,13 @@ class Transaction:
         return preimage
 
     def serialize(self, estimate_size=False):
-        nVersion = int_to_hex(self.version, 4)
-        nLocktime = int_to_hex(self.locktime, 4)
+        nVersion = bitcoin.int_to_hex(self.version, 4)
+        nLocktime = bitcoin.int_to_hex(self.locktime, 4)
         inputs = self.inputs()
         outputs = self.outputs()
-        txins = var_int(len(inputs)) + ''.join(self.serialize_input(txin, self.input_script(txin, estimate_size, self._sign_schnorr), estimate_size) for txin in inputs)
-        txouts = var_int(len(outputs)) + ''.join(self.serialize_output(o) for o in outputs)
+        txins = bitcoin.var_int(len(inputs)) + ''.join(self.serialize_input(txin, self.input_script(txin, estimate_size, self._sign_schnorr), estimate_size) for txin in inputs)
+        txouts = bitcoin.var_int(len(outputs)) + ''.join(
+            self.serialize_output(o) for o in outputs)
         return nVersion + txins + txouts + nLocktime
 
     def hash(self):
@@ -823,8 +827,8 @@ class Transaction:
         return self.txid()
 
     @staticmethod
-    def _txid(raw_hex : str) -> str:
-        return bh2u(Hash(bfh(raw_hex))[::-1])
+    def _txid(raw_hex: str) -> str:
+        return bh2u(bitcoin.Hash(bfh(raw_hex))[::-1])
 
     def add_inputs(self, inputs):
         self._inputs.extend(inputs)
@@ -906,9 +910,10 @@ class Transaction:
             from ecdsa.der import UnexpectedDER
             # ECDSA signature
             try:
-                pubkey_point = ser_to_point(pubkey)
-                vk = MyVerifyingKey.from_public_point(pubkey_point, curve=SECP256k1)
-                if vk.verify_digest(sig, msghash, sigdecode = ecdsa.util.sigdecode_der):
+                pubkey_point = bitcoin.ser_to_point(pubkey)
+                vk = bitcoin.MyVerifyingKey.from_public_point(
+                    pubkey_point, curve=ecdsa.curves.SECP256k1)
+                if vk.verify_digest(sig, msghash, sigdecode=ecdsa.util.sigdecode_der):
                    return True
             except (AssertionError, ValueError, TypeError,
                     BadSignatureError, BadDigestError, UnexpectedDER) as e:
@@ -925,11 +930,13 @@ class Transaction:
 
     @staticmethod
     def _ecdsa_sign(sec, pre_hash):
-        pkey = regenerate_key(sec)
+        pkey = bitcoin.regenerate_key(sec)
         secexp = pkey.secret
-        private_key = MySigningKey.from_secret_exponent(secexp, curve = SECP256k1)
+        private_key = bitcoin.MySigningKey.from_secret_exponent(
+            secexp, curve=ecdsa.curves.SECP256k1)
         public_key = private_key.get_verifying_key()
-        sig = private_key.sign_digest_deterministic(pre_hash, hashfunc=hashlib.sha256, sigencode = ecdsa.util.sigencode_der)
+        sig = private_key.sign_digest_deterministic(
+            pre_hash, hashfunc=hashlib.sha256, sigencode = ecdsa.util.sigencode_der)
         assert public_key.verify_digest(sig, pre_hash, sigdecode = ecdsa.util.sigdecode_der)
         return sig
 
@@ -963,10 +970,11 @@ class Transaction:
 
     def _sign_txin(self, i, j, sec, compressed, *, use_cache=False, ndata=None):
         '''Note: precondition is self._inputs is valid (ie: tx is already deserialized)'''
-        pubkey = public_key_from_private_key(sec, compressed)
+        pubkey = bitcoin.public_key_from_private_key(sec, compressed)
         # add signature
         nHashType = 0x00000041 # hardcoded, perhaps should be taken from unsigned input dict
-        pre_hash = Hash(bfh(self.serialize_preimage(i, nHashType, use_cache=use_cache)))
+        pre_hash = bitcoin.Hash(
+            bfh(self.serialize_preimage(i, nHashType, use_cache=use_cache)))
         if self._sign_schnorr:
             sig = self._schnorr_sign(pubkey, sec, pre_hash, ndata=ndata)
         else:
@@ -1368,7 +1376,7 @@ class OPReturn:
         op_return_payload = op_return_encoded.hex()
         script = op_return_code + op_return_payload
         amount = 0
-        return (TYPE_SCRIPT, ScriptOutput.from_string(script), amount)
+        return bitcoin.TYPE_SCRIPT, ScriptOutput.from_string(script), amount
 
     @staticmethod
     def output_for_rawhex(op_return):
@@ -1384,5 +1392,6 @@ class OPReturn:
         if len(op_return_script) > 223:
             raise OPReturn.TooLarge(_("OP_RETURN script too large, needs to be no longer than 223 bytes"))
         amount = 0
-        return (TYPE_SCRIPT, ScriptOutput.protocol_factory(op_return_script), amount)
+        return (bitcoin.TYPE_SCRIPT, ScriptOutput.protocol_factory(op_return_script),
+                amount)
 # /OPReturn

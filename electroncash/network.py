@@ -38,7 +38,6 @@ from typing import Dict
 import socks
 from . import util
 from . import bitcoin
-from .bitcoin import *
 from . import networks
 from .i18n import _
 from .interface import Connection, Interface
@@ -810,7 +809,7 @@ class Network(util.DaemonThread):
             try:
                 if error is None and isinstance(result, (int, float)) and result > 0:
                     i = params[0]
-                    fee = int(result*COIN)
+                    fee = int(result * bitcoin.COIN)
                     self.config.update_fee_estimates(i, fee)
                     self.print_error("fee_estimates[%d]" % i, fee)
                     self.notify('fee')
@@ -819,7 +818,7 @@ class Network(util.DaemonThread):
         elif method == 'blockchain.relayfee':
             try:
                 if error is None and isinstance(result, (int, float)):
-                    self.relay_fee = int(result * COIN)
+                    self.relay_fee = int(result * bitcoin.COIN)
                     self.print_error("relayfee", self.relay_fee)
             except (TypeError, ValueError) as e:
                 self.print_error("bad server data in blockchain.relayfee:", result, "error:", repr(e))
@@ -1149,7 +1148,7 @@ class Network(util.DaemonThread):
                 self.connection_down(interface.server, blacklist=True)
                 return
 
-            data = bfh(hexdata)
+            data = bytes.fromhex(hexdata)
             try:
                 blockchain.verify_proven_chunk(request_base_height, data)
             except blockchain.VerifyError as e:
@@ -1184,7 +1183,7 @@ class Network(util.DaemonThread):
         else:
             target_blockchain = interface.blockchain
 
-        chunk_data = bfh(hexdata)
+        chunk_data = bytes.fromhex(hexdata)
         connect_state = (target_blockchain.connect_chunk(request_base_height, chunk_data, proof_was_provided)
                          if target_blockchain
                          else blockchain.CHUNK_BAD)  # fix #1079 -- invariant is violated here due to extant bugs, so rather than raise an exception, just trigger a connection_down below...
@@ -1285,7 +1284,7 @@ class Network(util.DaemonThread):
             hexheader = result
 
         # Simple header request.
-        header = blockchain.deserialize_header(bfh(hexheader), height)
+        header = blockchain.deserialize_header(bytes.fromhex(hexheader), height)
         # Is there a blockchain that already includes this header?
         chain = blockchain.check_header(header)
         if interface.mode == Interface.MODE_BACKWARD:
@@ -1530,7 +1529,8 @@ class Network(util.DaemonThread):
 
         header_hex = header_dict['hex']
         height = header_dict['height']
-        header = blockchain.deserialize_header(bfh(header_hex), height)
+        header = blockchain.deserialize_header(bytes.fromhex(header_hex),
+                                               height)
 
         # If the server is behind the verification height, then something is wrong with it.  Drop it.
         if networks.net.VERIFICATION_BLOCK_HEIGHT is not None and height <= networks.net.VERIFICATION_BLOCK_HEIGHT:
@@ -1656,9 +1656,10 @@ class Network(util.DaemonThread):
 
         Returns a boolean to represent whether the server's proof is correct.
         """
-        received_merkle_root = bytes(reversed(bfh(merkle_root)))
+        received_merkle_root = bytes(reversed(bytes.fromhex(merkle_root)))
         if networks.net.VERIFICATION_BLOCK_MERKLE_ROOT:
-            expected_merkle_root = bytes(reversed(bfh(networks.net.VERIFICATION_BLOCK_MERKLE_ROOT)))
+            expected_merkle_root = bytes(reversed(
+                bytes.fromhex(networks.net.VERIFICATION_BLOCK_MERKLE_ROOT)))
         else:
             expected_merkle_root = received_merkle_root
 
@@ -1666,8 +1667,8 @@ class Network(util.DaemonThread):
             interface.print_error("Sent unexpected merkle root, expected: {}, got: {}".format(networks.net.VERIFICATION_BLOCK_MERKLE_ROOT, merkle_root))
             return False
 
-        header_hash = Hash(bfh(header))
-        byte_branches = [ bytes(reversed(bfh(v))) for v in merkle_branch ]
+        header_hash = bitcoin.Hash(bytes.fromhex(header))
+        byte_branches = [ bytes(reversed(bytes.fromhex(v))) for v in merkle_branch ]
         proven_merkle_root = blockchain.root_from_proof(header_hash, byte_branches, header_height)
         if proven_merkle_root != expected_merkle_root:
             interface.print_error("Sent incorrect merkle branch, expected: {}, proved: {}".format(networks.net.VERIFICATION_BLOCK_MERKLE_ROOT, util.hfu(reversed(proven_merkle_root))))

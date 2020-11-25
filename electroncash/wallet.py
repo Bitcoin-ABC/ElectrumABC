@@ -44,11 +44,12 @@ from functools import partial
 from typing import Set, Tuple, Union
 
 from .i18n import ngettext
-from .util import (NotEnoughFunds, ExcessiveFee, PrintError, UserCancelled, profiler, format_satoshis, format_time,
-                   finalization_print_error, to_string)
+from .util import (NotEnoughFunds, ExcessiveFee, PrintError,
+                   UserCancelled, InvalidPassword, profiler,
+                   format_satoshis, format_time, finalization_print_error,
+                   to_string, bh2u)
 
 from .address import Address, Script, ScriptOutput, PublicKey, OpCodes
-from .bitcoin import *
 from .version import *
 from .keystore import load_keystore, Hardware_KeyStore, Imported_KeyStore, BIP32_KeyStore, xpubkey_to_address
 from . import networks
@@ -137,7 +138,7 @@ def sweep_preparations(privkeys, network, imax=100):
             txin_type, privkey, compressed = bitcoin.deserialize_privkey(sec)
             find_utxos_for_privkey(txin_type, privkey, compressed)
             # do other lookups to increase support coverage
-            if is_minikey(sec):
+            if bitcoin.is_minikey(sec):
                 # minikeys don't have a compressed byte
                 # we lookup both compressed and uncompressed pubkeys
                 find_utxos_for_privkey(txin_type, privkey, not compressed)
@@ -158,7 +159,7 @@ def sweep(privkeys, network, config, recipient, fee=None, imax=100, sign_schnorr
     inputs, keypairs = sweep_preparations(privkeys, network, imax)
     total = sum(i.get('value') for i in inputs)
     if fee is None:
-        outputs = [(TYPE_ADDRESS, recipient, total)]
+        outputs = [(bitcoin.TYPE_ADDRESS, recipient, total)]
         tx = Transaction.from_io(inputs, outputs, sign_schnorr=sign_schnorr)
         fee = config.estimate_fee(tx.estimated_size())
     if total - fee < 0:
@@ -166,7 +167,7 @@ def sweep(privkeys, network, config, recipient, fee=None, imax=100, sign_schnorr
     if total - fee < dust_threshold(network):
         raise NotEnoughFunds(_('Not enough funds on address.') + '\nTotal: %d satoshis\nFee: %d\nDust Threshold: %d'%(total, fee, dust_threshold(network)))
 
-    outputs = [(TYPE_ADDRESS, recipient, total - fee)]
+    outputs = [(bitcoin.TYPE_ADDRESS, recipient, total - fee)]
     locktime = network.get_local_height()
 
     tx = Transaction.from_io(inputs, outputs, locktime=locktime, sign_schnorr=sign_schnorr)
@@ -980,7 +981,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             if exclude_frozen_coins and (txo in self.frozen_coins or txo in self.frozen_coins_tmp):
                 continue
             had_cb = had_cb or is_cb  # remember if this address has ever seen a coinbase txo
-            if is_cb and tx_height + COINBASE_MATURITY > mempoolHeight:
+            if is_cb and tx_height + bitcoin.COINBASE_MATURITY > mempoolHeight:
                 x += v
             elif tx_height > 0:
                 c += v
@@ -1066,7 +1067,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                     # calculated based off mempool height (chain tip height + 1).
                     # See bitcoind consensus/tx_verify.cpp Consensus::CheckTxInputs
                     # and also txmempool.cpp  CTxMemPool::removeForReorg.
-                    if mature and x['coinbase'] and mempoolHeight - x['height'] < COINBASE_MATURITY:
+                    if mature and x['coinbase'] and mempoolHeight - x['height'] < bitcoin.COINBASE_MATURITY:
                         continue
                     coins.append(x)
                 if addr_set_out is not None and len(coins) > len_before:
@@ -2193,7 +2194,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         txid = tx.txid()
         for i, o in enumerate(tx.outputs()):
             otype, address, value = o
-            if otype == TYPE_ADDRESS and self.is_mine(address):
+            if otype == bitcoin.TYPE_ADDRESS and self.is_mine(address):
                 break
         else:
             return
@@ -2203,7 +2204,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             return
         self.add_input_info(item)
         inputs = [item]
-        outputs = [(TYPE_ADDRESS, address, value - fee)]
+        outputs = [(bitcoin.TYPE_ADDRESS, address, value - fee)]
         locktime = self.get_local_height()
         # note: no need to call tx.BIP_LI01_sort() here - single input/output
         return Transaction.from_io(inputs, outputs, locktime=locktime, sign_schnorr=sign_schnorr)
@@ -2431,7 +2432,8 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         if op_return and op_return_raw:
             raise ValueError("both op_return and op_return_raw cannot be specified as arguments to make_payment_request")
         timestamp = int(time.time())
-        _id = bh2u(Hash(addr.to_storage_string() + "%d" % timestamp))[0:10]
+        _id = bh2u(bitcoin.Hash(
+            addr.to_storage_string() + "%d" % timestamp))[0:10]
         d = {
             'time': timestamp,
             'amount': amount,
@@ -3169,7 +3171,7 @@ class Multisig_Wallet(Deterministic_Wallet):
 
     def update_password(self, old_pw, new_pw, encrypt=False):
         if old_pw is None and self.has_password():
-            raise InvalidPassword()
+            raise bitcoin.InvalidPassword()
         for name, keystore in self.keystores.items():
             if keystore.can_change_password():
                 keystore.update_password(old_pw, new_pw)
