@@ -5,7 +5,9 @@ from .. import util
 from ..transaction import Transaction
 from typing import List, Tuple, Set
 
-from .exceptions import *
+from .exceptions import (
+    Error, OpreturnError, InvalidOutputMessage, UnsupportedSlpTokenType,
+    OPReturnTooLarge, SerializingError)
 
 lokad_id = b"SLP\x00"  # aka protocol code (prefix) -- this appears after the 'OP_RETURN + OP_PUSH(4)' bytes in the ScriptOutput for *ALL* SLP scripts
 valid_token_types = frozenset((1, 65, 129))  # any token types not in this set will be rejected
