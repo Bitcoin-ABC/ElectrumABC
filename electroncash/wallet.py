@@ -50,7 +50,7 @@ from .util import (NotEnoughFunds, ExcessiveFee, PrintError,
                    to_string, bh2u)
 
 from .address import Address, Script, ScriptOutput, PublicKey, OpCodes
-from .version import *
+from .version import PACKAGE_VERSION
 from .keystore import load_keystore, Hardware_KeyStore, Imported_KeyStore, BIP32_KeyStore, xpubkey_to_address
 from . import networks
 from . import keystore
