@@ -41,7 +41,6 @@ except ImportError:
     sys.exit("Error: could not find paymentrequest_pb2.py. Create it with 'protoc --proto_path=electroncash/ --python_out=electroncash/ electroncash/paymentrequest.proto'")
 
 from . import bitcoin
-from . import version
 from . import util
 from . import transaction
 from . import x509

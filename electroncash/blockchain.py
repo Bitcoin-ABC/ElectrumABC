@@ -22,7 +22,6 @@
 # SOFTWARE.
 
 import os
-import sys
 import threading
 
 from typing import Optional

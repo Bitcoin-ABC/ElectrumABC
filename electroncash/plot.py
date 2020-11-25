@@ -10,8 +10,6 @@ import matplotlib
 matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 import matplotlib.dates as md
-from matplotlib.patches import Ellipse
-from matplotlib.offsetbox import AnchoredOffsetbox, TextArea, DrawingArea, HPacker
 
 
 def plot_history(wallet, history):

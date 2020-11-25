@@ -40,7 +40,6 @@ import threading
 import time
 from collections import defaultdict, namedtuple
 from enum import Enum, auto
-from functools import partial
 from typing import Set, Tuple, Union
 
 from .i18n import ngettext
@@ -49,14 +48,13 @@ from .util import (NotEnoughFunds, ExcessiveFee, PrintError,
                    format_satoshis, format_time, finalization_print_error,
                    to_string, bh2u)
 
-from .address import Address, Script, ScriptOutput, PublicKey, OpCodes
+from .address import Address, Script, ScriptOutput, PublicKey
 from .version import PACKAGE_VERSION
 from .keystore import load_keystore, Hardware_KeyStore, Imported_KeyStore, BIP32_KeyStore, xpubkey_to_address
 from . import networks
 from . import keystore
 from .storage import multisig_type, WalletStorage
 
-from . import transaction
 from .transaction import Transaction, InputValueMissing
 from .plugins import run_hook
 from . import bitcoin

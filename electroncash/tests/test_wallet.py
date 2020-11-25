@@ -7,7 +7,6 @@ import json
 
 from io import StringIO
 from ..storage import WalletStorage, FINAL_SEED_VERSION
-from .. import wallet
 from ..wallet import create_new_wallet, restore_wallet_from_text
 from ..simple_config import SimpleConfig
 from ..address import Address

@@ -11,8 +11,6 @@ A Python-only Schnorr sign/verify is available as a fallback if secp256k1 is
 unavailable. Note that this is much less secure as it contains side channel
 vulnerabilities, and must not be used in an automated-signing environment.
 '''
-import os
-import sys
 import hmac, hashlib
 from ctypes import create_string_buffer, c_void_p, c_char_p, c_int, c_size_t, byref, cast
 
@@ -130,7 +128,7 @@ def sign(privkey, message_hash, *, ndata=None):
     `message_hash` should be the 32 byte sha256d hash of the tx input (or
     message) you want to sign
     '''
-   
+
     if ndata is not None:
        assert len(ndata) == 32
 
@@ -160,7 +158,7 @@ def sign(privkey, message_hash, *, ndata=None):
         # For pure python (not libsecp256k1), convert an empty ndata to bytes as the required format for concatenation inside the nonce function.
         if ndata is None:
             ndata = b''
-            
+
         secexp = int.from_bytes(privkey, 'big')
         if not 0 < secexp < order:
             raise ValueError('could not sign')

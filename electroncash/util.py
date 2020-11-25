@@ -27,8 +27,6 @@ import inspect
 import itertools
 import json
 import os
-import queue
-import re
 import stat
 import subprocess
 import sys
@@ -37,7 +35,7 @@ import time
 import traceback
 import weakref
 from abc import ABC, abstractmethod
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 from datetime import datetime
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
 from functools import lru_cache

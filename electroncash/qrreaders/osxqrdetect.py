@@ -33,7 +33,7 @@ if sys.platform != 'darwin':
 
 
 from . import MissingLib
-from ..util import print_error, is_verbose, _, PrintError
+from ..util import print_error, is_verbose, PrintError
 
 from .abstract_base import AbstractQrCodeReader, QrCodeResult
 

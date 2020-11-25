@@ -1,5 +1,4 @@
 import unittest
-from .. import keystore
 from .. import mnemonic
 from .. import old_mnemonic
 from ..util import bh2u

@@ -29,7 +29,7 @@ import json
 import copy
 import re
 import stat
-import hmac, hashlib
+import hashlib
 import base64
 import zlib
 

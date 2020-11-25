@@ -23,7 +23,6 @@
 
 """Reference tests for cashaddr adresses"""
 
-import binascii
 import unittest
 import random
 from .. import cashaddr

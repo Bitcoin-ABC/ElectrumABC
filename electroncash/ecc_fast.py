@@ -5,13 +5,10 @@
 # taken (with minor modifications) from pycoin
 # https://github.com/richardkiss/pycoin/blob/01b1787ed902df23f99a55deb00d8cd076a906fe/pycoin/ecdsa/native/secp256k1.py
 
-import os
-import sys
-import traceback
 import ecdsa
 from ctypes import (byref, c_size_t, create_string_buffer)
 
-from .util import print_error, print_msg
+from .util import print_msg
 from . import secp256k1
 
 

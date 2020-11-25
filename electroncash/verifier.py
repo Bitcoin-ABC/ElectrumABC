@@ -21,10 +21,10 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 from abc import ABC, abstractmethod
-from .util import ThreadJob, bh2u
+from .util import ThreadJob
 from .bitcoin import Hash, hash_decode, hash_encode
 from . import networks
-from .transaction import Transaction
+
 
 class BadResponse(Exception): pass
 

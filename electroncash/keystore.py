@@ -36,7 +36,7 @@ from .address import Address, PublicKey
 from . import networks
 from .mnemonic import Mnemonic, Mnemonic_Electrum, seed_type_name, is_seed
 from .plugins import run_hook
-from .util import PrintError, InvalidPassword, hfu, bh2u, print_error
+from .util import PrintError, InvalidPassword, bh2u, print_error
 
 
 class KeyStore(PrintError):

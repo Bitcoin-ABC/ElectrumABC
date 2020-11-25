@@ -40,7 +40,7 @@ from collections import defaultdict, namedtuple
 from typing import List, Tuple, Dict
 from . import bitcoin
 from . import util
-from .address import Address, OpCodes, Script, ScriptError, UnknownAddress
+from .address import Address, OpCodes, Script, UnknownAddress
 from .address import ScriptOutput as ScriptOutputBase
 from .transaction import BCDataStream, Transaction
 from . import verifier

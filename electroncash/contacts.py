@@ -28,7 +28,7 @@ import os
 import re
 import traceback
 from collections import namedtuple
-from typing import List, Dict, Generator
+from typing import List, Generator
 from . import dnssec
 from . import cashacct
 from . import util

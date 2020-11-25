@@ -1,5 +1,4 @@
 import unittest
-from pprint import pprint
 
 from .. import transaction
 from ..address import Address, ScriptOutput, PublicKey

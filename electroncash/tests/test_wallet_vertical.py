@@ -2,7 +2,6 @@ import unittest
 from unittest import mock
 
 from ..address import Address
-from .. import bitcoin
 from .. import keystore
 from .. import mnemonic
 from .. import storage

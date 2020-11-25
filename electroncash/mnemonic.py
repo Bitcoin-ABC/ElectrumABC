@@ -28,7 +28,6 @@
 import binascii
 import ecdsa
 import hashlib
-import hmac
 import math
 import os
 import pkgutil
