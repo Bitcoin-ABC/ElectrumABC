@@ -1,26 +1,30 @@
-from datetime import datetime
-import inspect
-import requests
-import sys
-import os
-import json
-import pkgutil
-from threading import Thread
-import time
 import csv
 import decimal
-from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
+import inspect
+import json
+import os
+import pkgutil
+import sys
+import time
 from collections import defaultdict
+from datetime import datetime
+# Qt 5.12 also exports Decimal
+from decimal import Decimal as PyDecimal
+from threading import Thread
 from typing import Dict, List
 
+import requests
+
 from .bitcoin import COIN
-from .constants import PROJECT_NAME, INV_BASE_UNITS
+from .constants import INV_BASE_UNITS, PROJECT_NAME
 from .i18n import _
 from .util import PrintError, ThreadJob, print_error
 
+
 DEFAULT_ENABLED = False
 DEFAULT_CURRENCY = "USD"
-DEFAULT_EXCHANGE = "CoinGecko"  # Note the exchange here should ideally also support history rates
+# Note the exchange here should ideally also support history rates
+DEFAULT_EXCHANGE = "CoinGecko"
 
 # See https://en.wikipedia.org/wiki/ISO_4217
 CCY_PRECISIONS = {'BHD': 3, 'BIF': 0, 'BYR': 0, 'CLF': 4, 'CLP': 0,
@@ -43,16 +47,20 @@ class ExchangeBase(PrintError):
     def get_json(self, site, get_string):
         # APIs must have https
         url = ''.join(['https://', site, get_string])
-        response = requests.request('GET', url, headers={'User-Agent': f'{PROJECT_NAME}'}, timeout=10)
+        response = requests.request(
+            'GET', url, headers={'User-Agent': f'{PROJECT_NAME}'}, timeout=10)
         if response.status_code != 200:
-            raise RuntimeWarning("Response status: " + str(response.status_code))
+            raise RuntimeWarning("Response status: " +
+                                 str(response.status_code))
         return response.json()
 
     def get_csv(self, site, get_string):
         url = ''.join(['https://', site, get_string])
-        response = requests.request('GET', url, headers={'User-Agent': f'{PROJECT_NAME}'})
+        response = requests.request(
+            'GET', url, headers={'User-Agent': f'{PROJECT_NAME}'})
         if response.status_code != 200:
-            raise RuntimeWarning("Response status: " + str(response.status_code))
+            raise RuntimeWarning("Response status: " +
+                                 str(response.status_code))
         reader = csv.DictReader(response.content.decode().split('\n'))
         return list(reader)
 
@@ -81,7 +89,9 @@ class ExchangeBase(PrintError):
                 with open(filename, 'r', encoding='utf-8') as f:
                     h = json.loads(f.read())
                 if h:
-                    self.print_error("read_historical_rates: returning cached history from", filename)
+                    self.print_error(
+                        "read_historical_rates: returning cached history from",
+                        filename)
             except Exception as e:
                 self.print_error("read_historical_rates: error", repr(e))
         h = h or None
@@ -92,15 +102,18 @@ class ExchangeBase(PrintError):
 
     @staticmethod
     def _is_timestamp_old(timestamp):
-        HOUR = 60.0*60.0  # number of seconds in an hour
-        return time.time() - timestamp >= 24.0 * HOUR  # check history rates every 24 hours, as the granularity is per-day anyway
+        HOUR = 60.0 * 60.0  # number of seconds in an hour
+        # check history rates every 24 hours, as the granularity is per-day
+        # anyway
+        return time.time() - timestamp >= 24.0 * HOUR
 
     def is_historical_rate_old(self, ccy):
         return self._is_timestamp_old(self.history_timestamps.get(ccy, 0.0))
 
     def _cache_historical_rates(self, h, ccy, cache_dir):
-        ''' Writes the history, h, to the cache file. Catches its own exceptions
-        and always returns successfully, even if the write process failed. '''
+        """Writes the history, h, to the cache file. Catches its own exceptions
+        and always returns successfully, even if the write process failed.
+        """
         wroteBytes, filename = 0, '(none)'
         try:
             filename = self._get_cache_filename(ccy, cache_dir)
@@ -110,7 +123,8 @@ class ExchangeBase(PrintError):
         except Exception as e:
             self.print_error("cache_historical_rates error:", repr(e))
             return False
-        self.print_error(f"cache_historical_rates: wrote {wroteBytes} bytes to file {filename}")
+        self.print_error(
+            f"cache_historical_rates: wrote {wroteBytes} bytes to file {filename}")
         return True
 
     def get_historical_rates_safe(self, ccy, cache_dir):
@@ -134,10 +148,13 @@ class ExchangeBase(PrintError):
         self.on_history()
 
     def get_historical_rates(self, ccy, cache_dir):
-        result, timestamp = self.history.get(ccy), self.history_timestamps.get(ccy, 0.0)
+        result, timestamp = self.history.get(
+            ccy), self.history_timestamps.get(ccy, 0.0)
 
-        if (not result or self._is_timestamp_old(timestamp)) and ccy in self.history_ccys():
-            t = Thread(target=self.get_historical_rates_safe, args=(ccy, cache_dir), daemon=True)
+        if (not result or self._is_timestamp_old(
+                timestamp)) and ccy in self.history_ccys():
+            t = Thread(target=self.get_historical_rates_safe,
+                       args=(ccy, cache_dir), daemon=True)
             t.start()
         return result
 
@@ -149,7 +166,8 @@ class ExchangeBase(PrintError):
 
     def get_currencies(self):
         rates = self.get_rates('')
-        return sorted([str(a) for (a, b) in rates.items() if b is not None and len(a)==3])
+        return sorted([str(a) for (a, b) in rates.items()
+                       if b is not None and len(a) == 3])
 
 
 class CoinGecko(ExchangeBase):
@@ -172,7 +190,8 @@ class CoinGecko(ExchangeBase):
     def request_history(self, ccy):
         history = self.get_json(
             'api.coingecko.com',
-            f'/api/v3/coins/bitcoin-cash-abc-2/market_chart?vs_currency={ccy}&days=max')
+            f'/api/v3/coins/bitcoin-cash-abc-2/market_chart?'
+            f'vs_currency={ccy}&days=max')
 
         return {
             datetime.utcfromtimestamp(h[0] / 1000).strftime('%Y-%m-%d'): h[1]
@@ -204,6 +223,11 @@ def load_exchanges_and_currencies() -> Dict[str, List[str]]:
     return json.loads(data.decode('utf-8'))
 
 
+def is_exchange_class(obj) -> bool:
+    return (inspect.isclass(obj) and issubclass(obj, ExchangeBase)
+            and obj != ExchangeBase)
+
+
 def query_save_exchanges_and_currencies():
     """Query the API of all defined exchanges to get the list of
     supported currencies.
@@ -213,10 +237,9 @@ def query_save_exchanges_and_currencies():
     """
     path = os.path.join(os.path.dirname(__file__), 'currencies.json')
     currencies = {}
-    is_exchange = lambda obj: (inspect.isclass(obj)
-                               and issubclass(obj, ExchangeBase)
-                               and obj != ExchangeBase)
-    exchanges = dict(inspect.getmembers(sys.modules[__name__], is_exchange))
+
+    exchanges = dict(inspect.getmembers(sys.modules[__name__],
+                                        is_exchange_class))
     for name, klass in exchanges.items():
         exchange = klass(None, None)
         try:
@@ -240,7 +263,8 @@ def get_exchanges_by_ccy(history=True):
         try:
             klass = globals()[name]
         except KeyError:
-            # can happen if currencies.json is not in synch with this .py file, see #1559
+            # can happen if currencies.json is not in sync with this
+            # .py file, see #1559
             continue
         exchange = klass(None, None)
         d[name] = exchange.history_ccys()
@@ -278,7 +302,8 @@ class FxThread(ThreadJob):
         diff_str = ''
         if is_diff:
             diff_str = '+' if amount >= 0 else '-'
-        fmt_str = "%s{:%s.%df}" % (diff_str, "," if commas else "", max(0, prec))
+        fmt_str = "%s{:%s.%df}" % (
+            diff_str, "," if commas else "", max(0, prec))
         try:
             rounded_amount = round(amount, prec)
         except decimal.InvalidOperation:
@@ -286,8 +311,9 @@ class FxThread(ThreadJob):
         return fmt_str.format(rounded_amount)
 
     def run(self):
-        ''' This runs from the Network thread. It is invoked roughly every
-        100ms (see network.py), with actual work being done every 2.5 minutes. '''
+        """This runs from the Network thread. It is invoked roughly every
+        100ms (see network.py), with actual work being done every 2.5 minutes.
+        """
         if self.is_enabled():
             if self.timeout <= time.time():
                 self.exchange.update(self.ccy)
@@ -298,7 +324,8 @@ class FxThread(ThreadJob):
                     # Update historical rates. Note this doesn't actually
                     # go out to the network unless cache file is missing
                     # and/or >= 24 hours have passed since last fetch.
-                    self.exchange.get_historical_rates(self.ccy, self.cache_dir)
+                    self.exchange.get_historical_rates(
+                        self.ccy, self.cache_dir)
                 # And, finally, update self.timeout so we execute this branch
                 # every ~2.5 minutes
                 self.timeout = time.time() + 150
@@ -322,14 +349,15 @@ class FxThread(ThreadJob):
         self.config.set_key('fiat_address', bool(b))
 
     def get_currency(self):
-        '''Use when dynamic fetching is needed'''
+        """Use when dynamic fetching is needed"""
         return self.config.get("currency", self.default_currency)
 
     def config_exchange(self):
         return self.config.get('use_exchange', self.default_exchange)
 
     def show_history(self):
-        return self.is_enabled() and self.get_history_config() and self.ccy in self.exchange.history_ccys()
+        return self.is_enabled() and self.get_history_config(
+        ) and self.ccy in self.exchange.history_ccys()
 
     def set_currency(self, ccy):
         self.ccy = ccy
@@ -344,7 +372,9 @@ class FxThread(ThreadJob):
         if self.config_exchange() != name:
             self.config.set_key('use_exchange', name, True)
         self.exchange = class_(self.on_quotes, self.on_history)
-        if self.get_history_config() and self.ccy not in self.exchange.history_ccys() and class_ != default_class:
+        if self.get_history_config() and \
+                self.ccy not in self.exchange.history_ccys() and \
+                class_ != default_class:
             # this exchange has no history for this ccy. Try the default exchange.
             # If that also fails the user will be stuck in a strange UI
             # situation where the checkbox is checked but they see no history
@@ -366,7 +396,7 @@ class FxThread(ThreadJob):
             self.network.trigger_callback('on_history')
 
     def exchange_rate(self):
-        '''Returns None, or the exchange rate as a PyDecimal'''
+        """Returns None, or the exchange rate as a PyDecimal"""
         rate = self.exchange.quotes.get(self.ccy)
         if rate:
             return PyDecimal(rate)
@@ -377,22 +407,32 @@ class FxThread(ThreadJob):
 
     def format_amount(self, btc_balance, is_diff=False):
         rate = self.exchange_rate()
-        return '' if rate is None else self.value_str(btc_balance, rate, is_diff=is_diff)
+        return '' if rate is None else self.value_str(
+            btc_balance, rate, is_diff=is_diff)
 
     def get_fiat_status_text(self, btc_balance, base_unit, decimal_point):
         rate = self.exchange_rate()
+        if rate is None:
+            return _("  (No FX rate available)")
         default_prec = 2
-        if base_unit == INV_BASE_UNITS.get(2):  # if base_unit == 'bits', increase precision on fiat as bits is pretty tiny as of 2019
+        # if base_unit == 'bits', increase precision on fiat as bits is pretty
+        # tiny as of 2019
+        if base_unit == INV_BASE_UNITS.get(2):
             default_prec = 4
-        return _("  (No FX rate available)") if rate is None else " 1 %s~%s %s" % (base_unit,
-            self.value_str(COIN / (10**(8 - decimal_point)), rate, default_prec ), self.ccy )
+
+        return " 1 %s~%s %s" % (
+            base_unit,
+            self.value_str(COIN / (10**(8 - decimal_point)),
+                           rate, default_prec),
+            self.ccy)
 
     def value_str(self, satoshis, rate, default_prec=2, is_diff=False):
         if satoshis is None:  # Can happen with incomplete history
             return _("Unknown")
         if rate:
             value = PyDecimal(satoshis) / COIN * PyDecimal(rate)
-            return "%s" % (self.ccy_amount_str(value, True, default_prec, is_diff=is_diff))
+            return "%s" % (self.ccy_amount_str(
+                value, True, default_prec, is_diff=is_diff))
         return _("No data")
 
     def history_rate(self, d_t):
