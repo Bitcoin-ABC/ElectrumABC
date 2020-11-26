@@ -7,7 +7,7 @@ This guide explains how to build binaries for macOS systems.
 We build our binaries on El Capitan (10.11.6) as building it on High Sierra
 makes the binaries incompatible with older versions.
 
-This assumes that the Xcode + Xcode Command Line tools (and thus git) are already installed. You can install older (and newer!) versions of Xcode from Apple provided you have a devloper account [from the Apple developer downloads site](https://developer.apple.com/download/more/).
+This assumes that the Xcode Command Line tools (and thus git) are already installed. You can install older (and newer!) versions of Xcode from Apple provided you have a devloper account [from the Apple developer downloads site](https://developer.apple.com/download/more/).
 
 
 ## 1. Make sure to freshen git submodules
@@ -16,7 +16,22 @@ This assumes that the Xcode + Xcode Command Line tools (and thus git) are alread
 
 The above ensures that you pull in the zbar, secp256k1, and other submodules.
 
-## 2. Use the provided script to begin building.
+## 2. Make sure coreutils is installed
+
+With [brew](https://brew.sh) installed, run
+
+```shell
+brew install coreutils
+brew install pyenv
+```
+
+Alternatively, with [macports](https://www.macports.org) installed, run
+
+```shell
+sudo port install coreutils
+```
+
+## 3. Use the provided script to begin building.
 
     ./make_osx
 
@@ -28,6 +43,6 @@ To find the identity string, use the following command:
 
     security find-identity -v -p codesigning
 
-## 2. Done
+## 4. Done
 
 You should see ElectrumABC.app and ElectrumABC-x.y.z.dmg in ../dist/. If you provided an identity for signing, these files can even be distributed to other Macs and they will run there without warnings from GateKeeper.
