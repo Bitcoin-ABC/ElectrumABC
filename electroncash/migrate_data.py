@@ -4,6 +4,7 @@ to the Electrum ABC data path if it does not already exists.
 The first time a user runs this program, if he already uses Electron Cash,
 he should be able to see all his BCH wallets.
 """
+import logging
 import os
 import shutil
 from typing import Optional
@@ -11,6 +12,8 @@ from typing import Optional
 from .network import DEFAULT_WHITELIST_SERVERS_ONLY, DEFAULT_AUTO_CONNECT
 from .simple_config import read_user_config, save_user_config
 from .util import get_user_dir
+
+_logger = logging.getLogger(__name__)
 
 
 # function copied from https://github.com/Electron-Cash/Electron-Cash/blob/master/electroncash/util.py
@@ -49,6 +52,20 @@ def does_ec_user_dir_exist() -> bool:
     return True
 
 
+def safe_rm(path: str) -> bool:
+    """Delete a file or a directory, return True in case of success.
+    In case an exception occurs, log the error message and return False.
+    """
+    try:
+        if os.path.isfile(path):
+            os.remove(path)
+        elif os.path.isdir(path):
+            shutil.rmtree(path)
+    except (OSError, shutil.Error) as e:
+        _logger.warning(
+            f"Unable to delete path {path}.\n{str(e)}")
+
+
 def migrate_data_from_ec():
     """Copy the EC data dir the first time Electrum ABC is executed.
     This makes all the wallets and settings available to users.
@@ -62,7 +79,12 @@ def migrate_data_from_ec():
         # This file exists if electron cash is currently running.
         lock_file = os.path.join(dest, "daemon")
         if os.path.isfile(lock_file):
-            os.remove(lock_file)
+            safe_rm(lock_file)
+
+        # Delete cache files containing BCH exchange rates
+        cache_dir = os.path.join(dest, "cache")
+        for filename in os.listdir(cache_dir):
+            safe_rm(filename)
 
         # update some parameters in config file
         config = read_user_config(dest)

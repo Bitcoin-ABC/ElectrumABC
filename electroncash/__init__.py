@@ -1,3 +1,5 @@
+import logging
+
 from .version import PACKAGE_VERSION
 from .util import format_satoshis, print_msg, print_error, set_verbosity
 from .wallet import Synchronizer, Wallet
@@ -14,3 +16,5 @@ from .commands import Commands, known_commands
 from . import address
 from . import cashacct  # has a side-effect: registers itself with ScriptOut protocol system
 
+logging.basicConfig()
+root_logger = logging.getLogger(__name__)
