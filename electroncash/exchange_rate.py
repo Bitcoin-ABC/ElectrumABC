@@ -44,7 +44,8 @@ class ExchangeBase(PrintError):
         self.on_quotes = on_quotes
         self.on_history = on_history
 
-    def get_json(self, site, get_string):
+    @staticmethod
+    def get_json(site, get_string):
         # APIs must have https
         url = ''.join(['https://', site, get_string])
         response = requests.request(
@@ -54,7 +55,8 @@ class ExchangeBase(PrintError):
                                  str(response.status_code))
         return response.json()
 
-    def get_csv(self, site, get_string):
+    @staticmethod
+    def get_csv(site, get_string):
         url = ''.join(['https://', site, get_string])
         response = requests.request(
             'GET', url, headers={'User-Agent': f'{PROJECT_NAME}'})
@@ -289,11 +291,13 @@ class FxThread(ThreadJob):
         if not os.path.exists(self.cache_dir):
             os.mkdir(self.cache_dir)
 
-    def get_currencies(self, h):
+    @staticmethod
+    def get_currencies(h):
         d = get_exchanges_by_ccy(h)
         return sorted(d.keys())
 
-    def get_exchanges_by_ccy(self, ccy, h):
+    @staticmethod
+    def get_exchanges_by_ccy(ccy, h):
         d = get_exchanges_by_ccy(h)
         return d.get(ccy, [])
 
