@@ -160,16 +160,37 @@ class ExchangeBase(PrintError):
             t.start()
         return result
 
-    def history_ccys(self):
+    def history_ccys(self) -> List[str]:
+        """Return a list of currency codes for which this exchange
+        has an API to query the historical prices."""
         return []
 
-    def historical_rate(self, ccy, d_t):
+    def historical_rate(self, ccy: str, d_t: datetime):
         return self.history.get(ccy, {}).get(d_t.strftime('%Y-%m-%d'))
 
-    def get_currencies(self):
+    def get_rates(self, ccy: str) -> Dict[str, decimal.Decimal]:
+        """Return a dictionary of exchange rates.
+        The keys are currencies codes, and the values are decimal.Decimal
+        objects.
+        """
+        raise NotImplementedError(
+            "Exchange classes must implement this method")
+
+    def get_currencies(self) -> List[str]:
+        """Return a list of currency codes for which this exchange
+        has an API to query the current price."""
         rates = self.get_rates('')
         return sorted([str(a) for (a, b) in rates.items()
                        if b is not None and len(a) == 3])
+
+    def request_history(self, ccy: str) -> Dict[str, float]:
+        """Return a dict of historical rates for a given currency.
+        The dict key is a '%Y-%m-%d' date string, the value are
+        floating point numbers.
+        """
+        raise NotImplementedError(
+            "Exchange classes supporting historical exchange rates must "
+            "implement this method.")
 
 
 class CoinGecko(ExchangeBase):
