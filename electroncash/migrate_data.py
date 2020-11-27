@@ -2,7 +2,8 @@
 to the Electrum ABC data path if it does not already exists.
 
 The first time a user runs this program, if he already uses Electron Cash,
-he should be able to see all his BCH wallets.
+he should be able to see all his BCH wallets and have some of the
+settings imported.
 """
 import logging
 import os
@@ -52,9 +53,9 @@ def does_ec_user_dir_exist() -> bool:
     return True
 
 
-def safe_rm(path: str) -> bool:
-    """Delete a file or a directory, return True in case of success.
-    In case an exception occurs, log the error message and return False.
+def safe_rm(path: str):
+    """Delete a file or a directory.
+    In case an exception occurs, log the error message.
     """
     try:
         if os.path.isfile(path):
@@ -86,6 +87,10 @@ def migrate_data_from_ec():
         for filename in os.listdir(cache_dir):
             safe_rm(filename)
 
+        # Delete recent servers list
+        recent_servers_file = os.path.join(dest, "recent-servers")
+        safe_rm(recent_servers_file)
+
         # update some parameters in config file
         config = read_user_config(dest)
         if config:
@@ -94,6 +99,9 @@ def migrate_data_from_ec():
             config["whitelist_servers_only"] = DEFAULT_WHITELIST_SERVERS_ONLY
             config["auto_connect"] = DEFAULT_AUTO_CONNECT
             config["server"] = ""
+            config.pop("server_whitelist_removed", None)
+            config.pop("server_whitelist_removed", None)
+            config.pop("server_blacklist", None)
 
             # Set a fee_per_kb adapted to the current mempool situation
             if "fee_per_kb" in config:
@@ -101,10 +109,8 @@ def migrate_data_from_ec():
 
             # Delete rpcuser and password. These will be generated on
             # the first connection with jsonrpclib.Server
-            if "rpcuser" in config:
-                del config["rpcuser"]
-            if "rpcpassword" in config:
-                del config["rpcpassword"]
+            config.pop("rpcuser", None)
+            config.pop("rpcpassword", None)
 
             # Disable plugins that can not be selected in the Electrum ABC menu.
             config["use_labels"] = False
