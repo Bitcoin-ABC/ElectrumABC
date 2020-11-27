@@ -52,8 +52,6 @@ datas = [
     (home+'electroncash/currencies.json', 'electroncash'),
     (home+'electroncash/servers.json', 'electroncash'),
     (home+'electroncash/servers_testnet.json', 'electroncash'),
-    (home+'electroncash/servers_testnet4.json', 'electroncash'),
-    (home+'electroncash/servers_scalenet.json', 'electroncash'),
     (home+'electroncash/wordlist/english.txt', 'electroncash/wordlist'),
     (home+'electroncash/locale', 'electroncash/locale'),
     (home+'electroncash_gui/qt/data/ecsupplemental_win.ttf', 'electroncash_gui/qt/data'),

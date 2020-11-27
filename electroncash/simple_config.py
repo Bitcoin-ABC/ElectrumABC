@@ -97,12 +97,6 @@ class SimpleConfig(PrintError):
         if self.get('testnet'):
             path = os.path.join(path, 'testnet')
             make_dir(path)
-        elif self.get('testnet4'):
-            path = os.path.join(path, 'testnet4')
-            make_dir(path)
-        elif self.get('scalenet'):
-            path = os.path.join(path, 'scalenet')
-            make_dir(path)
 
         obsolete_file = os.path.join(path, 'recent_servers')
         if os.path.exists(obsolete_file):
