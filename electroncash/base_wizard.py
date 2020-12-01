@@ -27,6 +27,7 @@
 import os
 import sys
 import traceback
+from typing import Callable
 from . import bitcoin
 from . import keystore
 from . import mnemo
@@ -34,7 +35,7 @@ from . import util
 from .wallet import (ImportedAddressWallet, ImportedPrivkeyWallet,
                      Standard_Wallet, Multisig_Wallet, wallet_types)
 from .i18n import _
-from .constants import PROJECT_NAME, REPOSITORY_URL
+from .constants import PROJECT_NAME, REPOSITORY_URL, CURRENCY
 
 
 class BaseWizard(util.PrintError):
@@ -264,24 +265,45 @@ class BaseWizard(util.PrintError):
                 self.show_error(str(e))
             self.choose_hw_device()
             return
-        f = lambda x: self.run('on_hw_derivation', name, device_info, str(x))
-        if self.wallet_type=='multisig':
+        if self.wallet_type == 'multisig':
             # There is no general standard for HD multisig.
             # This is partially compatible with BIP45; assumes index=0
             default_derivation = "m/45'/0"
         else:
+            # Use the BCH derivation path for now, until hardware wallets
+            # start supporting BCHA
             default_derivation = keystore.bip44_derivation_bch(0)
-        self.derivation_dialog(f, default_derivation)
+        self.derivation_dialog(
+            lambda x: self.run('on_hw_derivation', name, device_info, str(x)),
+            default_derivation,
+            is_hw_wallet=True)
 
-    def derivation_dialog(self, f, default_derivation):
-        message = '\n'.join([
+    def derivation_dialog(self,
+                          run_next: Callable,
+                          default_derivation: str,
+                          is_hw_wallet: bool = False):
+        bip44_btc = keystore.bip44_derivation_btc(0)
+        bip44_bch = keystore.bip44_derivation_bch(0)
+        bip44_bcha = keystore.bip44_derivation_bcha(0)
+        lines = [
             _('Enter your wallet derivation here.'),
             _('If you are not sure what this is, leave this field unchanged.'),
-            _("If you want the wallet to use legacy Bitcoin addresses use m/44'/0'/0'"),
-            _("If you want the wallet to use Bitcoin Cash addresses use m/44'/145'/0'"),
-            _("The placeholder value of {} is the default derivation for {} wallets.").format(default_derivation, self.wallet_type),
-        ])
-        self.line_dialog(run_next=f, title=_('Derivation for {} wallet').format(self.wallet_type), message=message, default=default_derivation, test=bitcoin.is_bip32_derivation)
+            _(f"If you want the wallet to use legacy Bitcoin addresses use "
+              f"{bip44_btc}"),
+            _(f"If you want the wallet to use Bitcoin Cash addresses use "
+              f"{bip44_bch}"),
+            _(f"If you want the wallet to use {CURRENCY} addresses use "
+              f"{bip44_bcha}")]
+        if is_hw_wallet:
+            lines.append("\nAt this time, it is recommended to use the "
+                         "Bitcoin Cash derivation path for hardware wallets,"
+                         " unless you know that your device already supports"
+                         " the new BCHA derivation path.")
+        message = '\n'.join(lines)
+        self.line_dialog(run_next=run_next,
+                         title=_(f'Derivation for {self.wallet_type} wallet'),
+                         message=message, default=default_derivation,
+                         test=bitcoin.is_bip32_derivation)
 
     def on_hw_derivation(self, name, device_info, derivation):
         from .keystore import hardware_keystore
@@ -335,7 +357,7 @@ class BaseWizard(util.PrintError):
 
     def on_restore_bip39(self, seed, passphrase):
         f = lambda x: self.run('on_bip44', seed, passphrase, str(x))
-        self.derivation_dialog(f, keystore.bip44_derivation_bch(0))
+        self.derivation_dialog(f, keystore.bip44_derivation_bcha(0))
 
     def create_keystore(self, seed, passphrase):
         # auto-detect, prefers old, electrum, bip39 in that order. Since we
