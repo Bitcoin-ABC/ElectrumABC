@@ -247,18 +247,18 @@ class WalletStorage(PrintError):
         elif wallet_type in ['bip44', 'trezor', 'keepkey', 'ledger', 'btchip', 'digitalbitbox']:
             mpk = storage.get('master_public_keys')
             for k in d.keys():
-                i = int(k)
+                bip44_account = int(k)
                 x = d[k]
                 if x.get("pending"):
                     continue
-                xpub = mpk["x/%d'"%i]
+                xpub = mpk[f"x/{bip44_account}'"]
                 new_path = storage.path + '.' + k
                 storage2 = WalletStorage(new_path)
                 storage2.data = copy.deepcopy(storage.data)
                 # save account, derivation and xpub at index 0
                 storage2.put('accounts', {'0': x})
                 storage2.put('master_public_keys', {"x/0'": xpub})
-                storage2.put('derivation', bip44_derivation_btc(k))
+                storage2.put('derivation', bip44_derivation_btc(bip44_account))
                 storage2.upgrade()
                 storage2.write()
                 result.append(new_path)

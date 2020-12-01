@@ -752,16 +752,16 @@ is_private_key = lambda x: bitcoin.is_xprv(x) or is_private_key_list(x)
 is_bip32_key = lambda x: bitcoin.is_xprv(x) or bitcoin.is_xpub(x)
 
 
-def bip44_derivation_btc(account_id) -> str:
+def bip44_derivation_btc(account_id: int) -> str:
     """Return the BTC BIP44 derivation path for an account id.
     """
     coin = 1 if networks.net.TESTNET else 0
-    return f"m/44'/{coin}'/{int(account_id)}'"
+    return f"m/44'/{coin}'/{account_id}'"
 
 
-def bip44_derivation_bch(account_id) -> str:
+def bip44_derivation_bch(account_id: int) -> str:
     """Return the BCH derivation path."""
-    return f"m/44'/145'/{int(account_id)}'"
+    return f"m/44'/145'/{account_id}'"
 
 
 def bip39_normalize_passphrase(passphrase):
