@@ -665,7 +665,7 @@ class RestoreWallet1(NewWalletSeed2):
 
         if seed_type == 'bip39':
             # do bip39 stuff
-            default_derivation = keystore.bip44_derivation_145(0)
+            default_derivation = keystore.bip44_derivation_bch(0)
             test=bitcoin.is_bip32_derivation
             def onOk(text : str) -> None:
                 der = text.strip()

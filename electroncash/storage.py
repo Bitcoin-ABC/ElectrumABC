@@ -36,7 +36,7 @@ import zlib
 from .address import Address
 from .util import PrintError, profiler, standardize_path
 from .plugins import run_hook, plugin_loaders
-from .keystore import bip44_derivation
+from .keystore import bip44_derivation_btc
 from . import bitcoin
 
 
@@ -258,7 +258,7 @@ class WalletStorage(PrintError):
                 # save account, derivation and xpub at index 0
                 storage2.put('accounts', {'0': x})
                 storage2.put('master_public_keys', {"x/0'": xpub})
-                storage2.put('derivation', bip44_derivation(k))
+                storage2.put('derivation', bip44_derivation_btc(k))
                 storage2.upgrade()
                 storage2.write()
                 result.append(new_path)
@@ -342,7 +342,7 @@ class WalletStorage(PrintError):
 
         elif wallet_type in ['trezor', 'keepkey', 'ledger', 'digitalbitbox']:
             xpub = xpubs["x/0'"]
-            derivation = self.get('derivation', bip44_derivation(0))
+            derivation = self.get('derivation', bip44_derivation_btc(0))
             d = {
                 'type': 'hardware',
                 'hw_type': wallet_type,

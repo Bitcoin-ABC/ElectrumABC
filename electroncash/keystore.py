@@ -752,13 +752,17 @@ is_private_key = lambda x: bitcoin.is_xprv(x) or is_private_key_list(x)
 is_bip32_key = lambda x: bitcoin.is_xprv(x) or bitcoin.is_xpub(x)
 
 
-def bip44_derivation(account_id):
-    bip  = 44
+def bip44_derivation_btc(account_id) -> str:
+    """Return the BTC BIP44 derivation path for an account id.
+    """
     coin = 1 if networks.net.TESTNET else 0
-    return "m/%d'/%d'/%d'" % (bip, coin, int(account_id))
+    return f"m/44'/{coin}'/{int(account_id)}'"
 
-def bip44_derivation_145(account_id):
-	return "m/44'/145'/%d'"% int(account_id)
+
+def bip44_derivation_bch(account_id) -> str:
+    """Return the BCH derivation path."""
+    return f"m/44'/145'/{int(account_id)}'"
+
 
 def bip39_normalize_passphrase(passphrase):
     """ This is called by some plugins """
@@ -786,7 +790,7 @@ def from_seed(seed, passphrase, is_p2sh=None, *, seed_type='', derivation=None) 
         keystore.passphrase = passphrase
         bip32_seed = mnemo.bip39_mnemonic_to_seed(seed, passphrase)
         xtype = 'standard'  # bip43
-        derivation = derivation or bip44_derivation_145(0)
+        derivation = derivation or bip44_derivation_bch(0)
         keystore.add_xprv_from_seed(bip32_seed, xtype, derivation)
     else:
         raise InvalidSeed()
