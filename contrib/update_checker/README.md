@@ -1,23 +1,23 @@
-# Electron Cash Update Checker
+# Electrum ABC Update Checker
 ### (`releases.json`)
 
-This directory contains the `releases.json` file that the Electron Cash update checker uses to determine when a new version of Electron Cash is available.
+This directory contains the `releases.json` file that the Electrum ABC update checker uses to determine when a new version of the application is available.
 
 #### Update Checker Overview
 As of version 3.3.6 of Electron Cash, there is an update-checking facility built-in to the Qt desktop app. The facility basically functions as follows:
 
-1. When the user selects "Check for updates...", Electron Cash connects to the URL hard-coded in `gui/qt/update_checker.py` (currently: https://raw.github.com/Electron-Cash/Electron-Cash/master/contrib/update_checker/releases.json)
+1. When the user selects "Check for updates...", Electrum ABC connects to the URL hard-coded in `gui/qt/update_checker.py` (currently: https://raw.github.com/Bitcoin-ABC/ElectrumABC/master/contrib/update_checker/releases.json)
 2. It downloads `releases.json` (the file in this directory)
 3. It checks the versions seen in `releases.json` -- if they are newer than the version in the running app, and if the signed message is valid and is signed with one of the addresses hard-coded in `update_checker.py`, it then informs the user that an update is available.
 
-*No automatic updating is performed* and the user must manually click on the URL hard-coded in the app to go to https://electroncash.org/#download.
+*No automatic updating is performed* and the user must manually click on the URL hard-coded in the app to go to the release page.
 
 The purpose of this facility is merely as a convenience for users who aren't on reddit or aren't constantly refreshing our website to be able to find out when a new version is available.
 
-It hopefully will decrease the number of users running very old versions of Electron Cash.
+It hopefully will decrease the number of users running very old versions of Electrum ABC.
 
 #### What This Means For You, The Maintainer
-You need to update `releases.json` in this directory whenever a new version of Electron Cash is released, and push it to master.
+You need to update `releases.json` in this directory whenever a new version released, and push it to master.
 
 This file contains a dictionary of:
 ```
@@ -26,7 +26,7 @@ This file contains a dictionary of:
     }
 ```
 - **"version string"** above is a version of the form MAJOR.MINOR.REV[variant], e.g. "3.3.5" or "3.3.5CS" (in the latter, 'CS' is the variant)
-- And empty/omitted variant means "Electron Cash Regular"
+- And empty/omitted variant means "Electrum ABC Regular"
 - The variant must match the variant in `lib/version.py`.
     
 
@@ -57,9 +57,6 @@ Notice how the version string is different, the signing address happened to rema
 ##### How Do I Sign?
 
 - Make sure you control one of the bitcoin addresses listed in `gui/qt/update_checker.py`.  (If you do not, modify this file before release to include one of your addresses!)
--  Open up Electron Cash and go to that address in the "Addresses" tab and right click on it, selecting **"Sign/Verify Message"**
+-  Open up Electrum ABC and go to that address in the "Addresses" tab and right click on it, selecting **"Sign/Verify Message"**
 -  The message to be signed is the version string you will put into the JSON, so for example the simple string `3.3.5` in the example above.
 -  Hit **sign**, and paste the signature text into the JSON (and signing address, of course, if it's changed).
-
-#### Feedback / Questions
-Open up an issue in the issue tracker or contact Calin Culianu (/u/NilacTheGrim on reddit), as he is the author of this mechanism in Electron Cash.
