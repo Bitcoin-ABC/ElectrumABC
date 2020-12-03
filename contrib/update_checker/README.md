@@ -17,7 +17,7 @@ The purpose of this facility is merely as a convenience for users who aren't on 
 It hopefully will decrease the number of users running very old versions of Electrum ABC.
 
 #### What This Means For You, The Maintainer
-You need to update `releases.json` in this directory whenever a new version released, and push it to master.
+You need to update `releases.json` in this directory whenever a new version is released, and push it to master.
 
 This file contains a dictionary of:
 ```
