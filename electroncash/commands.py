@@ -982,7 +982,6 @@ def get_parser():
         # Qt High DPI scaling can not be disabled on macOS since it is never
         # explicitly enabled on macOS! (see gui/qt/__init__.py)
         parser_gui.add_argument("--qt_disable_highdpi", action="store_true", dest="qt_disable_highdpi", default=None, help="(Linux & Windows only) If using Qt gui, disable high DPI scaling")
-    parser_gui.add_argument("-R", "--relax_warnings", action="store_true", dest="relaxwarn", default=False, help="Disables certain warnings that might be annoying during development and/or testing")
     add_network_options(parser_gui)
     add_global_options(parser_gui)
     # daemon

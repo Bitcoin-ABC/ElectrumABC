@@ -623,7 +623,7 @@ class ElectrumGui(QObject, PrintError):
             try:
 
                 if not self.windows:
-                    self.warn_if_no_secp(relaxed=True)
+                    self.warn_if_no_secp()
 
                 try:
                     wallet = self.daemon.load_wallet(path, None)
@@ -791,7 +791,7 @@ class ElectrumGui(QObject, PrintError):
             return True
         return False
 
-    def warn_if_no_secp(self, parent=None, message=None, icon=QMessageBox.Warning, relaxed=False):
+    def warn_if_no_secp(self, parent=None, message=None, icon=QMessageBox.Warning):
         ''' Returns True if it DID warn: ie if there's no secp and ecc operations
         are slow, otherwise returns False if we have secp.
 
@@ -803,13 +803,8 @@ class ElectrumGui(QObject, PrintError):
         if has_secp:
             return False
 
-        # When relaxwarn is set return True without showing the warning
-        from electroncash import get_config
-        if relaxed and get_config().cmdline_options["relaxwarn"]:
-            return True
-
         # else..
-        howto_url='https://github.com/Electron-Cash/Electron-Cash/blob/master/contrib/secp_HOWTO.md#libsecp256k1-0-for-electron-cash'
+        howto_url = 'https://github.com/Bitcoin-ABC/ElectrumABC/blob/master/contrib/secp_HOWTO.md'
         message = message or _(
             f"{PROJECT_NAME} was unable to find the secp256k1 library on this "
             f"system. Elliptic curve cryptography operations will be performed"
