@@ -71,14 +71,20 @@ def replace_src_dest_in_config(src: str, dest: str, config: dict):
     """Replace all occurrences of the string src by the str dest in the
     relevant values of the config dictionary.
     """
+    norm_src = os.path.normcase(src)
+    norm_dest = os.path.normcase(dest)
     # adjust all paths to point to the new user dir
     for k, v in config.items():
-        if isinstance(v, str) and v.startswith(src):
-            config[k] = v.replace(src, dest)
+        if isinstance(v, str):
+            norm_path = os.path.normcase(v)
+            if norm_path.startswith(norm_src):
+                config[k] = norm_path.replace(norm_src, norm_dest)
     # adjust paths in list of recently open wallets
     if "recently_open" in config:
         for idx, wallet in enumerate(config["recently_open"]):
-            config["recently_open"][idx] = wallet.replace(src, dest)
+            norm_wallet = os.path.normcase(wallet)
+            config["recently_open"][idx] = norm_wallet.replace(norm_src,
+                                                               norm_dest)
 
 
 def reset_server_config(config: dict):
