@@ -88,8 +88,7 @@ class ScanQRTextEdit(_QrCodeTextEdit, MessageBoxMixin):
         self.setText(data)
 
     def screenshot_input(self):
-        screen = QApplication.instance().primaryScreen()
-        screenshot = screen.grabWindow(0)
+        screenshot = grab_screens()
         image = screenshot.toImage()
         scanned_qrs = self.scan_qr_from_image(image)
         if not len(scanned_qrs):
@@ -176,3 +175,27 @@ class ScanQRTextEdit(_QrCodeTextEdit, MessageBoxMixin):
         m.addAction(_("Read QR from screen"), self.screenshot_input)
         m.addAction(_("Read text or image file"), self.file_input)
         m.exec_(e.globalPos())
+
+
+def grab_screens() -> QPixmap:
+    """Return a screenshot of all screens."""
+    # grab all screens
+    screens = QApplication.screens()
+    pixmaps = []
+    w = 0
+    h = 0
+    for screen in screens:
+        pix = screen.grabWindow(0)
+        w += pix.width()
+        h = max(h, pix.height())
+        pixmaps.append(pix)
+
+    # merge all pixmaps
+    final = QPixmap(w, h)
+    painter = QPainter(final)
+    final.fill(Qt.white)
+    p = 0
+    for pixmap in pixmaps:
+        painter.drawPixmap(QPoint(p, 0), pixmap)
+        p += pixmap.width()
+    return final
