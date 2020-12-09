@@ -7,7 +7,7 @@ from electroncash.qrreaders import get_qr_reader
 
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-from PyQt5.QtWidgets import QFileDialog, QAbstractButton, QWidget, QApplication
+from PyQt5.QtWidgets import QFileDialog, QAbstractButton, QApplication, QMenu
 
 from .util import ButtonsTextEdit, MessageBoxMixin, ColorScheme
 
@@ -57,8 +57,14 @@ class ScanQRTextEdit(_QrCodeTextEdit, MessageBoxMixin):
         _QrCodeTextEdit.__init__(self, text)
         self.allow_multi = allow_multi
         self.setReadOnly(0)
-        self.qr_button = self.addButton(self.get_qr_icon(), self.qr_input, _("Read QR code"))
-        self.addButton(":icons/file.png", self.file_input, _("Read text or image file"))
+        self.qr_button = self.addButton(self.get_qr_icon(), self.qr_input,
+                                        _("Read QR code"))
+        qr_menu = QMenu()
+        qr_menu.addAction(_("Read QR code from camera"), self.qr_input)
+        qr_menu.addAction(_("Read QR from screen"), self.screenshot_input)
+        self.qr_button.setMenu(qr_menu)
+        self.addButton(":icons/file.png", self.file_input,
+                       _("Read text or image file"))
         run_hook('scan_text_edit', self)
 
     def file_input(self):
