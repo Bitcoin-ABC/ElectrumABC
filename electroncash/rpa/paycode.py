@@ -199,7 +199,7 @@ def generate_transaction_from_paycode(wallet, config, amount, rpa_paycode=None, 
     while not tx_matches_paycode_prefix:
 
         # Construct the transaction, initially with a dummy destination
-        rpa_dummy_address = wallet.dummy_address().to_string(Address.FMT_CASHADDR)
+        rpa_dummy_address = wallet.dummy_address().to_string(Address.FMT_CASHADDR_BCH)
         unsigned = True
         tx = _mktx(wallet, config, [(rpa_dummy_address, amount)], tx_fee, change_addr, domain, nocheck, unsigned,
                    password, locktime, op_return, op_return_raw)
@@ -229,7 +229,7 @@ def generate_transaction_from_paycode(wallet, config, amount, rpa_paycode=None, 
         # Get the real destination for the transaction
         rpa_destination_address = _generate_address_from_pubkey_and_secret(bytes.fromhex(paycode_field_spend_pubkey),
                                                                            shared_secret).to_string(
-            Address.FMT_CASHADDR)
+            Address.FMT_CASHADDR_BCH)
 
         # Swap the dummy destination for the real destination
         tx.rpa_paycode_swap_dummy_for_destination(rpa_dummy_address, rpa_destination_address)
@@ -273,7 +273,7 @@ def extract_private_key_from_transaction(wallet, raw_tx, password=None):
     output_addresses = []
     outputs = unpacked_tx["outputs"]
     for i in outputs:
-        output_addresses.append(i['address'].to_string(Address.FMT_CASHADDR))
+        output_addresses.append(i['address'].to_string(Address.FMT_CASHADDR_BCH))
 
     # Variables for looping
     number_of_inputs = len(unpacked_tx["inputs"])
@@ -314,7 +314,7 @@ def extract_private_key_from_transaction(wallet, raw_tx, password=None):
 
         # Get the destination address for the transaction
         destination = _generate_address_from_pubkey_and_secret(bytes.fromhex(spendpubkey), shared_secret).to_string(
-            Address.FMT_CASHADDR)
+            Address.FMT_CASHADDR_BCH)
 
         # Fetch our own private (spend) key out of the wallet.
         spendpubkey = wallet.derive_pubkeys(0, 1)

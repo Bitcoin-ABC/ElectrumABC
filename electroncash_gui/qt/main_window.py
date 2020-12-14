@@ -2495,7 +2495,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         legacy_address.setReadOnly(True)
 
         widgets = [
-            (cash_address, Address.FMT_CASHADDR),
+            (cash_address, Address.FMT_CASHADDR_BCH),
             (legacy_address, Address.FMT_LEGACY),
         ]
 
@@ -4351,12 +4351,12 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         address_w.setToolTip(_('Select between Cash Address and Legacy formats for addresses'))
         hbox = QHBoxLayout(address_w)
         cashaddr_cbox = QComboBox()
-        cashaddr_cbox.addItem(QIcon(':icons/tab_converter.svg'), _("CashAddr"), Address.FMT_CASHADDR)
+        cashaddr_cbox.addItem(QIcon(':icons/tab_converter.svg'), _("CashAddr"), Address.FMT_CASHADDR_BCH)
         cashaddr_cbox.addItem(QIcon(':icons/tab_converter_bw.svg'), _("Legacy"), Address.FMT_LEGACY)
         cashaddr_cbox.setCurrentIndex(0 if self.gui_object.is_cashaddr() else 1)
         def cashaddr_cbox_handler(ignored_param):
             fmt = int(cashaddr_cbox.currentData())
-            self.gui_object.toggle_cashaddr(fmt == Address.FMT_CASHADDR)
+            self.gui_object.toggle_cashaddr(fmt == Address.FMT_CASHADDR_BCH)
         cashaddr_cbox.currentIndexChanged.connect(cashaddr_cbox_handler)
         hbox.addWidget(cashaddr_cbox)
         toggle_cashaddr_control = QCheckBox(_('Hide status button'))

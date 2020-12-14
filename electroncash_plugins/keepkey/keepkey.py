@@ -458,7 +458,7 @@ class KeepKeyPlugin(HW_PluginBase):
                 txoutputtype.op_return_data = validate_op_return_output_and_get_data(o, max_pushes=1)
             elif _type == TYPE_ADDRESS:
                 txoutputtype.script_type = self.types.PAYTOADDRESS
-                txoutputtype.address = address.to_full_string(Address.FMT_CASHADDR, net=networks.MainNet)
+                txoutputtype.address = address.to_full_string(Address.FMT_CASHADDR_BCH, net=networks.MainNet)
             return txoutputtype
 
         outputs = []

@@ -41,15 +41,15 @@ DEFAULT_EXPLORER = "Blockchair.com"
 
 mainnet_block_explorers = {
     'Blockchair.com': ('https://blockchair.com/bitcoin-abc',
-                       Address.FMT_CASHADDR,
+                       Address.FMT_CASHADDR_BCH,
                        {'tx': 'transaction', 'addr': 'address',
                         'block': 'block'}),
     'ViaBTC.com': ('https://explorer.viawallet.com/bha',
-                   Address.FMT_CASHADDR,
+                   Address.FMT_CASHADDR_BCH,
                    {'tx': 'tx', 'addr': 'address',
                     'block': 'block'}),
     'BitcoinABC.org': ('https://explorer.bitcoinabc.org',
-                       Address.FMT_CASHADDR,
+                       Address.FMT_CASHADDR_BCH,
                        {'tx': 'tx',
                         'addr': 'address',
                         'block': 'block-height'}),
@@ -59,7 +59,7 @@ DEFAULT_EXPLORER_TESTNET = 'BitcoinABC.org'
 
 testnet_block_explorers = {
     'BitcoinABC.org': ('https://texplorer.bitcoinabc.org/',
-                       Address.FMT_CASHADDR,
+                       Address.FMT_CASHADDR_BCH,
                        {'tx': 'tx', 'addr': 'address',
                         'block': 'block-height'}),
 }

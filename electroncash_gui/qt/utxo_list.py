@@ -243,7 +243,7 @@ class UTXOList(MyTreeWidget):
                     # Determine the "alt copy text" "Legacy Address" or "Cash Address"
                     copy_text = addr.to_full_ui_string()
                     if Address.FMT_UI == Address.FMT_LEGACY:
-                        alt_copy_text, alt_column_title = addr.to_full_string(Address.FMT_CASHADDR), _('Cash Address')
+                        alt_copy_text, alt_column_title = addr.to_full_string(Address.FMT_CASHADDR_BCH), _('Cash Address')
                     else:
                         alt_copy_text, alt_column_title = addr.to_full_string(Address.FMT_LEGACY), _('Legacy Address')
                     ca_info = item.data(0, self.DataRoles.cash_account)  # may be None

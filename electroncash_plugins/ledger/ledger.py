@@ -278,7 +278,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
 
     def cashaddr_alert(self):
         """Alert users about fw/sw updates for cashaddr."""
-        if Address.FMT_UI == Address.FMT_CASHADDR:
+        if Address.FMT_UI == Address.FMT_CASHADDR_BCH:
             # Do not warn if the device is HW1, they have no display anyway
             if not self.get_client_electrum().fw_supports_cashaddr() and not self.get_client_electrum().is_hw1():
                 self.handler.show_warning(MSG_NEEDS_FW_UPDATE_CASHADDR)
@@ -470,7 +470,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
             # Sign all inputs
             inputIndex = 0
             self.get_client().enableAlternate2fa(False)
-            cashaddr = Address.FMT_UI == Address.FMT_CASHADDR
+            cashaddr = Address.FMT_UI == Address.FMT_CASHADDR_BCH
             if cashaddr and self.get_client_electrum().supports_cashaddr():
                 self.get_client().startUntrustedTransaction(True, inputIndex, chipInputs,
                                                             redeemScripts[inputIndex], cashAddr=True)
@@ -532,7 +532,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
         self.cashaddr_alert()
         self.handler.show_message(_('Showing address on {}...').format(self.device))
         try:
-            if Address.FMT_UI == Address.FMT_CASHADDR and self.get_client_electrum().supports_cashaddr():
+            if Address.FMT_UI == Address.FMT_CASHADDR_BCH and self.get_client_electrum().supports_cashaddr():
                 client.getWalletPublicKey(address_path, showOnScreen=True, cashAddr=True)
             else:
                 client.getWalletPublicKey(address_path, showOnScreen=True)

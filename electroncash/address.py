@@ -485,14 +485,14 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
     ADDR_P2SH = 1
 
     # Address formats
-    FMT_CASHADDR = 0
+    FMT_CASHADDR_BCH = 0
     FMT_LEGACY = 1
     FMT_BITPAY = 2   # Supported temporarily only for compatibility
 
     _NUM_FMTS = 3  # <-- Be sure to update this if you add a format above!
 
     # Default to CashAddr
-    FMT_UI = FMT_CASHADDR
+    FMT_UI = FMT_CASHADDR_BCH
 
     def __new__(cls, hash160, kind):
         assert kind in (cls.ADDR_P2PKH, cls.ADDR_P2SH)
@@ -504,7 +504,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
 
     @classmethod
     def show_cashaddr(cls, on):
-        cls.FMT_UI = cls.FMT_CASHADDR if on else cls.FMT_LEGACY
+        cls.FMT_UI = cls.FMT_CASHADDR_BCH if on else cls.FMT_LEGACY
 
     @classmethod
     def from_cashaddr_string(cls, string, *, net=None):
@@ -622,7 +622,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
 
         try:
             cached = None
-            if fmt == self.FMT_CASHADDR:
+            if fmt == self.FMT_CASHADDR_BCH:
                 cached = self.to_cashaddr(net=net)
                 return cached
 
@@ -650,7 +650,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
         '''Convert to text, with a URI prefix for cashaddr format.'''
         if net is None: net = networks.net
         text = self.to_string(fmt, net=net)
-        if fmt == self.FMT_CASHADDR:
+        if fmt == self.FMT_CASHADDR_BCH:
             text = ':'.join([net.CASHADDR_PREFIX, text])
         return text
 

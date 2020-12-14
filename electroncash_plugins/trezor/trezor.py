@@ -470,7 +470,7 @@ class TrezorPlugin(HW_PluginBase):
                     if client.atleast_version(2, 0, 8):
                         addr_format = address.FMT_UI
                     elif client.atleast_version(2, 0, 7):
-                        addr_format = address.FMT_CASHADDR
+                        addr_format = address.FMT_CASHADDR_BCH
                 else:
                     if client.atleast_version(1, 6, 2):
                         addr_format = address.FMT_UI

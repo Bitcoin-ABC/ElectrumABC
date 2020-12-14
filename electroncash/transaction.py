@@ -524,7 +524,7 @@ class Transaction:
             loop_iteration_address = loop_iteration_output[1]
 
             # Compare the address to see if its the one we need to swap.  Note: 0 for the to_string = CASHADDR format
-            if loop_iteration_address.to_string(Address.FMT_CASHADDR) == rpa_dummy_address:
+            if loop_iteration_address.to_string(Address.FMT_CASHADDR_BCH) == rpa_dummy_address:
                 # Do the swap
                 rpa_replacement_address = Address.from_string(rpa_destination_address)
                 rpa_replacement_output = list(loop_iteration_output)
