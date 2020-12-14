@@ -1,65 +1,125 @@
+"""Tests for the util.py module.
+
+To enable tests for various locales, you need to install them first.
+
+For ubuntu:
+
+    sudo locale-gen zh_CN.UTF-8
+"""
+
+import locale
 import unittest
-from ..util import format_satoshis
+from ..util import format_satoshis, _fmt_sats_cache, clear_cached_dp
 from ..web import parse_URI
 
-class TestUtil(unittest.TestCase):
+initial_locale = locale.getlocale(locale.LC_NUMERIC)
+
+
+class _TestFormatSatoshis(unittest.TestCase):
+    """Base class for testing formating amounts.
+    Subclass and specify a locale
+    """
+    loc = None
+    dp = None
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        global _cached_dp
+        try:
+            locale.setlocale(locale.LC_NUMERIC, cls.loc)
+        except locale.Error:
+            raise unittest.SkipTest(f"locale {cls.loc} is not installed")
+        else:
+            cls.dp = locale.localeconv().get('decimal_point') or '.'
+        finally:
+            _fmt_sats_cache.d.clear()
+            clear_cached_dp()
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        locale.setlocale(locale.LC_NUMERIC, initial_locale)
 
     def test_format_satoshis(self):
         result = format_satoshis(1234)
-        expected = "0.00001234"
+        expected = "0" + self.dp + "00001234"
         self.assertEqual(expected, result)
 
     def test_format_satoshis_zero(self):
         result = format_satoshis(0)
-        expected = "0."
+        expected = "0" + self.dp
         self.assertEqual(expected, result)
 
     def test_format_satoshis_negative(self):
         result = format_satoshis(-1234)
-        expected = "-0.00001234"
+        expected = "-0" + self.dp + "00001234"
         self.assertEqual(expected, result)
 
     def test_format_fee(self):
         result = format_satoshis(1700/1000, 0, 0)
-        expected = "1.7"
+        expected = "1" + self.dp + "7"
         self.assertEqual(expected, result)
 
     def test_format_fee_precision(self):
         result = format_satoshis(1666/1000, 0, 0, precision=6)
-        expected = "1.666"
+        expected = "1" + self.dp + "666"
         self.assertEqual(expected, result)
 
         result = format_satoshis(1666/1000, 0, 0, precision=1)
-        expected = "1.7"
+        expected = "1" + self.dp + "7"
         self.assertEqual(expected, result)
 
     def test_format_satoshis_whitespaces(self):
         result = format_satoshis(12340, whitespaces=True)
-        expected = "     0.0001234 "
+        expected = "     0" + self.dp + "0001234 "
         self.assertEqual(expected, result)
 
         result = format_satoshis(1234, whitespaces=True)
-        expected = "     0.00001234"
+        expected = "     0" + self.dp + "00001234"
         self.assertEqual(expected, result)
 
     def test_format_satoshis_whitespaces_negative(self):
         result = format_satoshis(-12340, whitespaces=True)
-        expected = "    -0.0001234 "
+        expected = "    -0" + self.dp + "0001234 "
         self.assertEqual(expected, result)
 
         result = format_satoshis(-1234, whitespaces=True)
-        expected = "    -0.00001234"
+        expected = "    -0" + self.dp + "00001234"
         self.assertEqual(expected, result)
 
     def test_format_satoshis_diff_positive(self):
         result = format_satoshis(1234, is_diff=True)
-        expected = "+0.00001234"
+        expected = "+0" + self.dp + "00001234"
         self.assertEqual(expected, result)
 
     def test_format_satoshis_diff_negative(self):
         result = format_satoshis(-1234, is_diff=True)
-        expected = "-0.00001234"
+        expected = "-0" + self.dp + "00001234"
         self.assertEqual(expected, result)
+
+
+class TestFormatSatoshisLocaleC(_TestFormatSatoshis):
+    loc = "C"
+
+
+class TestFormatSatoshisLocaleFr(_TestFormatSatoshis):
+    loc = "fr_FR.UTF-8"
+
+
+class TestFormatSatoshisLocaleDe(_TestFormatSatoshis):
+    loc = "de_DE.UTF-8"
+
+
+class TestFormatSatoshisLocaleAr_SA(_TestFormatSatoshis):
+    """Test amounts for Arabic locale"""
+    loc = "ar_SA.UTF-8"
+
+
+class TestFormatSatoshisLocalezh_CN(_TestFormatSatoshis):
+    """Test amounts for Chinese locale"""
+    loc = "zh_CN.UTF-8"
+
+
+class TestUtil(unittest.TestCase):
 
     def _do_test_parse_URI(self, uri, expected):
         result = parse_URI(uri)
@@ -112,5 +172,17 @@ class TestUtil(unittest.TestCase):
         self.assertRaises(Exception, parse_URI, 'bitcoincash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?amount=0.0003&label=test&amount=30.0')
 
 
+def suite():
+    test_suite = unittest.TestSuite()
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
+    test_suite.addTest(loadTests(TestFormatSatoshisLocaleC))
+    test_suite.addTest(loadTests(TestFormatSatoshisLocaleFr))
+    test_suite.addTest(loadTests(TestFormatSatoshisLocaleDe))
+    test_suite.addTest(loadTests(TestFormatSatoshisLocaleAr_SA))
+    test_suite.addTest(loadTests(TestFormatSatoshisLocalezh_CN))
+    test_suite.addTest(loadTests(TestUtil))
+    return test_suite
+
+
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(defaultTest="suite")

@@ -26,6 +26,7 @@ import hmac
 import inspect
 import itertools
 import json
+import locale
 import os
 import stat
 import subprocess
@@ -39,7 +40,6 @@ from collections import defaultdict
 from datetime import datetime
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
 from functools import lru_cache
-from locale import localeconv
 from traceback import format_exception
 
 from .constants import POSIX_DATA_DIR, PROJECT_NAME_NO_SPACES
@@ -499,37 +499,57 @@ def format_satoshis_plain(x, decimal_point = 8):
     scale_factor = pow(10, decimal_point)
     return "{:.8f}".format(PyDecimal(x) / scale_factor).rstrip('0').rstrip('.')
 
+
 _cached_dp = None
+
+
+def clear_cached_dp():
+    """This function allows to reset the cached locale decimal point.
+    This is used for testing amount formatting with various locales."""
+    global _cached_dp
+    _cached_dp = None
+
+
+# fixme: circular import util -> caches -> util
 from .caches import ExpiringCache
 # This cache will eat about ~6MB of memory per 20,000 items, but it does make
 # format_satoshis() run over 3x faster.
 _fmt_sats_cache = ExpiringCache(maxlen=20000, name='format_satoshis cache')
-def format_satoshis(x, num_zeros=0, decimal_point=8, precision=None, is_diff=False, whitespaces=False):
+
+
+def format_satoshis(x, num_zeros=0, decimal_point=8, precision=None,
+                    is_diff=False, whitespaces=False) -> str:
     global _cached_dp
     if x is None:
         return _('Unknown')
     if precision is None:
         precision = decimal_point
-    cache_key = (x,num_zeros,decimal_point,precision,is_diff,whitespaces)
+    cache_key = (x, num_zeros, decimal_point, precision, is_diff, whitespaces)
     result = _fmt_sats_cache.get(cache_key)
     if result is not None:
         return result
     decimal_format = ".0" + str(precision) if precision > 0 else ""
     if is_diff:
         decimal_format = '+' + decimal_format
+    decimal_format = "%" + decimal_format + "f"
     try:
-        result = ("{:" + decimal_format + "f}").format(x / pow(10, decimal_point)).rstrip('0')
+        value = x / pow(10, decimal_point)
     except ArithmeticError:
         # Normally doesn't happen but if x is a huge int, we may get
-        # OverflowError or other ArithmeticError subclass exception. See #1024.
+        # OverflowError or other ArithmeticError subclass exception.
+        # See Electron-Cash#1024.
+        # TODO: this happens only on user input, so just add a range
+        #       validator on the wiget
         return 'unknown'
-    integer_part, fract_part = result.split(".")
+    result = locale.format_string(decimal_format, value,
+                                  grouping=True).rstrip('0')
     if not _cached_dp:
         # We lazy init this here rather than at module level because iOS sets
         # locale at startup -- so we should initialize this variable on
         # first run through this function rather than at module load time.
-        _cached_dp = localeconv().get('decimal_point') or '.'
+        _cached_dp = locale.localeconv().get('decimal_point') or '.'
     dp = _cached_dp
+    integer_part, fract_part = result.split(dp)
     if len(fract_part) < num_zeros:
         fract_part += "0" * (num_zeros - len(fract_part))
     result = integer_part + dp + fract_part
