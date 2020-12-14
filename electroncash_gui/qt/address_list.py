@@ -194,7 +194,7 @@ class AddressList(MyTreeWidget):
                 else:
                     is_hidden = self.wallet.is_used(address)
                 balance = sum(self.wallet.get_addr_balance(address))
-                address_text = address.to_ui_string()
+                address_text = address.to_full_ui_string()
                 # Cash Accounts
                 ca_info, ca_list = None, ca_by_addr.get(address)
                 if ca_list:
@@ -335,10 +335,10 @@ class AddressList(MyTreeWidget):
             if col > -1:
                 texts, alt_copy, alt_copy_text = None, None, None
                 if col == 0: # address column
-                    texts = [a.to_ui_string() for a in addrs]
+                    texts = [a.to_full_ui_string() for a in addrs]
                     # Add additional copy option: "Address, Balance (n)"
                     alt_copy = _("Copy {}").format(_("Address") + ", " + _("Balance")) + f" ({len(addrs)})"
-                    alt_copy_text = "\n".join([a.to_ui_string() + ", " + self.parent.format_amount(sum(self.wallet.get_addr_balance(a)))
+                    alt_copy_text = "\n".join([a.to_full_ui_string() + ", " + self.parent.format_amount(sum(self.wallet.get_addr_balance(a)))
                                               for a in addrs])
                 else:
                     texts = [i.text(col).strip() for i in selected]
@@ -443,7 +443,7 @@ class AddressList(MyTreeWidget):
         Kicked off by a get_minimal_chash() call that results in a cache miss. '''
         if self.cleaned_up:
             return
-        items = self.findItems(ca_info.address.to_ui_string(), Qt.MatchContains|Qt.MatchWrap|Qt.MatchRecursive, 0) or []
+        items = self.findItems(ca_info.address.to_full_ui_string(), Qt.MatchContains|Qt.MatchWrap|Qt.MatchRecursive, 0) or []
         for item in items:  # really items should contain just 1 element...
             ca_list = item.data(0, self.DataRoles.cash_accounts) or []
             ca_info_default = self._ca_get_default(ca_list)

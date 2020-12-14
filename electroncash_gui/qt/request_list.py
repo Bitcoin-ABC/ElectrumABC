@@ -128,7 +128,7 @@ class RequestList(MyTreeWidget):
             signature = req.get('sig')
             requestor = req.get('name', '')
             amount_str = self.parent.format_amount(amount) if amount else ""
-            item = QTreeWidgetItem([date, address.to_ui_string(), '', message,
+            item = QTreeWidgetItem([date, address.to_full_ui_string(), '', message,
                                     amount_str, _(pr_tooltips.get(status,''))])
             item.setData(0, Qt.UserRole, address)
             if signature is not None:

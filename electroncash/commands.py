@@ -148,7 +148,10 @@ class Commands:
                 for i in range(0,len(l)): l[i] = DoChk(l[i]) # recurse
                 return l
             def EncodeNamedTupleObject(nt):
-                if hasattr(nt, 'to_ui_string'): return nt.to_ui_string()
+                if hasattr(nt, 'to_full_ui_string'):
+                    return nt.to_full_ui_string()
+                if hasattr(nt, 'to_ui_string'):
+                    return nt.to_ui_string()
                 return nt
 
             if isinstance(v, tuple): v = EncodeNamedTupleObject(v)
@@ -288,7 +291,7 @@ class Commands:
         for i in l:
             v = i["value"]
             i["value"] = str(PyDecimal(v)/COIN) if v is not None else None
-            i["address"] = i["address"].to_ui_string()
+            i["address"] = i["address"].to_full_ui_string()
         return l
 
     @command('n')
@@ -665,7 +668,7 @@ class Commands:
                 continue
             if funded and self.wallet.is_empty(addr):
                 continue
-            item = addr.to_ui_string()
+            item = addr.to_full_ui_string()
             if labels or balance:
                 item = (item,)
             if balance:
@@ -720,7 +723,7 @@ class Commands:
             PR_PAID: 'Paid',
             PR_EXPIRED: 'Expired',
         }
-        out['address'] = out.get('address').to_ui_string()
+        out['address'] = out.get('address').to_full_ui_string()
         out[f'amount ({BASE_UNIT_8})'] = format_satoshis(out.get('amount'))
         out['status'] = pr_str[out.get('status', PR_UNKNOWN)]
         return out
@@ -757,13 +760,13 @@ class Commands:
     @command('w')
     def createnewaddress(self):
         """Create a new receiving address, beyond the gap limit of the wallet"""
-        return self.wallet.create_new_address(False).to_ui_string()
+        return self.wallet.create_new_address(False).to_full_ui_string()
 
     @command('w')
     def getunusedaddress(self):
         """Returns the first unused address of the wallet, or None if all addresses are used.
         An address is considered as used if it has received a transaction, or if it is used in a payment request."""
-        return self.wallet.get_unused_address().to_ui_string()
+        return self.wallet.get_unused_address().to_full_ui_string()
 
     @command('w')
     def addrequest(self, amount, memo='', expiration=None, force=False, payment_url=None, index_url=None):
