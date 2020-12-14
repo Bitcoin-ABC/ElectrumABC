@@ -485,26 +485,42 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
     ADDR_P2SH = 1
 
     # Address formats
-    FMT_CASHADDR_BCH = 0
-    FMT_LEGACY = 1
-    FMT_BITPAY = 2   # Supported temporarily only for compatibility
+    FMT_CASHADDR_BCH = "CashAddr BCH"
+    FMT_LEGACY = "Legacy"
+    FMT_BITPAY = "BitPay"   # Supported temporarily only for compatibility
 
     _NUM_FMTS = 3  # <-- Be sure to update this if you add a format above!
 
     # Default to CashAddr
     FMT_UI = FMT_CASHADDR_BCH
+    """Current address format used in the UI"""
+
+    FMTS_UI = [FMT_CASHADDR_BCH, FMT_LEGACY]
+    """All address formats that can be used in the UI"""
+
+    FMT_UI_IDX = FMTS_UI.index(FMT_UI)
+    """Index of current format in the list of usable address formats"""
 
     def __new__(cls, hash160, kind):
         assert kind in (cls.ADDR_P2PKH, cls.ADDR_P2SH)
         hash160 = to_bytes(hash160)
         assert len(hash160) == 20, "hash must be 20 bytes"
         ret = super().__new__(cls, hash160, kind)
-        ret._addr2str_cache = [None] * cls._NUM_FMTS
+        ret._addr2str_cache = {cls.FMT_CASHADDR_BCH: None,
+                               cls.FMT_LEGACY: None,
+                               cls.FMT_BITPAY: None}
         return ret
 
     @classmethod
     def show_cashaddr(cls, on):
         cls.FMT_UI = cls.FMT_CASHADDR_BCH if on else cls.FMT_LEGACY
+        cls.FMT_UI_IDX = cls.FMTS_UI.index(cls.FMT_UI)
+
+    @classmethod
+    def toggle_address_format(cls):
+        # increment index and select next format in list
+        cls.FMT_UI_IDX = (cls.FMT_UI_IDX + 1) % len(cls.FMTS_UI)
+        cls.FMT_UI = cls.FMTS_UI[cls.FMT_UI_IDX]
 
     @classmethod
     def from_cashaddr_string(cls, string, *, net=None):
@@ -615,7 +631,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
         if net is networks.net:
             try:
                 cached = self._addr2str_cache[fmt]
-                if cached:
+                if cached is not None:
                     return cached
             except (IndexError, TypeError):
                 raise AddressError('unrecognised format')

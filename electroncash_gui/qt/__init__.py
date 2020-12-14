@@ -935,16 +935,29 @@ class ElectrumGui(QObject, PrintError):
                 self.tray.showMessage(f"{PROJECT_NAME}", message,
                                       QSystemTrayIcon.Information, 20000)
 
-    def is_cashaddr(self):
-        return bool(self.config.get('show_cashaddr', True))
+    def is_cashaddr(self) -> bool:
+        return bool(self.get_address_format() == Address.FMT_CASHADDR_BCH)
 
-    def toggle_cashaddr(self, on = None):
+    def get_address_format(self) -> str:
+        return self.config.get('address_format', Address.FMT_CASHADDR_BCH)
+
+    def toggle_cashaddr(self):
+        """switch between available address formats"""
+        Address.toggle_address_format()
+        self.config.set_key('address_format', Address.FMT_UI)
+        self.cashaddr_toggled_signal.emit()
+
+    def use_cashaddr_bch(self, on):
+        """toggle between Address.FMT_CASHADDR_BCH  and FMT_LEGACY"""
+        self.print_error("use_cashaddr_bch is deprecated")
         was = self.is_cashaddr()
         if on is None:
             on = not was
         else:
             on = bool(on)
-        self.config.set_key('show_cashaddr', on)
+        self.config.set_key(
+            'address_format',
+            Address.FMT_CASHADDR_BCH if on else Address.FMT_LEGACY)
         Address.show_cashaddr(on)
         if was != on:
             self.cashaddr_toggled_signal.emit()

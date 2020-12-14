@@ -3980,14 +3980,6 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.gui_object.toggle_cashaddr()
         self.statusBar().showMessage(self.cashaddr_status_tip(), 2000)
 
-    def toggle_cashaddr_settings(self, state):
-        self.gui_object.toggle_cashaddr(state == Qt.Checked)
-
-    def toggle_cashaddr(self, on):
-        self.print_error('*** WARNING ElectrumWindow.toggle_cashaddr: This function is deprecated. Please do not call it!')
-        self.gui_object.toggle_cashaddr(on)
-
-
     def settings_dialog(self):
         class SettingsModalDialog(WindowModalDialog):
             shown_signal = pyqtSignal()
@@ -4351,12 +4343,16 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         address_w.setToolTip(_('Select between Cash Address and Legacy formats for addresses'))
         hbox = QHBoxLayout(address_w)
         cashaddr_cbox = QComboBox()
-        cashaddr_cbox.addItem(QIcon(':icons/tab_converter.svg'), _("CashAddr"), Address.FMT_CASHADDR_BCH)
-        cashaddr_cbox.addItem(QIcon(':icons/tab_converter_bw.svg'), _("Legacy"), Address.FMT_LEGACY)
+        cashaddr_cbox.addItem(QIcon(':icons/tab_converter.svg'),
+                              _("CashAddr") + " BCH",
+                              Address.FMT_CASHADDR_BCH)
+        cashaddr_cbox.addItem(QIcon(':icons/tab_converter_bw.svg'),
+                              _("Legacy"),
+                              Address.FMT_LEGACY)
         cashaddr_cbox.setCurrentIndex(0 if self.gui_object.is_cashaddr() else 1)
         def cashaddr_cbox_handler(ignored_param):
-            fmt = int(cashaddr_cbox.currentData())
-            self.gui_object.toggle_cashaddr(fmt == Address.FMT_CASHADDR_BCH)
+            fmt = cashaddr_cbox.currentData()
+            self.gui_object.use_cashaddr_bch(fmt == Address.FMT_CASHADDR_BCH)
         cashaddr_cbox.currentIndexChanged.connect(cashaddr_cbox_handler)
         hbox.addWidget(cashaddr_cbox)
         toggle_cashaddr_control = QCheckBox(_('Hide status button'))
