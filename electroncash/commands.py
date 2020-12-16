@@ -39,7 +39,7 @@ from functools import wraps
 from . import bitcoin
 from . import rpa
 from . import util
-from .constants import PROJECT_NAME, SCRIPT_NAME
+from .constants import PROJECT_NAME, SCRIPT_NAME, BASE_UNIT_8
 from .address import Address, AddressError
 from .bitcoin import hash_160, COIN, TYPE_ADDRESS
 from .i18n import _
@@ -723,7 +723,7 @@ class Commands:
             PR_EXPIRED: 'Expired',
         }
         out['address'] = out.get('address').to_ui_string()
-        out['amount (BCH)'] = format_satoshis(out.get('amount'))
+        out[f'amount ({BASE_UNIT_8})'] = format_satoshis(out.get('amount'))
         out['status'] = pr_str[out.get('status', PR_UNKNOWN)]
         return out
 
@@ -860,8 +860,9 @@ param_descriptions = {
     'pubkey': 'Public key',
     'message': 'Clear text message. Use quotes if it contains spaces.',
     'encrypted': 'Encrypted message',
-    'amount': 'Amount to be sent (in BCH). Type \'!\' to send the maximum available.',
-    'requested_amount': 'Requested amount (in BCH).',
+    'amount': f'Amount to be sent (in {BASE_UNIT_8}). Type \'!\' '
+              f'to send the maximum available.',
+    'requested_amount': f'Requested amount (in {BASE_UNIT_8}).',
     'outputs': 'list of ["address", amount]',
     'redeem_script': 'redeem script (hexadecimal)',
 }
@@ -876,7 +877,7 @@ command_options = {
     'entropy':     (None, "Custom entropy"),
     'expiration':  (None, "Time in seconds"),
     'expired':     (None, "Show only expired requests."),
-    'fee':         ("-f", "Transaction fee (in BCH)"),
+    'fee':         ("-f", f"Transaction fee (in {BASE_UNIT_8})"),
     'force':       (None, "Create new address beyond gap limit, if no more addresses are available."),
     'from_addr':   ("-F", "Source address (must be a wallet address; use sweep to spend from non-wallet address)."),
     'frozen':      (None, "Show only frozen addresses"),

@@ -1590,9 +1590,12 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         description_label.setBuddy(self.message_e)
         grid.addWidget(self.message_e, 2, 1, 1, -1)
 
-        msg_opreturn = ( _('OP_RETURN data (optional).') + '\n\n'
-                        + _('Posts a PERMANENT note to the BCH blockchain as part of this transaction.')
-                        + '\n\n' + _('If you specify OP_RETURN text, you may leave the \'Pay to\' field blank.') )
+        msg_opreturn = (_('OP_RETURN data (optional).') + '\n\n'
+                        + _(f'Posts a PERMANENT note to the {CURRENCY} '
+                            f'blockchain as part of this transaction.')
+                        + '\n\n' +
+                        _('If you specify OP_RETURN text, you may leave the'
+                          ' \'Pay to\' field blank.'))
         self.opreturn_label = HelpLabel(_('&OP_RETURN'), msg_opreturn)
         grid.addWidget(self.opreturn_label,  3, 0)
         self.message_opreturn_e = MyLineEdit()
@@ -2069,7 +2072,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                            len(segwits)).format(segwit_addresses='\n'.join(segwits))
             detail = _("Legacy '{prefix_char}...' p2sh address support in the Send tab is "
                        "restricted by default in order to prevent inadvertently "
-                       "sending BCH to Segwit BTC addresses.\n\n"
+                       f"sending {CURRENCY} to Segwit BTC addresses.\n\n"
                        "If you are an expert user, go to 'Preferences -> Transactions' "
                        "to enable the use of legacy p2sh addresses in the Send tab.").format(prefix_char=prefix_char)
             self.show_error(msg, detail_text=detail)

@@ -25,6 +25,11 @@ This directory is saved in the local directory containing the exe.
 BASE_UNITS: Mapping[str, int] = OrderedDict(
     (('BCHA', 8), ('mBCHA', 5), ('bits', 2)))
 """Ordered dict providing the location of the decimal place for all units."""
+"""Ordered dict providing the location of the decimal place for all
+conventional units."""
 
 INV_BASE_UNITS: Mapping[int, str] = {v: k for k, v in BASE_UNITS.items()}
 """Dict providing the unit string for a given decimal place."""
+
+BASE_UNIT_8 = INV_BASE_UNITS[8]
+"""Previous base unit ("bitcoin"), by convention 10^8 satoshis"""
