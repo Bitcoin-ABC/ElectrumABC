@@ -1,5 +1,6 @@
 import unittest
 
+from .test_address import TestAddressFromString
 from .test_asert import Test_ASERTDaa
 from .test_bitcoin import suite as test_bitcoin_suite
 from .test_blockchain import TestBlockchain
@@ -23,6 +24,7 @@ from .test_wallet_vertical import TestWalletKeystoreAddressIntegrity
 def suite():
     test_suite = unittest.TestSuite()
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
+    test_suite.addTest(loadTests(TestAddressFromString))
     test_suite.addTest(loadTests(Test_ASERTDaa))
     test_suite.addTest(test_bitcoin_suite())
     test_suite.addTest(loadTests(TestBlockchain))
