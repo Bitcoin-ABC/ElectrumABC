@@ -2502,7 +2502,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         def convert_address():
             try:
-                addr = Address.from_string(source_address.text().strip())
+                addr = Address.from_string(source_address.text().strip(),
+                                           support_arbitrary_prefix=True)
             except:
                 addr = None
             for widget, fmt in widgets:

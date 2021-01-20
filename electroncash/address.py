@@ -527,32 +527,70 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
         cls.FMT_UI = cls.FMTS_UI[cls.FMT_UI_IDX]
 
     @classmethod
-    def from_cashaddr_string(cls, string, *, net=None):
-        '''Construct from a cashaddress string.'''
-        if net is None: net = networks.net
-        prefix = net.CASHADDR_PREFIX
-        if string.upper() == string:
-            prefix = prefix.upper()
-        if not string.startswith(prefix + ':'):
-            string = ':'.join([prefix, string])
-        addr_prefix, kind, addr_hash = cashaddr.decode(string)
-        if addr_prefix != prefix:
-            raise AddressError('address has unexpected prefix {}'
-                               .format(addr_prefix))
+    def from_cashaddr_string(cls, string: str, *,
+                             net: networks.AbstractNet = None,
+                             support_arbitrary_prefix: bool = False):
+        """Construct from a cashaddress string.
+        This support arbitrary prefixes.
+        If the prefix is not specified, "bitcoincash:" is tried.
+        :return: Instance of :class:`Address`
+        """
+        if net is None:
+            net = networks.net
+        string = string.lower()
+
+        supported_prefixes = [net.CASHADDR_PREFIX, ]
+        if ":" in string:
+            # Case of prefix being specified
+            try:
+                prefix, kind, addr_hash = cashaddr.decode(string)
+            except ValueError as e:
+                raise AddressError(str(e))
+            if not support_arbitrary_prefix and prefix not in supported_prefixes:
+                raise AddressError(f'address has unexpected prefix {prefix}')
+        else:
+            # The input string can omit the prefix, in which case
+            # we try supported prefixes
+            prefix, kind, addr_hash = None, None, None
+            errors = []
+            for p in supported_prefixes:
+                full_string = ':'.join([p, string])
+                try:
+                    prefix, kind, addr_hash = cashaddr.decode(full_string)
+                except ValueError as e:
+                    errors.append(str(e))
+            if len(errors) >= len(supported_prefixes):
+                raise AddressError(
+                    f"Unable to decode CashAddr with supported prefixes."
+                    "\n".join([f"{err}" for err in errors]))
+
         if kind == cashaddr.PUBKEY_TYPE:
             return cls(addr_hash, cls.ADDR_P2PKH)
         elif kind == cashaddr.SCRIPT_TYPE:
             return cls(addr_hash, cls.ADDR_P2SH)
         else:
-            raise AddressError('address has unexpected kind {}'.format(kind))
+            raise AddressError(f'address has unexpected kind {kind}')
 
     @classmethod
-    def from_string(cls, string, *, net=None):
-        '''Construct from an address string.'''
+    def from_string(cls, string: str, *,
+                    net: networks.AbstractNet = None,
+                    support_arbitrary_prefix: bool = False):
+        """Construct from an address string.
+        This supports the following formats:
+          - legacy BTC addresses
+          - CashAddr with a "bitcoincash:" prefix
+          - CashAddr with a prefix omitted if this prefix is "bitcoincash:"
+          - CashAddr with an arbitrary prefix, if support_arbitrary_prefix
+            is True
+
+        :return: Instance of :class:`Address`
+        """
         if net is None: net = networks.net
         if len(string) > 35:
             try:
-                return cls.from_cashaddr_string(string, net=net)
+                return cls.from_cashaddr_string(
+                    string, net=net,
+                    support_arbitrary_prefix=support_arbitrary_prefix)
             except ValueError as e:
                 raise AddressError(str(e))
 
