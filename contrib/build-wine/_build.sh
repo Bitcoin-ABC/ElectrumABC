@@ -59,7 +59,7 @@ prepare_wine() {
 
         # libusb 1.0.23
         LIBUSB_REPO='https://github.com/libusb/libusb.git'
-        LIBUSB_COMMIT=e782eeb2514266f6738e242cdcb18e3ae1ed06fa
+        LIBUSB_COMMIT=c6a35c56016ea2ab2f19115d2ea1e85e0edae155 # Version 1.0.24
 
         PYINSTALLER_REPO='https://github.com/PiRK/pyinstaller.git'
         PYINSTALLER_COMMIT=1a8b2d47c277c451f4e358d926a47c096a5615ec
