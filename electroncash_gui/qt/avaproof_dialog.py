@@ -25,6 +25,7 @@ class AvaProofWidget(QtWidgets.QWidget):
         :param parent:
         """
         super().__init__(parent)
+        self.setWindowTitle("Build avalanche proof")
         # This is enough width to show a whole compressed pubkey.
         self.setMinimumWidth(600)
         # Enough height to show the entire proof without scrolling.
