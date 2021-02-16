@@ -415,6 +415,8 @@ class UTXOList(MyTreeWidget):
             filter="JSON files (*.json); All files (*)")
         if not fileName:
             return
+        if not fileName.endswith(".json") and not fileName.endswith(".JSON"):
+            fileName += '.json'
         with open(fileName, 'w') as outfile:
             json.dump(utxos_for_json, outfile)
 
