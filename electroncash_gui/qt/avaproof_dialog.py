@@ -25,7 +25,6 @@ class AvaProofWidget(QtWidgets.QWidget):
         :param parent:
         """
         super().__init__(parent)
-        self.setWindowTitle("Build avalanche proof")
         # This is enough width to show a whole compressed pubkey.
         self.setMinimumWidth(600)
         # Enough height to show the entire proof without scrolling.
@@ -44,12 +43,19 @@ class AvaProofWidget(QtWidgets.QWidget):
         layout.addWidget(self.sequence_sb)
         layout.addSpacing(10)
 
-        layout.addWidget(QtWidgets.QLabel("Expiration date"))
         expiration_layout = QtWidgets.QHBoxLayout()
         layout.addLayout(expiration_layout)
+
+        expiration_left_sublayout = QtWidgets.QVBoxLayout()
+        expiration_layout.addLayout(expiration_left_sublayout)
+        expiration_left_sublayout.addWidget(QtWidgets.QLabel("Expiration date"))
         self.calendar = QtWidgets.QDateTimeEdit()
         self.calendar.setToolTip("Date and time at which the proof will expire")
-        expiration_layout.addWidget(self.calendar)
+        expiration_left_sublayout.addWidget(self.calendar)
+
+        expiration_right_sublayout = QtWidgets.QVBoxLayout()
+        expiration_layout.addLayout(expiration_right_sublayout)
+        expiration_right_sublayout.addWidget(QtWidgets.QLabel("Expiration POSIX timestamp"))
         # Use a QDoubleSpinbox with precision set to 0 decimals, because
         # QSpinBox is limited to the int32 range (January 19, 2038)
         self.timestamp_widget = QtWidgets.QDoubleSpinBox()
@@ -59,7 +65,7 @@ class AvaProofWidget(QtWidgets.QWidget):
         self.timestamp_widget.setSingleStep(86400)
         self.timestamp_widget.setToolTip(
             "POSIX time, seconds since 1970-01-01T00:00:00")
-        expiration_layout.addWidget(self.timestamp_widget)
+        expiration_right_sublayout.addWidget(self.timestamp_widget)
         layout.addSpacing(10)
 
         layout.addWidget(
@@ -182,8 +188,10 @@ class AvaProofWidget(QtWidgets.QWidget):
 
 
 class AvaProofDialog(QtWidgets.QDialog):
-    def __init__(self, utxos: List[dict], wallet, parent: Optional[QtWidgets.QWidget] = None):
+    def __init__(self, utxos: List[dict], wallet,
+                 parent: Optional[QtWidgets.QWidget] = None):
         super().__init__(parent)
+        self.setWindowTitle("Build avalanche proof")
 
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
