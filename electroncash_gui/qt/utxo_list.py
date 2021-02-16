@@ -397,18 +397,12 @@ class UTXOList(MyTreeWidget):
         if not len(utxos):
             return
 
-        # Specify betters names for the fields, serialize the Address
-        utxos_for_json = [
-            {
-                "txid": utxo["prevout_hash"],
-                "vout": utxo["prevout_n"],
-                "height": utxo["height"],
-                "amount": utxo["value"],
-                "address": utxo["address"].to_full_string(Address.FMT_CASHADDR_BCH),
-                "is_coinbase": utxo["coinbase"],
-                "slp_token": utxo["slp_token"],
-             } for utxo in utxos
-        ]
+        # serialize the Address
+        utxos_for_json = []
+        for utxo in utxos:
+            utxo_for_json = utxo.copy()
+            utxo_for_json["address"] = utxo["address"].to_full_string(Address.FMT_CASHADDR_BCH)
+            utxos_for_json.append(utxo_for_json)
 
         fileName, _filter = QtWidgets.QFileDialog.getSaveFileName(
             self, "Save UTXOs to file",
