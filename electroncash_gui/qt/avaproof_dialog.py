@@ -28,7 +28,7 @@ class AvaProofWidget(QtWidgets.QWidget):
         # This is enough width to show a whole compressed pubkey.
         self.setMinimumWidth(600)
         # Enough height to show the entire proof without scrolling.
-        self.setMinimumWidth(480)
+        self.setMinimumHeight(580)
 
         self.utxos = utxos
         self.wallet = wallet
@@ -102,14 +102,11 @@ class AvaProofWidget(QtWidgets.QWidget):
         self.blockSignals(was_blocked)
 
     def _on_generate_clicked(self):
-        # TODO validate input, set proof None in case of failure
         proof = self._build()
         if proof is not None:
             self.proof_display.setText(
-                f'<p style="color:black;">{proof}</p>'
+                f'<p style="color:black;"><b>{proof}</b></p>'
             )
-        else:
-            self.proof_display.clear()
 
     def _build(self) -> Optional[str]:
         if self._pwd is None and self.wallet.has_password():
@@ -119,6 +116,8 @@ class AvaProofWidget(QtWidgets.QWidget):
                 if password is None:
                     # User cancelled password input
                     self._pwd = None
+                    self.proof_display.setText(
+                        f'<p style="color:red;">Password dialog cancelled!</p>')
                     return
                 try:
                     self.wallet.check_password(password)
@@ -136,10 +135,6 @@ class AvaProofWidget(QtWidgets.QWidget):
             txin_type, privkey, compressed = deserialize_privkey(master)
             master = public_key_from_private_key(privkey, compressed)
         if not self._validate_pubkey(master):
-            QtWidgets.QMessageBox.critical(
-                self, "Invalid key",
-                "Invalid master key."
-            )
             return
 
         proofbuilder = ProofBuilder(
@@ -164,13 +159,16 @@ class AvaProofWidget(QtWidgets.QWidget):
         try:
             key_bytes = bytes.fromhex(master)
         except ValueError:
-            print("invalid hex")
+            self.proof_display.setText(
+                f'<p style="color:red;">Master key: invalid hexadecimal</p>')
             return False
         try:
             point = ser_to_point(key_bytes)
             ecdsa.keys.VerifyingKey.from_public_point(
                 point, ecdsa.curves.SECP256k1)
         except Exception:
+            self.proof_display.setText(
+                f'<p style="color:red;">Master key is not a valid public key</p>')
             return False
         return True
 
