@@ -37,21 +37,35 @@ class AvaProofWidget(QtWidgets.QWidget):
         self.sequence_sb = QtWidgets.QSpinBox()
         self.sequence_sb.setMinimum(0)
         layout.addWidget(self.sequence_sb)
+        layout.addSpacing(10)
 
-        layout.addWidget(QtWidgets.QLabel("Proof expiration"))
+        layout.addWidget(QtWidgets.QLabel("Expiration date"))
+        expiration_layout = QtWidgets.QHBoxLayout()
+        layout.addLayout(expiration_layout)
         self.calendar = QtWidgets.QDateTimeEdit()
-        now = QtCore.QDateTime.currentDateTime()
-        self.calendar.setDateTime(now.addYears(1))
         self.calendar.setToolTip("Date and time at which the proof will expire")
-        layout.addWidget(self.calendar)
+        expiration_layout.addWidget(self.calendar)
+        # Use a QDoubleSpinbox with precision set to 0 decimals, because
+        # QSpinBox is limited to the int32 range (January 19, 2038)
+        self.timestamp_widget = QtWidgets.QDoubleSpinBox()
+        self.timestamp_widget.setDecimals(0)
+        # date range: genesis block to Wed Jun 09 3554 16:53:20 GMT
+        self.timestamp_widget.setRange(1231006505, 50**10)
+        self.timestamp_widget.setSingleStep(86400)
+        self.timestamp_widget.setToolTip(
+            "POSIX time, seconds since 1970-01-01T00:00:00")
+        expiration_layout.addWidget(self.timestamp_widget)
+        layout.addSpacing(10)
 
-        layout.addWidget(QtWidgets.QLabel("Master public key (hex) or private key (WIF)"))
+        layout.addWidget(
+            QtWidgets.QLabel("Master public key (hex) or private key (WIF)"))
         self.master_pubkey_edit = QtWidgets.QLineEdit()
         self.master_pubkey_edit.setToolTip(
             "Public key corresponding to the private key specified for the "
             "node's -avasessionkey parameter."
         )
         layout.addWidget(self.master_pubkey_edit)
+        layout.addSpacing(10)
 
         self.generate_button = QtWidgets.QPushButton("Generate proof")
         layout.addWidget(self.generate_button)
@@ -60,6 +74,28 @@ class AvaProofWidget(QtWidgets.QWidget):
         self.proof_display = QtWidgets.QTextEdit()
         self.proof_display.setReadOnly(True)
         layout.addWidget(self.proof_display)
+
+        # Connect signals
+        self.calendar.dateTimeChanged.connect(self.on_datetime_changed)
+        self.timestamp_widget.valueChanged.connect(self.on_timestamp_changed)
+
+        # Init widgets
+        now = QtCore.QDateTime.currentDateTime()
+        self.calendar.setDateTime(now.addYears(1))
+
+    def on_datetime_changed(self, dt: QtCore.QDateTime):
+        """Set the timestamp from a QDateTime"""
+        was_blocked = self.blockSignals(True)
+        self.timestamp_widget.setValue(dt.toSecsSinceEpoch())
+        self.blockSignals(was_blocked)
+
+    def on_timestamp_changed(self, timestamp: float):
+        """Set the calendar date from POSIX timestamp"""
+        timestamp = int(timestamp)
+        was_blocked = self.blockSignals(True)
+        self.calendar.setDateTime(
+            QtCore.QDateTime.fromSecsSinceEpoch(timestamp))
+        self.blockSignals(was_blocked)
 
     def _on_generate_clicked(self):
         # TODO validate input, set proof None in case of failure
