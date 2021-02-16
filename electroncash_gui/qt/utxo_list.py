@@ -245,7 +245,7 @@ class UTXOList(MyTreeWidget):
             avaproof_action = menu.addAction("Build avalanche proof", lambda: self.build_avaproof(coins))
             if not self.parent.wallet.is_schnorr_possible() or self.parent.wallet.is_watching_only():
                 avaproof_action.setEnabled(False)
-                avaproof_action.set_tooltip(
+                avaproof_action.setToolTip(
                     "Cannot build avalanche proof for hardware, multisig or "
                     "watch-only wallet (Schnorr signature is required).")
             if len(selected) == 1:

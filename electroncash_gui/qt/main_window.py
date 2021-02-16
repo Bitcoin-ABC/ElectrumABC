@@ -80,6 +80,7 @@ from electroncash.wallet import Multisig_Wallet, sweep_preparations
 
 
 from .amountedit import AmountEdit, XECAmountEdit, MyLineEdit, XECSatsByteEdit
+from .avaproof_dialog import AvaProofDialog
 from .qrcodewidget import QRCodeWidget, QRDialog
 from .qrtextedit import ShowQRTextEdit, ScanQRTextEdit
 from .sign_verify_dialog import SignVerifyDialog
@@ -753,6 +754,13 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         raw_transaction_menu.addAction(_("From &QR Code") + "...", self.read_tx_from_qrcode)
         raw_transaction_menu.addAction(_("From &Multiple files") + "...", self.do_process_from_multiple_files)
         self.raw_transaction_menu = raw_transaction_menu
+        tools_menu.addSeparator()
+        avaproof_action = tools_menu.addAction("Build avalanche proof", self.build_avalanche_proof)
+        if self.wallet.is_watching_only() or not self.wallet.is_schnorr_possible():
+            avaproof_action.setEnabled(False)
+            avaproof_action.setToolTip(
+                    "Cannot build avalanche proof for hardware, multisig or "
+                    "watch-only wallet (Schnorr signature is required).")
         tools_menu.addSeparator()
         if ColorScheme.dark_scheme and sys.platform != 'darwin':  # use dark icon in menu except for on macOS where we can't be sure it will look right due to the way menus work on macOS
             icon = QIcon(":icons/cashacct-button-darkmode.png")
@@ -3516,6 +3524,38 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 return
             tx = Transaction(r, sign_schnorr=self.wallet.is_schnorr_enabled())  # note that presumably the tx is already signed if it comes from blockchain so this sign_schnorr parameter is superfluous, but here to satisfy my OCD -Calin
             self.show_transaction(tx, tx_desc=tx_desc)
+
+    def build_avalanche_proof(self):
+        """Open a dialog to build an avalanche proof from coins metadata
+        loaded from a file. The coins must belong to this wallet, and the
+        wallet must be capable of exporting private keys for the coins
+        (no hardware wallet, no watchonly wallet...)
+
+        This tools is meant to be used with an offline wallet, after exporting
+        the UTXOs from the corresponding watch-only or hardware wallet.
+
+        The typical workflow is:
+
+         - on the hot (online) wallet, go to the "Coins" tab, select one or
+           multiple coins you want to use as Avalanche stakes, then
+           right-click on a selected coin an select "Export coins details"
+         - save the file to disk, then transfer it to the offline computer
+         - restore the wallet from seed on the offline computer
+         - select "Build avalanche proof" in the tools menu, and load
+           the .json file containing the coin details
+         - in the new dialog, specify all required parameters (proof sequence
+           number, expiration timestamp, master public key), then click the
+           "Generate proof" button
+        """
+        fileName = self.getOpenFileName(
+            "Select the file containing the data for coins to be used as stakes", "*.json")
+        if not fileName:
+            return
+        with open(fileName, "r", encoding='utf-8') as f:
+            utxos = json.load(f)
+        if utxos is not None:
+            dialog = AvaProofDialog(utxos, self.wallet, parent=self)
+            dialog.show()
 
     def export_bip38_dialog(self):
         ''' Convenience method. Simply calls self.export_privkeys_dialog(bip38=True) '''
