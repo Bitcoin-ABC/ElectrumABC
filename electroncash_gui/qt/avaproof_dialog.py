@@ -25,6 +25,10 @@ class AvaProofWidget(QtWidgets.QWidget):
         :param parent:
         """
         super().__init__(parent)
+        # This is enough width to show a whole compressed pubkey.
+        self.setMinimumWidth(600)
+        # Enough height to show the entire proof without scrolling.
+        self.setMinimumWidth(480)
 
         self.utxos = utxos
         self.wallet = wallet
