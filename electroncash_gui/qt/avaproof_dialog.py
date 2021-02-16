@@ -6,6 +6,7 @@ import ecdsa
 from PyQt5 import QtWidgets
 from PyQt5 import QtCore
 
+from electroncash.address import Address
 from electroncash.avaproof import ProofBuilder
 from electroncash.bitcoin import (
     is_private_key,
@@ -78,6 +79,21 @@ class AvaProofWidget(QtWidgets.QWidget):
         layout.addWidget(self.master_pubkey_edit)
         layout.addSpacing(10)
 
+        self.utxos_wigdet = QtWidgets.QTableWidget(len(utxos), 3)
+        self.utxos_wigdet.setHorizontalHeaderLabels(
+            ["txid", "vout", "amount"])
+        self.utxos_wigdet.verticalHeader().setVisible(False)
+        self.utxos_wigdet.setSelectionMode(QtWidgets.QTableWidget.NoSelection)
+        self.utxos_wigdet.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        layout.addWidget(self.utxos_wigdet)
+        for i, utxo in enumerate(utxos):
+            txid_item = QtWidgets.QTableWidgetItem(utxo["prevout_hash"])
+            self.utxos_wigdet.setItem(i, 0, txid_item)
+            vout_item = QtWidgets.QTableWidgetItem(str(utxo["prevout_n"]))
+            self.utxos_wigdet.setItem(i, 1, vout_item)
+            amount_item = QtWidgets.QTableWidgetItem(str(utxo["value"]))
+            self.utxos_wigdet.setItem(i, 2, amount_item)
+
         self.generate_button = QtWidgets.QPushButton("Generate proof")
         layout.addWidget(self.generate_button)
         self.generate_button.clicked.connect(self._on_generate_clicked)
@@ -149,7 +165,11 @@ class AvaProofWidget(QtWidgets.QWidget):
             expiration_time=self.calendar.dateTime().toSecsSinceEpoch(),
             master=master)
         for utxo in self.utxos:
-            priv_key = self.wallet.export_private_key(utxo['address'], self._pwd)
+            address = utxo['address']
+            if not isinstance(utxo['address'], Address):
+                # utxo loaded from JSON file (serialized)
+                address = Address.from_string(address)
+            priv_key = self.wallet.export_private_key(address, self._pwd)
             proofbuilder.add_utxo(
                 txid=utxo['prevout_hash'],
                 vout=utxo['prevout_n'],
