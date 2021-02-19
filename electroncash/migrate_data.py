@@ -11,7 +11,7 @@ import shutil
 from typing import Optional
 
 from .network import DEFAULT_WHITELIST_SERVERS_ONLY, DEFAULT_AUTO_CONNECT
-from .simple_config import read_user_config, save_user_config
+from .simple_config import read_user_config, save_user_config, SimpleConfig
 from .util import get_user_dir
 from .version import VERSION_TUPLE, PACKAGE_VERSION
 
@@ -25,6 +25,10 @@ INVALID_FUSION_HOSTS = [
     'cashfusion.electroncash.dk',
     # Test server
     "161.97.82.60"]
+
+# The default fee set to 80000 in 4.3.0 was lowered to 10000 in 4.3.2,
+# and then again to 5000 in 4.3.3
+OLD_DEFAULT_FEES = [80000, 10000]
 
 
 # function copied from https://github.com/Electron-Cash/Electron-Cash/blob/master/electroncash/util.py
@@ -144,11 +148,10 @@ def migrate_data_from_ec():
         if config:
             reset_server_config(config)
 
-            # Set a fee_per_kb adapted to the current mempool situation
             if "fee_per_kb" in config:
-                config["fee_per_kb"] = 10000
+                config["fee_per_kb"] = SimpleConfig.default_fee_rate()
 
-            # Disable plugins that can not be selected in the Electrum ABC menu.
+            # Disable plugins that cannot be selected in the Electrum ABC menu.
             config["use_labels"] = False
             config["use_cosigner_pool"] = False
 
@@ -193,10 +196,9 @@ def update_config():
     version_transition_msg += " 🠚 " + PACKAGE_VERSION
     _logger.info("Updating configuration file " + version_transition_msg)
 
-    # The default fee set to 80000 in 4.3.0 was lowered to 10000 in 4.3.2
-    if config.get("fee_per_kb") == 80000:
+    if config.get("fee_per_kb") in OLD_DEFAULT_FEES:
         _logger.info("Updating default transaction fee")
-        config["fee_per_kb"] = 10000
+        config["fee_per_kb"] = SimpleConfig.default_fee_rate()
 
     # Help users find the new default server if they tried the Electron Cash
     # host or if they manually specified the test server.

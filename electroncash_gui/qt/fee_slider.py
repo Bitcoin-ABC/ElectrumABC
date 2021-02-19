@@ -41,7 +41,7 @@ class FeeSlider(QSlider):
             self.update_no_custom_fee_rate()
 
     def update_no_custom_fee_rate(self):
-        self.fee_step = self.config.max_fee_rate() / 10
+        self.fee_step = self.config.max_slider_fee / self.config.slider_steps
         fee_rate = self.config.fee_per_kb()
         pos = max(min(fee_rate / self.fee_step, 10) - 1, 0)
         self.setEnabled(True)
@@ -53,7 +53,7 @@ class FeeSlider(QSlider):
     # configuraing this as is done is here still required, can't just set range 0,0 to deactivate.
     # chose to make this a seperate function from update for easier code maintainence
     def update_has_custom_fee_rate(self):
-        self.fee_step = self.config.max_fee_rate() / 10
+        self.fee_step = self.config.max_slider_fee / self.config.slider_steps
         fee_rate = self.config.fee_per_kb()
         pos = max(0,min(fee_rate / self.fee_step, 1))
         self.setRange(0, 1)

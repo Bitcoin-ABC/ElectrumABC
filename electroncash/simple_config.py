@@ -34,10 +34,13 @@ class SimpleConfig(PrintError):
         2. User configuration (in the user's config directory)
     They are taken in order (1. overrides config options set in 2.)
     """
-    fee_rates = [10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000,
-                 90000, 100000]
-    """List of rates used for selecting a fee with the slider in the GUI.
-    The lowest rate is used by default for new users."""
+    max_slider_fee: int = 50000
+    """Maximum fee rate in sat/kB that can be selected using the slider widget
+    in the send tab. Make sure this is a multiple of slider_steps, so that
+    all slider positions are integers."""
+    slider_steps: int = 10
+    """Number of possible equidistant fee rate settings (starting with
+    max_slider_fee / slider_steps)"""
 
     def __init__(self, options=None, read_user_config_function=None,
                  read_user_dir_function=None):
@@ -253,15 +256,25 @@ class SimpleConfig(PrintError):
             path = wallet.storage.path
             self.set_key('gui_last_wallet', path)
 
-    def max_fee_rate(self):
-        return self.fee_rates[-1]
+    def static_fee(self, i: int) -> int:
+        """Return fee rate for slider position i, in sat/kB.
 
-    def static_fee(self, i):
-        return self.fee_rates[i]
+        :param i: Fee slider index, in range 0 -- self.slider_steps - 1
+        :return:
+        """
+        return self.max_slider_fee // self.slider_steps * (i + 1)
 
     def custom_fee_rate(self):
         f = self.get('customfee')
         return f
+
+    @classmethod
+    def default_fee_rate(cls) -> int:
+        """
+        Return default fee rate in sat/kB for new wallets.
+        """
+        # use the lowest rate that can be set with the slider
+        return cls.max_slider_fee // cls.slider_steps
 
     def fee_per_kb(self) -> int:
         """Return transaction fee in sats per kB"""
@@ -269,8 +282,7 @@ class SimpleConfig(PrintError):
         if retval is None:
             retval = self.get('fee_per_kb')
         if retval is None:
-            # New wallet: use the lowest rate in self.fee_rates
-            retval = self.fee_rates[0]
+            return self.default_fee_rate()
         return retval
 
     def has_custom_fee_rate(self):
