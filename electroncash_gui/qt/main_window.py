@@ -2188,12 +2188,6 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             x_fee_address, x_fee_amount = x_fee
             msg.append( _("Additional fees") + ": " + self.format_amount_and_units(x_fee_amount) )
 
-        confirm_rate = 2 * self.config.max_fee_rate()
-
-        # IN THE FUTURE IF WE WANT TO APPEND SOMETHING IN THE MSG ABOUT THE FEE, CODE IS COMMENTED OUT:
-        #if fee > confirm_rate * tx.estimated_size() / 1000:
-        #    msg.append(_('Warning') + ': ' + _("The fee for this transaction seems unusually high."))
-
         if (fee < (tx.estimated_size())):
             msg.append(_('Warning') + ': ' + _("You're using a fee of less than 1.0 sats/B. It may take a very long time to confirm."))
             tx.ephemeral['warned_low_fee_already'] = True
