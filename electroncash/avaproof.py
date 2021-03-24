@@ -50,11 +50,11 @@ def write_compact_size(nsize: int) -> bytes:
     if nsize < 253:
         return struct.pack("B", nsize)
     if nsize < 0x10000:
-        return struct.pack("BH", 253, nsize)
+        return struct.pack("<BH", 253, nsize)
     if nsize < 0x100000000:
-        return struct.pack("BL", 254, nsize)
+        return struct.pack("<BL", 254, nsize)
     assert nsize < 0x10000000000000000
-    return struct.pack("BQ", 255, nsize)
+    return struct.pack("<BQ", 255, nsize)
 
 
 class PublicKey:
@@ -109,7 +109,7 @@ class COutPoint:
         # the bytes reversal with [::-1].
         # Alternatively, I could have stored the txid as an int and used
         # ser_uint256 from https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/test/functional/test_framework/messages.py#L120
-        return self.txid[::-1] + struct.pack('i', self.n)
+        return self.txid[::-1] + struct.pack('<i', self.n)
 
 
 class Stake:
@@ -141,7 +141,7 @@ def compute_proof_id(sequence: int, expiration_time: int,
 
     :return: bytes of length 32
     """
-    ss = struct.pack("Qq", sequence, expiration_time)
+    ss = struct.pack("<Qq", sequence, expiration_time)
     ss += master.serialize()
     ss += write_compact_size(len(stakes))
     for s in stakes:
@@ -189,7 +189,7 @@ class Proof:
         )
 
     def serialize(self) -> bytes:
-        p = struct.pack("Qq", self.sequence, self.expiration_time)
+        p = struct.pack("<Qq", self.sequence, self.expiration_time)
         p += self.master.serialize()
 
         # The following serialization for the length of the SignedStake vector
