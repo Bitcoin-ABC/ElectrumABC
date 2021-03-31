@@ -1,6 +1,4 @@
 from binascii import hexlify, unhexlify
-import traceback
-import sys
 
 from electroncash.util import bfh, bh2u, UserCancelled
 from electroncash.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, deserialize_xpub
@@ -11,8 +9,11 @@ from electroncash.keystore import Hardware_KeyStore, is_xpubkey, parse_xpubkey
 from electroncash.address import Address
 from electroncash.plugins import Device
 
-from ..hw_wallet import HW_PluginBase
-from ..hw_wallet.plugin import is_any_tx_output_on_change_branch, validate_op_return_output_and_get_data
+from electroncash_plugins.hw_wallet import HW_PluginBase
+from electroncash_plugins.hw_wallet.plugin import (
+    is_any_tx_output_on_change_branch,
+    validate_op_return_output_and_get_data,
+)
 
 
 # TREZOR initialization methods
@@ -82,7 +83,7 @@ class KeepKeyPlugin(HW_PluginBase):
         HW_PluginBase.__init__(self, parent, config, name)
 
         try:
-            from . import client
+            from electroncash_plugins.keepkey import client
             import keepkeylib
             import keepkeylib.ckd_public
             import keepkeylib.transport_hid
@@ -142,7 +143,7 @@ class KeepKeyPlugin(HW_PluginBase):
         except BaseException as e:
             # see fdb810ba622dc7dbe1259cbafb5b28e19d2ab114
             # raise
-            self.print_error("cannot connect at {} {}".format(device.path, e))
+            self.print_error(f"cannot connect at {device.path} {e}")
             return None
 
     def _try_webusb(self, device):
@@ -150,7 +151,7 @@ class KeepKeyPlugin(HW_PluginBase):
         try:
             return self.webusb_transport(device)
         except BaseException as e:
-            self.print_error("cannot connect at {} {}".format(device.path, e))
+            self.print_error(f"cannot connect at {device.path} {e}")
             return None
 
     def create_client(self, device, handler):
@@ -163,7 +164,7 @@ class KeepKeyPlugin(HW_PluginBase):
             self.print_error("cannot connect to device")
             return
 
-        self.print_error("connected to device at {}".format(device.path))
+        self.print_error(f"connected to device at {device.path}")
 
         client = self.client_class(transport, handler, self)
 
@@ -171,7 +172,7 @@ class KeepKeyPlugin(HW_PluginBase):
         try:
             client.ping('t')
         except BaseException as e:
-            self.print_error("ping failed {}".format(e))
+            self.print_error(f"ping failed {e}")
             return None
 
         if not client.atleast_version(*self.minimum_firmware):
@@ -312,18 +313,18 @@ class KeepKeyPlugin(HW_PluginBase):
         return xpub
 
     def get_keepkey_input_script_type(self, electrum_txin_type: str):
-        if electrum_txin_type in ('p2pkh', ):
+        if electrum_txin_type == "p2pkh":
             return self.types.SPENDADDRESS
-        if electrum_txin_type in ('p2sh', ):
+        if electrum_txin_type == "p2sh":
             return self.types.SPENDMULTISIG
-        raise ValueError('unexpected txin type: {}'.format(electrum_txin_type))
+        raise ValueError(f"unexpected txin type: {electrum_txin_type}")
 
     def get_keepkey_output_script_type(self, electrum_txin_type: str):
-        if electrum_txin_type in ('p2pkh', ):
+        if electrum_txin_type == "p2pkh":
             return self.types.PAYTOADDRESS
-        if electrum_txin_type in ('p2sh', ):
+        if electrum_txin_type == "p2sh":
             return self.types.PAYTOMULTISIG
-        raise ValueError('unexpected txin type: {}'.format(electrum_txin_type))
+        raise ValueError(f"unexpected txin type: {electrum_txin_type}")
 
     def sign_transaction(self, keystore, tx, prev_tx, xpub_path):
         self.prev_tx = prev_tx

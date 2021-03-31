@@ -209,9 +209,10 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         self.init_menubar()
 
-        wrtabs = Weak.ref(tabs)  # We use a weak reference here to help along python gc of QShortcut children: prevent the lambdas below from holding a strong ref to self.
+        # We use a weak reference here to help along python gc of QShortcut children: prevent the lambdas below from holding a strong ref to self.
+        wrtabs = Weak.ref(tabs)
         self._shortcuts.add( QShortcut(QKeySequence("Ctrl+W"), self, self.close) )
-        # Below is now addded to the menu as Ctrl+R but we'll also support F5 like browsers do
+        # Below is now added to the menu as Ctrl+R but we'll also support F5 like browsers do
         self._shortcuts.add( QShortcut(QKeySequence("F5"), self, self.update_wallet) )
         self._shortcuts.add( QShortcut(QKeySequence("Ctrl+PgUp"), self, lambda: wrtabs() and wrtabs().setCurrentIndex((wrtabs().currentIndex() - 1)%wrtabs().count())) )
         self._shortcuts.add( QShortcut(QKeySequence("Ctrl+PgDown"), self, lambda: wrtabs() and wrtabs().setCurrentIndex((wrtabs().currentIndex() + 1)%wrtabs().count())) )
@@ -222,7 +223,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.gui_object.cashaddr_toggled_signal.connect(self.update_cashaddr_icon)
         self.payment_request_ok_signal.connect(self.payment_request_ok)
         self.payment_request_error_signal.connect(self.payment_request_error)
-        self.gui_object.update_available_signal.connect(self.on_update_available)  # shows/hides the update_available_button, emitted by update check mechanism when a new version is available
+        # shows/hides the update_available_button, emitted by update check mechanism when a new version is available
+        self.gui_object.update_available_signal.connect(self.on_update_available)
         self.history_list.setFocus(True)
 
         # update fee slider in case we missed the callback
@@ -970,7 +972,6 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                     _("Balance: {amount_and_unit}").format(
                         amount_and_unit=self.format_amount_and_units(c))
                 ]
-
                 if u:
                     text_items.append(_("[{amount} unconfirmed]").format(
                         amount=self.format_amount(u, True).strip()))
@@ -1008,10 +1009,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         self.tray.setToolTip("%s (%s)" % (text, self.wallet.basename()))
         self.balance_label.setText(text)
-        self.status_button.setIcon( icon )
+        self.status_button.setIcon(icon)
         self.status_button.setStatusTip( status_tip )
         run_hook('window_update_status', self)
-
 
     def update_wallet(self):
         self.need_update.set() # will enqueue an _update_wallet() call in at most 0.5 seconds from now.
@@ -1879,7 +1879,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
     def redraw_from_list(self, *, spendable=None):
         ''' Optional kwarg spendable indicates *which* of the UTXOs in the
-        self.pay_from list are actually spendable.  If this arg is specifid,
+        self.pay_from list are actually spendable.  If this arg is specified,
         coins in the self.pay_from list that aren't also in the 'spendable' list
         will be grayed out in the UI, to indicate that they will not be used.
         Otherwise all coins will be non-gray (default).
@@ -2492,7 +2492,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             self.message_e.setFocus()
 
     def do_clear(self):
-        ''' Clears the send tab, reseting its UI state to its initiatial state.'''
+        ''' Clears the send tab, resetting its UI state to its initiatial state.'''
         self.max_button.setChecked(False)
         self.not_enough_funds = False
         self.op_return_toolong = False
@@ -2695,7 +2695,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
           name#number
           name#number.;  etc
 
-        If the result would be ambigious, that is considered an error, so enough
+        If the result would be ambiguous, that is considered an error, so enough
         of the account name#number.collision_hash needs to be specified to
         unambiguously resolve the Cash Account.
 
@@ -2886,7 +2886,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.update_available_button.setVisible(bool(self.gui_object.new_version_available))  # if hidden now gets unhidden by on_update_available when a new version comes in
 
         self.lock_icon = QIcon()
-        self.password_button = StatusBarButton(self.lock_icon, _("Password"), self.change_password_dialog )
+        self.password_button = StatusBarButton(
+            self.lock_icon, _("Password"), self.change_password_dialog
+        )
         sb.addPermanentWidget(self.password_button)
 
         self.addr_converter_button = StatusBarButton(
@@ -2899,8 +2901,18 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.addr_converter_button.setHidden(self.gui_object.is_cashaddr_status_button_hidden())
         self.gui_object.cashaddr_status_button_hidden_signal.connect(self.addr_converter_button.setHidden)
 
-        sb.addPermanentWidget(StatusBarButton(QIcon(":icons/preferences.svg"), _("Preferences"), self.settings_dialog ) )
-        self.seed_button = StatusBarButton(QIcon(":icons/seed.png"), _("Seed"), self.show_seed_dialog )
+        q_icon_prefs = (
+            QIcon(":icons/preferences.svg"),
+            _("Preferences"),
+            self.settings_dialog,
+        )
+        sb.addPermanentWidget(StatusBarButton(*q_icon_prefs))
+        q_icon_seed = (
+            QIcon(":icons/seed.png"),
+            _("Seed"),
+            self.show_seed_dialog,
+        )
+        self.seed_button = StatusBarButton(*q_icon_seed)
         sb.addPermanentWidget(self.seed_button)
         weakSelf = Weak.ref(self)
         gui_object = self.gui_object

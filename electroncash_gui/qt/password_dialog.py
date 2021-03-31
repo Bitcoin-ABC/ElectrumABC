@@ -35,7 +35,13 @@ from electroncash.i18n import _
 
 from electroncash.plugins import run_hook
 
-from .util import WindowModalDialog, OkButton, Buttons, CancelButton
+from electroncash_gui.qt.util import (
+    WindowModalDialog,
+    OkButton,
+    Buttons,
+    CancelButton,
+)
+
 
 def check_password_strength(password):
 
@@ -49,8 +55,8 @@ def check_password_strength(password):
     num = re.search("[0-9]", password) is not None and re.match("^[0-9]*$", password) is None
     caps = password != password.upper() and password != password.lower()
     extra = re.match("^[a-zA-Z0-9]*$", password) is None
-    score = len(password)*( n + caps + num + extra)/20
-    password_strength = {0:"Weak",1:"Medium",2:"Strong",3:"Very Strong"}
+    score = len(password) * (n + caps + num + extra) / 20
+    password_strength = {0: "Weak", 1: "Medium", 2: "Strong", 3: "Very Strong"}
     return password_strength[min(3, int(score))]
 
 

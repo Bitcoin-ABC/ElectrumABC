@@ -11,8 +11,11 @@ from electroncash.i18n import _
 from electroncash.plugins import BasePlugin
 from electroncash.keystore import Hardware_KeyStore
 from electroncash.transaction import Transaction
-from ..hw_wallet import HW_PluginBase
-from ..hw_wallet.plugin import is_any_tx_output_on_change_branch, validate_op_return_output_and_get_data
+from electroncash_plugins.hw_wallet import HW_PluginBase
+from electroncash_plugins.hw_wallet.plugin import (
+    is_any_tx_output_on_change_branch,
+    validate_op_return_output_and_get_data,
+)
 from electroncash.util import print_error, is_verbose, bfh, bh2u, versiontuple
 
 try:
@@ -180,7 +183,7 @@ class Ledger_Client:
             except BTChipException as e:
                 if (e.sw == 0x6985):
                     self.dongleObject.dongle.close()
-                    self.handler.get_setup( )
+                    self.handler.get_setup()
                     # Acquire the new client on the next run
                 else:
                     raise e
@@ -289,7 +292,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
         # Strip the leading "m/"
         change, index = self.get_address_index(address)
         derivation = self.derivation
-        address_path = "{:s}/{:d}/{:d}".format(derivation, change, index)
+        address_path = f"{derivation:s}/{change:d}/{index:d}"
         return address_path[2:]
 
     def decrypt_message(self, pubkey, message, password):

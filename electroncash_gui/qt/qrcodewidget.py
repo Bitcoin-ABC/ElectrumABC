@@ -1,16 +1,18 @@
-
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import (
     QApplication, QVBoxLayout, QTextEdit, QHBoxLayout, QPushButton, QWidget,
     QSizePolicy, QToolTip)
 
-import os
 import qrcode
 
 from electroncash import util
 from electroncash.i18n import _
-from .util import WindowModalDialog, MessageBoxMixin, CloseButton
+from electroncash_gui.qt.util import (
+    WindowModalDialog,
+    MessageBoxMixin,
+    CloseButton,
+)
 
 
 class QRCodeWidget(QWidget, util.PrintError):
@@ -80,10 +82,10 @@ class QRCodeWidget(QWidget, util.PrintError):
 
         margin = 5
         framesize = min(r.width(), r.height())
-        boxsize = int( (framesize - 2*margin)/k )
-        size = k*boxsize
-        left = (r.width() - size)/2
-        top = (r.height() - size)/2
+        boxsize = int((framesize - 2 * margin) / k)
+        size = k * boxsize
+        left = (r.width() - size) / 2
+        top = (r.height() - size) / 2
 
         # Make a white margin around the QR in case of dark theme use
         qp.setBrush(self._white_brush)
@@ -100,7 +102,7 @@ class QRCodeWidget(QWidget, util.PrintError):
 
 
 def save_to_file(qrw, parent):
-    from .main_window import ElectrumWindow
+    from electroncash_gui.qt.main_window import ElectrumWindow
     p = qrw and qrw.grab()
     if p and not p.isNull():
         filename = ElectrumWindow.static_getSaveFileName(title=_("Save QR Image"), filename="qrcode.png", parent=parent, filter="*.png")
@@ -131,7 +133,8 @@ class QRDialog(WindowModalDialog):
         hbox = QHBoxLayout()
         hbox.addStretch(1)
 
-        weakSelf = util.Weak.ref(self)  # Qt & Python GC hygeine: don't hold references to self in non-method slots as it appears Qt+Python GC don't like this too much and may leak memory in that case.
+        # Qt & Python GC hygiene: don't hold references to self in non-method slots as it appears Qt+Python GC don't like this too much and may leak memory in that case.
+        weakSelf = util.Weak.ref(self)
         weakQ = util.Weak.ref(qrw)
 
         b = QPushButton(_("&Copy"))

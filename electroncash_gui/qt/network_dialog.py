@@ -161,7 +161,7 @@ class NodesListWidget(QTreeWidget):
         menu.exec_(self.viewport().mapToGlobal(position))
 
     def keyPressEvent(self, event):
-        if event.key() in [ Qt.Key_F2, Qt.Key_Return ]:
+        if event.key() in {Qt.Key_F2, Qt.Key_Return}:
             item, col = self.currentItem(), self.currentColumn()
             if item and col > -1:
                 self.on_activated(item, col)
@@ -430,7 +430,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         self.autoconnect_cb = QCheckBox(_('Select server automatically'))
         self.autoconnect_cb.setEnabled(self.config.is_modifiable('auto_connect'))
 
-        weakSelf = Weak.ref(self)  # Qt/Python GC hygeine: avoid strong references to self in lambda slots.
+        weakSelf = Weak.ref(self)  # Qt/Python GC hygiene: avoid strong references to self in lambda slots.
         self.server_host.editingFinished.connect(lambda: weakSelf() and weakSelf().set_server(onion_hack=True))
         self.server_port.editingFinished.connect(lambda: weakSelf() and weakSelf().set_server(onion_hack=True))
         self.ssl_cb.clicked.connect(self.change_protocol)
@@ -706,15 +706,15 @@ class NetworkChoiceLayout(QObject, PrintError):
             tor_binary_name=tbname,
             tor_binary_name_capitalized=tbname[:1].upper() + tbname[1:]
         ))
-        avalable = tbt != TorController.BinaryType.MISSING
-        self.tor_enabled.setEnabled(avalable)
-        self.tor_custom_port_cb.setEnabled(avalable and self.tor_enabled.isChecked())
-        self.tor_socks_port.setEnabled(avalable and self.tor_custom_port_cb.isChecked())
+        available = tbt != TorController.BinaryType.MISSING
+        self.tor_enabled.setEnabled(available)
+        self.tor_custom_port_cb.setEnabled(available and self.tor_enabled.isChecked())
+        self.tor_socks_port.setEnabled(available and self.tor_custom_port_cb.isChecked())
 
         tor_enabled_tooltip = [
             _(f"This will start a private instance of the Tor proxy "
               f"controlled by {PROJECT_NAME}.")]
-        if not avalable:
+        if not available:
             tor_enabled_tooltip.insert(0, _("This feature is unavailable because no Tor binary was found."))
         tor_enabled_tooltip_text = ' '.join(tor_enabled_tooltip)
         self.tor_enabled.setToolTip(tor_enabled_tooltip_text)
@@ -943,11 +943,13 @@ class NetworkChoiceLayout(QObject, PrintError):
     def set_proxy(self):
         host, port, protocol, proxy, auto_connect = self.network.get_parameters()
         if self.proxy_cb.isChecked():
-            proxy = { 'mode':str(self.proxy_mode.currentText()).lower(),
-                      'host':str(self.proxy_host.text()),
-                      'port':str(self.proxy_port.text()),
-                      'user':str(self.proxy_user.text()),
-                      'password':str(self.proxy_password.text())}
+            proxy = {
+                "mode": str(self.proxy_mode.currentText()).lower(),
+                "host": str(self.proxy_host.text()),
+                "port": str(self.proxy_port.text()),
+                "user": str(self.proxy_user.text()),
+                "password": str(self.proxy_password.text()),
+            }
         else:
             proxy = None
         self.network.set_parameters(host, port, protocol, proxy, auto_connect)

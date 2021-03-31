@@ -26,9 +26,9 @@
 from collections import defaultdict, namedtuple
 from math import floor, log10
 
-from .bitcoin import sha256, COIN, TYPE_ADDRESS
-from .transaction import Transaction
-from .util import NotEnoughFunds, PrintError
+from electroncash.bitcoin import sha256, COIN, TYPE_ADDRESS
+from electroncash.transaction import Transaction
+from electroncash.util import NotEnoughFunds, PrintError
 
 
 # A simple deterministic PRNG.  Used to deterministically shuffle a
@@ -178,7 +178,7 @@ class CoinChooserBase(PrintError):
         utxos = [c['prevout_hash'] + str(c['prevout_n']) for c in coins]
         self.p = PRNG(''.join(sorted(utxos)))
 
-        # Copy the ouputs so when adding change we don't modify "outputs"
+        # Copy the outputs so when adding change we don't modify "outputs"
         tx = Transaction.from_io([], outputs, sign_schnorr=sign_schnorr)
         # Size of the transaction with no inputs and no change
         base_size = tx.estimated_size()
@@ -226,7 +226,7 @@ class CoinChooserRandom(CoinChooserBase):
         # Add all singletons
         for n, bucket in enumerate(buckets):
             if sufficient_funds([bucket]):
-                candidates.add((n, ))
+                candidates.add((n,))
 
         # And now some random ones
         attempts = min(100, (len(buckets) - 1) * 10 + 1)

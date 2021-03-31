@@ -41,16 +41,20 @@ class ElectrumGui:
         self.wallet.start_threads(self.network)
         self.contacts = self.wallet.contacts
 
-        self.network.register_callback(self.on_network, ['wallet_updated', 'blockchain_updated', 'banner'])
-        self.commands = [_("[h] - displays this help text"), \
-                         _("[i] - display transaction history"), \
-                         _("[o] - enter payment order"), \
-                         _("[p] - print stored payment order"), \
-                         _("[s] - send stored payment order"), \
-                         _("[r] - show own receipt addresses"), \
-                         _("[c] - display contacts"), \
-                         _("[b] - print server banner"), \
-                         _("[q] - quit") ]
+        self.network.register_callback(
+            self.on_network, ["wallet_updated", "blockchain_updated", "banner"]
+        )
+        self.commands = [
+            _("[h] - displays this help text"),
+            _("[i] - display transaction history"),
+            _("[o] - enter payment order"),
+            _("[p] - print stored payment order"),
+            _("[s] - send stored payment order"),
+            _("[r] - show own receipt addresses"),
+            _("[c] - display contacts"),
+            _("[b] - print server banner"),
+            _("[q] - quit"),
+        ]
         self.num_commands = len(self.commands)
 
     def on_network(self, event, *args):
@@ -105,8 +109,11 @@ class ElectrumGui:
             label = self.wallet.get_label(tx_hash)
             messages.append( format_str%( time_str, label, format_satoshis(delta, whitespaces=True), format_satoshis(balance, whitespaces=True) ) )
 
-        self.print_list(messages[::-1], format_str%( _("Date"), _("Description"), _("Amount"), _("Balance")))
-
+        self.print_list(
+            messages[::-1],
+            format_str
+            % (_("Date"), _("Description"), _("Amount"), _("Balance")),
+        )
 
     def print_balance(self):
         print(self.get_balance())
@@ -114,7 +121,7 @@ class ElectrumGui:
     def get_balance(self):
         if self.wallet.network.is_connected():
             if not self.wallet.up_to_date:
-                msg = _( "Synchronizing..." )
+                msg = _("Synchronizing...")
             else:
                 c, u, x =  self.wallet.get_balance()
                 msg = _("Balance")+": %f  "%(PyDecimal(c) / COIN)
@@ -123,7 +130,7 @@ class ElectrumGui:
                 if x:
                     msg += "  [%f unmatured]"%(PyDecimal(x) / COIN)
         else:
-                msg = _( "Not connected" )
+            msg = _("Not connected")
 
         return(msg)
 
@@ -152,8 +159,8 @@ class ElectrumGui:
         self.do_send()
 
     def print_banner(self):
-        for i, x in enumerate( self.wallet.network.banner.split('\n') ):
-            print( x )
+        for i, x in enumerate(self.wallet.network.banner.split("\n")):
+            print(x)
 
     def print_list(self, lst, firstline):
         lst = list(lst)
