@@ -141,8 +141,9 @@ def check_imports():
         raise AssertionError("Certificates not found")
 
 
-def prompt_password(prompt, confirm=True):
-    """ Get password routine """
+def prompt_password(prompt: str = "Password:",
+                    confirm: bool = False) -> str:
+    """Get password routine"""
     password = getpass.getpass(prompt, stream=None)
     if password and confirm:
         password2 = getpass.getpass("Confirm: ")
@@ -160,7 +161,7 @@ def prompt_create_wallet_password() -> str:
 
 
 def run_non_rpc(simple_config: SimpleConfig):
-    """ Run non RPC commands """
+    """Run non RPC commands"""
     cmd_name = simple_config.get("cmd")
 
     storage = WalletStorage(simple_config.get_wallet_path())
