@@ -2824,7 +2824,7 @@ class ImportedAddressWallet(ImportedWalletBase):
     def can_import_address(self):
         return True
 
-    def get_addresses(self, include_change=False):
+    def get_addresses(self):
         if not self._sorted:
             self._sorted = sorted(self.addresses,
                                   key=lambda addr: addr.to_full_ui_string())
@@ -2898,7 +2898,7 @@ class ImportedPrivkeyWallet(ImportedWalletBase):
     def can_import_address(self):
         return False
 
-    def get_addresses(self, include_change=False):
+    def get_addresses(self):
         return self.keystore.get_addresses()
 
     def delete_address_derived(self, address):
