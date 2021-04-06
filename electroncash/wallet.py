@@ -1954,7 +1954,6 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         sats_per_byte=fee_in_satoshis/tx_in_bytes
         if (sats_per_byte > 100):
             raise ExcessiveFee()
-            return
 
         # Sort the inputs and outputs deterministically
         tx.BIP_LI01_sort()
