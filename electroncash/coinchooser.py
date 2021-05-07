@@ -23,6 +23,7 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from abc import ABC, abstractmethod
 from collections import defaultdict, namedtuple
 from math import floor, log10
 
@@ -80,8 +81,10 @@ def strip_unneeded(bkts, sufficient_funds):
     # Shouldn't get here
     return bkts
 
-class CoinChooserBase(PrintError):
 
+class CoinChooserBase(ABC, PrintError):
+
+    @abstractmethod
     def keys(self, coins):
         raise NotImplementedError()
 
@@ -100,10 +103,9 @@ class CoinChooserBase(PrintError):
 
         return list(map(make_Bucket, buckets.keys(), buckets.values()))
 
+    @abstractmethod
     def penalty_func(self, tx):
-        def penalty(candidate):
-            return 0
-        return penalty
+        raise NotImplementedError('To be subclassed')
 
     def change_amounts(self, tx, count, fee_estimator, dust_threshold):
         # Break change up if bigger than max_change
@@ -211,10 +213,17 @@ class CoinChooserBase(PrintError):
 
         return tx
 
+    @abstractmethod
     def choose_buckets(self, buckets, sufficient_funds, penalty_func):
         raise NotImplementedError('To be subclassed')
 
+
 class CoinChooserRandom(CoinChooserBase):
+
+    def penalty_func(self, tx):
+        def penalty():
+            return 0
+        return penalty
 
     def bucket_candidates_any(self, buckets, sufficient_funds):
         '''Returns a list of bucket sets.'''
