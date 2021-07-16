@@ -1,4 +1,6 @@
 task:
+  name: "Build macos DMG"
+  timeout_in: 120m
   clone_script: |
     if [ -z "$CIRRUS_PR" ]; then
       git clone --recursive --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
@@ -8,8 +10,6 @@ task:
       git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR
       git reset --hard $CIRRUS_CHANGE_IN_REPO
     fi
-  timeout_in: 120m
-  name: "Build macos DMG"
   macos_instance:
     image: catalina-base
   brew_script:
@@ -19,3 +19,28 @@ task:
     - cd contrib/osx && ./make_osx
   binaries_artifacts:
     path: "dist/*.dmg"
+
+task:
+  name: "Build AppImage and source package"
+  env:
+    DEBIAN_FRONTEND: noninteractive
+  timeout_in: 120m
+  container:
+    image: ubuntu:20.04
+  setup-script:
+    - echo "GIT_REPO=`pwd`/ElectrumABC" >> $CIRRUS_ENV
+    - apt-get update
+    - apt-get install -y git
+    - apt-get install -y sudo
+    - apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+    - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    - echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+    - apt-get update
+    - apt-get install -y docker-ce docker-ce-cli containerd.io
+  build_script:
+    - dockerd &
+    - sleep 10
+    - contrib/build-linux/srcdist_docker/build.sh $CIRRUS_BRANCH
+    - contrib/build-linux/appimage/build.sh $CIRRUS_BRANCH
+  binaries_artifacts:
+    path: "dist/*"
