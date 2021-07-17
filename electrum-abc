@@ -507,8 +507,13 @@ def process_config_options(args: argparse.Namespace) -> dict:
     logging.basicConfig(level=logging.DEBUG if is_verbose else logging.INFO)
 
     have_testnet = config_options.get("testnet", False)
-    if have_testnet:
+    have_regtest = config_options.get("regtest", False)
+    if have_testnet + have_regtest > 1:
+        sys.exit("Invalid combination of --testnet and --regtest")
+    elif have_testnet:
         networks.set_testnet()
+    elif have_regtest:
+        networks.set_regtest()
 
     # check uri
     uri = config_options.get("url")

@@ -206,6 +206,7 @@ setup(
         'electroncash': [
             'servers.json',
             'servers_testnet.json',
+            'servers_regtest.json',
             'currencies.json',
             'www/index.html',
             'wordlist/*.txt',
