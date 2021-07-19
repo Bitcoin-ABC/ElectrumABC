@@ -142,12 +142,9 @@ class RegtestNet(TestNet):
     BITCOIN_CASH_FORK_BLOCK_HEIGHT = 0
     BITCOIN_CASH_FORK_BLOCK_HASH = GENESIS
 
-    # FIXME: due to asertdaa, we need a blockchain with at least 127+100 blocks
-    # if verification block is not set, otherwise verification block hash is dynamic
-    # if it is set, we still need 147 blocks
-    VERIFICATION_BLOCK_HEIGHT = 200
-    VERIFICATION_BLOCK_MERKLE_ROOT = "bba85e63a92947479e922acc55b398e1ce2b1e78aa375e5d50bda9ae84b312de"
-    asert_daa = ASERTDaa(is_testnet=True)
+    VERIFICATION_BLOCK_HEIGHT = 100
+    VERIFICATION_BLOCK_MERKLE_ROOT = None
+    asert_daa = ASERTDaa(is_testnet=True) # not used on regtest
 
     DEFAULT_SERVERS = _read_json_dict('servers_regtest.json')  # DO NOT MODIFY IN CLIENT CODE
 
