@@ -31,7 +31,7 @@ the hash of the stakes to prove ownership of the UTXO.
 
 
 import struct
-from typing import List
+from typing import List, Tuple
 
 from . import schnorr
 from .bitcoin import public_key_from_private_key, deserialize_privkey
@@ -134,21 +134,22 @@ class Stake:
         return sha256d(proofid + self.serialize())
 
 
-def compute_proof_id(sequence: int, expiration_time: int,
-                     master: PublicKey, stakes: List[Stake]) -> bytes:
-    """Return Bitcoin's 256-bit hash (double SHA-256) of the
-    serialized proof data.
-
-    :return: bytes of length 32
-    """
+def compute_limited_proof_id(sequence: int, expiration_time: int,
+                             stakes: List[Stake]) -> bytes:
     ss = struct.pack("<Qq", sequence, expiration_time)
-    ss += master.serialize()
     ss += write_compact_size(len(stakes))
     for s in stakes:
         ss += s.serialize()
-    h = sha256d(ss)
-    assert len(h) == 32
-    return h
+    return sha256d(ss)
+
+
+def compute_proof_id(sequence: int, expiration_time: int,
+                     stakes: List[Stake],
+                     master: PublicKey) -> Tuple[bytes, bytes]:
+    ss = ltd_id = compute_limited_proof_id(sequence, expiration_time, stakes)
+    ss += master.serialize()
+    proofid = sha256d(ss)
+    return ltd_id, proofid
 
 
 class SignedStake:
@@ -183,9 +184,11 @@ class Proof:
 
         self.stakes: List[SignedStake] = signed_stakes
 
-        self.proofid: bytes = compute_proof_id(
-            sequence, expiration_time, master,
-            [ss.stake for ss in signed_stakes]
+        self.limitedid: bytes
+        self.proofid: bytes
+        self.limitedid, self.proofid = compute_proof_id(
+            sequence, expiration_time,
+            [ss.stake for ss in signed_stakes], master
         )
 
     def serialize(self) -> bytes:
@@ -239,9 +242,9 @@ class ProofBuilder(object):
         self.stake_signers.append(StakeSigner(stake, privkey))
 
     def build(self):
-        proofid = compute_proof_id(
-            self.sequence, self.expiration_time, self.master,
-            [signer.stake for signer in self.stake_signers])
+        _ltd_id, proofid = compute_proof_id(
+            self.sequence, self.expiration_time,
+            [signer.stake for signer in self.stake_signers], self.master)
         signed_stakes = [signer.sign(proofid) for signer in self.stake_signers]
         return Proof(self.sequence, self.expiration_time, self.master,
                      signed_stakes)
