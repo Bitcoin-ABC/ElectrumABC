@@ -19,11 +19,9 @@ class TestAvalancheProof(unittest.TestCase):
         proof = proofbuilder.build()
         self.assertEqual(proof.serialize().hex(), expected_proof_hex)
 
-        # We need to reverse the bytestring before converting a proofid to hex,
-        # because of the way the node software serializes uint256.
-        self.assertEqual(proof.limitedid[::-1].hex(),
+        self.assertEqual(f"{proof.limitedid:0{64}x}",
                          expected_limited_proofid)
-        self.assertEqual(proof.proofid[::-1].hex(),
+        self.assertEqual(f"{proof.proofid:0{64}x}",
                          expected_proofid)
 
     def test_single_stake(self):
@@ -45,6 +43,8 @@ class TestAvalancheProof(unittest.TestCase):
             "8e7e55842ae2bd115d1ed7cc0e82d934e929c97648cb0a28f28f73b40ba29c2d65c5e26"
             "5d86667c8f9c9c097684a95d672cbae2e1e3e538bf3bf23d97911baca379efbd55f7eeb"
             "1110b7b69a62a3e770a5a0a8ead73727",
+            # The following proofid and limited id were obtained by passing
+            # the previous serialized proof to `bitcoin-cli decodeavalancheproof`
             "9857a02ac4499b7d0ba81be3318a01a9a2230c22187b24d0038f30fc33bb9961",
             "cb33d7fac9092089f0d473c13befa012e6ee4d19abf9a42248f731d5e59e74a2"
         )

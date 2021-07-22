@@ -29,7 +29,6 @@ This requires serializing some keys and UTXO metadata (stakes), and signing
 the hash of the stakes to prove ownership of the UTXO.
 """
 
-
 import struct
 from typing import List, Tuple
 
@@ -134,6 +133,14 @@ class Stake:
         return sha256d(proofid + self.serialize())
 
 
+def uint256_from_bytes(s: bytes) -> int:
+    r = 0
+    t = struct.unpack("<IIIIIIII", s[:32])
+    for i in range(8):
+        r += t[i] << (i * 32)
+    return r
+
+
 def compute_limited_proof_id(sequence: int, expiration_time: int,
                              stakes: List[Stake]) -> bytes:
     ss = struct.pack("<Qq", sequence, expiration_time)
@@ -184,12 +191,13 @@ class Proof:
 
         self.stakes: List[SignedStake] = signed_stakes
 
-        self.limitedid: bytes
-        self.proofid: bytes
-        self.limitedid, self.proofid = compute_proof_id(
+        ltd_id, proofid = compute_proof_id(
             sequence, expiration_time,
             [ss.stake for ss in signed_stakes], master
         )
+        self.limitedid: int = uint256_from_bytes(ltd_id)
+        self.proofid: int = uint256_from_bytes(proofid)
+
 
     def serialize(self) -> bytes:
         p = struct.pack("<Qq", self.sequence, self.expiration_time)
