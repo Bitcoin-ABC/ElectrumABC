@@ -31,7 +31,7 @@ import struct
 from . import cashaddr, networks
 from enum import IntEnum
 from .bitcoin import EC_KEY, is_minikey, minikey_to_private_key, SCRIPT_TYPES
-from .constants import WHITELISTED_PREFIXES
+from .constants import WHITELISTED_PREFIXES, WHITELISTED_TESTNET_PREFIXES
 from .util import cachedproperty, inv_dict
 
 _sha256 = hashlib.sha256
@@ -540,20 +540,27 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
             net = networks.net
         string = string.lower()
 
+        if net.TESTNET:
+            whitelisted_prefixes = WHITELISTED_TESTNET_PREFIXES
+        else:
+            whitelisted_prefixes = WHITELISTED_PREFIXES
+
+
         if ":" in string:
             # Case of prefix being specified
             try:
                 prefix, kind, addr_hash = cashaddr.decode(string)
             except ValueError as e:
                 raise AddressError(str(e))
-            if not support_arbitrary_prefix and prefix not in WHITELISTED_PREFIXES:
+
+            if not support_arbitrary_prefix and prefix not in whitelisted_prefixes:
                 raise AddressError(f'address has unexpected prefix {prefix}')
         else:
             # The input string can omit the prefix, in which case
             # we try supported prefixes
             prefix, kind, addr_hash = None, None, None
             errors = []
-            for p in WHITELISTED_PREFIXES:
+            for p in whitelisted_prefixes:
                 full_string = ':'.join([p, string])
                 try:
                     prefix, kind, addr_hash = cashaddr.decode(full_string)
@@ -562,7 +569,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
                 else:
                     # accept the first valid address
                     break
-            if len(errors) >= len(WHITELISTED_PREFIXES):
+            if len(errors) >= len(whitelisted_prefixes):
                 raise AddressError(
                     f"Unable to decode CashAddr with supported prefixes."
                     "\n".join([f"{err}" for err in errors]))
