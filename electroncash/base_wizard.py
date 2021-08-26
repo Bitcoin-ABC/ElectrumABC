@@ -88,7 +88,7 @@ class BaseWizard(util.PrintError):
         wallet_kinds = [
             ('standard',  _("Standard wallet")),
             ('multisig',  _("Multi-signature wallet")),
-            ('imported',  _("Import Bitcoin Cash addresses or private keys")),
+            ('imported',  _(f"Import {CURRENCY} addresses or private keys")),
         ]
         choices = [pair for pair in wallet_kinds if pair[0] in wallet_types]
         self.choice_dialog(title=title, message=message, choices=choices, run_next=self.on_wallet_type)
@@ -137,8 +137,9 @@ class BaseWizard(util.PrintError):
 
     def import_addresses_or_keys(self):
         v = lambda x: keystore.is_address_list(x) or keystore.is_private_key_list(x, allow_bip38=True)
-        title = _("Import Bitcoin Addresses")
-        message = _("Enter a list of Bitcoin Cash addresses (this will create a watching-only wallet), or a list of private keys.")
+        title = _(f"Import {CURRENCY} Addresses")
+        message = _(f"Enter a list of {CURRENCY} addresses (this will create a"
+                    f" watching-only wallet), or a list of private keys.")
         if bitcoin.is_bip38_available():
             message += " " + _("BIP38 encrypted keys are supported.")
         self.add_xpub_dialog(title=title, message=message, run_next=self.on_import,
