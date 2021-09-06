@@ -532,11 +532,15 @@ from ecdsa.ellipticcurve import Point
 from ecdsa.util import string_to_number, number_to_string
 
 
+MSG_MAGIC = b"Bitcoin Signed Message:\n"
+
+
 def msg_magic(message: bytes) -> bytes:
     """Prepare the preimage of the message before signing it or verifying
     its signature."""
     length = bytes.fromhex(var_int(len(message)))
-    return b"\x18Bitcoin Signed Message:\n" + length + message
+    magic_length = bytes.fromhex(var_int(len(MSG_MAGIC)))
+    return magic_length + MSG_MAGIC + length + message
 
 
 def verify_message(address: Union[str, "Address"], sig: bytes, message:bytes, *,
