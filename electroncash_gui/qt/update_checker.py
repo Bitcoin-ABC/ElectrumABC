@@ -165,23 +165,35 @@ class UpdateChecker(QWidget, PrintError):
                     if adr in self.VERSION_ANNOUNCEMENT_SIGNING_ADDRESSES:
                         ct_matching += 1
                         # may raise
-                        if self.is_newer(version_msg):
+                        if not self.is_newer(version_msg):
+                            continue
+                        try:
+                            is_verified = bitcoin.verify_message(
+                                adr, base64.b64decode(sig),
+                                version_msg.encode('utf-8'), net=MainNet)
+                        except Exception:
+                            # temporary: try the legacy verification algorithm
+                            # because we will need to sign the old way for a
+                            # couple of releases, for old releases to verify
+                            # the message.
+                            # TODO: remove after two new releases past 5.0.1
                             try:
                                 is_verified = bitcoin.verify_message(
                                     adr, base64.b64decode(sig),
-                                    version_msg.encode('utf-8'), net=MainNet)
+                                    version_msg.encode('utf-8'), net=MainNet,
+                                    legacy=True)
                             except Exception:
                                 self.print_error(
                                     "Exception when verifying version signature for",
                                     version_msg, ":", repr(sys.exc_info()[1]))
                                 return None
-                            if is_verified:
-                                self.print_error("Got new version", version_msg)
-                                return version_msg.strip()
-                            else:
-                                self.print_error("Got new version", version_msg,
-                                                 "but sigcheck failed!")
-                                return None
+                        if is_verified:
+                            self.print_error("Got new version", version_msg)
+                            return version_msg.strip()
+                        else:
+                            self.print_error("Got new version", version_msg,
+                                             "but sigcheck failed!")
+                            return None
         if 0 == ct_matching:
             # Hmm. None of the versions we saw matched our variant.
             # And/Or, none of the keys we saw matched keys we knew about.

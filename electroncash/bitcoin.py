@@ -532,19 +532,24 @@ from ecdsa.ellipticcurve import Point
 from ecdsa.util import string_to_number, number_to_string
 
 
-MSG_MAGIC = b"Bitcoin Signed Message:\n"
+MSG_MAGIC = b"eCash Signed Message:\n"
+# The legacy scheme can be dropped a few releases after 5.0.1
+# It is supported only for the UpdateChecker.
+LEGACY_MSG_MAGIC = b"Bitcoin Signed Message:\n"
 
 
-def msg_magic(message: bytes) -> bytes:
+def msg_magic(message: bytes, legacy: bool = False) -> bytes:
     """Prepare the preimage of the message before signing it or verifying
     its signature."""
+    msg_magic_ = MSG_MAGIC if not legacy else LEGACY_MSG_MAGIC
     length = bytes.fromhex(var_int(len(message)))
-    magic_length = bytes.fromhex(var_int(len(MSG_MAGIC)))
-    return magic_length + MSG_MAGIC + length + message
+    magic_length = bytes.fromhex(var_int(len(msg_magic_)))
+    return magic_length + msg_magic_ + length + message
 
 
 def verify_message(address: Union[str, "Address"], sig: bytes, message:bytes, *,
-                   net: Optional[networks.AbstractNet] = None) -> bool:
+                   net: Optional[networks.AbstractNet] = None,
+                   legacy: bool = False) -> bool:
     if net is None: net = networks.net
     assert_bytes(sig, message)
     # Fixme: circular import address -> bitcoin -> address
@@ -552,7 +557,7 @@ def verify_message(address: Union[str, "Address"], sig: bytes, message:bytes, *,
     if not isinstance(address, Address):
         address = Address.from_string(address, net=net)
 
-    h = Hash(msg_magic(message))
+    h = Hash(msg_magic(message, legacy))
     public_key, compressed = pubkey_from_signature(sig, h)
     # check public key using the right address
     pubkey = point_to_ser(public_key.pubkey.point, compressed)
