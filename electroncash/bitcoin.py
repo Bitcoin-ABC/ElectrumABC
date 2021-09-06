@@ -33,7 +33,7 @@ import os
 import ecdsa
 import pyaes
 
-from typing import Tuple
+from typing import Optional, Tuple, Union
 
 from . import networks
 from .util import (bfh, bh2u, to_string, print_error, InvalidPassword,
@@ -532,14 +532,18 @@ from ecdsa.ellipticcurve import Point
 from ecdsa.util import string_to_number, number_to_string
 
 
-def msg_magic(message):
-    length = bfh(var_int(len(message)))
+def msg_magic(message: bytes) -> bytes:
+    """Prepare the preimage of the message before signing it or verifying
+    its signature."""
+    length = bytes.fromhex(var_int(len(message)))
     return b"\x18Bitcoin Signed Message:\n" + length + message
 
 
-def verify_message(address, sig, message, *, net=None):
+def verify_message(address: Union[str, "Address"], sig: bytes, message:bytes, *,
+                   net: Optional[networks.AbstractNet] = None) -> bool:
     if net is None: net = networks.net
     assert_bytes(sig, message)
+    # Fixme: circular import address -> bitcoin -> address
     from .address import Address
     if not isinstance(address, Address):
         address = Address.from_string(address, net=net)
@@ -1251,8 +1255,7 @@ class Bip38Key:
 
         pubKey = eckey.GetPubKey(self.compressed)
 
-        from .address import Address
-
+        from .address import Address  # fixme
         addr = Address.from_pubkey(pubKey)
         addrHashed = Hash(addr.to_storage_string(net=self.net))[0:4]
 
@@ -1326,8 +1329,7 @@ class Bip38Key:
 
         pubKey = eckey.GetPubKey(self.compressed)
 
-        from .address import Address
-
+        from .address import Address  # fixme
         addr = Address.from_pubkey(pubKey)
         addrHashed = Hash(addr.to_storage_string(net=self.net))[0:4]
 
