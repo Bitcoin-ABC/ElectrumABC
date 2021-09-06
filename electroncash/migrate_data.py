@@ -28,8 +28,8 @@ INVALID_FUSION_HOSTS = [
     "161.97.82.60"]
 
 # The default fee set to 80000 in 4.3.0 was lowered to 10000 in 4.3.2,
-# and then again to 5000 in 4.3.3
-OLD_DEFAULT_FEES = [80000, 10000]
+# and then again to 5000 in 4.3.3, and then again to 2000 in 5.0.2
+OLD_DEFAULT_FEES = [80000, 10000, 5000]
 
 
 # function copied from https://github.com/Electron-Cash/Electron-Cash/blob/master/electroncash/util.py

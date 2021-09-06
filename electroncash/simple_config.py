@@ -35,7 +35,7 @@ class SimpleConfig(PrintError):
         2. User configuration (in the user's config directory)
     They are taken in order (1. overrides config options set in 2.)
     """
-    max_slider_fee: int = 50000
+    max_slider_fee: int = 10000
     """Maximum fee rate in sat/kB that can be selected using the slider widget
     in the send tab. Make sure this is a multiple of slider_steps, so that
     all slider positions are integers."""
@@ -274,8 +274,8 @@ class SimpleConfig(PrintError):
         """
         Return default fee rate in sat/kB for new wallets.
         """
-        # use the lowest rate that can be set with the slider
-        return cls.max_slider_fee // cls.slider_steps
+        # use the 2nd lowest rate that can be set with the slider
+        return cls.max_slider_fee // cls.slider_steps * 2
 
     def fee_per_kb(self) -> int:
         """Return transaction fee in sats per kB"""
