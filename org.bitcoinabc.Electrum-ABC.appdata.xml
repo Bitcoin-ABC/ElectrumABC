@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-	<id>org.bitcoinabc.ElectrumABC</id>
+	<id>org.bitcoinabc.Electrum-ABC</id>
 <name>Electrum ABC</name>
 	<summary>Lightweight eCash Client</summary>
 	<description>
