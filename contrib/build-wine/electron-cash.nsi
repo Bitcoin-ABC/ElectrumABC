@@ -195,12 +195,17 @@ Section
   CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME} (Software OpenGL).lnk" "$INSTDIR\${INTERNAL_NAME}.exe" "--qt_opengl software" "$INSTDIR\${INTERNAL_NAME}.exe" 0
   CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME} Testnet.lnk" "$INSTDIR\${INTERNAL_NAME}.exe" "--testnet" "$INSTDIR\${INTERNAL_NAME}.exe" 0
 
-  ;Links bitcoincash: URI's to Electron Cash
+  ;Links ecash: URI's to Electrum ABC
+  WriteRegStr ${INSTDIR_REG_ROOT} "Software\Classes\ecash" "" "URL:ecash Protocol"
+  WriteRegStr ${INSTDIR_REG_ROOT} "Software\Classes\ecash" "URL Protocol" ""
+  WriteRegStr ${INSTDIR_REG_ROOT} "Software\Classes\ecash" "DefaultIcon" "$\"$INSTDIR\electrumABC.ico, 0$\""
+  WriteRegStr ${INSTDIR_REG_ROOT} "Software\Classes\ecash\shell\open\command" "" "$\"$INSTDIR\${INTERNAL_NAME}.exe$\" $\"%1$\""
+  ;Links bitcoincash: URI's to Electrum ABC
   WriteRegStr ${INSTDIR_REG_ROOT} "Software\Classes\bitcoincash" "" "URL:bitcoincash Protocol"
   WriteRegStr ${INSTDIR_REG_ROOT} "Software\Classes\bitcoincash" "URL Protocol" ""
   WriteRegStr ${INSTDIR_REG_ROOT} "Software\Classes\bitcoincash" "DefaultIcon" "$\"$INSTDIR\electrumABC.ico, 0$\""
   WriteRegStr ${INSTDIR_REG_ROOT} "Software\Classes\bitcoincash\shell\open\command" "" "$\"$INSTDIR\${INTERNAL_NAME}.exe$\" $\"%1$\""
-  ;Links cashacct: URI's to Electron Cash
+  ;Links cashacct: URI's to Electrum ABC
   WriteRegStr ${INSTDIR_REG_ROOT} "Software\Classes\cashacct" "" "URL:cashacct Protocol"
   WriteRegStr ${INSTDIR_REG_ROOT} "Software\Classes\cashacct" "URL Protocol" ""
   WriteRegStr ${INSTDIR_REG_ROOT} "Software\Classes\cashacct" "DefaultIcon" "$\"$INSTDIR\electrumABC.ico, 0$\""
@@ -239,6 +244,7 @@ Section "Uninstall"
   Delete "$SMPROGRAMS\${PRODUCT_NAME}\*.*"
   RMDir  "$SMPROGRAMS\${PRODUCT_NAME}"
 
+  DeleteRegKey ${INSTDIR_REG_ROOT} "Software\Classes\ecash"
   DeleteRegKey ${INSTDIR_REG_ROOT} "Software\Classes\bitcoincash"
   DeleteRegKey ${INSTDIR_REG_ROOT} "Software\Classes\cashacct"
   DeleteRegKey ${INSTDIR_REG_ROOT} "Software\${PRODUCT_NAME}"
