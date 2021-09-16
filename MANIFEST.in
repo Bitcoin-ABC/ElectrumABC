@@ -1,7 +1,6 @@
-include LICENCE RELEASE-NOTES AUTHORS
+include LICENCE RELEASE-NOTES.md AUTHORS
 include README.rst
-include electron-cash.conf.sample
-include electron-cash.desktop
+include electrum-abc.desktop
 include *.py
 include electrum-abc
 include contrib/requirements/requirements.txt
