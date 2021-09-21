@@ -123,14 +123,14 @@ def migrate_data_from_ec(ec_user_dir: str = get_ec_user_dir(),
     cache_dir = os.path.join(user_dir, "cache")
     for filename in os.listdir(cache_dir):
         _logger.info(f"Deleting exchange rates cache  {filename}")
-        safe_rm(filename)
+        safe_rm(os.path.join(cache_dir, filename))
 
     # Delete external plugins. They will most likely not be compatible.
     # (see https://github.com/Bitcoin-ABC/ElectrumABC/issues/132)
-    cache_dir = os.path.join(user_dir, "external_plugins")
-    for filename in os.listdir(cache_dir):
+    plugins_dir = os.path.join(user_dir, "external_plugins")
+    for filename in os.listdir(plugins_dir):
         _logger.info(f"Deleting external plugin {filename}")
-        safe_rm(filename)
+        safe_rm(os.path.join(plugins_dir, filename))
 
     # Delete recent servers list
     recent_servers_file = os.path.join(user_dir, "recent-servers")
