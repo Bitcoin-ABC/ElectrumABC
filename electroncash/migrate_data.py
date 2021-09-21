@@ -48,24 +48,8 @@ def get_ec_user_dir() -> Optional[str]:
         return
 
 
-def does_user_dir_exist() -> bool:
-    """Return True if an Electrum ABC directory exists.
-    It will be False the first time a user runs the application.
-    """
-    user_dir = get_user_dir()
-    if user_dir is None or not os.path.isdir(user_dir):
-        return False
-    return True
-
-
-def does_ec_user_dir_exist() -> bool:
-    """Return True if an Electron Cash user directory exists.
-    It will return False if Electron Cash is not installed.
-    """
-    user_dir = get_ec_user_dir()
-    if user_dir is None or not os.path.isdir(user_dir):
-        return False
-    return True
+def does_dir_exist(user_dir: Optional[str]) -> bool:
+    return user_dir is not None and os.path.isdir(user_dir)
 
 
 def safe_rm(path: str):
@@ -118,70 +102,72 @@ def reset_server_config(config: dict):
     config.pop("rpcpassword", None)
 
 
-def migrate_data_from_ec():
+def migrate_data_from_ec(ec_user_dir: str = get_ec_user_dir(),
+                         user_dir: str = get_user_dir()):
     """Copy the EC data dir the first time Electrum ABC is executed.
     This makes all the wallets and settings available to users.
     """
-    if does_ec_user_dir_exist() and not does_user_dir_exist():
-        _logger.info("Importing Electron Cash user settings")
+    if not does_dir_exist(ec_user_dir) or does_dir_exist(user_dir):
+        return
+    _logger.info("Importing Electron Cash user settings")
 
-        src = get_ec_user_dir()
-        dest = get_user_dir()
-        shutil.copytree(src, dest)
+    src = get_ec_user_dir()
+    dest = get_user_dir()
+    shutil.copytree(src, dest)
 
-        # Delete the server lock file if it exists.
-        # This file exists if electron cash is currently running.
-        lock_file = os.path.join(dest, "daemon")
-        if os.path.isfile(lock_file):
-            safe_rm(lock_file)
+    # Delete the server lock file if it exists.
+    # This file exists if electron cash is currently running.
+    lock_file = os.path.join(dest, "daemon")
+    if os.path.isfile(lock_file):
+        safe_rm(lock_file)
 
-        # Delete cache files containing BCH exchange rates
-        cache_dir = os.path.join(dest, "cache")
-        for filename in os.listdir(cache_dir):
-            _logger.info(f"Deleting exchange rates cache  {filename}")
-            safe_rm(filename)
+    # Delete cache files containing BCH exchange rates
+    cache_dir = os.path.join(dest, "cache")
+    for filename in os.listdir(cache_dir):
+        _logger.info(f"Deleting exchange rates cache  {filename}")
+        safe_rm(filename)
 
-        # Delete external plugins. They will most likely not be compatible.
-        # (see https://github.com/Bitcoin-ABC/ElectrumABC/issues/132)
-        cache_dir = os.path.join(dest, "external_plugins")
-        for filename in os.listdir(cache_dir):
-            _logger.info(f"Deleting external plugin {filename}")
-            safe_rm(filename)
+    # Delete external plugins. They will most likely not be compatible.
+    # (see https://github.com/Bitcoin-ABC/ElectrumABC/issues/132)
+    cache_dir = os.path.join(dest, "external_plugins")
+    for filename in os.listdir(cache_dir):
+        _logger.info(f"Deleting external plugin {filename}")
+        safe_rm(filename)
 
-        # Delete recent servers list
-        recent_servers_file = os.path.join(dest, "recent-servers")
-        safe_rm(recent_servers_file)
+    # Delete recent servers list
+    recent_servers_file = os.path.join(dest, "recent-servers")
+    safe_rm(recent_servers_file)
 
-        # update some parameters in mainnet config file
-        config = read_user_config(dest)
-        if config:
-            reset_server_config(config)
+    # update some parameters in mainnet config file
+    config = read_user_config(dest)
+    if config:
+        reset_server_config(config)
 
-            if "fee_per_kb" in config:
-                config["fee_per_kb"] = SimpleConfig.default_fee_rate()
+        if "fee_per_kb" in config:
+            config["fee_per_kb"] = SimpleConfig.default_fee_rate()
 
-            # Disable plugins that cannot be selected in the Electrum ABC menu.
-            config["use_labels"] = False
-            config["use_cosigner_pool"] = False
+        # Disable plugins that cannot be selected in the Electrum ABC menu.
+        config["use_labels"] = False
+        config["use_cosigner_pool"] = False
 
-            # Disable by default other plugins that depend on servers that
-            # do not exist yet for BCHA.
-            config["use_fusion"] = False
+        # Disable by default other plugins that depend on servers that
+        # do not exist yet for BCHA.
+        config["use_fusion"] = False
 
-            # adjust all paths to point to the new user dir
-            replace_src_dest_in_config(src, dest, config)
-            save_user_config(config, dest)
+        # adjust all paths to point to the new user dir
+        replace_src_dest_in_config(src, dest, config)
+        save_user_config(config, dest)
 
-        # Testnet configuration
-        testnet_dir_path = os.path.join(dest, "testnet")
-        recent_tservers_file = os.path.join(testnet_dir_path, "recent-servers")
-        safe_rm(recent_tservers_file)
+    # Testnet configuration
+    testnet_dir_path = os.path.join(dest, "testnet")
+    recent_tservers_file = os.path.join(testnet_dir_path, "recent-servers")
+    safe_rm(recent_tservers_file)
 
-        testnet_config = read_user_config(testnet_dir_path)
-        if testnet_config:
-            reset_server_config(testnet_config)
-            replace_src_dest_in_config(src, dest, testnet_config)
-            save_user_config(testnet_config, testnet_dir_path)
+    testnet_config = read_user_config(testnet_dir_path)
+    if testnet_config:
+        reset_server_config(testnet_config)
+        replace_src_dest_in_config(src, dest, testnet_config)
+        save_user_config(testnet_config, testnet_dir_path)
 
 
 def _version_tuple_to_str(version_tuple):
