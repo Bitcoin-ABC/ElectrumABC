@@ -103,43 +103,41 @@ def reset_server_config(config: dict):
 
 
 def migrate_data_from_ec(ec_user_dir: str = get_ec_user_dir(),
-                         user_dir: str = get_user_dir()):
+                         user_dir: str = get_user_dir()) -> bool:
     """Copy the EC data dir the first time Electrum ABC is executed.
     This makes all the wallets and settings available to users.
     """
     if not does_dir_exist(ec_user_dir) or does_dir_exist(user_dir):
-        return
+        return False
     _logger.info("Importing Electron Cash user settings")
 
-    src = get_ec_user_dir()
-    dest = get_user_dir()
-    shutil.copytree(src, dest)
+    shutil.copytree(ec_user_dir, user_dir)
 
     # Delete the server lock file if it exists.
     # This file exists if electron cash is currently running.
-    lock_file = os.path.join(dest, "daemon")
+    lock_file = os.path.join(user_dir, "daemon")
     if os.path.isfile(lock_file):
         safe_rm(lock_file)
 
     # Delete cache files containing BCH exchange rates
-    cache_dir = os.path.join(dest, "cache")
+    cache_dir = os.path.join(user_dir, "cache")
     for filename in os.listdir(cache_dir):
         _logger.info(f"Deleting exchange rates cache  {filename}")
         safe_rm(filename)
 
     # Delete external plugins. They will most likely not be compatible.
     # (see https://github.com/Bitcoin-ABC/ElectrumABC/issues/132)
-    cache_dir = os.path.join(dest, "external_plugins")
+    cache_dir = os.path.join(user_dir, "external_plugins")
     for filename in os.listdir(cache_dir):
         _logger.info(f"Deleting external plugin {filename}")
         safe_rm(filename)
 
     # Delete recent servers list
-    recent_servers_file = os.path.join(dest, "recent-servers")
+    recent_servers_file = os.path.join(user_dir, "recent-servers")
     safe_rm(recent_servers_file)
 
     # update some parameters in mainnet config file
-    config = read_user_config(dest)
+    config = read_user_config(user_dir)
     if config:
         reset_server_config(config)
 
@@ -155,19 +153,21 @@ def migrate_data_from_ec(ec_user_dir: str = get_ec_user_dir(),
         config["use_fusion"] = False
 
         # adjust all paths to point to the new user dir
-        replace_src_dest_in_config(src, dest, config)
-        save_user_config(config, dest)
+        replace_src_dest_in_config(ec_user_dir, user_dir, config)
+        save_user_config(config, user_dir)
 
     # Testnet configuration
-    testnet_dir_path = os.path.join(dest, "testnet")
+    testnet_dir_path = os.path.join(user_dir, "testnet")
     recent_tservers_file = os.path.join(testnet_dir_path, "recent-servers")
     safe_rm(recent_tservers_file)
 
     testnet_config = read_user_config(testnet_dir_path)
     if testnet_config:
         reset_server_config(testnet_config)
-        replace_src_dest_in_config(src, dest, testnet_config)
+        replace_src_dest_in_config(ec_user_dir, user_dir, testnet_config)
         save_user_config(testnet_config, testnet_dir_path)
+
+    return True
 
 
 def _version_tuple_to_str(version_tuple):
