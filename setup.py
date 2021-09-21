@@ -86,7 +86,7 @@ if platform.system() in ['Linux', 'FreeBSD', 'DragonFly']:
         # Menu entry
         (os.path.join(share_dir, 'applications/'), ['electrum-abc.desktop']),
         # App stream (store) metadata
-        (os.path.join(share_dir, 'metainfo/'), ['org.bitcoinabc.ElectrumABC.appdata.xml']),
+        (os.path.join(share_dir, 'metainfo/'), ['org.bitcoinabc.Electrum-ABC.appdata.xml']),
     ]
 
 class MakeAllBeforeSdist(setuptools.command.sdist.sdist):
