@@ -333,7 +333,11 @@ class ExternalPluginsDialog(WindowModalDialog, MessageBoxMixin):
             if plugin is not None and plugin.is_enabled():
                 plugin_manager.disable_external_plugin(package_name)
             else:
-                plugin_manager.enable_external_plugin(package_name)
+                try:
+                    plugin_manager.enable_external_plugin(package_name)
+                except Exception:
+                    self.show_error(INSTALL_ERROR_MESSAGES[ExternalPluginCodes.INSTALLED_BUT_FAILED_LOAD]),
+                    return
                 run_hook('init_qt', self.main_window.gui_object)
             self.refresh_ui()
 
