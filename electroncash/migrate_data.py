@@ -138,12 +138,14 @@ def migrate_data_from_ec():
         # Delete cache files containing BCH exchange rates
         cache_dir = os.path.join(dest, "cache")
         for filename in os.listdir(cache_dir):
+            _logger.info(f"Deleting exchange rates cache  {filename}")
             safe_rm(filename)
 
         # Delete external plugins. They will most likely not be compatible.
         # (see https://github.com/Bitcoin-ABC/ElectrumABC/issues/132)
         cache_dir = os.path.join(dest, "external_plugins")
         for filename in os.listdir(cache_dir):
+            _logger.info(f"Deleting external plugin {filename}")
             safe_rm(filename)
 
         # Delete recent servers list
