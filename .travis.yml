@@ -22,7 +22,7 @@ install:
     then
         ./contrib/make_secp;
     fi
-  - pip install -r contrib/requirements/requirements-travis.txt
+  - pip install -r contrib/requirements/requirements-ci.txt
 cache:
   - pip
 script:

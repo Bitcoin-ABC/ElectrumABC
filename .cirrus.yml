@@ -9,7 +9,6 @@ common: &COMMON_TEMPLATE
       git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR
       git reset --hard $CIRRUS_CHANGE_IN_REPO
     fi
-  trigger_type: manual
   env:
     GIT_REPO: $CIRRUS_WORKING_DIR
 
@@ -25,6 +24,7 @@ task:
     - cd contrib/osx && ./make_osx
   binaries_artifacts:
     path: "dist/*.dmg"
+  trigger_type: manual
 
 docker_builder:
   name: "Build Linux AppImage"
@@ -34,6 +34,7 @@ docker_builder:
     - contrib/build-linux/appimage/build.sh $CIRRUS_BRANCH
   binaries_artifacts:
     path: "dist/*.AppImage"
+  trigger_type: manual
 
 docker_builder:
   name: "Build source distribution"
@@ -43,6 +44,7 @@ docker_builder:
     - contrib/build-linux/srcdist_docker/build.sh $CIRRUS_BRANCH
   binaries_artifacts:
     path: "dist/*.tar.gz"
+  trigger_type: manual
 
 docker_builder:
   name: "Build Windows EXE"
@@ -52,3 +54,37 @@ docker_builder:
     - contrib/build-wine/build.sh $CIRRUS_BRANCH
   binaries_artifacts:
     path: "dist/*.exe"
+  trigger_type: manual
+
+task:
+  name: "Tests"
+  build_script:
+    - set -e
+    - pip install -r contrib/requirements/requirements-ci.txt
+  test_script:
+    - set -e
+    - coverage run -m electroncash.tests -v;
+    - coverage run -m electroncash_plugins.fusion.tests -v;
+    - coverage report --include="./electroncash*";
+  matrix:
+    - container:
+        image: python:3.6
+    - container:
+        image: python:3.8
+
+task:
+  name: "Tests (secp256k1)"
+  build_script:
+    - set -e
+    - contrib/make_secp
+    - pip install -r contrib/requirements/requirements-ci.txt
+  test_script:
+    - set -e
+    - coverage run -m electroncash.tests -v;
+    - coverage run -m electroncash_plugins.fusion.tests -v;
+    - coverage report --include="./electroncash*";
+  matrix:
+    - container:
+        image: python:3.7
+    - container:
+        image: python:3.9
