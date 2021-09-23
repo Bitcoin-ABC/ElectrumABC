@@ -69,7 +69,6 @@ class BlockchainExplorer:
 class Blockchair(BlockchainExplorer):
     name = "Blockchair"
     url_base = "https://blockchair.com/ecash"
-    addr_fmt = Address.FMT_CASHADDR_BCH
     tx_part = "transaction"
     addr_uses_prefix = False
 
