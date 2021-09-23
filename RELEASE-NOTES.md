@@ -26,6 +26,20 @@ transactions as expected.
 # Release notes
 
 
+## Release 5.0.2
+
+- Fix support for the `ectest:` address prefix and the `--testnet` command-line option.
+- Change the message signature prefix to "eCash Signed Message:" (previously was "Bitcoin Signed Message:").
+- Lower the default transaction fee from 5 satoshis/byte to 2 satoshis/byte.
+- Links `ecash:` URI's to Electrum ABC on Windows and Mac OS.
+- Use `ecash:` addresses (without prefix) in URL for BlockChair's explorer.
+- Don't encourage users to open issues on Electrum ABC's GitHub repo when errors happen in external plugin code.
+- Remove mentions of "Bitcoin Cash addresses" in the wallet creation wizard.
+- Electron Cash backports:
+  - Option to spend only fused coins on the spend tab
+  - Updates for build scripts.
+
+
 ## Release 5.0.1
 
 - Fix the missing thousands separator when formatting amounts on Mac OS and Windows.
@@ -39,6 +53,7 @@ transactions as expected.
 - Set explorer.bitcoinabc.org as the default block explorer.
 - Electron Cash backports:
   - Increase CashFusion transaction fees for high tiers (https://github.com/Electron-Cash/Electron-Cash/pull/1984)
+
 
 ## Release 5.0.0
 
