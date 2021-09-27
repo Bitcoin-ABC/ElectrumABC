@@ -13,10 +13,24 @@ common: &COMMON_TEMPLATE
     GIT_REPO: $CIRRUS_WORKING_DIR
 
 task:
-  name: "Build MacOS DMG"
+  name: "Build MacOS DMG (Catalina)"
   << : *COMMON_TEMPLATE
   macos_instance:
     image: catalina-base
+  brew_script:
+    - brew update
+    - brew install coreutils gettext pyenv
+  test_script:
+    - cd contrib/osx && ./make_osx
+  binaries_artifacts:
+    path: "dist/*.dmg"
+  trigger_type: manual
+
+task:
+  name: "Build MacOS DMG (Big Sur)"
+  << : *COMMON_TEMPLATE
+  macos_instance:
+    image: big-sur-base
   brew_script:
     - brew update
     - brew install coreutils gettext pyenv
