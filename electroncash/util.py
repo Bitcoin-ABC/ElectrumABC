@@ -504,7 +504,6 @@ def clear_cached_dp():
 
 
 def set_locale_has_thousands_separator(flag: bool):
-    """for tests"""
     global LOCALE_HAS_THOUSANDS_SEPARATOR
     LOCALE_HAS_THOUSANDS_SEPARATOR = flag
 
@@ -519,13 +518,18 @@ _fmt_sats_cache = ExpiringCache(maxlen=20000, name='format_satoshis cache')
 def format_satoshis(x, num_zeros=0, decimal_point=2, precision=None,
                     is_diff=False, whitespaces=False) -> str:
     global _cached_dp
-    global LOCALE_HAS_THOUSANDS_SEPARATOR
     # We lazy init this here rather than at module level in case the
     # locale is not set at program startup when the module is first
     # imported.
     if LOCALE_HAS_THOUSANDS_SEPARATOR is None:
-        locale.setlocale(locale.LC_NUMERIC, '')
-        LOCALE_HAS_THOUSANDS_SEPARATOR = len(f"{1000:n}") > 4
+        try:
+            # setting the local to the system's default work for Windows,
+            # Linux. On Mac OS, it sometimes works, but sometimes fails.
+            locale.setlocale(locale.LC_NUMERIC, '')
+        except locale.Error:
+            set_locale_has_thousands_separator(False)
+        else:
+            set_locale_has_thousands_separator(len(f"{1000:n}") > 4)
     if _cached_dp is None:
         if not LOCALE_HAS_THOUSANDS_SEPARATOR:
             # We will use python's locale-unaware way of formatting numbers
