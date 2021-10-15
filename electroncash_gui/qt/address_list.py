@@ -41,7 +41,8 @@ from enum import IntEnum
 from . import cashacctqt
 
 class AddressList(MyTreeWidget):
-    filter_columns = [0, 1, 2]  # Address, Label, Balance
+    # Address, Label, Balance
+    filter_columns = [0, 1, 2]
 
     _ca_minimal_chash_updated_signal = pyqtSignal(object, str)
     _cashacct_icon = None
@@ -75,14 +76,16 @@ class AddressList(MyTreeWidget):
 
         if not __class__._cashacct_icon:
             # lazy init the icon
-            __class__._cashacct_icon = QIcon(":icons/cashacct-logo.png")  # TODO: make this an SVG
+            # TODO: make this an SVG
+            __class__._cashacct_icon = QIcon(":icons/cashacct-logo.png")
 
     def clean_up(self):
         self.cleaned_up = True
         if self.wallet.network:
             self.wallet.network.unregister_callback(self._ca_updated_minimal_chash_callback)
             self._ca_cb_registered = False
-        # paranoia -- we have seen Qt not clean up the signal before the object is destroyed on Python 3.7.3 PyQt 5.12.3, see #1531
+        # paranoia -- we have seen Qt not clean up the signal before the object is
+        # destroyed on Python 3.7.3 PyQt 5.12.3, see #1531
         try: self.parent.gui_object.addr_fmt_changed.disconnect(self.update)
         except TypeError: pass
         try: self.parent.ca_address_default_changed_signal.disconnect(self._ca_on_address_default_change)
@@ -90,13 +93,15 @@ class AddressList(MyTreeWidget):
 
     def filter(self, p):
         ''' Reimplementation from superclass filter.  Chops off the
-        "bitcoincash:" prefix so that address filters ignore this prefix.
+        "ecash:" prefix so that address filters ignore this prefix.
         Closes #1440. '''
         cashaddr_prefix = f"{networks.net.CASHADDR_PREFIX}:".lower()
         p = p.strip()
         if len(p) > len(cashaddr_prefix) and p.lower().startswith(cashaddr_prefix):
-            p = p[len(cashaddr_prefix):]  # chop off prefix
-        super().filter(p)  # call super on chopped-off-piece
+            # chop off prefix
+            p = p[len(cashaddr_prefix):]
+        # call super on chopped-off-piece
+        super().filter(p)
 
     def refresh_headers(self):
         headers = [ _('Address'), _('Index'),_('Label'), _('Balance'), _('Tx')]
@@ -105,7 +110,8 @@ class AddressList(MyTreeWidget):
             headers.insert(4, '{} {}'.format(fx.get_currency(), _('Balance')))
         self.update_headers(headers)
 
-    @rate_limited(1.0, ts_after=True) # We rate limit the address list refresh no more than once every second
+    # We rate limit the address list refresh no more than once every second
+    @rate_limited(1.0, ts_after=True)
     def update(self):
         if self.cleaned_up:
             # short-cut return if window was closed and wallet is stopped
@@ -114,25 +120,30 @@ class AddressList(MyTreeWidget):
 
     @profiler
     def on_update(self):
-        def item_path(item): # Recursively builds the path for an item eg 'parent_name/item_name'
+        # Recursively builds the path for an item eg 'parent_name/item_name'
+        def item_path(item):
             return item.text(0) if not item.parent() else item_path(item.parent()) + "/" + item.text(0)
         def remember_expanded_items(root):
-            # Save the set of expanded items... so that address list updates don't annoyingly collapse
-            # our tree list widget due to the update. This function recurses. Pass self.invisibleRootItem().
+            # Save the set of expanded items... so that address list updates don't
+            # annoyingly collapse our tree list widget due to the update. This function
+            # recurses. Pass self.invisibleRootItem().
             expanded_item_names = set()
             for i in range(0, root.childCount()):
                 it = root.child(i)
                 if it and it.childCount():
                     if it.isExpanded():
                         expanded_item_names.add(item_path(it))
-                    expanded_item_names |= remember_expanded_items(it) # recurse
+                    # recurse
+                    expanded_item_names |= remember_expanded_items(it)
             return expanded_item_names
         def restore_expanded_items(root, expanded_item_names):
-            # Recursively restore the expanded state saved previously. Pass self.invisibleRootItem().
+            # Recursively restore the expanded state saved previously.
+            # Pass self.invisibleRootItem().
             for i in range(0, root.childCount()):
                 it = root.child(i)
                 if it and it.childCount():
-                    restore_expanded_items(it, expanded_item_names) # recurse, do leaves first
+                    # recurse, do leaves first
+                    restore_expanded_items(it, expanded_item_names)
                     old = bool(it.isExpanded())
                     new = bool(item_path(it) in expanded_item_names)
                     if old != new:
@@ -144,7 +155,8 @@ class AddressList(MyTreeWidget):
         sels = self.selectedItems()
         addresses_to_re_select = {item.data(0, self.DataRoles.address) for item in sels}
         expanded_item_names = remember_expanded_items(self.invisibleRootItem())
-        del sels  # avoid keeping reference to about-to-be delete C++ objects
+        # avoid keeping reference to about-to-be delete C++ objects
+        del sels
         self.clear()
         # Note we take a shallow list-copy because we want to avoid
         # race conditions with the wallet while iterating here. The wallet may
@@ -173,7 +185,8 @@ class AddressList(MyTreeWidget):
                 name = _("Receiving") if not is_change else _("Change")
                 seq_item = QTreeWidgetItem( [ name, '', '', '', '', ''] )
                 account_item.addChild(seq_item)
-                if not had_item_count: # first time we create this widget, auto-expand the default address list
+                # first time we create this widget, auto-expand the default address list
+                if not had_item_count:
                     seq_item.setExpanded(True)
                     expanded_item_names.add(item_path(seq_item))
             else:
@@ -181,7 +194,8 @@ class AddressList(MyTreeWidget):
             hidden_item = QTreeWidgetItem( [ _("Empty") if is_change else _("Used"), '', '', '', '', ''] )
             has_hidden = False
             addr_list = change_addresses if is_change else receiving_addresses
-            # Cash Account support - we do this here with the already-prepared addr_list for performance reasons
+            # Cash Account support - we do this here with the already-prepared addr_list
+            # for performance reasons
             ca_list_all = self.wallet.cashacct.get_cashaccounts(addr_list)
             ca_by_addr = defaultdict(list)
             for info in ca_list_all:
@@ -203,7 +217,8 @@ class AddressList(MyTreeWidget):
                     # recent cash account registration for said address
                     ca_list.sort(key=lambda x: ((x.number or 0), str(x.collision_hash)))
                     for ca in ca_list:
-                        # grab minimal_chash and stash in an attribute. this may kick off the network
+                        # grab minimal_chash and stash in an attribute.
+                        # this may kick off the network
                         ca.minimal_chash = self.wallet.cashacct.get_minimal_chash(ca.name, ca.number, ca.collision_hash)
                     ca_info = self._ca_get_default(ca_list)
                     if ca_info:
@@ -218,7 +233,8 @@ class AddressList(MyTreeWidget):
                     columns.insert(4, fiat_balance)
                 address_item = SortableTreeWidgetItem(columns)
                 if ca_info:
-                    # Set Cash Accounts: tool tip.. this will read the minimal_chash attribute we added to this object above
+                    # Set Cash Accounts: tool tip.. this will read the minimal_chash
+                    # attribute we added to this object above
                     self._ca_set_item_tooltip(address_item, ca_info)
                 address_item.setTextAlignment(3, Qt.AlignRight)
                 address_item.setFont(3, self.monospace_font)
@@ -231,7 +247,8 @@ class AddressList(MyTreeWidget):
 
                 # Set UserRole data items:
                 address_item.setData(0, self.DataRoles.address, address)
-                address_item.setData(0, self.DataRoles.can_edit_label, True) # label can be edited
+                # label can be edited
+                address_item.setData(0, self.DataRoles.can_edit_label, True)
                 if ca_list:
                     # Save the list of cashacct infos, if any
                     address_item.setData(0, self.DataRoles.cash_accounts, ca_list)
@@ -251,12 +268,14 @@ class AddressList(MyTreeWidget):
                     items_to_re_select.append(address_item)
 
         for item in items_to_re_select:
-            # NB: Need to select the item at the end becasue internally Qt does some index magic
-            # to pick out the selected item and the above code mutates the TreeList, invalidating indices
-            # and other craziness, which might produce UI glitches. See #1042
+            # NB: Need to select the item at the end because internally Qt does some
+            # index magic to pick out the selected item and the above code mutates
+            # the TreeList, invalidating indices and other craziness, which might
+            # produce UI glitches. See #1042
             item.setSelected(True)
 
-        # Now, at the very end, enforce previous UI state with respect to what was expanded or not. See #1042
+        # Now, at the very end, enforce previous UI state with respect to what was
+        # expanded or not. See #1042
         restore_expanded_items(self.invisibleRootItem(), expanded_item_names)
 
 
@@ -305,13 +324,16 @@ class AddressList(MyTreeWidget):
                 copy_text = item.text(col)
             menu.addAction(_("Copy {}").format(column_title), lambda: doCopy(copy_text))
             if alt_copy_text and alt_column_title:
-                # Add 'Copy Legacy Address' and 'Copy Cash Address' alternates if right-click is on column 0
+                # Add 'Copy Legacy Address' and 'Copy Cash Address' alternates if
+                # right-click is on column 0
                 menu.addAction(_("Copy {}").format(alt_column_title), lambda: doCopy(alt_copy_text))
             a = menu.addAction(_('Details') + "...", lambda: self.parent.show_address(addr))
             if col == 0:
                 where_to_insert_dupe_copy_cash_account = a
             if col in self.editable_columns:
-                menu.addAction(_("Edit {}").format(column_title), lambda: self.editItem(self.itemAt(position), # NB: C++ item may go away if this widget is refreshed while menu is up -- so need to re-grab and not store in lamba. See #953
+                # NB: C++ item may go away if this widget is refreshed while menu is up
+                # -- so need to re-grab and not store in lamba. See #953
+                menu.addAction(_("Edit {}").format(column_title), lambda: self.editItem(self.itemAt(position),
                                                                                         col))
             a = menu.addAction(_("Request payment"), lambda: self.parent.receive_at(addr))
             if self.wallet.get_num_tx(addr) or self.wallet.has_payment_request(addr):
@@ -343,7 +365,8 @@ class AddressList(MyTreeWidget):
                                               for a in addrs])
                 else:
                     texts = [i.text(col).strip() for i in selected]
-                    texts = [t for t in texts if t]  # omit empty items
+                    # omit empty items
+                    texts = [t for t in texts if t]
                 if texts:
                     copy_text = '\n'.join(texts)
                     menu.addAction(_("Copy {}").format(column_title) + f" ({len(texts)})", lambda: doCopy(copy_text))
@@ -381,7 +404,8 @@ class AddressList(MyTreeWidget):
                     a = a_def = m.addAction(_("Make default for address"), lambda x=None, ca=ca_info: self._ca_set_default(ca, True))
                     if ca_info == ca_default:
                         if where_to_insert_dupe_copy_cash_account and a_ca_copy:
-                            # insert a dupe of "Copy Cash Account" for the default cash account for this address in the top-level menu
+                            # insert a dupe of "Copy Cash Account" for the default cash
+                            # account for this address in the top-level menu
                             menu.insertAction(where_to_insert_dupe_copy_cash_account, a_ca_copy)
                         m.setTitle(m.title() + "    " + "★")
                         a_def.setDisabled(True)
@@ -451,7 +475,8 @@ class AddressList(MyTreeWidget):
             for ca_info_saved in ca_list:
                 if ( (ca_info_saved.name.lower(), ca_info_saved.number, ca_info_saved.collision_hash)
                         == (ca_info.name.lower(), ca_info.number, ca_info.collision_hash) ):
-                    ca_info_saved.minimal_chash = minimal_chash  # save minimal_chash as a property
+                    # save minimal_chash as a property
+                    ca_info_saved.minimal_chash = minimal_chash
                     if ca_info_saved == ca_info_default:
                         # this was the default one, also set the tooltip
                         self._ca_set_item_tooltip(item, ca_info)
@@ -474,7 +499,8 @@ class AddressList(MyTreeWidget):
         self.wallet.cashacct.set_address_default(ca_info)
         if show_tip:
             QToolTip.showText(QCursor.pos(), _("Cash Account has been made the default for this address"), self)
-        self.parent.ca_address_default_changed_signal.emit(ca_info)  # eventually calls self.update
+            # eventually calls self.update
+        self.parent.ca_address_default_changed_signal.emit(ca_info)
 
     def _ca_on_address_default_change(self, ignored):
         self.update()
