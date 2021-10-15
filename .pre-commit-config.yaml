@@ -1,5 +1,7 @@
 files: |
     (?x)^(
+        electroncash/tests/.*py|
+        electroncash/constants.py|
         electroncash_gui/qt/address_list.py
     )$
 repos:
@@ -8,12 +10,15 @@ repos:
     hooks:
     -   id: isort
         name: isort (python)
+        args: [--profile=black]
     -   id: isort
         name: isort (cython)
         types: [cython]
+        args: [--profile=black]
     -   id: isort
         name: isort (pyi)
         types: [pyi]
+        args: [--profile=black]
 -   repo: https://github.com/psf/black
     rev: 21.9b0
     hooks:
