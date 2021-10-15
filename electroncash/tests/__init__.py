@@ -1,7 +1,7 @@
-import unittest
-import threading
-import tempfile
 import shutil
+import tempfile
+import threading
+import unittest
 
 
 # some unit tests are modifying globals...

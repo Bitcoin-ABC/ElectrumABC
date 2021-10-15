@@ -1,8 +1,7 @@
-
 import os
 import shutil
-import unittest
 import tempfile
+import unittest
 
 from electroncash.migrate_data import migrate_data_from_ec
 
@@ -23,16 +22,16 @@ def create_mock_user_data(data_dir: str):
     create_blank_file(os.path.join(data_dir, "cache", "CoinGecko_USD"))
     os.mkdir(os.path.join(data_dir, "certs"))
     os.mkdir(os.path.join(data_dir, "external_plugins"))
-    create_blank_file(os.path.join(data_dir, "external_plugins",
-                                   "flipstarter-1.3.zip"))
+    create_blank_file(os.path.join(data_dir, "external_plugins", "flipstarter-1.3.zip"))
     os.mkdir(os.path.join(data_dir, "forks"))
     os.mkdir(os.path.join(data_dir, "testnet"))
-    create_blank_file(os.path.join(data_dir,  "testnet", "recent-servers"))
+    create_blank_file(os.path.join(data_dir, "testnet", "recent-servers"))
     os.mkdir(os.path.join(data_dir, "tor"))
     os.mkdir(os.path.join(data_dir, "wallet"))
 
     with open(os.path.join(data_dir, "config"), "w") as f:
-        f.write(f"""
+        f.write(
+            f"""
             {{
                 "addr_format": 1,
                 "address_format": "CashAddr",
@@ -131,25 +130,21 @@ class TestImportECData(unittest.TestCase):
         def path_was_deleted(*args) -> bool:
             return not os.path.exists(os.path.join(self.data_dir, *args))
 
-        self.assertTrue(
-            path_was_deleted("daemon"),
-            "Lock file was not deleted"
-        )
+        self.assertTrue(path_was_deleted("daemon"), "Lock file was not deleted")
         self.assertTrue(
             path_was_deleted("cache", "CoinGecko_USD"),
-            "Exchange rate data was not deleted"
+            "Exchange rate data was not deleted",
         )
         self.assertTrue(
             path_was_deleted("external_plugins", "flipstarter-1.3.zip"),
-            "External plugin was not deleted"
+            "External plugin was not deleted",
         )
         self.assertTrue(
-            path_was_deleted("recent-servers"),
-            "Recent servers list was not deleted"
+            path_was_deleted("recent-servers"), "Recent servers list was not deleted"
         )
         self.assertTrue(
             path_was_deleted("testnet", "recent-servers"),
-            "Tesnet recent servers list was not deleted"
+            "Tesnet recent servers list was not deleted",
         )
 
         self.assertTrue(os.path.isfile(os.path.join(self.data_dir, "config")))
@@ -159,10 +154,11 @@ class TestImportECData(unittest.TestCase):
             # Check that ec_data_dir was replaced with data_dir
             self.assertNotIn(
                 f'"gui_last_wallet": "{self.ec_data_dir}/wallets/test_wallet"',
-                config_text)
+                config_text,
+            )
             self.assertIn(
-                f'"gui_last_wallet": "{self.data_dir}/wallets/test_wallet"',
-                config_text)
+                f'"gui_last_wallet": "{self.data_dir}/wallets/test_wallet"', config_text
+            )
 
             # Check server config
             self.assertNotIn("server_whitelist_added", config_text)
@@ -180,5 +176,5 @@ class TestImportECData(unittest.TestCase):
             self.assertIn('"fee_per_kb": 2000', config_text)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

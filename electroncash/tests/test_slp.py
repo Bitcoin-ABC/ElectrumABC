@@ -1,12 +1,9 @@
 import json
 import unittest
 
+from .. import address, slp
 
-from .. import address
-from .. import slp
-
-
-script_tests_json = r'''
+script_tests_json = r"""
 [
  {
   "msg": "OK: minimal GENESIS",
@@ -439,64 +436,58 @@ script_tests_json = r'''
   "code": null
  }
 ]
-'''
+"""
 
 errorcodes = {
     # no-error maps to None
-
     # various script format errors
-    ('Bad OP_RETURN', 'Script error'): 1,
+    ("Bad OP_RETURN", "Script error"): 1,
     # disallowed opcodes
-    ('Bad OP_RETURN', 'Non-push opcode'): 2,
-    ('Bad OP_RETURN', 'OP_1NEGATE to OP_16 not allowed'): 2,
-    ('Bad OP_RETURN', 'OP_0 not allowed'): 2,
-
+    ("Bad OP_RETURN", "Non-push opcode"): 2,
+    ("Bad OP_RETURN", "OP_1NEGATE to OP_16 not allowed"): 2,
+    ("Bad OP_RETURN", "OP_0 not allowed"): 2,
     # not OP_RETURN script / not SLP
     # (note in some implementations, parsers should never be given such non-SLP scripts in the first place. In such implementations, error code 3 tests may be skipped.)
-    ('Bad OP_RETURN', 'No OP_RETURN'): 3,
-    ('Empty OP_RETURN', ): 3,
-    ('Not SLP',): 3,
-
+    ("Bad OP_RETURN", "No OP_RETURN"): 3,
+    ("Empty OP_RETURN",): 3,
+    ("Not SLP",): 3,
     # 10- field bytesize is wrong
-    ('Field has wrong length', ): 10,
-    ('Ticker too long', ): 10,
-    ('Token document hash is incorrect length',): 10,
-    ('token_id is wrong length',): 10,
-
+    ("Field has wrong length",): 10,
+    ("Ticker too long",): 10,
+    ("Token document hash is incorrect length",): 10,
+    ("token_id is wrong length",): 10,
     # 11- improper value
-    ('Too many decimals',): 11,
-    ('Bad transaction type',): 11,
-    ('Mint baton cannot be on vout=0 or 1',): 11,
-
+    ("Too many decimals",): 11,
+    ("Bad transaction type",): 11,
+    ("Mint baton cannot be on vout=0 or 1",): 11,
     # 12- missing field / too few fields
-    ('Missing output amounts', ): 12,
-    ('Missing token_type', ): 12,
-    ('Missing SLP command', ): 12,
-    ('GENESIS with incorrect number of parameters', ): 12,
-    ('SEND with too few parameters', ): 12,
-    ('MINT with incorrect number of parameters', ): 12,
-
+    ("Missing output amounts",): 12,
+    ("Missing token_type",): 12,
+    ("Missing SLP command",): 12,
+    ("GENESIS with incorrect number of parameters",): 12,
+    ("SEND with too few parameters",): 12,
+    ("MINT with incorrect number of parameters",): 12,
     # specific
-    ('More than 19 output amounts',): 21,
+    ("More than 19 output amounts",): 21,
+    # SlpUnsupportedSlpTokenType : 255 below
+}
 
-    #SlpUnsupportedSlpTokenType : 255 below
-    }
 
 class SLPTests(unittest.TestCase):
     def test_opreturn_parse(self):
         testlist = json.loads(script_tests_json)
 
-        print("Starting %d tests on SLP's OP_RETURN parser"%len(testlist))
+        print("Starting %d tests on SLP's OP_RETURN parser" % len(testlist))
         for d in testlist:
-            description = d['msg']
-            scripthex = d['script']
-            code = d['code']
+            description = d["msg"]
+            scripthex = d["script"]
+            code = d["code"]
             if scripthex is None:
                 continue
-            if hasattr(code, '__iter__'):
+            if hasattr(code, "__iter__"):
                 expected_codes = tuple(code)
             else:
-                expected_codes = (code, )
+                expected_codes = (code,)
 
             with self.subTest(description=description, script=scripthex):
                 sco = address.ScriptOutput(bytes.fromhex(scripthex))
@@ -506,61 +497,70 @@ class SLPTests(unittest.TestCase):
                     if isinstance(e, slp.InvalidOutputMessage):
                         emsg = e.args
                         if errorcodes[emsg] not in expected_codes:
-                            raise AssertionError("Invalidity reason %r (code: %d) not in expected reasons %r"%(emsg, errorcodes[emsg], expected_codes))
+                            raise AssertionError(
+                                "Invalidity reason %r (code: %d) not in expected reasons %r"
+                                % (emsg, errorcodes[emsg], expected_codes)
+                            )
                     elif isinstance(e, slp.UnsupportedSlpTokenType):
                         if 255 not in expected_codes:
-                            raise AssertionError("UnsupportedSlpTokenType exception raised (code 255) but not in expected reasons (%r)"%(expected_codes,))
+                            raise AssertionError(
+                                "UnsupportedSlpTokenType exception raised (code 255) but not in expected reasons (%r)"
+                                % (expected_codes,)
+                            )
                     else:
                         raise
                 else:
                     # no exception
                     if None not in expected_codes:
-                        raise AssertionError("Script was found valid but should have been invalid, for a reason code in %r."%(expected_codes,))
+                        raise AssertionError(
+                            "Script was found valid but should have been invalid, for a reason code in %r."
+                            % (expected_codes,)
+                        )
 
     def test_opreturn_build(self):
         testlist = json.loads(script_tests_json)
 
-        print("Starting %d tests on SLP's OP_RETURN builder"%len(testlist))
+        print("Starting %d tests on SLP's OP_RETURN builder" % len(testlist))
         ctr = 0
         for d in testlist:
-            description = d['msg']
-            scripthex = d['script']
-            code = d['code']
+            description = d["msg"]
+            scripthex = d["script"]
+            code = d["code"]
             if code is not None:
                 # we are only interested in "None" tests, that is, ones
                 # that are expected to parse as valid
                 continue
             if scripthex is None:
                 continue
-            if hasattr(code, '__iter__'):
+            if hasattr(code, "__iter__"):
                 expected_codes = tuple(code)
             else:
-                expected_codes = (code, )
+                expected_codes = (code,)
 
             def check_is_equal_message(msg1, msg2):
                 print("ScriptHex = ", scripthex)
                 print("Testing ", msg1.chunks, "vs", msg2.chunks)
-                seen = {'chunks'}
+                seen = {"chunks"}
                 for k in msg1.valid_properties:
-                    if k.startswith('_') or k in seen:
+                    if k.startswith("_") or k in seen:
                         continue
                     try:
                         v = getattr(msg1, k, None)
                     except:
                         continue
                     if v is not None and not callable(v):
-                        #print("kw=",k)
+                        # print("kw=",k)
                         self.assertEqual(v, getattr(msg2, k, None))
                         seen.add(k)
                 for k in msg2.valid_properties:
-                    if k.startswith('_') or k in seen:
+                    if k.startswith("_") or k in seen:
                         continue
                     try:
                         v = getattr(msg2, k, None)
                     except:
                         continue
                     if v is not None and not callable(v):
-                        #print("kw=",k)
+                        # print("kw=",k)
                         self.assertEqual(v, getattr(msg1, k, None))
                         seen.add(k)
 
@@ -568,52 +568,54 @@ class SLPTests(unittest.TestCase):
                 sco = address.ScriptOutput(bytes.fromhex(scripthex))
                 slp_sco = slp.ScriptOutput(sco.script)  # should not raise
                 _type = slp_sco.message.transaction_type
-                if _type == 'GENESIS':
+                if _type == "GENESIS":
                     try:
                         outp = slp.Build.GenesisOpReturnOutput_V1(
-                            ticker = slp_sco.message.ticker.decode('utf-8'),
-                            token_name = slp_sco.message.token_name.decode('utf-8'),
-                            token_document_url = slp_sco.message.token_doc_url and slp_sco.message.token_doc_url.decode('utf-8'),
-                            token_document_hash_hex = slp_sco.message.token_doc_hash and slp_sco.message.token_doc_hash.decode('utf-8'),
-                            decimals = slp_sco.message.decimals,
-                            baton_vout = slp_sco.message.mint_baton_vout,
-                            initial_token_mint_quantity = slp_sco.message.initial_token_mint_quantity,
-                            token_type = slp_sco.message.token_type,
+                            ticker=slp_sco.message.ticker.decode("utf-8"),
+                            token_name=slp_sco.message.token_name.decode("utf-8"),
+                            token_document_url=slp_sco.message.token_doc_url
+                            and slp_sco.message.token_doc_url.decode("utf-8"),
+                            token_document_hash_hex=slp_sco.message.token_doc_hash
+                            and slp_sco.message.token_doc_hash.decode("utf-8"),
+                            decimals=slp_sco.message.decimals,
+                            baton_vout=slp_sco.message.mint_baton_vout,
+                            initial_token_mint_quantity=slp_sco.message.initial_token_mint_quantity,
+                            token_type=slp_sco.message.token_type,
                         )
                     except (UnicodeError, slp.OPReturnTooLarge):
                         # some of the test data doesn't decode to utf8 because it contains 0xff
                         # some of the test data has too-big op_return
                         continue
                     check_is_equal_message(slp_sco.message, outp[1].message)
-                elif _type == 'MINT':
+                elif _type == "MINT":
                     try:
                         outp = slp.Build.MintOpReturnOutput_V1(
-                            token_id_hex = slp_sco.message.token_id_hex,
-                            baton_vout = slp_sco.message.mint_baton_vout,
-                            token_mint_quantity = slp_sco.message.additional_token_quantity,
-                            token_type = slp_sco.message.token_type
+                            token_id_hex=slp_sco.message.token_id_hex,
+                            baton_vout=slp_sco.message.mint_baton_vout,
+                            token_mint_quantity=slp_sco.message.additional_token_quantity,
+                            token_type=slp_sco.message.token_type,
                         )
                     except (UnicodeError, slp.OPReturnTooLarge):
                         continue
                     check_is_equal_message(slp_sco.message, outp[1].message)
-                elif _type == 'SEND':
+                elif _type == "SEND":
                     try:
                         outp = slp.Build.SendOpReturnOutput_V1(
-                            token_id_hex = slp_sco.message.token_id_hex,
-                            output_qty_array = slp_sco.message.token_output[1:],
-                            token_type = slp_sco.message.token_type
+                            token_id_hex=slp_sco.message.token_id_hex,
+                            output_qty_array=slp_sco.message.token_output[1:],
+                            token_type=slp_sco.message.token_type,
                         )
                     except (UnicodeError, slp.OPReturnTooLarge):
                         continue
                     check_is_equal_message(slp_sco.message, outp[1].message)
-                elif _type == 'COMMIT':
+                elif _type == "COMMIT":
                     continue
                 else:
-                    raise RuntimeError('Unexpected transation_type')
+                    raise RuntimeError("Unexpected transation_type")
                 ctr += 1
 
-        print("Completed %d OP_RETURN *build* tests"%ctr)
+        print("Completed %d OP_RETURN *build* tests" % ctr)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
