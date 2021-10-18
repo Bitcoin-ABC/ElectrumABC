@@ -1,6 +1,7 @@
 files: |
     (?x)^(
         electroncash/tests/.*py|
+        electroncash/consolidate.py|
         electroncash/constants.py|
         electroncash/keystore.py|
         electroncash_gui/qt/address_list.py|
