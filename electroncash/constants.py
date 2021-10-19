@@ -64,3 +64,9 @@ WHITELISTED_TESTNET_PREFIXES: List[str] = [
     CASHADDR_TESTNET_PREFIX,
     CASHADDR_TESTNET_PREFIX_BCH,
 ]
+
+DUST_THRESHOLD: int = 546
+"""
+Change < dust threshold is added to the tx fee.
+The unit is satoshis.
+"""

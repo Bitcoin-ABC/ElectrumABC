@@ -38,6 +38,7 @@ import json
 from typing import Dict
 
 import socks
+from .constants import DUST_THRESHOLD
 from . import util
 from . import bitcoin
 from . import networks
@@ -1837,12 +1838,7 @@ class Network(util.DaemonThread):
             server_msg = str(server_msg)
         server_msg = server_msg.replace("\n", r"\n") # replace \n with slash-n because dict does this.
         if r'dust' in server_msg:
-            dust_thold = 546
-            try:
-                from .wallet import dust_threshold
-                dust_thold = dust_threshold(Network.get_instance())
-            except: pass
-            return _("Transaction could not be broadcast due to dust outputs (dust threshold is {} satoshis).").format(dust_thold)
+            return _(f"Transaction could not be broadcast due to dust outputs (dust threshold is {DUST_THRESHOLD} satoshis).")
         elif r'Missing inputs' in server_msg or r'Inputs unavailable' in server_msg or r"bad-txns-inputs-spent" in server_msg or r"bad-txns-inputs-missingorspent" in server_msg:
             return _("Transaction could not be broadcast due to missing, already-spent, or otherwise invalid inputs.")
         elif r"transaction already in block chain" in server_msg:

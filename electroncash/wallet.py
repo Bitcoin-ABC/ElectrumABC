@@ -42,6 +42,7 @@ from collections import defaultdict, namedtuple
 from enum import Enum, auto
 from typing import Set, Tuple, Union
 
+from .constants import DUST_THRESHOLD
 from .i18n import ngettext
 from .util import (NotEnoughFunds, ExcessiveFee, PrintError,
                    UserCancelled, InvalidPassword, profiler,
@@ -52,7 +53,6 @@ from .address import Address, Script, ScriptOutput, PublicKey
 from .version import PACKAGE_VERSION
 from .keystore import load_keystore, Hardware_KeyStore, Imported_KeyStore, BIP32_KeyStore, xpubkey_to_address
 from . import mnemo
-from . import networks
 from . import keystore
 from .storage import multisig_type, WalletStorage
 
@@ -77,10 +77,6 @@ from .i18n import _
 
 
 DEFAULT_CONFIRMED_ONLY = False
-
-
-def dust_threshold(network):
-    return 546 # hard-coded Bitcoin Cash dust threshold. Was changed to this as of Sept. 2018
 
 
 def sweep_preparations(privkeys, network, imax=100):
@@ -145,8 +141,8 @@ def sweep(privkeys, network, config, recipient, fee=None, imax=100, sign_schnorr
         fee = config.estimate_fee(tx.estimated_size())
     if total - fee < 0:
         raise NotEnoughFunds(_('Not enough funds on address.') + '\nTotal: %d satoshis\nFee: %d'%(total, fee))
-    if total - fee < dust_threshold(network):
-        raise NotEnoughFunds(_('Not enough funds on address.') + '\nTotal: %d satoshis\nFee: %d\nDust Threshold: %d'%(total, fee, dust_threshold(network)))
+    if total - fee < DUST_THRESHOLD:
+        raise NotEnoughFunds(_('Not enough funds on address.') + f'\nTotal: {total} satoshis\nFee: {fee}\nDust Threshold: {DUST_THRESHOLD}')
 
     outputs = [(bitcoin.TYPE_ADDRESS, recipient, total - fee)]
     locktime = network.get_local_height()
@@ -1738,9 +1734,6 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             status_str = format_time(timestamp) if timestamp else _("unknown")
         return status, status_str
 
-    def dust_threshold(self):
-        return dust_threshold(self.network)
-
     def reserve_change_addresses(self, count, temporary=False):
         """ Reserve and return `count` change addresses. In order
         of preference, this will return from:
@@ -1924,7 +1917,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
 
             coin_chooser = coinchooser.CoinChooserPrivacy()
             tx = coin_chooser.make_tx(inputs, outputs, change_addrs,
-                                      fee_estimator, self.dust_threshold(), sign_schnorr=sign_schnorr)
+                                      fee_estimator, DUST_THRESHOLD, sign_schnorr=sign_schnorr)
         else:
             sendable = sum(map(lambda x:x['value'], inputs))
             _type, data, value = outputs[i_max]
