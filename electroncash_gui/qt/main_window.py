@@ -2251,11 +2251,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             _("Mining fee") + ": " + self.format_amount_and_units(fee),
         ]
 
-        x_fee = run_hook('get_tx_extra_fee', self.wallet, tx)
-        if x_fee:
-            x_fee_address, x_fee_amount = x_fee
-            msg.append( _("Additional fees") + ": " + self.format_amount_and_units(x_fee_amount) )
-
         if (fee < (tx.estimated_size())):
             msg.append(_('Warning') + ': ' + _("You're using a fee of less than 1.0 sats/B. It may take a very long time to confirm."))
             tx.ephemeral['warned_low_fee_already'] = True
