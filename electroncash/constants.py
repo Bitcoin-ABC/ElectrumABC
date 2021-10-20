@@ -38,6 +38,9 @@ class Unit:
     def name_for_selection_menu(self):
         return self.ticker if not self.old_name else f"{self.ticker} ({self.old_name})"
 
+    def __str__(self):
+        return self.ticker
+
 
 SAT = Unit("sats", 0)
 XEC = Unit("XEC", 2, "bits")
