@@ -348,7 +348,7 @@ class Satochip_KeyStore(Hardware_KeyStore):
                 # self.handler.show_error(_("Wrong signature!\nThe 2FA device may have rejected the action."))
             # else:
                 # compsig=client.parser.parse_message_signature(response2, message_byte, pubkey)
-            (response2, sw1, sw2, compsig) = client.cc.card_sign_message(keynbr, pubkey, message_byte, hmac)
+            (response2, sw1, sw2, compsig) = client.cc.card_sign_message(keynbr, pubkey, message_byte, hmac, altcoin="eCash")
             if (compsig==b''):
                 self.handler.show_error(_("Wrong signature!\nThe 2FA device may have rejected the action."))
 
