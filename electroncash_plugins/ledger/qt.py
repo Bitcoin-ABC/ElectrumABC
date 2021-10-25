@@ -1,15 +1,17 @@
-import threading
+from functools import partial
 
 from PyQt5.QtWidgets import QInputDialog, QLineEdit, QVBoxLayout, QLabel
+from PyQt5.QtCore import  *
 
 from electroncash.i18n import _
 from electroncash.plugins import hook
 from electroncash.wallet import Standard_Wallet
 from .ledger import LedgerPlugin
 from ..hw_wallet.qt import QtHandlerBase, QtPluginBase
-from electroncash_gui.qt.util import *
+from electroncash_gui.qt.util import WindowModalDialog
 
 #from btchip.btchipPersoWizard import StartBTChipPersoDialog
+
 
 class Plugin(LedgerPlugin, QtPluginBase):
     icon_unpaired = ":icons/ledger_unpaired.png"
@@ -28,6 +30,7 @@ class Plugin(LedgerPlugin, QtPluginBase):
                 keystore.thread.add(partial(self.show_address, wallet, addrs[0]))
             menu.addAction(_("Show on Ledger"), show_address)
 
+
 class Ledger_Handler(QtHandlerBase):
     setup_signal = pyqtSignal()
     auth_signal = pyqtSignal(object)
@@ -44,7 +47,7 @@ class Ledger_Handler(QtHandlerBase):
         else:
             self.word = str(response[0])
         self.done.set()
-    
+
     def message_dialog(self, msg):
         self.clear_dialog()
         self.dialog = dialog = WindowModalDialog(self.top_level_window(), _("Ledger Status"))
@@ -63,25 +66,19 @@ class Ledger_Handler(QtHandlerBase):
         dialog.exec_()
         self.word = dialog.pin
         self.done.set()
-                    
+
     def get_auth(self, data):
         self.done.clear()
         self.auth_signal.emit(data)
         self.done.wait()
         return self.word
-        
+
     def get_setup(self):
         self.done.clear()
         self.setup_signal.emit()
         self.done.wait()
-        return 
-        
+        return
+
     def setup_dialog(self):
         dialog = StartBTChipPersoDialog()
         dialog.exec_()
-
-
-        
-        
-        
-        

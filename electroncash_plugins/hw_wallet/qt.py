@@ -24,12 +24,21 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+from functools import partial
 import threading
 
-from PyQt5.QtWidgets import QVBoxLayout, QLabel
+from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QLineEdit
 from electroncash_gui.qt.password_dialog import PasswordDialog, PW_PASSPHRASE
-from electroncash_gui.qt.util import *
+from electroncash_gui.qt.util import (
+    Buttons,
+    CancelButton,
+    OkButton,
+    TaskThread,
+    WindowModalDialog,
+    WWLabel,
+)
 
 from electroncash.i18n import _
 from electroncash.util import PrintError

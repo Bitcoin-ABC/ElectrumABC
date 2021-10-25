@@ -1,21 +1,42 @@
 from functools import partial
-import threading
 import os
 
-from PyQt5.QtCore import Qt, QStandardPaths
+from PyQt5.QtCore import QEventLoop, Qt, QStandardPaths, pyqtSignal
 from PyQt5.QtGui import QImage, QBitmap, qRed, qGreen, qBlue
-from PyQt5.QtWidgets import QGridLayout, QInputDialog, QPushButton
-from PyQt5.QtWidgets import QVBoxLayout, QLabel
+from PyQt5.QtWidgets import (
+    QButtonGroup,
+    QCheckBox,
+    QDialog,
+    QFileDialog,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QRadioButton,
+    QSlider,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
-from electroncash_gui.qt.util import *
+from electroncash_gui.qt.util import (
+    Buttons,
+    CancelButton,
+    CloseButton,
+    OkButton,
+    WindowModalDialog,
+    WWLabel,
+)
 from electroncash.constants import PROJECT_NAME
 from electroncash.i18n import _
-from electroncash.plugins import hook, DeviceMgr
-from electroncash.util import PrintError, UserCancelled, bh2u
-from electroncash.wallet import Wallet, Standard_Wallet
+from electroncash.plugins import hook
+from electroncash.util import bh2u
 
 from ..hw_wallet.qt import QtHandlerBase, QtPluginBase
-from .trezor import (TrezorPlugin, TIM_NEW, TIM_RECOVER,
+from .trezor import (TrezorPlugin, TIM_RECOVER,
                      RECOVERY_TYPE_SCRAMBLED_WORDS, RECOVERY_TYPE_MATRIX,
                      PASSPHRASE_ON_DEVICE)
 
