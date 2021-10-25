@@ -7,7 +7,15 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
-from .util import *
+from .util import (
+    MONOSPACE_FONT,
+    Buttons,
+    CancelButton,
+    ColorScheme,
+    HelpLabel,
+    OkButton,
+    WindowModalDialog,
+)
 
 from electroncash.i18n import _
 from electroncash import util, bitcoin, address

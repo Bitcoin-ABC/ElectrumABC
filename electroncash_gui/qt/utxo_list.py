@@ -29,14 +29,21 @@ import json
 from functools import wraps
 from typing import List
 
-from .util import *
+from .util import (
+    MONOSPACE_FONT,
+    ColorScheme,
+    MyTreeWidget,
+    SortableTreeWidgetItem,
+    rate_limited,
+)
 from electroncash.i18n import _
 from electroncash.plugins import run_hook
 from electroncash.address import Address
 from electroncash.bitcoin import COINBASE_MATURITY
 
-from PyQt5.QtWidgets import QFileDialog
-
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor, QFont
+from PyQt5.QtWidgets import QAbstractItemView, QApplication, QFileDialog, QMenu
 
 
 class UTXOList(MyTreeWidget):

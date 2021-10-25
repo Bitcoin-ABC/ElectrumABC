@@ -23,8 +23,20 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import time
 
-from .util import *
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QBrush, QColor, QIcon, QFont
+from PyQt5.QtWidgets import QMenu
+
+
+from .util import (
+    MONOSPACE_FONT,
+    MyTreeWidget,
+    SortableTreeWidgetItem,
+    rate_limited,
+    webopen,
+)
 import electroncash.web as web
 from electroncash.i18n import _
 from electroncash.util import timestamp_to_datetime, profiler, Weak

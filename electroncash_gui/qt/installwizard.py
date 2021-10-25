@@ -3,13 +3,13 @@ import os
 import random
 import sys
 import tempfile
+import time
 import threading
 import traceback
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-
 
 from electroncash import keystore, Wallet, WalletStorage
 from electroncash.network import Network
@@ -22,9 +22,17 @@ from electroncash.wallet import Standard_Wallet
 
 from .seed_dialog import SeedLayout, KeysLayout
 from .network_dialog import NetworkChoiceLayout
-from .util import *
 from .password_dialog import PasswordLayout, PW_NEW
 from .bip38_importer import Bip38Importer
+from .util import (
+    Buttons,
+    CancelButton,
+    ChoicesLayout,
+    MessageBoxMixin,
+    OkButton,
+    WWLabel,
+    destroyed_print_error,
+)
 
 
 class GoBack(Exception):

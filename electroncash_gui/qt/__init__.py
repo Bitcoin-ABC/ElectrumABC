@@ -26,6 +26,7 @@
 # SOFTWARE.
 
 import gc
+import os
 import shutil
 import signal
 import sys
@@ -34,6 +35,9 @@ from typing import Callable
 
 try:
     import PyQt5
+    from PyQt5.QtCore import *
+    from PyQt5.QtGui import *
+    from PyQt5.QtWidgets import *
 except Exception:
     if sys.platform.startswith('win'):
         msg = ("\n\nError: Could not import PyQt5.\n"
@@ -59,7 +63,13 @@ from electroncash.i18n import _
 from electroncash import i18n
 from electroncash.plugins import run_hook
 from electroncash import WalletStorage
-from electroncash.util import (UserCancelled, standardize_path, get_new_wallet_name, Handlers)
+from electroncash.util import (
+    Handlers,
+    UserCancelled,
+    Weak,
+    get_new_wallet_name,
+    standardize_path,
+)
 from electroncash import version
 from electroncash.address import Address
 from electroncash.constants import PROJECT_NAME, REPOSITORY_URL
@@ -67,11 +77,20 @@ from electroncash.constants import PROJECT_NAME, REPOSITORY_URL
 from .installwizard import InstallWizard, GoBack
 
 from . import icons # This needs to be imported once app-wide then the :icons/ namespace becomes available for Qt icon filenames.
-from .util import *   # * needed for plugins
+from .util import *   # * needed for plugins (FIXME)
 from .main_window import ElectrumWindow, windows_qt_use_freetype
 from .network_dialog import NetworkDialog
 from .exception_window import ExceptionHook
 from .update_checker import UpdateChecker
+from .util import (
+    ColorScheme,
+    MessageBoxMixin,
+    PrintError,
+    QMessageBoxMixin,
+    destroyed_print_error,
+    finalization_print_error,
+    print_error,
+)
 
 
 def _pre_and_post_app_setup(config) -> Callable[[], None]:

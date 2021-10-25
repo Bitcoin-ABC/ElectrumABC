@@ -29,6 +29,7 @@ import copy
 import csv
 import json
 import os
+import platform
 import shutil
 import sys
 import threading
@@ -71,7 +72,35 @@ from .transaction_dialog import show_transaction
 from .fee_slider import FeeSlider
 from .popup_widget import ShowPopupLabel, KillPopupLabel
 from . import cashacctqt
-from .util import *
+from .util import (
+    MONOSPACE_FONT,
+    Buttons,
+    ButtonsLineEdit,
+    CancelButton,
+    CloseButton,
+    ChoicesLayout,
+    ColorScheme,
+    CopyCloseButton,
+    EnterButton,
+    HelpButton,
+    HelpLabel,
+    MessageBoxMixin,
+    MyTreeWidget,
+    OkButton,
+    RateLimiter,
+    TaskThread,
+    WaitingDialog,
+    WindowModalDialog,
+    WWLabel,
+    address_combo,
+    destroyed_print_error,
+    expiration_values,
+    filename_field,
+    line_dialog,
+    rate_limited,
+    text_dialog,
+    webopen,
+)
 
 try:
     # pre-load QtMultimedia at app start, if possible

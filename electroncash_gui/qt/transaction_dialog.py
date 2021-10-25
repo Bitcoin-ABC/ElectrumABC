@@ -45,7 +45,18 @@ from electroncash.plugins import run_hook
 from electroncash.transaction import InputValueMissing
 
 from electroncash.util import bfh, Weak, PrintError
-from .util import *
+from .util import (
+    MONOSPACE_FONT,
+    Buttons,
+    ButtonsLineEdit,
+    CloseButton,
+    ColorScheme,
+    CopyButton,
+    MessageBoxMixin,
+    TextBrowserKeyboardFocusFilter,
+    rate_limited,
+    webopen,
+)
 
 dialogs = []  # Otherwise python randomly garbage collects the dialogs...
 

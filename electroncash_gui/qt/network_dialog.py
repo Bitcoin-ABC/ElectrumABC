@@ -45,7 +45,15 @@ from electroncash.tor import TorController
 from electroncash.constants import PROJECT_NAME
 from electroncash.util import print_error, Weak, PrintError, in_main_thread
 
-from .util import *
+from .util import (
+    Buttons,
+    CloseButton,
+    HelpButton,
+    MessageBoxMixin,
+    WindowModalDialog,
+    WWLabel,
+    rate_limited,
+)
 from .utils import UserPortValidator
 
 protocol_names = ['TCP', 'SSL']

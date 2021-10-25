@@ -24,13 +24,13 @@
 # SOFTWARE.
 import threading
 
-from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
-from .util import *
+from .util import Buttons, WindowModalDialog
 from electroncash.util import PrintError, ServerError
 from electroncash.i18n import _
+
 
 class ScanBeyondGap(WindowModalDialog, PrintError):
     progress_sig = pyqtSignal(int, int, int, int)

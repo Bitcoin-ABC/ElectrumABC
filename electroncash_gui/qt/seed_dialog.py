@@ -32,7 +32,15 @@ from electroncash.i18n import _
 from electroncash import mnemo
 from electroncash.constants import PROJECT_NAME
 
-from .util import *
+from .util import (
+    Buttons,
+    ButtonsTextEdit,
+    CloseButton,
+    EnterButton,
+    OkButton,
+    WindowModalDialog,
+    WWLabel,
+)
 from .qrtextedit import ScanQRTextEdit
 
 

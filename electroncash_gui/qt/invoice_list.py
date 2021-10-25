@@ -23,8 +23,21 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtWidgets import (
+    QHeaderView,
+    QFileDialog,
+    QMenu,
+    QTreeWidgetItem,
+)
 
-from .util import *
+from .util import (
+    MONOSPACE_FONT,
+    PR_UNPAID,
+    MyTreeWidget,
+    pr_icons,
+)
 
 from electroncash.i18n import _
 from electroncash.util import format_time, FileImportFailed

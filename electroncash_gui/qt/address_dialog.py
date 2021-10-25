@@ -32,10 +32,16 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
-from .util import *
 from .history_list import HistoryList
 from .qrtextedit import ShowQRTextEdit
 from . import cashacctqt
+from .util import (
+    Buttons,
+    CloseButton,
+    ButtonsLineEdit,
+    ColorScheme,
+    WindowModalDialog
+)
 
 
 class AddressDialog(PrintError, WindowModalDialog):
