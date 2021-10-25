@@ -212,9 +212,6 @@ setup(
             'locale/*/LC_MESSAGES/electron-cash.mo',
             'tor/bin/*'
         ],
-        'electroncash_plugins.shuffle_deprecated': [
-            'servers.json'
-        ],
         'electroncash_plugins.fusion': [
             '*.svg', '*.png'
         ],

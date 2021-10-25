@@ -15,17 +15,17 @@ been adapted and used in many major cryptocurrencies for fast elliptic curve
 operations.  Electrum ABC uses this library as a secure way to sign and verify
 transactions.
 
-### CashShuffle requires libsecp256k1-0
+### CashFusion requires libsecp256k1-0
 
-[CashShuffle](https://www.cashshuffle.com) makes heavy use elliptic curve
+[CashFusion](https://cashfusion.org) makes heavy use elliptic curve
 cryptography with each message sent.  Since Python-only cryptography is
 incredibly slow (and potentially susceptible to side-channel exploits),
-libsecp is required for [CashShuffle](https://www.cashshuffle.com) within
+libsecp is required for CashFusion within
 Electrum ABC.  The reason for this requirement is simple: you would be
-interfering with the speed and security of other shufflers by *not* using
-libsecp. Thus in order to be a reliable partner for other shuffle
+interfering with the speed and security of other fusers by *not* using
+libsecp. Thus in order to be a reliable partner for other fusion
 participants, Electrum ABC requires you to use this library if you want
-to enable [CashShuffle](https://www.cashshuffle.com).
+to enable CashFusion.
 
 ### Using libsecp with Electrum ABC
 

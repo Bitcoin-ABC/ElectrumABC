@@ -1890,10 +1890,6 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             change_addrs = []
             if change_addr:
                 change_addrs = [change_addr]
-            else:
-                # Currently the only code that uses this hook is the deprecated
-                # Cash Shuffle plugin
-                change_addrs = run_hook("get_change_addrs", self) or []
 
             if not change_addrs:
                 # hook gave us nothing, so find a change addr from the change
