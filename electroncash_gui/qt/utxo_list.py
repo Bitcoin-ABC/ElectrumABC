@@ -29,6 +29,7 @@ import json
 from functools import wraps
 from typing import List
 
+from .consolidate_coins_dialog import ConsolidateCoinsWizard
 from .util import (
     MONOSPACE_FONT,
     ColorScheme,
@@ -44,7 +45,6 @@ from electroncash.bitcoin import COINBASE_MATURITY
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QFont
 from PyQt5 import QtWidgets
-
 
 class UTXOList(MyTreeWidget):
     class Col(IntEnum):
@@ -249,11 +249,11 @@ class UTXOList(MyTreeWidget):
                 column_title = self.headerItem().text(col)
                 alt_column_title, alt_copy_text = None, None
                 slp_token = item.data(0, self.DataRoles.slp_token)
+                addr = item.data(0, self.DataRoles.address)
                 ca_info = None
                 if col == self.Col.output_point:
                     copy_text = item.data(0, self.DataRoles.name)
                 elif col == self.Col.address:
-                    addr = item.data(0, self.DataRoles.address)
                     # Determine the "alt copy text" "Legacy Address" or "Cash Address"
                     copy_text = addr.to_full_ui_string()
                     if Address.FMT_UI == Address.FMT_LEGACY:
@@ -261,7 +261,6 @@ class UTXOList(MyTreeWidget):
                     else:
                         alt_copy_text, alt_column_title = addr.to_full_string(Address.FMT_LEGACY), _('Legacy Address')
                     ca_info = item.data(0, self.DataRoles.cash_account)  # may be None
-                    del addr
                 else:
                     copy_text = item.text(col)
                 if copy_text:
@@ -302,6 +301,10 @@ class UTXOList(MyTreeWidget):
                         spend_action.setText(_("SLP Token: Spend Locked"))
                     elif 'i' in frozen_flags:  # immature coinbase
                         spend_action.setText(_("Immature Coinbase: Spend Locked"))
+                menu.addAction(
+                    "Consolidate coins for address",
+                    lambda: self._open_consolidate_coins_dialog(addr),
+                )
             else:
                 # multi-selection
                 menu.addSeparator()
@@ -407,3 +410,7 @@ class UTXOList(MyTreeWidget):
             return
         with open(fileName, 'w') as outfile:
             json.dump(utxos_for_json, outfile)
+
+    def _open_consolidate_coins_dialog(self, addr):
+        d = ConsolidateCoinsWizard(addr, self.parent.wallet, self.parent, parent=self)
+        d.exec_()

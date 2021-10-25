@@ -405,7 +405,7 @@ class AddressList(MyTreeWidget):
             addr_URL = web.BE_URL(self.config, web.ExplorerUrlParts.ADDR, addr)
             if addr_URL:
                 menu.addAction(_("View on block explorer"), lambda: webopen(addr_URL))
-            a = menu.addAction(
+            menu.addAction(
                 "Consolidate coins for address",
                 lambda: self._open_consolidate_coins_dialog(addr),
             )
