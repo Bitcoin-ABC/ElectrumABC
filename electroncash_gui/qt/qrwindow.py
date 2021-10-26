@@ -25,7 +25,7 @@
 # SOFTWARE.
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QDialog, QPushButton, QSizePolicy
+from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QPushButton, QSizePolicy
 from PyQt5 import QtWidgets
 
 
@@ -111,7 +111,7 @@ class QR_Window(QWidget, MessageBoxMixin):
         # .. So kill the "QR Code Copied to clipboard" modal dialog that may
         # be up as it can cause a crash for this window to be closed with it
         # still up.
-        for c in self.findChildren(QDialog):
+        for c in self.findChildren(QtWidgets.QDialog):
             if c.isWindow() and c.isModal() and c.isVisible():
                 c.reject()  # break out of local event loop for dialog as we are about to die and we will be invalidated.
         super().closeEvent(e)

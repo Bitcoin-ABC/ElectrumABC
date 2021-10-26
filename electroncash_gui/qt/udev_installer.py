@@ -32,12 +32,12 @@ import grp
 
 from PyQt5.QtCore import Qt, QObject
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QMessageBox, QFrame, QWidget
+from PyQt5.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QMessageBox, QFrame, QWidget
 from PyQt5 import QtWidgets
 
 from electroncash.util import _, PrintError
 from electroncash.plugins import Plugins
-from electroncash_gui.qt import WindowModalDialog
+from electroncash_gui.qt.util import WindowModalDialog
 from electroncash.constants import PROJECT_NAME
 
 

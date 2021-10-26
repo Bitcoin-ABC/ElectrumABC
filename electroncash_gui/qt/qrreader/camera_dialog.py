@@ -31,7 +31,7 @@ import os
 from typing import List
 
 from PyQt5.QtMultimedia import QCameraInfo, QCamera, QCameraViewfinderSettings
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QCheckBox, QPushButton, QLabel
+from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QCheckBox, QPushButton, QLabel
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QSize, QRect, Qt, pyqtSignal, PYQT_VERSION
@@ -64,7 +64,7 @@ class MissingQrDetectionLib(RuntimeError):
     ''' Raised if we can't find zbar or whatever other platform lib
     we require to detect QR in image frames. '''
 
-class QrReaderCameraDialog(PrintError, MessageBoxMixin, QDialog):
+class QrReaderCameraDialog(PrintError, MessageBoxMixin, QtWidgets.QDialog):
     """
     Dialog for reading QR codes from a camera
     """
@@ -77,7 +77,7 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QDialog):
     def __init__(self, parent):
         ''' Note: make sure parent is a "top_level_window()" as per
         MessageBoxMixin API else bad things can happen on macOS. '''
-        QDialog.__init__(self, parent=parent)
+        QtWidgets.QDialog.__init__(self, parent=parent)
 
         self.validator: AbstractQrReaderValidator = None
         self.frame_id: int = 0
@@ -372,7 +372,7 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QDialog):
             self.camera = None
 
     def _on_finished(self, code):
-        res = ( (code == QDialog.Accepted
+        res = ( (code == QtWidgets.QDialog.Accepted
                     and self.validator_res and self.validator_res.accepted
                     and self.validator_res.simple_result)
                 or '' )
@@ -381,7 +381,7 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QDialog):
 
         self.print_error('closed', res)
 
-        self.qr_finished.emit(code == QDialog.Accepted, self._error_message, res)
+        self.qr_finished.emit(code == QtWidgets.QDialog.Accepted, self._error_message, res)
 
     def _on_frame_available(self, frame: QImage):
         if self._ok_done:

@@ -108,14 +108,14 @@ def wizard_dialog(func):
 
 
 # WindowModalDialog must come first as it overrides show_error
-class InstallWizard(QDialog, MessageBoxMixin, BaseWizard):
+class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
 
     accept_signal = pyqtSignal()
     synchronized_signal = pyqtSignal(str)
 
     def __init__(self, config, app, plugins, storage):
         BaseWizard.__init__(self, config, storage)
-        QDialog.__init__(self, None)
+        QtWidgets.QDialog.__init__(self, None)
         self.setWindowTitle(f'{PROJECT_NAME}  -  ' + _('Install Wizard'))
         self.app = app
         self.config = config
@@ -717,11 +717,11 @@ class DerivationPathScanner(QThread):
                 wallet.stop_threads()
 
 
-class DerivationDialog(QDialog):
+class DerivationDialog(QtWidgets.QDialog):
     scan_result_signal = pyqtSignal(object, object)
 
     def __init__(self, parent, seed, paths):
-        QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
 
         self.seed = seed
         self.seed_type = parent.seed_type

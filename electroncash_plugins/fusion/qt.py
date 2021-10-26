@@ -1622,9 +1622,9 @@ class ServerWidget(ServerFusionsBaseMixin, QWidget):
         self.plugin.fusion_server.start_fuse(tier)
 
 
-class FusionsWindow(ServerFusionsBaseMixin, QDialog):
+class FusionsWindow(ServerFusionsBaseMixin, QtWidgets.QDialog):
     def __init__(self, plugin):
-        QDialog.__init__(self, parent=None)
+        QtWidgets.QDialog.__init__(self, parent=None)
         ServerFusionsBaseMixin.__init__(self, plugin, refresh_interval=1000)
 
         self.setWindowTitle(_("CashFusion - Fusions"))

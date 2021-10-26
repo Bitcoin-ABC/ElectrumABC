@@ -59,11 +59,11 @@ from .utils import UserPortValidator
 protocol_names = ['TCP', 'SSL']
 protocol_letters = 'ts'
 
-class NetworkDialog(MessageBoxMixin, QDialog):
+class NetworkDialog(MessageBoxMixin, QtWidgets.QDialog):
     network_updated_signal = pyqtSignal()
 
     def __init__(self, network, config):
-        QDialog.__init__(self)
+        QtWidgets.QDialog.__init__(self)
         self.setWindowTitle(_('Network'))
         self.setMinimumSize(500, 350)
         self.nlayout = NetworkChoiceLayout(self, network, config)
@@ -141,7 +141,7 @@ class NetworkDialog(MessageBoxMixin, QDialog):
         # and glitchy if we don't do this. Note this .update() call is a Qt
         # C++ QWidget::update() call and has nothing to do with our own
         # same-named `update` methods.
-        QDialog.update(self)
+        QtWidgets.QDialog.update(self)
 
 
 

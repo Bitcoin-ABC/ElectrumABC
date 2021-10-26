@@ -84,7 +84,7 @@ issue_template_markdown = """
 """ % PROJECT_NAME
 
 
-class ExceptionDialog(QDialog):
+class ExceptionDialog(QtWidgets.QDialog):
 
     def __init__(self, config, exctype, value, tb):
         super().__init__()

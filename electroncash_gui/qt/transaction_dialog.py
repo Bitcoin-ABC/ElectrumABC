@@ -70,7 +70,7 @@ def show_transaction(tx, parent, desc=None, prompt_if_unsaved=False):
     d.show()
     return d
 
-class TxDialog(QDialog, MessageBoxMixin, PrintError):
+class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
 
     throttled_update_sig = pyqtSignal()  # connected to self.throttled_update -- emit from thread to do update in main thread
     dl_done_sig = pyqtSignal()  # connected to an inner function to get a callback in main thread upon dl completion
@@ -86,7 +86,7 @@ class TxDialog(QDialog, MessageBoxMixin, PrintError):
         Pass desc to give a description for txs not yet in the wallet.
         '''
         # We want to be a top-level window
-        QDialog.__init__(self, parent=None)
+        QtWidgets.QDialog.__init__(self, parent=None)
         # Take a copy; it might get updated in the main window by
         # e.g. the FX plugin.  If this happens during or after a long
         # sign operation the signatures are lost.

@@ -123,7 +123,7 @@ def verify_multiple_blocks(blocks : List[int], parent : MessageBoxMixin, wallet 
                            ngettext("Verifying {count} block please wait ...",
                                     "Verifying {count} blocks please wait ...", nblocks).format(count=nblocks),
                                     thread_func, auto_show=False, on_error=lambda e: parent.show_error(str(e))).exec_()
-    if code != QDialog.Accepted:
+    if code != QtWidgets.QDialog.Accepted:
         return None
     return ctr
 
@@ -164,7 +164,7 @@ def resolve_cashacct(parent : MessageBoxMixin, name : str, wallet : Abstract_Wal
         code = VerifyingDialog(parent.top_level_window(),
                                _("Verifying Cash Account {name} please wait ...").format(name=name),
                                resolve_verify, on_error=lambda e: parent.show_error(str(e)), auto_show=False).exec_()
-        if code == QDialog.Rejected:
+        if code == QtWidgets.QDialog.Rejected:
             # user cancel operation
             return
         if not results:
@@ -550,7 +550,7 @@ def multiple_result_picker(parent, results, wallet=None, msg=None, title=None, g
 
     code = d.exec_()
 
-    if code == QDialog.Accepted:
+    if code == QtWidgets.QDialog.Accepted:
         item = gb.selectedItem()
         if item:
             return item[:-1]
@@ -720,7 +720,7 @@ def lookup_cash_account_dialog(
             code = VerifyingDialog(parent.top_level_window(),
                                    _("Verifying Cash Account {name} please wait ...").format(name=name),
                                    resolve_verify, auto_show=False).exec_()
-            if code == QDialog.Rejected:
+            if code == QtWidgets.QDialog.Rejected:
                 # user cancel -- the waiting dialog thread will continue to run in the background but that's ok.. it will be a no-op
                 d.reject()
                 return
@@ -753,7 +753,7 @@ def lookup_cash_account_dialog(
 
     ca_msg(" ")
 
-    if d.exec_() == QDialog.Accepted:
+    if d.exec_() == QtWidgets.QDialog.Accepted:
         return ca.selectedItems()
     return None
 

@@ -76,7 +76,7 @@ class SeedLayout(QVBoxLayout):
     is_ext = False
 
     def seed_options(self):
-        dialog = QDialog()
+        dialog = QtWidgets.QDialog()
         vbox = QVBoxLayout(dialog)
         if 'ext' in self.options:
             cb_ext = QCheckBox(_('Extend this seed with custom words') + " " + _("(aka 'passphrase')"))

@@ -5149,7 +5149,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             vbox.addLayout(Buttons(cancel, ok))
 
             res = d.exec_()
-            if res == QDialog.Accepted:
+            if res == QtWidgets.QDialog.Accepted:
                 return addr
             return None
         finally:

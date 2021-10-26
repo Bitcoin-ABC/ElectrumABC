@@ -26,12 +26,12 @@ helpTxt = [
 ]
 
 
-class LedgerAuthDialog(QDialog):
+class LedgerAuthDialog(QtWidgets.QDialog):
     def __init__(self, handler, data):
         '''Ask user for 2nd factor authentication. Support text and security card methods.
         Use last method from settings, but support downgrade.
         '''
-        QDialog.__init__(self, handler.top_level_window())
+        QtWidgets.QDialog.__init__(self, handler.top_level_window())
         self.handler = handler
         self.txdata = data
         self.idxs = self.txdata['keycardData'] if self.txdata['confirmationType'] > 1 else ''

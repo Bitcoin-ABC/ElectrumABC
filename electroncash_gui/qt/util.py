@@ -327,21 +327,21 @@ class QMessageBoxMixin(QMessageBox, MessageBoxMixin):
     See https://github.com/Electron-Cash/Electron-Cash/issues/980. '''
     pass
 
-class WindowModalDialog(QDialog, MessageBoxMixin):
+class WindowModalDialog(QtWidgets.QDialog, MessageBoxMixin):
     '''Handy wrapper; window modal dialogs are better for our multi-window
     daemon model as other wallet windows can still be accessed.'''
     def __init__(self, parent, title=None):
-        QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self.setWindowModality(Qt.WindowModal)
         if title:
             self.setWindowTitle(title)
 
-class AppModalDialog(MessageBoxMixin, QDialog):
+class AppModalDialog(MessageBoxMixin, QtWidgets.QDialog):
     ''' Convenience class -- like the WindowModalDialog but is app-modal.
     Has all the MessageBoxMixin convenience methods.  Is always top-level and
     parentless.'''
     def __init__(self, parent=None, title=None, windowFlags=None):
-        QDialog.__init__(self, parent=parent)
+        QtWidgets.QDialog.__init__(self, parent=parent)
         self.setWindowModality(Qt.ApplicationModal)
         if title:
             self.setWindowTitle(title)

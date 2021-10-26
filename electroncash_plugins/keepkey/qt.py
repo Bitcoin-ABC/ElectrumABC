@@ -4,7 +4,7 @@ import threading
 from PyQt5.QtCore import Qt, QEventLoop, pyqtSignal, QRegExp
 from PyQt5.QtGui import QRegExpValidator
 from PyQt5.QtWidgets import (QVBoxLayout, QLabel, QGridLayout, QPushButton,
-                             QHBoxLayout, QButtonGroup, QGroupBox, QDialog,
+                             QHBoxLayout, QButtonGroup, QGroupBox,
                              QTextEdit, QLineEdit, QRadioButton, QCheckBox, QWidget,
                              QMessageBox, QFileDialog, QSlider, QTabWidget,
                              QSizePolicy)
@@ -126,7 +126,7 @@ class CharacterDialog(WindowModalDialog):
     def keyPressEvent(self, event):
         self.process_key(event.key())
         if not self.data:
-            QDialog.keyPressEvent(self, event)
+            QtWidgets.QDialog.keyPressEvent(self, event)
 
     def get_char(self, word_pos, character_pos):
         self.word_pos = word_pos

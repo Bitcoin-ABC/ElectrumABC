@@ -6,7 +6,6 @@ from PyQt5.QtGui import QImage, QBitmap, qRed, qGreen, qBlue
 from PyQt5.QtWidgets import (
     QButtonGroup,
     QCheckBox,
-    QDialog,
     QFileDialog,
     QGridLayout,
     QGroupBox,
@@ -116,7 +115,7 @@ class MatrixDialog(WindowModalDialog):
     def keyPressEvent(self, event):
         self.process_key(event.key())
         if not self.data:
-            QDialog.keyPressEvent(self, event)
+            QtWidgets.QDialog.keyPressEvent(self, event)
 
     def get_matrix(self, num):
         self.num = num
