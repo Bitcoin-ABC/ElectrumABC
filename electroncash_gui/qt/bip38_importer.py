@@ -102,8 +102,8 @@ class Bip38Importer(WindowModalDialog, util.PrintError):
 
         pw_tit = HelpLabel(_('Password:'),
                            _('BIP38 keys are strongly encrypted with a password. To decode this key, please specify the password you used when creating the key.'))
-        self.pw_le = QLineEdit()
-        self.pw_le.setEchoMode(QLineEdit.Password)
+        self.pw_le = QtWidgets.QLineEdit()
+        self.pw_le.setEchoMode(QtWidgets.QLineEdit.Password)
 
         timer = QTimer(self)
         timer.setSingleShot(True)

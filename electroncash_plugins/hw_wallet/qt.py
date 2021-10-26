@@ -29,7 +29,6 @@ import threading
 
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QLineEdit
 from PyQt5 import QtWidgets
 from electroncash_gui.qt.password_dialog import PasswordDialog, PW_PASSPHRASE
 from electroncash_gui.qt.util import (
@@ -133,7 +132,7 @@ class QtHandlerBase(QObject, PrintError):
             confirmed, p, passphrase = d.run()
         else:
             d = WindowModalDialog(parent, _("Enter Passphrase"))
-            pw = QLineEdit()
+            pw = QtWidgets.QLineEdit()
             pw.setEchoMode(2)
             pw.setMinimumWidth(200)
             vbox = QtWidgets.QVBoxLayout()
@@ -149,7 +148,7 @@ class QtHandlerBase(QObject, PrintError):
         dialog = WindowModalDialog(self.top_level_window(), "")
         hbox = QtWidgets.QHBoxLayout(dialog)
         hbox.addWidget(QtWidgets.QLabel(msg))
-        text = QLineEdit()
+        text = QtWidgets.QLineEdit()
         text.setMaximumWidth(100)
         text.returnPressed.connect(dialog.accept)
         hbox.addWidget(text)

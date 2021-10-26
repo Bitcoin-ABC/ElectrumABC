@@ -79,7 +79,7 @@ class SeedLayout(QtWidgets.QVBoxLayout):
         dialog = QtWidgets.QDialog()
         vbox = QtWidgets.QVBoxLayout(dialog)
         if 'ext' in self.options:
-            cb_ext = QCheckBox(_('Extend this seed with custom words') + " " + _("(aka 'passphrase')"))
+            cb_ext = QtWidgets.QCheckBox(_('Extend this seed with custom words') + " " + _("(aka 'passphrase')"))
             cb_ext.setChecked(self.is_ext)
             vbox.addWidget(cb_ext)
         if 'bip39' in self.options:
@@ -87,7 +87,7 @@ class SeedLayout(QtWidgets.QVBoxLayout):
                 self.is_seed = (lambda x: bool(x)) if b else self.saved_is_seed
                 self.is_bip39 = b
                 self.on_edit()
-            cb_bip39 = QCheckBox(_('Force BIP39 interpretation of this seed'))
+            cb_bip39 = QtWidgets.QCheckBox(_('Force BIP39 interpretation of this seed'))
             cb_bip39.toggled.connect(f)
             cb_bip39.setChecked(self.is_bip39)
             vbox.addWidget(cb_bip39)
@@ -140,14 +140,14 @@ class SeedLayout(QtWidgets.QVBoxLayout):
             grid_maybe.addWidget(QtWidgets.QLabel(f'<b>{seed_type_text}</b>'), grid_row, 1, Qt.AlignLeft)
             grid_row += 1
         if passphrase:
-            passphrase_e = QLineEdit()
+            passphrase_e = QtWidgets.QLineEdit()
             passphrase_e.setText(passphrase)
             passphrase_e.setReadOnly(True)
             grid_maybe.addWidget(QtWidgets.QLabel(_("Your seed extension is") + ':'), grid_row, 0)
             grid_maybe.addWidget(passphrase_e, grid_row, 1)
             grid_row += 1
         if derivation:
-            der_e = QLineEdit()
+            der_e = QtWidgets.QLineEdit()
             der_e.setText(str(derivation))
             der_e.setReadOnly(True)
             grid_maybe.addWidget(QtWidgets.QLabel(_("Wallet derivation path") + ':'), grid_row, 0)

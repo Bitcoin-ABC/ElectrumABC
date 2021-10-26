@@ -2,14 +2,15 @@
 
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import (QLineEdit, QStyle, QStyleOptionFrame)
+from PyQt5.QtWidgets import (QStyle, QStyleOptionFrame)
+from PyQt5 import QtWidgets
 
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
 from electroncash.util import format_satoshis_plain
 from electroncash.constants import BASE_UNITS_BY_DECIMALS
 from .util import ColorScheme
 
-class MyLineEdit(QLineEdit):
+class MyLineEdit(QtWidgets.QLineEdit):
     frozen = pyqtSignal()
 
     def setFrozen(self, b):
@@ -21,7 +22,7 @@ class AmountEdit(MyLineEdit):
     shortcut = pyqtSignal()
 
     def __init__(self, base_unit, is_int = False, parent=None):
-        QLineEdit.__init__(self, parent)
+        QtWidgets.QLineEdit.__init__(self, parent)
         # This seems sufficient for hundred-BTC amounts with 8 decimals
         self.setFixedWidth(140)
         self.base_unit = base_unit
@@ -53,7 +54,7 @@ class AmountEdit(MyLineEdit):
         self.setCursorPosition(pos)
 
     def paintEvent(self, event):
-        QLineEdit.paintEvent(self, event)
+        QtWidgets.QLineEdit.paintEvent(self, event)
         if self.base_unit:
             panel = QStyleOptionFrame()
             self.initStyleOption(panel)

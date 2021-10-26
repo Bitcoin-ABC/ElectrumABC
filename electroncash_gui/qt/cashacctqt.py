@@ -384,7 +384,7 @@ class InfoGroupBox(PrintError, QGroupBox):
         # We do it this way with BUTTON_FACTORY in case we want to expand
         # this facility later to generate even more dynamic buttons.
         if button_type == __class__.ButtonType.CheckBox:
-            BUTTON_FACTORY = lambda *args: QCheckBox()
+            BUTTON_FACTORY = lambda *args: QtWidgets.QCheckBox()
             but_grp.setExclusive(False)
         else:
             BUTTON_FACTORY = lambda *args: QRadioButton()
@@ -593,7 +593,7 @@ def lookup_cash_account_dialog(
     vbox.addLayout(hbox)
     grid = QtWidgets.QGridLayout()
     grid.setContentsMargins(62, 32, 12, 12)
-    acct = QLineEdit()
+    acct = QtWidgets.QLineEdit()
     acct.setPlaceholderText(_("Cash Account e.g. satoshi#123.45"))
     acct.setMinimumWidth(280)
     label2 = WWLabel('<a href="https://www.cashaccount.info/#lookup">' + _("Search online...") + "</a>")

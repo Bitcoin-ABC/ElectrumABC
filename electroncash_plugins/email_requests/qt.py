@@ -241,17 +241,17 @@ class Plugin(BasePlugin):
         grid = QtWidgets.QGridLayout()
         vbox.addLayout(grid)
         grid.addWidget(QtWidgets.QLabel('Server (IMAP)'), 0, 0)
-        server_e = QLineEdit()
+        server_e = QtWidgets.QLineEdit()
         server_e.setText(self.imap_server)
         grid.addWidget(server_e, 0, 1)
 
         grid.addWidget(QtWidgets.QLabel('Username'), 1, 0)
-        username_e = QLineEdit()
+        username_e = QtWidgets.QLineEdit()
         username_e.setText(self.username)
         grid.addWidget(username_e, 1, 1)
 
         grid.addWidget(QtWidgets.QLabel('Password'), 2, 0)
-        password_e = QLineEdit()
+        password_e = QtWidgets.QLineEdit()
         password_e.setText(self.password)
         grid.addWidget(password_e, 2, 1)
 

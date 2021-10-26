@@ -31,7 +31,7 @@ import os
 from typing import List
 
 from PyQt5.QtMultimedia import QCameraInfo, QCamera, QCameraViewfinderSettings
-from PyQt5.QtWidgets import QCheckBox, QPushButton
+from PyQt5.QtWidgets import QPushButton
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QSize, QRect, Qt, pyqtSignal, PYQT_VERSION
@@ -135,7 +135,7 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QtWidgets.QDialog):
         vbox.addLayout(controls_layout)
 
         # Flip horizontally checkbox with default coming from global config
-        self.flip_x = QCheckBox()
+        self.flip_x = QtWidgets.QCheckBox()
         self.flip_x.setText(_("&Flip horizontally"))
         self.flip_x.setChecked(bool(self.config.get('qrreader_flip_x', True)))
         self.flip_x.stateChanged.connect(self._on_flip_x_changed)

@@ -35,7 +35,7 @@ class PortValidator(QIntValidator):
     stateChanged = pyqtSignal(QValidator.State)
     def __init__(self, parent, minimum=1, accept_zero=False):
         super().__init__(0, 65535, parent)
-        if not isinstance(parent, QLineEdit):
+        if not isinstance(parent, QtWidgets.QLineEdit):
             warnings.warn(RuntimeWarning('PortValidator must be passed a QLineEdit parent'))
         self.minimum = minimum
         self.accept_zero = accept_zero
@@ -55,7 +55,7 @@ class PortValidator(QIntValidator):
 
     def setRedBorder(self, state):
         parent = self.parent()
-        if isinstance(parent, QLineEdit):
+        if isinstance(parent, QtWidgets.QLineEdit):
             if state == QValidator.Acceptable:
                 parent.setStyleSheet('')
             else:

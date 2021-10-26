@@ -236,7 +236,7 @@ class Plugin(FusionPlugin, QObject):
         if hasattr(window, 'send_tab_extra_plugin_controls_hbox'):
             hbox = window.send_tab_extra_plugin_controls_hbox
             label, tooltip = self.get_spend_only_fused_coins_checkbox_attributes(wallet)
-            spend_only_fused_chk = QCheckBox(label)
+            spend_only_fused_chk = QtWidgets.QCheckBox(label)
             spend_only_fused_chk.setObjectName('spend_only_fused_chk')
             spend_only_fused_chk.setToolTip(tooltip)
             hbox.insertWidget(0, spend_only_fused_chk)
@@ -699,7 +699,7 @@ class PasswordDialog(WindowModalDialog):
         hbox.addWidget(self.msglabel, 1, Qt.AlignLeft|Qt.AlignVCenter)
         cmargins = hbox.contentsMargins(); cmargins.setBottom(10); hbox.setContentsMargins(cmargins)  # pad the bottom a bit
         vbox.addLayout(hbox, 1)
-        self.pwle = QLineEdit()
+        self.pwle = QtWidgets.QLineEdit()
         self.pwle.setEchoMode(2)
         grid_for_hook_api = QtWidgets.QGridLayout()
         grid_for_hook_api.setContentsMargins(0,0,0,0)
@@ -947,13 +947,13 @@ class SettingsWidget(QtWidgets.QWidget):
         self.combo_server_host.addItems([f'{s[0]} ({s[1]}{" - ssl" if s[2] else ""})' for s in Global.Defaults.ServerList])
         hbox.addWidget(self.combo_server_host)
         hbox.addWidget(QtWidgets.QLabel(_("P:")))
-        self.le_server_port = QLineEdit()
+        self.le_server_port = QtWidgets.QLineEdit()
         self.le_server_port.setMaximumWidth(50)
         self.le_server_port.setValidator(PortValidator(self.le_server_port))
         self.le_server_port.textEdited.connect(self.user_changed_server)
 
         hbox.addWidget(self.le_server_port)
-        self.cb_server_ssl = QCheckBox(_('SSL'))
+        self.cb_server_ssl = QtWidgets.QCheckBox(_('SSL'))
         self.cb_server_ssl.clicked.connect(self.user_changed_server)
         hbox.addWidget(self.cb_server_ssl)
 
@@ -963,11 +963,11 @@ class SettingsWidget(QtWidgets.QWidget):
 
         grid.addWidget(QtWidgets.QLabel(_("Tor")), 2, 0)
         hbox = QtWidgets.QHBoxLayout(); grid.addLayout(hbox, 2, 1)
-        self.le_tor_host = QLineEdit('localhost')
+        self.le_tor_host = QtWidgets.QLineEdit('localhost')
         self.le_tor_host.textEdited.connect(self.user_edit_torhost)
         hbox.addWidget(self.le_tor_host)
         hbox.addWidget(QtWidgets.QLabel(_("P:")))
-        self.le_tor_port = QLineEdit()
+        self.le_tor_port = QtWidgets.QLineEdit()
         self.le_tor_port.setMaximumWidth(50)
         self.le_tor_port.setValidator(UserPortValidator(self.le_tor_port))
         self.le_tor_port.textEdited.connect(self.user_edit_torport)
@@ -979,7 +979,7 @@ class SettingsWidget(QtWidgets.QWidget):
         self.b_tor_refresh.setIcon(self.style().standardIcon(QStyle.SP_BrowserReload))
         self.b_tor_refresh.setDefault(False); self.b_tor_refresh.setAutoDefault(False)
         hbox.addWidget(self.b_tor_refresh)
-        self.cb_tor_auto = QCheckBox(_('Autodetect'))
+        self.cb_tor_auto = QtWidgets.QCheckBox(_('Autodetect'))
         self.cb_tor_auto.clicked.connect(self.cb_tor_auto_clicked)
         hbox.addWidget(self.cb_tor_auto)
 
@@ -1175,7 +1175,7 @@ class WalletSettingsDialog(WindowModalDialog):
         gb.setToolTip(_("If checked, CashFusion will fuse each coin this many times.\n"
                         "If unchecked, Cashfusion will fuse indefinitely until paused."))
         hbox = QtWidgets.QHBoxLayout(gb)
-        self.chk_fuse_depth = chk = QCheckBox(_("Fuse coins this many times"))
+        self.chk_fuse_depth = chk = QtWidgets.QCheckBox(_("Fuse coins this many times"))
         hbox.addWidget(chk, 1)
         self.sb_fuse_depth = sb = QSpinBox()
         sb.setRange(1, MAX_LIMIT_FUSE_DEPTH)
@@ -1187,7 +1187,7 @@ class WalletSettingsDialog(WindowModalDialog):
 
         self.gb_coinbase = gb = QGroupBox(_("Coinbase Coins"))
         vbox = QtWidgets.QVBoxLayout(gb)
-        self.cb_coinbase = QCheckBox(_('Auto-fuse coinbase coins (if mature)'))
+        self.cb_coinbase = QtWidgets.QCheckBox(_('Auto-fuse coinbase coins (if mature)'))
         self.cb_coinbase.clicked.connect(self._on_cb_coinbase)
         vbox.addWidget(self.cb_coinbase)
         # The coinbase-related group box is hidden by default. It becomes
@@ -1314,7 +1314,7 @@ class WalletSettingsDialog(WindowModalDialog):
         self.sb_queued_autofuse.setRange(1, 10)  # hard-coded rande 1-10, maybe have this come from some constants?
         self.sb_queued_autofuse.setMinimumWidth(50)  # just so it doesn't end up too tiny
         grid.addWidget(self.sb_queued_autofuse, 0, 1)
-        self.cb_autofuse_only_all_confirmed = QCheckBox(_("Only auto-fuse when all coins are confirmed"))
+        self.cb_autofuse_only_all_confirmed = QtWidgets.QCheckBox(_("Only auto-fuse when all coins are confirmed"))
         slayout.addWidget(self.cb_autofuse_only_all_confirmed)
         grid.addWidget(QtWidgets.QWidget(), 0, 2); grid.setColumnStretch(2, 1) # spacer
 
@@ -1497,7 +1497,7 @@ class WalletSettingsDialog(WindowModalDialog):
         # update the send tab label for the "spend only confirmed coins" checkbox
         main_window = self.wallet.weak_window and self.wallet.weak_window()
         if main_window:
-            chk = main_window.findChild(QCheckBox, 'spend_only_fused_chk', Qt.FindChildrenRecursively)
+            chk = main_window.findChild(QtWidgets.QCheckBox, 'spend_only_fused_chk', Qt.FindChildrenRecursively)
             if chk:
                 label, tooltip = self.plugin.get_spend_only_fused_coins_checkbox_attributes(self.wallet)
                 chk.setText(label)

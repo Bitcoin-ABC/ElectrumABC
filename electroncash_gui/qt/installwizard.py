@@ -172,7 +172,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         vbox = QtWidgets.QVBoxLayout()
         hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(QtWidgets.QLabel(_('Wallet') + ':'))
-        self.name_e = QLineEdit()
+        self.name_e = QtWidgets.QLineEdit()
         hbox.addWidget(self.name_e)
         button = QPushButton(_('Choose...'))
         hbox.addWidget(button)
@@ -181,7 +181,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         self.msg_label = QtWidgets.QLabel('')
         vbox.addWidget(self.msg_label)
         hbox2 = QtWidgets.QHBoxLayout()
-        self.pw_e = QLineEdit('', self)
+        self.pw_e = QtWidgets.QLineEdit('', self)
         self.pw_e.setFixedWidth(150)
         self.pw_e.setEchoMode(2)
         self.pw_label = QtWidgets.QLabel(_('Password') + ':')
@@ -500,7 +500,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
     def line_dialog(self, run_next, title, message, default, test, warning=''):
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(WWLabel(message))
-        line = QLineEdit()
+        line = QtWidgets.QLineEdit()
         line.setText(default)
         def f(text):
             self.next_button.setEnabled(test(text))
@@ -522,7 +522,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
 
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(WWLabel(message))
-        line = QLineEdit()
+        line = QtWidgets.QLineEdit()
         line.setText(default)
         def f(text):
             self.next_button.setEnabled(test(text))

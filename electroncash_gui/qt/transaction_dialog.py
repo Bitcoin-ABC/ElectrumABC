@@ -543,7 +543,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
 
 
         hbox.addSpacerItem(QSpacerItem(20, 0))  # 20 px padding
-        self.dl_input_chk = chk = QCheckBox(_("&Download input data"))
+        self.dl_input_chk = chk = QtWidgets.QCheckBox(_("&Download input data"))
         chk.setChecked(self.is_fetch_input_data())
         chk.clicked.connect(self.set_fetch_input_data)
         chk.setToolTip(_("If this is checked, accurate fee and input value data will be retrieved from the network"))

@@ -4,7 +4,7 @@ from electroncash.plugins import run_hook
 from electroncash_gui.qt.util import EnterButton, Buttons, CloseButton, OkButton, CancelButton, WindowModalDialog, WWLabel
 
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import QPushButton, QLineEdit, QCheckBox
+from PyQt5.QtWidgets import QPushButton
 from PyQt5 import QtWidgets
 from functools import partial
 
@@ -300,11 +300,11 @@ class SatochipSettingsDialog(WindowModalDialog):
         print_error("In reset_seed_dialog")
         parent = self.top_level_window()
         d = WindowModalDialog(parent, _("Enter PIN"))
-        pw = QLineEdit()
+        pw = QtWidgets.QLineEdit()
         pw.setEchoMode(2)
         pw.setMinimumWidth(200)
 
-        cb_reset_2FA = QCheckBox(_('Also reset 2FA'))
+        cb_reset_2FA = QtWidgets.QCheckBox(_('Also reset 2FA'))
 
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(WWLabel(msg))

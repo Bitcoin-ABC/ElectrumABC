@@ -128,11 +128,11 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
             confirmGroupBox = QGroupBox(_("Risks and Dangers"))
             liabilityLabel = QtWidgets.QLabel(_("I accept responsibility for any harm that comes from installing this plugin, and acknowledge:"))
             rows = QtWidgets.QVBoxLayout()
-            self.liabilityCheckbox1 = QCheckBox(
+            self.liabilityCheckbox1 = QtWidgets.QCheckBox(
                 _(f"The {PROJECT_NAME} Developers do NOT audit or vet "
                   f"any plugins."))
-            self.liabilityCheckbox2 = QCheckBox(_("Plugins are risky.  They can steal funds or even damage your computer."))
-            self.liabilityCheckbox3 = QCheckBox(_("I should only install the most reputable plugins trusted by the community."))
+            self.liabilityCheckbox2 = QtWidgets.QCheckBox(_("Plugins are risky.  They can steal funds or even damage your computer."))
+            self.liabilityCheckbox3 = QtWidgets.QCheckBox(_("I should only install the most reputable plugins trusted by the community."))
             confirmLayout.addWidget(liabilityLabel)
             confirmLayout.addWidget(self.liabilityCheckbox1)
             confirmLayout.addWidget(self.liabilityCheckbox2)

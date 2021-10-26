@@ -1241,7 +1241,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         grid.addWidget(self.cash_account_e, 1, 1, 1, -1)
 
 
-        self.receive_message_e = QLineEdit()
+        self.receive_message_e = QtWidgets.QLineEdit()
         label = QtWidgets.QLabel(_('&Description'))
         label.setBuddy(self.receive_message_e)
         grid.addWidget(label, 2, 0)
@@ -1249,11 +1249,11 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.receive_message_e.textChanged.connect(self.update_receive_qr)
 
         # OP_RETURN requests
-        self.receive_opreturn_e = QLineEdit()
+        self.receive_opreturn_e = QtWidgets.QLineEdit()
         msg = _("You may optionally append an OP_RETURN message to the payment URI and/or QR you generate.\n\nNote: Not all wallets yet support OP_RETURN parameters, so make sure the other party's wallet supports OP_RETURN URIs.")
         self.receive_opreturn_label = label = HelpLabel(_('&OP_RETURN'), msg)
         label.setBuddy(self.receive_opreturn_e)
-        self.receive_opreturn_rawhex_cb = QCheckBox(_('Raw &hex script'))
+        self.receive_opreturn_rawhex_cb = QtWidgets.QCheckBox(_('Raw &hex script'))
         self.receive_opreturn_rawhex_cb.setToolTip(_('If unchecked, the textbox contents are UTF8-encoded into a single-push script: <tt>OP_RETURN PUSH &lt;text&gt;</tt>. If checked, the text contents will be interpreted as a raw hexadecimal script to be appended after the OP_RETURN opcode: <tt>OP_RETURN &lt;script&gt;</tt>.'))
         grid.addWidget(label, 3, 0)
         grid.addWidget(self.receive_opreturn_e, 3, 1, 1, 3)
@@ -1296,7 +1296,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         label.setBuddy(self.expires_combo)
         grid.addWidget(label, 5, 0)
         grid.addWidget(self.expires_combo, 5, 1)
-        self.expires_label = QLineEdit('')
+        self.expires_label = QtWidgets.QLineEdit('')
         self.expires_label.setReadOnly(1)
         self.expires_label.hide()
         grid.addWidget(self.expires_label, 5, 1)
@@ -1668,7 +1668,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.opreturn_label.setBuddy(self.message_opreturn_e)
         hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.message_opreturn_e)
-        self.opreturn_rawhex_cb = QCheckBox(_('&Raw hex script'))
+        self.opreturn_rawhex_cb = QtWidgets.QCheckBox(_('&Raw hex script'))
         self.opreturn_rawhex_cb.setToolTip(_('If unchecked, the textbox contents are UTF8-encoded into a single-push script: <tt>OP_RETURN PUSH &lt;text&gt;</tt>. If checked, the text contents will be interpreted as a raw hexadecimal script to be appended after the OP_RETURN opcode: <tt>OP_RETURN &lt;script&gt;</tt>.'))
         hbox.addWidget(self.opreturn_rawhex_cb)
         grid.addLayout(hbox,  3 , 1, 1, -1)
@@ -2602,7 +2602,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
     def create_converter_tab(self):
 
-        source_address = QLineEdit()
+        source_address = QtWidgets.QLineEdit()
         cash_address = ButtonsLineEdit()
         cash_address.addCopyButton()
         cash_address.setReadOnly(True)
@@ -2956,7 +2956,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         self._search_box_spacer = QtWidgets.QWidget()
         self._search_box_spacer.setFixedWidth(6)  # 6 px spacer
-        self.search_box = QLineEdit()
+        self.search_box = QtWidgets.QLineEdit()
         self.search_box.setPlaceholderText(_("Search wallet, {key}F to hide").format(key='Ctrl+' if sys.platform != 'darwin' else '⌘'))
         self.search_box.textChanged.connect(self.do_search)
         self.search_box.hide()
@@ -3094,9 +3094,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         vbox = QtWidgets.QVBoxLayout(d)
         vbox.addWidget(QtWidgets.QLabel(_('New Contact') + ':'))
         grid = QtWidgets.QGridLayout()
-        line1 = QLineEdit()
+        line1 = QtWidgets.QLineEdit()
         line1.setFixedWidth(350)
-        line2 = QLineEdit()
+        line2 = QtWidgets.QLineEdit()
         line2.setFixedWidth(350)
         grid.addWidget(QtWidgets.QLabel(_("Name")), 1, 0)
         grid.addWidget(line1, 1, 1)
@@ -3339,7 +3339,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         layout.addWidget(message_e, 1, 1)
         layout.setRowStretch(2,3)
 
-        address_e = QLineEdit()
+        address_e = QtWidgets.QLineEdit()
         address_e.setText(address.to_full_ui_string() if address else '')
         layout.addWidget(QtWidgets.QLabel(_('Address')), 2, 0)
         layout.addWidget(address_e, 2, 1)
@@ -3398,7 +3398,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         layout.addWidget(message_e, 1, 1)
         layout.setRowStretch(2,3)
 
-        pubkey_e = QLineEdit()
+        pubkey_e = QtWidgets.QLineEdit()
         if address:
             pubkey = self.wallet.get_public_key(address)
             if not isinstance(pubkey, str):
@@ -3811,11 +3811,11 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         select_msg = _('Select file to export your wallet transactions to')
         box, filename_e, csv_button = filename_field(self.config, defaultname, select_msg)
         vbox.addWidget(box)
-        include_addresses_chk = QCheckBox(_("Include addresses"))
+        include_addresses_chk = QtWidgets.QCheckBox(_("Include addresses"))
         include_addresses_chk.setChecked(True)
         include_addresses_chk.setToolTip(_("Include input and output addresses in history export"))
         vbox.addWidget(include_addresses_chk)
-        fee_dl_chk = QCheckBox(_("Fetch accurate fees from network (slower)"))
+        fee_dl_chk = QtWidgets.QCheckBox(_("Fetch accurate fees from network (slower)"))
         fee_dl_chk.setChecked(self.is_fetch_input_data())
         fee_dl_chk.setEnabled(bool(self.wallet.network))
         fee_dl_chk.setToolTip(_("If this is checked, accurate fee and input value data will be retrieved from the network"))
@@ -4216,7 +4216,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         fee_lo.addWidget(customfee_label, 0, 0, 1, 1, Qt.AlignRight)
         fee_lo.addWidget(customfee_e, 0, 1, 1, 1, Qt.AlignLeft)
 
-        feebox_cb = QCheckBox(_('Edit fees manually'))
+        feebox_cb = QtWidgets.QCheckBox(_('Edit fees manually'))
         feebox_cb.setChecked(self.config.get('show_fee', False))
         feebox_cb.setToolTip(_("Show fee edit box in send tab."))
         def on_feebox(x):
@@ -4234,7 +4234,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
               + _('For more information, see http://openalias.org')
         alias_label = HelpLabel(_('OpenAlias') + ':', msg)
         alias = self.config.get('alias','')
-        alias_e = QLineEdit(alias)
+        alias_e = QtWidgets.QLineEdit(alias)
         def set_alias_color():
             if not self.config.get('alias'):
                 alias_e.setStyleSheet("")
@@ -4276,7 +4276,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             SSL_identity = ""
             SSL_error = None
         SSL_id_label = HelpLabel(_('SSL certificate') + ':', msg)
-        SSL_id_e = QLineEdit(SSL_identity)
+        SSL_id_e = QtWidgets.QLineEdit(SSL_identity)
         SSL_id_e.setStyleSheet((ColorScheme.RED if SSL_error else ColorScheme.GREEN).as_stylesheet(True) if SSL_identity else '')
         if SSL_error:
             SSL_id_e.setToolTip(SSL_error)
@@ -4289,7 +4289,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         from . import exception_window as ew
         cr_gb = QGroupBox(_("Crash Reporter"))
         cr_grid = QtWidgets.QGridLayout(cr_gb)
-        cr_chk = QCheckBox()
+        cr_chk = QtWidgets.QCheckBox()
         cr_chk.setChecked(ew.is_enabled(self.config))
         cr_chk.clicked.connect(lambda b: ew.set_enabled(self.config, b))
         cr_help = HelpLabel(
@@ -4440,7 +4440,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         if sys.platform not in ('darwin',):
             # Enable/Disable HighDPI -- this option makes no sense for macOS
             # and thus does not appear on that platform
-            hidpi_chk = QCheckBox(_('Automatic high-DPI scaling'))
+            hidpi_chk = QtWidgets.QCheckBox(_('Automatic high-DPI scaling'))
             if sys.platform in ('linux',):
                 hidpi_chk.setToolTip(_("Enable/disable this option if you experience graphical glitches (such as overly large status bar icons)"))
             else: # windows
@@ -4459,7 +4459,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             if sys.platform in ('win32', 'cygwin'):
                 # Enable/Disable the use of the FreeType library on Qt
                 # (Windows only)
-                freetype_chk = QCheckBox(_('Use FreeType for font rendering'))
+                freetype_chk = QtWidgets.QCheckBox(_('Use FreeType for font rendering'))
                 freetype_chk.setChecked(windows_qt_use_freetype(self.config))
                 freetype_chk.setEnabled(self.config.is_modifiable('windows_qt_use_freetype'))
                 freetype_chk.setToolTip(_("Enable/disable this option if you experience font rendering glitches (such as blurred text or monochrome emoji characters)"))
@@ -4471,7 +4471,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             elif sys.platform in ('linux',):
                 # Enable/Disable the use of the fonts.xml FontConfig override
                 # (Linux only)
-                fontconfig_chk = QCheckBox(_('Use custom fontconfig for emojis'))
+                fontconfig_chk = QtWidgets.QCheckBox(_('Use custom fontconfig for emojis'))
                 fontconfig_chk.setChecked(self.gui_object.linux_qt_use_custom_fontconfig)
                 fontconfig_chk.setEnabled(self.config.is_modifiable('linux_qt_use_custom_fontconfig'))
                 fontconfig_chk.setToolTip(_("Enable/disable this option if you experience font rendering glitches (such as blurred text or monochrome emoji characters)"))
@@ -4503,7 +4503,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             self.gui_object.set_address_format(fmt)
         cashaddr_cbox.currentIndexChanged.connect(cashaddr_cbox_handler)
         hbox.addWidget(cashaddr_cbox)
-        toggle_cashaddr_control = QCheckBox(_('Hide status button'))
+        toggle_cashaddr_control = QtWidgets.QCheckBox(_('Hide status button'))
         toggle_cashaddr_control.setToolTip(_('If checked, the status bar button for toggling address formats will be hidden'))
         toggle_cashaddr_control.setChecked(self.gui_object.is_cashaddr_status_button_hidden())
         toggle_cashaddr_control.toggled.connect(self.gui_object.set_cashaddr_status_button_hidden)
@@ -4512,7 +4512,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         # spacer
         gui_widgets.append((None, None))
-        updatecheck_cb = QCheckBox(_("Automatically check for updates"))
+        updatecheck_cb = QtWidgets.QCheckBox(_("Automatically check for updates"))
         updatecheck_cb.setChecked(self.gui_object.has_auto_update_check())
         updatecheck_cb.setToolTip(
             _("Enable this option if you wish to be notified as soon as a "
@@ -4523,7 +4523,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         gui_widgets.append((updatecheck_cb, None))
 
 
-        notify_tx_cb = QCheckBox(_('Notify when receiving funds'))
+        notify_tx_cb = QtWidgets.QCheckBox(_('Notify when receiving funds'))
         notify_tx_cb.setToolTip(_('If enabled, a system notification will be presented when you receive funds to this wallet.'))
         notify_tx_cb.setChecked(bool(self.wallet.storage.get('gui_notify_tx', True)))
         def on_notify_tx(b):
@@ -4531,7 +4531,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         notify_tx_cb.stateChanged.connect(on_notify_tx)
         per_wallet_tx_widgets.append((notify_tx_cb, None))
 
-        usechange_cb = QCheckBox(_('Use change addresses'))
+        usechange_cb = QtWidgets.QCheckBox(_('Use change addresses'))
         usechange_cb.setChecked(self.wallet.use_change)
         usechange_cb.setToolTip(_('Using change addresses makes it more difficult for other people to track your transactions.'))
         def on_usechange(x):
@@ -4544,7 +4544,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         per_wallet_tx_widgets.append((usechange_cb, None))
 
         multiple_change = self.wallet.multiple_change
-        multiple_cb = QCheckBox(_('Use multiple change addresses'))
+        multiple_cb = QtWidgets.QCheckBox(_('Use multiple change addresses'))
         multiple_cb.setEnabled(self.wallet.use_change)
         multiple_cb.setToolTip('\n'.join([
             _('In some cases, use up to 3 change addresses in order to break '
@@ -4567,27 +4567,27 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         def on_unconf(x):
             self.config.set_key('confirmed_only', bool(x))
         conf_only = self.config.get('confirmed_only', False)
-        unconf_cb = QCheckBox(_('Spend only confirmed coins'))
+        unconf_cb = QtWidgets.QCheckBox(_('Spend only confirmed coins'))
         unconf_cb.setToolTip(_('Spend only confirmed inputs.'))
         unconf_cb.setChecked(conf_only)
         unconf_cb.stateChanged.connect(on_unconf)
         global_tx_widgets.append((unconf_cb, None))
 
         # Fiat Currency
-        hist_checkbox = QCheckBox()
-        fiat_address_checkbox = QCheckBox()
+        hist_checkbox = QtWidgets.QCheckBox()
+        fiat_address_checkbox = QtWidgets.QCheckBox()
         ccy_combo = QComboBox()
         ex_combo = QComboBox()
 
         enable_opreturn = bool(self.config.get('enable_opreturn'))
-        opret_cb = QCheckBox(_('Enable OP_RETURN output'))
+        opret_cb = QtWidgets.QCheckBox(_('Enable OP_RETURN output'))
         opret_cb.setToolTip(_('Enable posting messages with OP_RETURN.'))
         opret_cb.setChecked(enable_opreturn)
         opret_cb.stateChanged.connect(self.on_toggled_opreturn)
         global_tx_widgets.append((opret_cb,None))
 
         # Legacy BCT Segwit Send Protection™
-        legacy_p2sh_cb = QCheckBox(_('Allow legacy p2sh in the Send tab'))
+        legacy_p2sh_cb = QtWidgets.QCheckBox(_('Allow legacy p2sh in the Send tab'))
         prefix_char = '3' if not networks.net.TESTNET else '2'
         legacy_p2sh_cb.setToolTip(_('If enabled, you will be allowed to use legacy \'{prefix_char}...\' style addresses in the Send tab.\nOtherwise you must use CashAddr for p2sh in the UI.').format(prefix_char=prefix_char))
         legacy_p2sh_cb.setChecked(bool(self.config.get('allow_legacy_p2sh', False)))
@@ -4598,7 +4598,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
 
         # Schnorr
-        use_schnorr_cb = QCheckBox(_("Sign with Schnorr signatures"))
+        use_schnorr_cb = QtWidgets.QCheckBox(_("Sign with Schnorr signatures"))
         use_schnorr_cb.setChecked(self.wallet.is_schnorr_enabled())
         use_schnorr_cb.stateChanged.connect(self.wallet.set_schnorr_enabled)
         no_schnorr_reason = []
@@ -4966,7 +4966,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                 continue
             try:
                 plugins.retranslate_internal_plugin_metadata(name)
-                cb = QCheckBox(descr['fullname'])
+                cb = QtWidgets.QCheckBox(descr['fullname'])
                 weakCb = Weak.ref(cb)
                 plugin_is_loaded = p is not None
                 cb_enabled = (not plugin_is_loaded and plugins.is_internal_plugin_available(name, self.wallet)

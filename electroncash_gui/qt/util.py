@@ -303,7 +303,7 @@ class MessageBoxMixin:
             d.setTextFormat(Qt.PlainText)
         d.setText(str(text))
         if checkbox_text and isinstance(checkbox_text, str):
-            chk = QCheckBox(checkbox_text)
+            chk = QtWidgets.QCheckBox(checkbox_text)
             d.setCheckBox(chk)
             def on_chk(b):
                 nonlocal checkbox_ischecked
@@ -450,7 +450,7 @@ def line_dialog(parent, title, label, ok_label, default=None,
     if linkActivated:
         lbl.linkActivated.connect(linkActivated)
         lbl.setTextInteractionFlags(lbl.textInteractionFlags()|Qt.LinksAccessibleByMouse)
-    txt = line_edit_widget or QLineEdit()
+    txt = line_edit_widget or QtWidgets.QLineEdit()
     if default:
         txt.setText(default)
     if placeholder:
@@ -542,7 +542,7 @@ def filename_field(config, defaultname, select_msg):
 
     directory = config.get('io_dir', os.path.expanduser('~'))
     path = os.path.join(directory, defaultname)
-    filename_e = QLineEdit()
+    filename_e = QtWidgets.QLineEdit()
     filename_e.setText(path)
 
     def func():
@@ -927,9 +927,9 @@ class OverlayControlMixin:
             return
         super().keyReleaseEvent(e)
 
-class ButtonsLineEdit(OverlayControlMixin, QLineEdit):
+class ButtonsLineEdit(OverlayControlMixin, QtWidgets.QLineEdit):
     def __init__(self, text=None):
-        QLineEdit.__init__(self, text)
+        QtWidgets.QLineEdit.__init__(self, text)
         OverlayControlMixin.__init__(self, middle=True)
 
 class ButtonsTextEdit(OverlayControlMixin, QPlainTextEdit):

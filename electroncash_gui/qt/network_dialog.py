@@ -430,12 +430,12 @@ class NetworkChoiceLayout(QObject, PrintError):
         grid = QtWidgets.QGridLayout(server_tab)
         grid.setSpacing(8)
 
-        self.server_host = QLineEdit()
+        self.server_host = QtWidgets.QLineEdit()
         self.server_host.setFixedWidth(200)
-        self.server_port = QLineEdit()
+        self.server_port = QtWidgets.QLineEdit()
         self.server_port.setFixedWidth(60)
-        self.ssl_cb = QCheckBox(_('Use SSL'))
-        self.autoconnect_cb = QCheckBox(_('Select server automatically'))
+        self.ssl_cb = QtWidgets.QCheckBox(_('Use SSL'))
+        self.autoconnect_cb = QtWidgets.QCheckBox(_('Select server automatically'))
         self.autoconnect_cb.setEnabled(self.config.is_modifiable('auto_connect'))
 
         weakSelf = Weak.ref(self)  # Qt/Python GC hygiene: avoid strong references to self in lambda slots.
@@ -454,7 +454,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         grid.addWidget(self.autoconnect_cb, 0, 0, 1, 3)
         grid.addWidget(HelpButton(msg), 0, 4)
 
-        self.preferred_only_cb = QCheckBox(_("Connect only to preferred servers"))
+        self.preferred_only_cb = QtWidgets.QCheckBox(_("Connect only to preferred servers"))
         self.preferred_only_cb.setEnabled(self.config.is_modifiable('whitelist_servers_only'))
         self.preferred_only_cb.setToolTip(
             _(f"If enabled, restricts {PROJECT_NAME} to connecting to "
@@ -513,22 +513,22 @@ class NetworkChoiceLayout(QObject, PrintError):
         grid.setSpacing(8)
 
         # proxy setting
-        self.proxy_cb = QCheckBox(_('Use proxy'))
+        self.proxy_cb = QtWidgets.QCheckBox(_('Use proxy'))
         self.proxy_cb.setToolTip(_("If enabled, all connections application-wide will be routed through this proxy."))
         self.proxy_cb.clicked.connect(self.check_disable_proxy)
         self.proxy_cb.clicked.connect(self.set_proxy)
 
         self.proxy_mode = QComboBox()
         self.proxy_mode.addItems(['SOCKS4', 'SOCKS5', 'HTTP'])
-        self.proxy_host = QLineEdit()
+        self.proxy_host = QtWidgets.QLineEdit()
         self.proxy_host.setFixedWidth(200)
-        self.proxy_port = QLineEdit()
+        self.proxy_port = QtWidgets.QLineEdit()
         self.proxy_port.setFixedWidth(60)
-        self.proxy_user = QLineEdit()
+        self.proxy_user = QtWidgets.QLineEdit()
         self.proxy_user.setPlaceholderText(_("Proxy user"))
-        self.proxy_password = QLineEdit()
+        self.proxy_password = QtWidgets.QLineEdit()
         self.proxy_password.setPlaceholderText(_("Password"))
-        self.proxy_password.setEchoMode(QLineEdit.Password)
+        self.proxy_password.setEchoMode(QtWidgets.QLineEdit.Password)
         self.proxy_password.setFixedWidth(60)
 
         self.proxy_mode.currentIndexChanged.connect(self.set_proxy)
@@ -537,7 +537,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         self.proxy_user.editingFinished.connect(self.set_proxy)
         self.proxy_password.editingFinished.connect(self.set_proxy)
 
-        self.tor_cb = QCheckBox(_("Use Tor Proxy"))
+        self.tor_cb = QtWidgets.QCheckBox(_("Use Tor Proxy"))
         self.tor_cb.setIcon(QIcon(":icons/tor_logo.svg"))
         self.tor_cb.setEnabled(False)
         self.tor_cb.clicked.connect(self.use_tor_proxy)
@@ -551,13 +551,13 @@ class NetworkChoiceLayout(QObject, PrintError):
               "disabled and only leave the 'Start Tor client' option enabled.") )
         self.tor_cb.setToolTip(tor_proxy_tooltip)
 
-        self.tor_enabled = QCheckBox()
+        self.tor_enabled = QtWidgets.QCheckBox()
         self.tor_enabled.setIcon(QIcon(":icons/tor_logo.svg"))
         self.tor_enabled.clicked.connect(self.set_tor_enabled)
         self.tor_enabled.setChecked(self.network.tor_controller.is_enabled())
         self.tor_enabled_help = HelpButton('')
 
-        self.tor_custom_port_cb = QCheckBox(_("Custom port"))
+        self.tor_custom_port_cb = QtWidgets.QCheckBox(_("Custom port"))
         self.tor_enabled.clicked.connect(self.tor_custom_port_cb.setEnabled)
         self.tor_custom_port_cb.setChecked(bool(self.network.tor_controller.get_socks_port()))
         self.tor_custom_port_cb.clicked.connect(self.on_custom_port_cb_click)
@@ -565,7 +565,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         self.tor_custom_port_cb.setToolTip(custom_port_tooltip)
         self.network.tor_controller.status_changed.append_weak(self.on_tor_status_changed)
 
-        self.tor_socks_port = QLineEdit()
+        self.tor_socks_port = QtWidgets.QLineEdit()
         self.tor_socks_port.setFixedWidth(60)
         self.tor_socks_port.editingFinished.connect(self.set_tor_socks_port)
         self.tor_socks_port.setText(str(self.network.tor_controller.get_socks_port()))

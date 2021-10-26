@@ -29,7 +29,6 @@ import math
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QLineEdit, QCheckBox
 from PyQt5 import QtWidgets
 
 from electroncash.i18n import _
@@ -72,12 +71,12 @@ class PasswordLayout:
         self.wallet = wallet
 
         self.permit_empty = bool(permit_empty)
-        self.pw = QLineEdit()
-        self.pw.setEchoMode(QLineEdit.Password)
-        self.new_pw = QLineEdit()
-        self.new_pw.setEchoMode(QLineEdit.Password)
-        self.conf_pw = QLineEdit()
-        self.conf_pw.setEchoMode(QLineEdit.Password)
+        self.pw = QtWidgets.QLineEdit()
+        self.pw.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.new_pw = QtWidgets.QLineEdit()
+        self.new_pw.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.conf_pw = QtWidgets.QLineEdit()
+        self.conf_pw.setEchoMode(QtWidgets.QLineEdit.Password)
         self.kind = kind
         self.OK_button = OK_button
         self.all_lineedits = ( self.pw, self.new_pw, self.conf_pw )
@@ -130,16 +129,16 @@ class PasswordLayout:
             grid.addWidget(self.pw_strength, 3, 0, 1, 2)
             self.new_pw.textChanged.connect(self.pw_changed)
 
-        self.show_cb = QCheckBox(_('Show'))
+        self.show_cb = QtWidgets.QCheckBox(_('Show'))
         f = self.show_cb.font(); f.setPointSize(f.pointSize()-1); self.show_cb.setFont(f)  # make font -1
         grid.addWidget(self.show_cb, 3, 2, Qt.AlignRight)
         def toggle_show_pws():
             show = self.show_cb.isChecked()
             for le in self.all_lineedits:
-                le.setEchoMode(QLineEdit.Password if not show else QLineEdit.Normal)
+                le.setEchoMode(QtWidgets.QLineEdit.Password if not show else QtWidgets.QLineEdit.Normal)
         self.show_cb.toggled.connect(toggle_show_pws)
 
-        self.encrypt_cb = QCheckBox(_('Encrypt wallet file'))
+        self.encrypt_cb = QtWidgets.QCheckBox(_('Encrypt wallet file'))
         self.encrypt_cb.setEnabled(False)
         grid.addWidget(self.encrypt_cb, 4, 0, 1, -1)
         self.encrypt_cb.setVisible(kind != PW_PASSPHRASE)
@@ -224,7 +223,7 @@ class PasswordDialog(WindowModalDialog):
     def __init__(self, parent=None, msg=None):
         msg = msg or _('Please enter your password')
         WindowModalDialog.__init__(self, parent, _("Enter Password"))
-        self.pw = pw = QLineEdit()
+        self.pw = pw = QtWidgets.QLineEdit()
         pw.setEchoMode(2)
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(QtWidgets.QLabel(msg))

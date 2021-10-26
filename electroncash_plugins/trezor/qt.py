@@ -3,12 +3,11 @@ import os
 
 from PyQt5.QtCore import QEventLoop, Qt, QStandardPaths, pyqtSignal
 from PyQt5.QtGui import QImage, QBitmap, qRed, qGreen, qBlue
+from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import (
     QButtonGroup,
-    QCheckBox,
     QFileDialog,
     QGroupBox,
-    QLineEdit,
     QMessageBox,
     QPushButton,
     QRadioButton,
@@ -184,9 +183,9 @@ class QtHandler(QtHandlerBase):
         OK_button = OkButton(d, _('Enter Passphrase'))
         OnDevice_button = QPushButton(_('Enter Passphrase on Device'))
 
-        new_pw = QLineEdit()
+        new_pw = QtWidgets.QLineEdit()
         new_pw.setEchoMode(2)
-        conf_pw = QLineEdit()
+        conf_pw = QtWidgets.QLineEdit()
         conf_pw.setEchoMode(2)
 
         vbox = QtWidgets.QVBoxLayout()
@@ -271,7 +270,7 @@ class QtPlugin(QtPluginBase):
         vbox = QtWidgets.QVBoxLayout()
         next_enabled = True
         label = QtWidgets.QLabel(_("Enter a label to name your device:"))
-        name = QLineEdit()
+        name = QtWidgets.QLineEdit()
         hl = QtWidgets.QHBoxLayout()
         hl.addWidget(label)
         hl.addWidget(name)
@@ -295,7 +294,7 @@ class QtPlugin(QtPluginBase):
             bg_numwords.setId(rb, i)
             hbox1.addWidget(rb)
             rb.setChecked(True)
-        cb_pin = QCheckBox(_('Enable PIN protection'))
+        cb_pin = QtWidgets.QCheckBox(_('Enable PIN protection'))
         cb_pin.setChecked(True)
 
         vbox.addWidget(WWLabel(RECOMMEND_PIN))
@@ -304,7 +303,7 @@ class QtPlugin(QtPluginBase):
         passphrase_msg = WWLabel(PASSPHRASE_HELP_SHORT)
         passphrase_warning = WWLabel(PASSPHRASE_NOT_PIN)
         passphrase_warning.setStyleSheet("color: red")
-        cb_phrase = QCheckBox(_('Enable passphrases'))
+        cb_phrase = QtWidgets.QCheckBox(_('Enable passphrases'))
         cb_phrase.setChecked(False)
         vbox.addWidget(passphrase_msg)
         vbox.addWidget(passphrase_warning)
@@ -628,7 +627,7 @@ class SettingsDialog(WindowModalDialog):
                            .format(plugin.device))
         label_msg.setWordWrap(True)
         label_label = QtWidgets.QLabel(_("Device Label"))
-        label_edit = QLineEdit()
+        label_edit = QtWidgets.QLineEdit()
         label_edit.setMinimumWidth(150)
         label_edit.setMaxLength(plugin.MAX_LABEL_LEN)
         label_apply = QPushButton(_("Apply"))
