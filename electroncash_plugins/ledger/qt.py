@@ -10,8 +10,6 @@ from .ledger import LedgerPlugin
 from ..hw_wallet.qt import QtHandlerBase, QtPluginBase
 from electroncash_gui.qt.util import WindowModalDialog
 
-#from btchip.btchipPersoWizard import StartBTChipPersoDialog
-
 
 class Plugin(LedgerPlugin, QtPluginBase):
     icon_unpaired = ":icons/ledger_unpaired.png"
@@ -80,5 +78,4 @@ class Ledger_Handler(QtHandlerBase):
         return
 
     def setup_dialog(self):
-        dialog = StartBTChipPersoDialog()
-        dialog.exec_()
+        self.show_error(_('Initialization of Ledger HW devices is currently disabled.'))
