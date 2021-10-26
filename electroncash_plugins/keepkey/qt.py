@@ -4,8 +4,7 @@ import threading
 from PyQt5.QtCore import Qt, QEventLoop, pyqtSignal, QRegExp
 from PyQt5.QtGui import QRegExpValidator
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import (QButtonGroup, QGroupBox,
-                             QTextEdit, QRadioButton,
+from PyQt5.QtWidgets import (QTextEdit, QRadioButton,
                              QMessageBox,  QSlider, QTabWidget,
                              QSizePolicy)
 
@@ -233,14 +232,14 @@ class QtPlugin(QtPluginBase):
             return ' '.join(text.split())
 
         if method in [TIM_NEW, TIM_RECOVER]:
-            gb = QGroupBox()
+            gb = QtWidgets.QGroupBox()
             hbox1 = QtWidgets.QHBoxLayout()
             gb.setLayout(hbox1)
             # KeepKey recovery doesn't need a word count
             if method == TIM_NEW:
                 vbox.addWidget(gb)
             gb.setTitle(_("Select your seed length:"))
-            bg = QButtonGroup()
+            bg = QtWidgets.QButtonGroup()
             for i, count in enumerate([12, 18, 24]):
                 rb = QRadioButton(gb)
                 rb.setText(_("{} words").format(count))

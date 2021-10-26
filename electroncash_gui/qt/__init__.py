@@ -148,7 +148,7 @@ def _pre_and_post_app_setup(config) -> Callable[[], None]:
             layout_direction = QtCore.Qt.RightToLeft
             blurb = "right-to-left"
         print_error("Setting layout direction:", blurb)
-        QApplication.instance().setLayoutDirection(layout_direction)
+        QtWidgets.QApplication.instance().setLayoutDirection(layout_direction)
     # callable will be called after self.app is set-up successfully
     callables.append(setup_layout_direction)
 
@@ -160,7 +160,7 @@ def init_qapplication(config):
     i18n.set_language(config.get('language'))
     call_after_app = _pre_and_post_app_setup(config)
     try:
-        app = QApplication(sys.argv)
+        app = QtWidgets.QApplication(sys.argv)
     finally:
         call_after_app()
 
@@ -197,7 +197,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         #    daemon.network.add_jobs([DebugMem([Abstract_Wallet, SPV, Synchronizer,
         #                                       ElectrumWindow], interval=5)])
 
-        self.app = QApplication.instance()
+        self.app = QtWidgets.QApplication.instance()
 
         self._load_fonts()  # this needs to be done very early, before the font engine loads fonts.. out of paranoia
         self._exit_if_required_pyqt_is_missing()  # This may immediately exit the app if missing required PyQt5 modules, so it should also be done early.

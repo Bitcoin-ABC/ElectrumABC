@@ -7,7 +7,7 @@ from electroncash.qrreaders import get_qr_reader
 
 from PyQt5.QtGui import QIcon, QImage, QPainter, QPixmap
 from PyQt5.QtCore import QPoint, Qt
-from PyQt5.QtWidgets import QFileDialog, QAbstractButton, QApplication
+from PyQt5.QtWidgets import QAbstractButton
 from PyQt5 import QtWidgets
 
 from .util import ButtonsTextEdit, MessageBoxMixin, ColorScheme
@@ -69,7 +69,7 @@ class ScanQRTextEdit(_QrCodeTextEdit, MessageBoxMixin):
         run_hook('scan_text_edit', self)
 
     def file_input(self):
-        fileName, __ = QFileDialog.getOpenFileName(self, _('Load a text file or scan an image for QR codes'))
+        fileName, __ = QtWidgets.QFileDialog.getOpenFileName(self, _('Load a text file or scan an image for QR codes'))
         if not fileName:
             return
 
@@ -187,7 +187,7 @@ class ScanQRTextEdit(_QrCodeTextEdit, MessageBoxMixin):
 def grab_screens() -> QPixmap:
     """Return a screenshot of all screens."""
     # grab all screens
-    screens = QApplication.screens()
+    screens = QtWidgets.QApplication.screens()
     pixmaps = []
     w = 0
     h = 0

@@ -134,7 +134,7 @@ class App(QtWidgets.QWidget):
         hbox.addStretch(1)
         outerVLayout.addLayout(hbox)
 
-        groupBox = QGroupBox("Metadata")
+        groupBox = QtWidgets.QGroupBox("Metadata")
         groupLayout = QtWidgets.QFormLayout()
         outerVLayout.addWidget(groupBox)
         label = QtWidgets.QLabel("This is a test")
@@ -248,7 +248,7 @@ class App(QtWidgets.QWidget):
         self.refresh_ui()
 
     def on_read_directory(self):
-        directory_path = QFileDialog.getExistingDirectory(self, "Select Package Parent Directory", None, QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks)
+        directory_path = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Package Parent Directory", None, QtWidgets.QFileDialog.ShowDirsOnly | QtWidgets.QFileDialog.DontResolveSymlinks)
         if len(directory_path):
             if self.have_valid_directory(directory_path):
                 self.directory_path = directory_path
@@ -259,7 +259,7 @@ class App(QtWidgets.QWidget):
                 QMessageBox.information(self, 'Invalid Directory', 'The directory needs to be a Python package.')
 
     def on_package_plugin(self):
-        self.archive_file_path, used_filter = QFileDialog.getSaveFileName(self, "Save Plugin Archive", None, "Plugin archive (*.zip)")
+        self.archive_file_path, used_filter = QtWidgets.QFileDialog.getSaveFileName(self, "Save Plugin Archive", None, "Plugin archive (*.zip)")
         if not len(self.archive_file_path):
             return
 
@@ -290,7 +290,7 @@ class App(QtWidgets.QWidget):
         write_manifest(metadata, manifest_file_path)
 
     def on_export_manifest_clicked(self):
-        self.manifest_file_path, used_filter = QFileDialog.getSaveFileName(self, "Save Plugin Manifest", None, "Plugin manifest (manifest.json)")
+        self.manifest_file_path, used_filter = QtWidgets.QFileDialog.getSaveFileName(self, "Save Plugin Manifest", None, "Plugin manifest (manifest.json)")
         if not len(self.manifest_file_path):
             return
 
@@ -305,7 +305,7 @@ class App(QtWidgets.QWidget):
             return
 
     def on_import_clicked(self):
-        self.manifest_file_path, used_filter = QFileDialog.getOpenFileName(self, "Select Existing Plugin Manifest", None, "Plugin manifest (manifest.json)")
+        self.manifest_file_path, used_filter = QtWidgets.QFileDialog.getOpenFileName(self, "Select Existing Plugin Manifest", None, "Plugin manifest (manifest.json)")
         if not len(self.manifest_file_path):
             return
 
@@ -337,6 +337,6 @@ class App(QtWidgets.QWidget):
 
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     ex = App()
     sys.exit(app.exec_())

@@ -211,7 +211,7 @@ class Plugin(BasePlugin):
     @staticmethod
     def get_all_cosigner_buttons():
         ret = []
-        app = QApplication.instance()
+        app = QtWidgets.QApplication.instance()
         for w in app.topLevelWidgets():
             if isinstance(w, TxDialog):
                 but = getattr(w, 'cosigner_send_button', None)

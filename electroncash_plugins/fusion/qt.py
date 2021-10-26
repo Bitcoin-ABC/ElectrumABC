@@ -929,7 +929,7 @@ class SettingsWidget(QtWidgets.QWidget):
 
         main_layout = QtWidgets.QVBoxLayout(self)
 
-        box = QGroupBox(_("Network"))
+        box = QtWidgets.QGroupBox(_("Network"))
         main_layout.addWidget(box, 0, Qt.AlignTop | Qt.AlignHCenter)
         slayout = QtWidgets.QVBoxLayout(box)
 
@@ -1171,7 +1171,7 @@ class WalletSettingsDialog(WindowModalDialog):
 
         main_layout.addLayout(hbox)
 
-        self.gb_fuse_depth = gb = QGroupBox(_("Fusion Rounds"))
+        self.gb_fuse_depth = gb = QtWidgets.QGroupBox(_("Fusion Rounds"))
         gb.setToolTip(_("If checked, CashFusion will fuse each coin this many times.\n"
                         "If unchecked, Cashfusion will fuse indefinitely until paused."))
         hbox = QtWidgets.QHBoxLayout(gb)
@@ -1185,7 +1185,7 @@ class WalletSettingsDialog(WindowModalDialog):
         sb.valueChanged.connect(self.edited_fuse_depth)
         main_layout.addWidget(gb)
 
-        self.gb_coinbase = gb = QGroupBox(_("Coinbase Coins"))
+        self.gb_coinbase = gb = QtWidgets.QGroupBox(_("Coinbase Coins"))
         vbox = QtWidgets.QVBoxLayout(gb)
         self.cb_coinbase = QtWidgets.QCheckBox(_('Auto-fuse coinbase coins (if mature)'))
         self.cb_coinbase.clicked.connect(self._on_cb_coinbase)
@@ -1198,7 +1198,7 @@ class WalletSettingsDialog(WindowModalDialog):
         main_layout.addWidget(gb)
 
 
-        box = QGroupBox(_("Self-Fusing"))
+        box = QtWidgets.QGroupBox(_("Self-Fusing"))
         main_layout.addWidget(box)
         slayout = QtWidgets.QVBoxLayout(box)
 
@@ -1257,7 +1257,7 @@ class WalletSettingsDialog(WindowModalDialog):
 
         mode_cb.currentIndexChanged.connect(self._on_mode_changed)  # intentionally connected after all items already added
 
-        box = QGroupBox(_("Auto-Fusion Coin Selection")) ; custom_page_layout.addWidget(box)
+        box = QtWidgets.QGroupBox(_("Auto-Fusion Coin Selection")) ; custom_page_layout.addWidget(box)
         slayout = QtWidgets.QVBoxLayout(box)
 
         grid = QtWidgets.QGridLayout() ; slayout.addLayout(grid)
@@ -1306,7 +1306,7 @@ class WalletSettingsDialog(WindowModalDialog):
         slayout.addWidget(self.l_warn_selection)
         slayout.setAlignment(self.l_warn_selection, Qt.AlignCenter)
 
-        box = QGroupBox(_("Auto-Fusion Limits")) ; custom_page_layout.addWidget(box)
+        box = QtWidgets.QGroupBox(_("Auto-Fusion Limits")) ; custom_page_layout.addWidget(box)
         slayout = QtWidgets.QVBoxLayout(box)
         grid = QtWidgets.QGridLayout() ; slayout.addLayout(grid)
         grid.addWidget(QtWidgets.QLabel(_("Number of queued fusions")), 0, 0)
@@ -1577,7 +1577,7 @@ class ServerWidget(ServerFusionsBaseMixin, QtWidgets.QWidget):
 
         main_layout = QtWidgets.QVBoxLayout(self)
 
-        self.serverbox = QGroupBox(_("Server"))
+        self.serverbox = QtWidgets.QGroupBox(_("Server"))
         main_layout.addWidget(self.serverbox)
         #self.serverbox.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
 
@@ -1632,7 +1632,7 @@ class FusionsWindow(ServerFusionsBaseMixin, QtWidgets.QDialog):
 
         main_layout = QtWidgets.QVBoxLayout(self)
 
-        clientbox = QGroupBox(_("Fusions"))
+        clientbox = QtWidgets.QGroupBox(_("Fusions"))
         main_layout.addWidget(clientbox)
 
         clayout = QtWidgets.QVBoxLayout(clientbox)

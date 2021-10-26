@@ -171,7 +171,7 @@ class CopyButton(QtWidgets.QPushButton):
     def __init__(self, text_getter, app=None, callback=None):
         QtWidgets.QPushButton.__init__(self, _("&Copy"))
         if not app:
-            app = QApplication.instance()
+            app = QtWidgets.QApplication.instance()
         self.clicked.connect(lambda: app.clipboard().setText(text_getter()))
         if callback:
             self.clicked.connect(callback)
@@ -487,13 +487,13 @@ class ChoicesLayout(object):
         if len(msg) > 50:
             vbox.addWidget(WWLabel(msg))
             msg = ""
-        gb2 = QGroupBox(msg)
+        gb2 = QtWidgets.QGroupBox(msg)
         vbox.addWidget(gb2)
 
         vbox2 = QtWidgets.QVBoxLayout()
         gb2.setLayout(vbox2)
 
-        self.group = group = QButtonGroup()
+        self.group = group = QtWidgets.QButtonGroup()
         for i,c in enumerate(choices):
             button = QRadioButton(gb2)
             button.setText(c)
@@ -527,7 +527,7 @@ def address_combo(addresses):
 
 def filename_field(config, defaultname, select_msg):
 
-    gb = QGroupBox(_("Format"))
+    gb = QtWidgets.QGroupBox(_("Format"))
     vbox = QtWidgets.QVBoxLayout()
     gb.setLayout(vbox)
     b1 = QRadioButton()
@@ -548,7 +548,7 @@ def filename_field(config, defaultname, select_msg):
     def func():
         text = filename_e.text()
         _filter = "*.csv" if text.endswith(".csv") else "*.json" if text.endswith(".json") else None
-        p, __ = QFileDialog.getSaveFileName(None, select_msg, text, _filter)
+        p, __ = QtWidgets.QFileDialog.getSaveFileName(None, select_msg, text, _filter)
         if p:
             filename_e.setText(p)
 
@@ -911,7 +911,7 @@ class OverlayControlMixin:
         return self.addButton(":icons/copy.png", self.on_copy, _("Copy to clipboard"))
 
     def on_copy(self):
-        QApplication.instance().clipboard().setText(self.text())
+        QtWidgets.QApplication.instance().clipboard().setText(self.text())
         QtWidgets.QToolTip.showText(QCursor.pos(), _("Text copied to clipboard"), self)
 
     def keyPressEvent(self, e):
@@ -1365,7 +1365,7 @@ class TextBrowserKeyboardFocusFilter(QTextBrowser):
         super().keyPressEvent(e)
 
 if __name__ == "__main__":
-    app = QApplication([])
+    app = QtWidgets.QApplication([])
     t = WaitingDialog(None, 'testing ...', lambda: [time.sleep(1)], lambda x: QMessageBox.information(None, 'done', "done"))
     t.start()
     app.exec_()

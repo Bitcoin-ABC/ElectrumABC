@@ -229,7 +229,7 @@ def button_make_naked(but: QAbstractButton) -> QAbstractButton:
     but.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
     return but
 
-class InfoGroupBox(PrintError, QGroupBox):
+class InfoGroupBox(PrintError, QtWidgets.QGroupBox):
 
     class ButtonType(IntEnum):
         NoButton = 0  # If this is specified to button_type, then the buttons will be hidden. selectedItem and selectedItems will have undefined results.
@@ -266,7 +266,7 @@ class InfoGroupBox(PrintError, QGroupBox):
         self.vbox = QtWidgets.QVBoxLayout(self)
         self.vbox.setContentsMargins(0,0,0,0)
         self.vbox.addWidget(self.w)
-        self._but_grp = QButtonGroup(self)  # client code shouldn't use this but instead use selectedItems(), etc
+        self._but_grp = QtWidgets.QButtonGroup(self)  # client code shouldn't use this but instead use selectedItems(), etc
         self.no_items_text = _('No Cash Accounts')  # client code may set this directly
 
     def setItems(self,
@@ -294,7 +294,7 @@ class InfoGroupBox(PrintError, QGroupBox):
             weakParent = util.Weak.ref(self.parent())
             QTimer.singleShot(0, lambda: weakParent() and weakParent().resize(weakParent().sizeHint()))
 
-    def buttonGroup(self) -> QButtonGroup:
+    def buttonGroup(self) -> QtWidgets.QButtonGroup:
         ''' The button group id's will point to indices in self.items() '''
         return self._but_grp
 

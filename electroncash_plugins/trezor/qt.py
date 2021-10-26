@@ -5,9 +5,6 @@ from PyQt5.QtCore import QEventLoop, Qt, QStandardPaths, pyqtSignal
 from PyQt5.QtGui import QImage, QBitmap, qRed, qGreen, qBlue
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import (
-    QButtonGroup,
-    QFileDialog,
-    QGroupBox,
     QMessageBox,
     QRadioButton,
     QSlider,
@@ -280,12 +277,12 @@ class QtPlugin(QtPluginBase):
             text = widget.toPlainText().strip()
             return ' '.join(text.split())
 
-        gb = QGroupBox()
+        gb = QtWidgets.QGroupBox()
         hbox1 = QtWidgets.QHBoxLayout()
         gb.setLayout(hbox1)
         vbox.addWidget(gb)
         gb.setTitle(_("Select your seed length:"))
-        bg_numwords = QButtonGroup()
+        bg_numwords = QtWidgets.QButtonGroup()
         for i, count in enumerate([12, 18, 24]):
             rb = QRadioButton(gb)
             rb.setText(_("%d words") % count)
@@ -310,12 +307,12 @@ class QtPlugin(QtPluginBase):
 
         # ask for recovery type (random word order OR matrix)
         if method == TIM_RECOVER and not model == 'T':
-            gb_rectype = QGroupBox()
+            gb_rectype = QtWidgets.QGroupBox()
             hbox_rectype = QtWidgets.QHBoxLayout()
             gb_rectype.setLayout(hbox_rectype)
             vbox.addWidget(gb_rectype)
             gb_rectype.setTitle(_("Select recovery type:"))
-            bg_rectype = QButtonGroup()
+            bg_rectype = QtWidgets.QButtonGroup()
 
             rb1 = QRadioButton(gb_rectype)
             rb1.setText(_('Scrambled words'))
@@ -452,7 +449,7 @@ class SettingsDialog(WindowModalDialog):
                       or QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)
                       or QStandardPaths.standardLocations(QStandardPaths.HomeLocation)
                       or [''])[0]
-            filename, __ = QFileDialog.getOpenFileName(self, _("Choose Homescreen"), le_dir)
+            filename, __ = QtWidgets.QFileDialog.getOpenFileName(self, _("Choose Homescreen"), le_dir)
 
             if not filename:
                 return  # user cancelled

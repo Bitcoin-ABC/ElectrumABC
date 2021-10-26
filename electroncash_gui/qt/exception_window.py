@@ -187,7 +187,7 @@ def set_enabled(config, b: bool):
 
 def _get_current_wallet_types():
     wtypes = {str(getattr(w.wallet, 'wallet_type', 'Unknown'))
-              for w in QApplication.instance().topLevelWidgets()
+              for w in QtWidgets.QApplication.instance().topLevelWidgets()
               if isinstance(w, ElectrumWindow) and w.is_alive()}
     return ",".join(list(wtypes)) or "Unknown"
 

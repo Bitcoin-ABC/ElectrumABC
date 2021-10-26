@@ -126,7 +126,7 @@ class ContactList(PrintError, MyTreeWidget):
 
     def import_contacts(self):
         wallet_folder = self.parent.get_wallet_folder()
-        filename, __ = QFileDialog.getOpenFileName(self.parent, "Select your wallet file", wallet_folder)
+        filename, __ = QtWidgets.QFileDialog.getOpenFileName(self.parent, "Select your wallet file", wallet_folder)
         if not filename:
             return
         try:

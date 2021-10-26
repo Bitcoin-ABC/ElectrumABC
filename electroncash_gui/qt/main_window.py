@@ -591,7 +591,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             return
         if not os.path.exists(wallet_folder):
             wallet_folder = None
-        filename, __ = QFileDialog.getOpenFileName(self, "Select your wallet file", wallet_folder)
+        filename, __ = QtWidgets.QFileDialog.getOpenFileName(self, "Select your wallet file", wallet_folder)
         if not filename:
             return
         if filename.lower().endswith('.txn'):
@@ -605,7 +605,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.wallet.storage.write()  # make sure file is committed to disk
         path = self.wallet.storage.path
         wallet_folder = os.path.dirname(path)
-        filename, __ = QFileDialog.getSaveFileName(self, _('Enter a filename for the copy of your wallet'), wallet_folder)
+        filename, __ = QtWidgets.QFileDialog.getSaveFileName(self, _('Enter a filename for the copy of your wallet'), wallet_folder)
         if not filename:
             return
 
@@ -876,7 +876,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             config = get_config()
         userdir = os.path.expanduser('~')
         directory = config.get('io_dir', userdir) if config else userdir
-        fileName, __ = QFileDialog.getOpenFileName(parent, title, directory, filter)
+        fileName, __ = QtWidgets.QFileDialog.getOpenFileName(parent, title, directory, filter)
         if fileName and directory != os.path.dirname(fileName) and config:
             config.set_key('io_dir', os.path.dirname(fileName), True)
         return fileName
@@ -888,7 +888,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         userdir = os.path.expanduser('~')
         directory = config.get('io_dir', userdir) if config else userdir
         path = os.path.join( directory, filename )
-        fileName, __ = QFileDialog.getSaveFileName(parent, title, path, filter)
+        fileName, __ = QtWidgets.QFileDialog.getSaveFileName(parent, title, path, filter)
         if fileName and directory != os.path.dirname(fileName) and config:
             config.set_key('io_dir', os.path.dirname(fileName), True)
         return fileName
@@ -1217,7 +1217,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                 slf.info = info
             def on_copy(slf):
                 ''' overrides super class '''
-                QApplication.instance().clipboard().setText(slf.text()[3:] + ' ' + slf.text()[:1]) # cut off the leading emoji, and add it to the end
+                QtWidgets.QApplication.instance().clipboard().setText(slf.text()[3:] + ' ' + slf.text()[:1]) # cut off the leading emoji, and add it to the end
                 QtWidgets.QToolTip.showText(QCursor.pos(), _("Cash Account copied to clipboard"), slf)
             def on_network_qt(slf, event, args=None):
                 ''' pick up cash account changes and update receive tab. Called
@@ -4206,7 +4206,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             self.fee_slider.update()
             self.fee_slider_mogrifier()
 
-        fee_gb = QGroupBox(_('Fees'))
+        fee_gb = QtWidgets.QGroupBox(_('Fees'))
         fee_lo = QtWidgets.QGridLayout(fee_gb)
 
         customfee_e = BTCSatsByteEdit()
@@ -4256,7 +4256,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         # the signal is disconnected
         disconnect_alias_received_signal = Weak.finalize(d, self.alias_received_signal.disconnect, set_alias_color)
         alias_e.editingFinished.connect(on_alias_edit)
-        id_gb = QGroupBox(_("Identity"))
+        id_gb = QtWidgets.QGroupBox(_("Identity"))
         id_form = QtWidgets.QFormLayout(id_gb)
         id_form.addRow(alias_label, alias_e)
 
@@ -4287,7 +4287,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         misc_widgets.append((id_gb, None))  # commit id_form/id_gb to master layout via this data structure
 
         from . import exception_window as ew
-        cr_gb = QGroupBox(_("Crash Reporter"))
+        cr_gb = QtWidgets.QGroupBox(_("Crash Reporter"))
         cr_grid = QtWidgets.QGridLayout(cr_gb)
         cr_chk = QtWidgets.QCheckBox()
         cr_chk.setChecked(ew.is_enabled(self.config))
@@ -4484,7 +4484,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         # CashAddr control
         gui_widgets.append((None, None)) # spacer
-        address_w = QGroupBox(_('Address Format'))
+        address_w = QtWidgets.QGroupBox(_('Address Format'))
         address_w.setToolTip(_('Select between Cash Address and Legacy formats for addresses'))
         hbox = QtWidgets.QHBoxLayout(address_w)
         cashaddr_cbox = QComboBox()
@@ -4731,7 +4731,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                     d = thing
                     vbox = QtWidgets.QVBoxLayout(tab)
                     for groupName, widgets in d.items():
-                        gbox = QGroupBox(groupName)
+                        gbox = QtWidgets.QGroupBox(groupName)
                         grid = QtWidgets.QGridLayout(gbox)
                         grid.setColumnStretch(0,1)
                         for a,b in widgets:

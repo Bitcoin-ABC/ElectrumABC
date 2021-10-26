@@ -2,7 +2,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QBrush, QColor, QCursor, QPainter, QPen
 from PyQt5.QtWidgets import (
-    QApplication, QTextEdit,
+    QTextEdit,
     QSizePolicy)
 from PyQt5 import QtWidgets
 
@@ -115,7 +115,7 @@ def save_to_file(qrw, parent):
 def copy_to_clipboard(qrw, widget):
     p = qrw and qrw.grab()
     if p and not p.isNull():
-        QApplication.clipboard().setPixmap(p)
+        QtWidgets.QApplication.clipboard().setPixmap(p)
         QtWidgets.QToolTip.showText(QCursor.pos(), _("QR code copied to clipboard"), widget)
 
 

@@ -80,7 +80,7 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
         vbox = QtWidgets.QVBoxLayout()
         self.setLayout(vbox)
 
-        groupBox = QGroupBox(_("Plugin Metadata"))
+        groupBox = QtWidgets.QGroupBox(_("Plugin Metadata"))
         self.metadataFormLayout = QtWidgets.QFormLayout(groupBox)
         self.metadataFormLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
         self.pluginNameLabel = QtWidgets.QLabel()
@@ -125,7 +125,7 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
         if self.is_preview:
             confirmLayout = QtWidgets.QVBoxLayout()
             confirmLayout.setAlignment(Qt.AlignHCenter)
-            confirmGroupBox = QGroupBox(_("Risks and Dangers"))
+            confirmGroupBox = QtWidgets.QGroupBox(_("Risks and Dangers"))
             liabilityLabel = QtWidgets.QLabel(_("I accept responsibility for any harm that comes from installing this plugin, and acknowledge:"))
             rows = QtWidgets.QVBoxLayout()
             self.liabilityCheckbox1 = QtWidgets.QCheckBox(
@@ -273,7 +273,7 @@ class ExternalPluginsDialog(WindowModalDialog, MessageBoxMixin):
         vbox = QtWidgets.QVBoxLayout(self)
 
         # The warning message box at the top of the dialog window about dangers of installing plugins.
-        self.descriptionGroupBox = QGroupBox()
+        self.descriptionGroupBox = QtWidgets.QGroupBox()
         self.descriptionGroupBox.setTitle(_("Security Warning"))
         self.descriptionGroupBox.setAlignment(Qt.AlignHCenter)
         descriptionGroupLayout = QtWidgets.QVBoxLayout()
@@ -343,7 +343,7 @@ class ExternalPluginsDialog(WindowModalDialog, MessageBoxMixin):
             self.refresh_ui()
 
     def on_install_plugin(self):
-        self.installFileDialog = d = QFileDialog(self, _("Select Plugin"))
+        self.installFileDialog = d = QtWidgets.QFileDialog(self, _("Select Plugin"))
         d.setNameFilter(_("Zip Archives (*.zip)"))
         if d.exec_():
             selected_file_paths = d.selectedFiles()

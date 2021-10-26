@@ -43,7 +43,6 @@ from electroncash.bitcoin import COINBASE_MATURITY
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QFont
-from PyQt5.QtWidgets import QApplication, QFileDialog
 from PyQt5 import QtWidgets
 
 
@@ -267,12 +266,12 @@ class UTXOList(MyTreeWidget):
                     copy_text = item.text(col)
                 if copy_text:
                     copy_text = copy_text.strip()  # make sure formatted amount is not whitespaced
-                menu.addAction(_("Copy {}").format(column_title), lambda: QApplication.instance().clipboard().setText(copy_text))
+                menu.addAction(_("Copy {}").format(column_title), lambda: QtWidgets.QApplication.instance().clipboard().setText(copy_text))
                 if alt_copy_text and alt_column_title:
-                    menu.addAction(_("Copy {}").format(alt_column_title), lambda: QApplication.instance().clipboard().setText(alt_copy_text))
+                    menu.addAction(_("Copy {}").format(alt_column_title), lambda: QtWidgets.QApplication.instance().clipboard().setText(alt_copy_text))
                 if ca_info:
                     self.wallet.cashacct.fmt_info(ca_info)  # paranoia: pre-cache minimal chash (may go out to network)
-                    menu.addAction(_("Copy Cash Account"), lambda: self.wallet and QApplication.instance().clipboard().setText(self.wallet.cashacct.fmt_info(ca_info, emoji=True)))
+                    menu.addAction(_("Copy Cash Account"), lambda: self.wallet and QtWidgets.QApplication.instance().clipboard().setText(self.wallet.cashacct.fmt_info(ca_info, emoji=True)))
 
                 # single selection, offer them the "Details" option and also coin/address "freeze" status, if any
                 txid = list(selected.keys())[0].split(':')[0]
@@ -401,7 +400,7 @@ class UTXOList(MyTreeWidget):
              } for utxo in utxos
         ]
 
-        fileName, _filter = QFileDialog.getSaveFileName(
+        fileName, _filter = QtWidgets.QFileDialog.getSaveFileName(
             self, "Save UTXOs to file",
             filter="JSON files (*.json); All files (*)")
         if not fileName:
