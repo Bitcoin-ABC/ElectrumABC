@@ -77,7 +77,6 @@ from electroncash.constants import PROJECT_NAME, REPOSITORY_URL
 from .installwizard import InstallWizard, GoBack
 
 from . import icons # This needs to be imported once app-wide then the :icons/ namespace becomes available for Qt icon filenames.
-#from .util import *   # * needed for plugins (FIXME)
 from .main_window import ElectrumWindow, windows_qt_use_freetype
 from .network_dialog import NetworkDialog
 from .exception_window import ExceptionHook
