@@ -24,7 +24,6 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from PyQt5.QtWidgets import QGraphicsEffect, QGraphicsScene, QGraphicsPixmapItem
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QImage, QPainter, QPixmap
 from PyQt5.QtCore import QObject, Qt
@@ -34,12 +33,12 @@ class ImageGraphicsEffect(QObject):
     Applies a QGraphicsEffect to a QImage
     """
 
-    def __init__(self, parent: QObject, effect: QGraphicsEffect):
+    def __init__(self, parent: QObject, effect:QtWidgets.QGraphicsEffect):
         super().__init__(parent)
         assert effect, 'effect must be set'
         self.effect = effect
-        self.graphics_scene = QGraphicsScene()
-        self.graphics_item = QGraphicsPixmapItem()
+        self.graphics_scene =QtWidgets.QGraphicsScene()
+        self.graphics_item =QtWidgets.QGraphicsScene()
         self.graphics_item.setGraphicsEffect(effect)
         self.graphics_scene.addItem(self.graphics_item)
 

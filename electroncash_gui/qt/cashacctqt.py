@@ -200,8 +200,8 @@ class ButtonAssociatedLabel(QtWidgets.QLabel):
         self.but = but
         self.setTextInteractionFlags(self.textInteractionFlags() | Qt.TextSelectableByMouse)
 
-    def setButton(self, b : QAbstractButton): self.but = b
-    def button(self) -> QAbstractButton: return self.but
+    def setButton(self, b : QtWidgets.QAbstractButton): self.but = b
+    def button(self) -> QtWidgets.QAbstractButton: return self.but
 
     def mouseReleaseEvent(self, e):
         super().mouseReleaseEvent(e)
@@ -221,7 +221,7 @@ def naked_button_style() -> str:
         QPushButton:hover { border: 1px solid #3daee9; }'''
     return but_style_sheet
 
-def button_make_naked(but: QAbstractButton) -> QAbstractButton:
+def button_make_naked(but: QtWidgets.QAbstractButton) -> QtWidgets.QAbstractButton:
     ''' Just applied a bunch of things to a button to "make it naked"
     which is the look we use for the lookup results and various other odds and
     ends. Returns the button passed to it. '''
@@ -242,7 +242,7 @@ class InfoGroupBox(PrintError, QtWidgets.QGroupBox):
                  items: List[Tuple[cashacct.Info, str, str]] = [], # list of 2 or 3 tuple : Info, minimal_chash[, formatted_string]
                  title : str = None,
                  button_type : ButtonType = ButtonType.Radio,  # Note that if CheckBox, the buttonGroup will be made non-exclusive and selectedItems() may return more than 1 item.
-                 extra_buttons : List[Callable[[Tuple[cashacct.Info, str, str]], QAbstractButton]] = [],  # pass a list of callables that take a 3-tuple for each item and return a button
+                 extra_buttons : List[Callable[[Tuple[cashacct.Info, str, str]], QtWidgets.QAbstractButton]] = [],  # pass a list of callables that take a 3-tuple for each item and return a button
                  show_addresses : bool = True,  # if False, the address label remains hidden
                  custom_contents_margins : Tuple[int] = None,  # if specified, use this as the contents margins for the internal layout widget
                  ):
@@ -348,8 +348,8 @@ class InfoGroupBox(PrintError, QtWidgets.QGroupBox):
             saved_selection = [tup[0] for tup in self.selectedItems()]
             # tear down the dummy container widget from before and everything
             # in it
-            for c in self.findChildren(QAbstractButton, "InfoGroupBoxButton"):
-                if isinstance(c, QAbstractButton):
+            for c in self.findChildren(QtWidgets.QAbstractButton, "InfoGroupBoxButton"):
+                if isinstance(c, QtWidgets.QAbstractButton):
                     but_grp.removeButton(c)
             self.w.hide()
             self.vbox.removeWidget(self.w)
@@ -450,7 +450,7 @@ class InfoGroupBox(PrintError, QtWidgets.QGroupBox):
             for func in self.extra_buttons:
                 if callable(func):
                     ab = func(item)
-                    if isinstance(ab, QAbstractButton):
+                    if isinstance(ab, QtWidgets.QAbstractButton):
                         button_make_naked(ab)
                         hbox.addWidget(ab)
             # copy button

@@ -7,7 +7,6 @@ from electroncash.qrreaders import get_qr_reader
 
 from PyQt5.QtGui import QIcon, QImage, QPainter, QPixmap
 from PyQt5.QtCore import QPoint, Qt
-from PyQt5.QtWidgets import QAbstractButton
 from PyQt5 import QtWidgets
 
 from .util import ButtonsTextEdit, MessageBoxMixin, ColorScheme
@@ -22,7 +21,7 @@ class _QrCodeTextEdit(ButtonsTextEdit):
 
     def showEvent(self, e):
         super().showEvent(e)
-        if sys.platform in ('darwin',) and isinstance(self.qr_button, QAbstractButton):
+        if sys.platform in ('darwin',) and isinstance(self.qr_button, QtWidgets.QAbstractButton):
             # on Darwin it's entirely possible that the color scheme changes
             # from underneath our feet, so force a re-set of the icon on show.
             self.qr_button.setIcon(QIcon(self.get_qr_icon()))

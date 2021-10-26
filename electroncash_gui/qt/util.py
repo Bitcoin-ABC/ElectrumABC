@@ -274,7 +274,7 @@ class MessageBoxMixin:
             # defaultButton must match which button to be default
             # Return value will be the index of the button push in this list!
             for b in buttons:
-                assert isinstance(b, (str, QAbstractButton)), "MessageBoxMixin msg_box API usage error: expected a list of str's or QAbstractButtons!"
+                assert isinstance(b, (str, QtWidgets.QAbstractButton)), "MessageBoxMixin msg_box API usage error: expected a list of str's or QAbstractButtons!"
                 role = QtWidgets.QMessageBox.AcceptRole if defaultButton == b else QtWidgets.QMessageBox.RejectRole
                 but = d.addButton(b, role)
                 if b == defaultButton:
@@ -568,7 +568,7 @@ def filename_field(config, defaultname, select_msg):
 
     return gb, filename_e, b1
 
-class ElectrumItemDelegate(QStyledItemDelegate):
+class ElectrumItemDelegate(QtWidgets.QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         return self.parent().createEditor(parent, option, index)
 
@@ -695,7 +695,7 @@ class MyTreeWidget(QTreeWidget):
         self.customContextMenuRequested.emit(pt)
 
     def createEditor(self, parent, option, index):
-        self.editor = QStyledItemDelegate.createEditor(self.itemDelegate(),
+        self.editor = QtWidgets.QStyledItemDelegate.createEditor(self.itemDelegate(),
                                                        parent, option, index)
         self.editor.editingFinished.connect(self.editing_finished)
         return self.editor
@@ -863,7 +863,7 @@ class OverlayControlMixin:
         self._updateOverlayPos()
 
     def _updateOverlayPos(self):
-        frame_width = self.style().pixelMetric(QStyle.PM_DefaultFrameWidth)
+        frame_width = self.style().pixelMetric(QtWidgets.QStyle.PM_DefaultFrameWidth)
         overlay_size = self.overlay_widget.sizeHint()
         x = self.rect().right() - frame_width - overlay_size.width()
         y = self.rect().bottom() - overlay_size.height()
@@ -875,7 +875,7 @@ class OverlayControlMixin:
                 middle = True
         y = (y / 2) + frame_width if middle else y - frame_width
         if hasattr(self, 'verticalScrollBar') and self.verticalScrollBar().isVisible():
-            scrollbar_width = self.style().pixelMetric(QStyle.PM_ScrollBarExtent)
+            scrollbar_width = self.style().pixelMetric(QtWidgets.QStyle.PM_ScrollBarExtent)
             x -= scrollbar_width
         self.overlay_widget.move(x, y)
 
@@ -886,7 +886,7 @@ class OverlayControlMixin:
             self.overlay_layout.addWidget(widget)
 
     def addButton(self, icon_name: str, on_click, tooltip: str, index : int = None,
-                  *, text : str = None) -> QAbstractButton:
+                  *, text : str = None) -> QtWidgets.QAbstractButton:
         ''' icon_name may be None but then you must define text (which is
         hopefully then some nice Unicode character). Both cannot be None.
 
@@ -907,7 +907,7 @@ class OverlayControlMixin:
         self.addWidget(button, index)
         return button
 
-    def addCopyButton(self) -> QAbstractButton:
+    def addCopyButton(self) -> QtWidgets.QAbstractButton:
         return self.addButton(":icons/copy.png", self.on_copy, _("Copy to clipboard"))
 
     def on_copy(self):
@@ -932,9 +932,9 @@ class ButtonsLineEdit(OverlayControlMixin, QtWidgets.QLineEdit):
         QtWidgets.QLineEdit.__init__(self, text)
         OverlayControlMixin.__init__(self, middle=True)
 
-class ButtonsTextEdit(OverlayControlMixin, QPlainTextEdit):
+class ButtonsTextEdit(OverlayControlMixin, QtWidgets.QPlainTextEdit):
     def __init__(self, text=None):
-        QPlainTextEdit.__init__(self, text)
+        QtWidgets.QPlainTextEdit.__init__(self, text)
         OverlayControlMixin.__init__(self)
         self.setText = self.setPlainText
         self.text = self.toPlainText

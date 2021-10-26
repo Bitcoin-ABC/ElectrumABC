@@ -24,12 +24,12 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from PyQt5.QtWidgets import QGraphicsBlurEffect, QGraphicsEffect
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QPainter, QTransform, QRegion
 from PyQt5.QtCore import QObject, QRect, QPoint, Qt
 
-class QrReaderCropBlurEffect(QGraphicsBlurEffect):
+
+class QrReaderCropBlurEffect(QtWidgets.QGraphicsBlurEffect):
     CROP_OFFSET_ENABLED = False
     CROP_OFFSET = QPoint(5, 5)
 
@@ -68,7 +68,7 @@ class QrReaderCropBlurEffect(QGraphicsBlurEffect):
         painter.setOpacity(1.0)
 
         # Get the source pixmap
-        pixmap, offset = self.sourcePixmap(Qt.DeviceCoordinates, QGraphicsEffect.NoPad)
+        pixmap, offset = self.sourcePixmap(Qt.DeviceCoordinates,QtWidgets.QGraphicsEffect.NoPad)
         painter.setWorldTransform(QTransform())
 
         # Get the source by adding the offset to the crop location

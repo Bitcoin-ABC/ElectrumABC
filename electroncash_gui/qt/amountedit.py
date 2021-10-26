@@ -2,7 +2,6 @@
 
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import (QStyle, QStyleOptionFrame)
 from PyQt5 import QtWidgets
 
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
@@ -56,9 +55,9 @@ class AmountEdit(MyLineEdit):
     def paintEvent(self, event):
         QtWidgets.QLineEdit.paintEvent(self, event)
         if self.base_unit:
-            panel = QStyleOptionFrame()
+            panel = QtWidgets.QStyleOptionFrame()
             self.initStyleOption(panel)
-            textRect = self.style().subElementRect(QStyle.SE_LineEditContents, panel, self)
+            textRect = self.style().subElementRect(QtWidgets.QStyle.SE_LineEditContents, panel, self)
             textRect.adjust(2, 0, -10, 0)
             painter = QPainter(self)
             painter.setPen(ColorScheme.GRAY.as_color())  # NB: we hard-code gray here. It works ok for dark and light. FIXME: figure out why palette broke on Mojave dark mode see #1262

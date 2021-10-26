@@ -788,7 +788,7 @@ class FusionButton(StatusBarButton):
 
         self.icon_autofusing_on = get_icon_fusion_logo()
         self.icon_autofusing_off = get_icon_fusion_logo_gray()
-        self.icon_fusing_problem = self.style().standardIcon(QStyle.SP_MessageBoxWarning)
+        self.icon_fusing_problem = self.style().standardIcon(QtWidgets.QStyle.SP_MessageBoxWarning)
 
 #        title = QWidgetAction(self)
 #        title.setDefaultWidget(QtWidgets.QLabel("<i>" + _("CashFusion") + "</i>"))
@@ -976,7 +976,7 @@ class SettingsWidget(QtWidgets.QWidget):
         hbox.addWidget(self.l_tor_status)
         self.b_tor_refresh = QtWidgets.QPushButton()
         self.b_tor_refresh.clicked.connect(self.torscanthread_ping.set)
-        self.b_tor_refresh.setIcon(self.style().standardIcon(QStyle.SP_BrowserReload))
+        self.b_tor_refresh.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_BrowserReload))
         self.b_tor_refresh.setDefault(False); self.b_tor_refresh.setAutoDefault(False)
         hbox.addWidget(self.b_tor_refresh)
         self.cb_tor_auto = QtWidgets.QCheckBox(_('Autodetect'))

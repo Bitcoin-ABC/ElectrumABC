@@ -26,7 +26,6 @@
 
 from typing import List
 
-from PyQt5.QtWidgets import QtWidgets.QWidget
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QPainter, QPaintEvent, QPen, QPainterPath, QColor, QTransform
 from PyQt5.QtCore import QPoint, QSize, QRect, QRectF, Qt

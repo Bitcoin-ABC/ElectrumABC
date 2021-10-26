@@ -24,7 +24,6 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from PyQt5.QtWidgets import QtWidgets.QWidget
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QPixmap, QPainter, QPaintEvent
 

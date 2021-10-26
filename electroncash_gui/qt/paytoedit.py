@@ -26,7 +26,6 @@
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFontMetrics, QTextCursor
-from PyQt5.QtWidgets import QCompleter, QPlainTextEdit
 from PyQt5 import QtWidgets
 from .qrtextedit import ScanQRTextEdit
 
@@ -249,7 +248,7 @@ class PayToEdit(PrintError, ScanQRTextEdit):
     def setCompleter(self, completer):
         self.c = completer
         self.c.setWidget(self)
-        self.c.setCompletionMode(QCompleter.PopupCompletion)
+        self.c.setCompletionMode(QtWidgets.QCompleter.PopupCompletion)
         self.c.activated.connect(self.insertCompletion)
 
 
