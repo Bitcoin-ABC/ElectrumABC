@@ -334,23 +334,23 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         if len(keystore_derivations) != len(keystores):
             keystore_derivations = [None] * len(keystores)
         updated, updated_ks, updated_st = False, False, False
-        for i, keystore in enumerate(keystores):
-            if i == 0 and isinstance(keystore, Deterministic_KeyStore) and not keystore.seed_type:
+        for i, keystore_ in enumerate(keystores):
+            if i == 0 and isinstance(keystore_, Deterministic_KeyStore) and not keystore_.seed_type:
                 # Attempt to update keystore.seed_type
-                if isinstance(keystore, Old_KeyStore):
-                    keystore.seed_type = 'old'
+                if isinstance(keystore_, Old_KeyStore):
+                    keystore_.seed_type = 'old'
                     updated_st = True
                 else:
                     # attempt to restore the seed_type based on wallet saved "seed_type"
                     typ = self.storage.get('seed_type')
                     if typ in ('standard', 'electrum'):
-                        keystore.seed_type = 'electrum'
+                        keystore_.seed_type = 'electrum'
                         updated_st = True
                     elif typ == 'bip39':
-                        keystore.seed_type = 'bip39'
+                        keystore_.seed_type = 'bip39'
                         updated_st = True
             saved_der = keystore_derivations[i]
-            der = (keystore.has_derivation() and keystore.derivation) or None
+            der = (keystore_.has_derivation() and keystore_.derivation) or None
             if der != saved_der:
                 if der:
                     # keystore had a derivation, but top-level storage did not
@@ -359,11 +359,11 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                     keystore_derivations[i] = saved_der = der
                     updated = True
                 elif saved_der:
-                    # we had a derivation but keystore did not. This branch is
+                    # we had a derivation but keystore_ did not. This branch is
                     # taken if the user has loaded this wallet with an older
                     # version of Electron Cash. Attempt to restore their
                     # derivation item in keystore.
-                    keystore.derivation = der  # write to keystore
+                    keystore_.derivation = der  # write to keystore
                     updated_ks = True  # tell it to re-save
         if updated:
             self.print_error("Updated keystore_derivations")
@@ -1440,7 +1440,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         self.add_transaction(tx_hash, tx)
         self.add_unverified_tx(tx_hash, tx_height)
         if self.network and self.network.callback_listener_count("payment_received") > 0:
-            for _, addr, _ in tx.outputs():
+            for _a, addr, _b in tx.outputs():
                 status = self.get_request_status(addr)  # returns PR_UNKNOWN quickly if addr has no requests, otherwise returns tuple
                 if status != PR_UNKNOWN:
                     status = status[0]  # unpack status from tuple
@@ -3159,10 +3159,10 @@ class Multisig_Wallet(Deterministic_Wallet):
     def update_password(self, old_pw, new_pw, encrypt=False):
         if old_pw is None and self.has_password():
             raise bitcoin.InvalidPassword()
-        for name, keystore in self.keystores.items():
-            if keystore.can_change_password():
-                keystore.update_password(old_pw, new_pw)
-                self.storage.put(name, keystore.dump())
+        for name, keystore_ in self.keystores.items():
+            if keystore_.can_change_password():
+                keystore_.update_password(old_pw, new_pw)
+                self.storage.put(name, keystore_.dump())
         self.storage.set_password(new_pw, encrypt)
         self.storage.write()
 

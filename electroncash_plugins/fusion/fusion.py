@@ -128,7 +128,7 @@ def random_outputs_for_tier(rng, input_amount, scale, offset, max_count, allow_e
 
     remaining = input_amount
     values = []  # list of fractional random values without offset
-    for _ in range(max_count+1):
+    for _i in range(max_count+1):
         val = rng.expovariate(lambd)
         # A ceil here makes sure rounding errors won't sometimes put us over the top.
         # Provided that scale is much larger than 1, the impact is negligible.
@@ -204,7 +204,7 @@ def gen_components(num_blanks, inputs, outputs, feerate):
         comp.output.scriptpubkey = script
         comp.output.amount = value
         components.append((comp, -value-fee))
-    for _ in range(num_blanks):
+    for _i in range(num_blanks):
         comp = pb.Component(blank={})
         components.append((comp, 0))
 
@@ -469,7 +469,7 @@ class Fusion(threading.Thread, PrintError):
             # another fusion. Wait up to a minute for this to happen.
             wallets = set(self.source_wallet_info.keys())
             wallets.add(self.target_wallet)
-            for _ in range(60):
+            for _i in range(60):
                 if self.stopping:
                     break # not an error
                 for w in wallets:

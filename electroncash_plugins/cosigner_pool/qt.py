@@ -236,11 +236,11 @@ class Plugin(BasePlugin):
         listener = state.listener
         state.keys = []
         state.cosigner_list = []
-        for key, keystore in wallet.keystores.items():
-            xpub = keystore.get_master_public_key()
+        for key, keystore_ in wallet.keystores.items():
+            xpub = keystore_.get_master_public_key()
             K = bitcoin.deserialize_xpub(xpub)[-1]
             _hash = bh2u(bitcoin.Hash(K))
-            if not keystore.is_watching_only():
+            if not keystore_.is_watching_only():
                 state.keys.append((key, _hash))
             else:
                 state.cosigner_list.append((xpub, K, _hash))
