@@ -32,6 +32,7 @@ from electroncash.paymentrequest import pr_tooltips, PR_UNKNOWN
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QTreeWidgetItem, QMenu
+from PyQt5 import QtWidgets
 from .util import MyTreeWidget, pr_icons
 
 

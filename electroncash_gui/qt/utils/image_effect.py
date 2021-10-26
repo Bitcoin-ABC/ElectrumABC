@@ -25,6 +25,7 @@
 # SOFTWARE.
 
 from PyQt5.QtWidgets import QGraphicsEffect, QGraphicsScene, QGraphicsPixmapItem
+from PyQt5 import QtWidgets
 from PyQt5.QtGui import QImage, QPainter, QPixmap
 from PyQt5.QtCore import QObject, Qt
 

@@ -27,6 +27,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFontMetrics, QTextCursor
 from PyQt5.QtWidgets import QCompleter, QPlainTextEdit
+from PyQt5 import QtWidgets
 from .qrtextedit import ScanQRTextEdit
 
 import re

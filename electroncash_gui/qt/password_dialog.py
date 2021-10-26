@@ -30,6 +30,7 @@ import math
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QLineEdit, QVBoxLayout, QLabel, QGridLayout, QCheckBox
+from PyQt5 import QtWidgets
 
 from electroncash.i18n import _
 

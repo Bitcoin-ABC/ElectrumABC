@@ -25,6 +25,7 @@
 # SOFTWARE.
 
 from PyQt5.QtWidgets import QGraphicsBlurEffect, QGraphicsEffect
+from PyQt5 import QtWidgets
 from PyQt5.QtGui import QPainter, QTransform, QRegion
 from PyQt5.QtCore import QObject, QRect, QPoint, Qt
 

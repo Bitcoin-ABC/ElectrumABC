@@ -33,6 +33,7 @@ from typing import Optional
 from PyQt5.QtCore import QMargins, QObject, QPoint, QSize, Qt, QTimer, pyqtSignal
 from PyQt5.QtGui import QCursor, QIcon, QImage, QPainter
 from PyQt5.QtWidgets import *
+from PyQt5 import QtWidgets
 
 from electroncash import networks
 from electroncash.address import Address

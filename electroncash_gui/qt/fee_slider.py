@@ -4,6 +4,7 @@ from electroncash.i18n import _
 from PyQt5.QtGui import QCursor
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QSlider, QToolTip
+from PyQt5 import QtWidgets
 
 class FeeSlider(QSlider):
 

@@ -34,6 +34,7 @@ from functools import partial
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QObject, Qt, QTimer, QThread, pyqtSignal
 from PyQt5.QtWidgets import *
+from PyQt5 import QtWidgets
 
 from electroncash import networks
 from electroncash.i18n import _, pgettext

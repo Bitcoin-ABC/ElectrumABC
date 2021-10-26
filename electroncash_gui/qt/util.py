@@ -25,6 +25,7 @@ from PyQt5.QtGui import (
 )
 from PyQt5.QtCore import QObject, Qt, QThread, QTimer, pyqtSignal
 from PyQt5.QtWidgets import *
+from PyQt5 import QtWidgets
 
 if platform.system() == 'Windows':
     MONOSPACE_FONT = 'Consolas'

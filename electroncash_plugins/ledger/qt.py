@@ -1,6 +1,7 @@
 from functools import partial
 
 from PyQt5.QtWidgets import QInputDialog, QLineEdit, QVBoxLayout, QLabel
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import  *
 
 from electroncash.i18n import _

@@ -38,6 +38,7 @@ import PyQt5.QtCore as QtCore
 from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import *
+from PyQt5 import QtWidgets
 
 from electroncash import PACKAGE_VERSION
 from electroncash.constants import PROJECT_NAME, REPOSITORY_URL

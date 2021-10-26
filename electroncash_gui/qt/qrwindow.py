@@ -26,6 +26,7 @@
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QDialog, QPushButton, QSizePolicy
+from PyQt5 import QtWidgets
 
 
 from electroncash_gui.qt.qrcodewidget import QRCodeWidget, save_to_file, copy_to_clipboard

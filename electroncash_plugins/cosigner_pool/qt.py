@@ -33,6 +33,7 @@ import http.client
 
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import *
+from PyQt5 import QtWidgets
 
 from electroncash import bitcoin, util, keystore
 from electroncash import transaction

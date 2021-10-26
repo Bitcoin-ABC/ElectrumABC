@@ -26,6 +26,7 @@ import threading
 
 from PyQt5.QtCore import pyqtSignal, QTimer
 from PyQt5.QtWidgets import *
+from PyQt5 import QtWidgets
 
 from .util import Buttons, WindowModalDialog
 from electroncash.util import PrintError, ServerError

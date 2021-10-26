@@ -1,4 +1,5 @@
 from PyQt5.QtWidgets import *
+from PyQt5 import QtWidgets
 
 from electroncash.i18n import _
 from electroncash_gui.qt.util import *

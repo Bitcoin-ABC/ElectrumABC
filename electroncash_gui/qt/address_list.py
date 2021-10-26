@@ -29,6 +29,7 @@ from contextlib import suppress
 from enum import IntEnum
 from functools import partial
 
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QCursor, QFont, QIcon, QKeySequence
 from PyQt5.QtWidgets import QAbstractItemView, QMenu, QToolTip, QTreeWidgetItem

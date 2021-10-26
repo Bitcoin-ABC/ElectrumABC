@@ -30,6 +30,7 @@ import threading
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QLineEdit
+from PyQt5 import QtWidgets
 from electroncash_gui.qt.password_dialog import PasswordDialog, PW_PASSPHRASE
 from electroncash_gui.qt.util import (
     Buttons,

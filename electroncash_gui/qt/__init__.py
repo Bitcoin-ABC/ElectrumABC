@@ -38,6 +38,7 @@ try:
     from PyQt5 import QtCore
     from PyQt5.QtGui import QGuiApplication, QIcon, QFontDatabase, QScreen
     from PyQt5.QtWidgets import *
+    from PyQt5 import QtWidgets
 except Exception:
     if sys.platform.startswith('win'):
         msg = ("\n\nError: Could not import PyQt5.\n"

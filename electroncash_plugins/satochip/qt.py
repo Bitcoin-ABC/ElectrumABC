@@ -1,19 +1,20 @@
 from electroncash.i18n import _
 from electroncash.util import print_error
 from electroncash.plugins import run_hook
-from electroncash_gui.qt.util import EnterButton, Buttons, CloseButton, OkButton, CancelButton, WindowModalDialog, WWLabel 
+from electroncash_gui.qt.util import EnterButton, Buttons, CloseButton, OkButton, CancelButton, WindowModalDialog, WWLabel
 
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QPushButton, QLabel, QVBoxLayout, QWidget, QGridLayout, QLineEdit, QCheckBox
+from PyQt5 import QtWidgets
 from functools import partial
 
 from ..hw_wallet.qt import QtHandlerBase, QtPluginBase
 #satochip
 from .satochip import SatochipPlugin
 
-#pysatochip 
+#pysatochip
 from pysatochip.CardConnector import CardConnector
-from pysatochip.Satochip2FA import Satochip2FA                                       
+from pysatochip.Satochip2FA import Satochip2FA
 from pysatochip.version import SATOCHIP_PROTOCOL_MAJOR_VERSION, SATOCHIP_PROTOCOL_MINOR_VERSION
 
 class Plugin(SatochipPlugin, QtPluginBase):
@@ -100,7 +101,7 @@ class SatochipSettingsDialog(WindowModalDialog):
             ('sw_version', _("Electrum Support")),
             ('is_seeded', _("Wallet seeded")),
             ('needs_2FA', _("Requires 2FA ")),
-            ('needs_SC', _("Secure Channel")),    
+            ('needs_SC', _("Secure Channel")),
         ]
         for row_num, (member_name, label) in enumerate(rows):
             widget = QLabel('<tt>')
@@ -162,7 +163,7 @@ class SatochipSettingsDialog(WindowModalDialog):
                 self.needs_2FA.setText('<tt>%s' % "yes")
             else:
                 self.needs_2FA.setText('<tt>%s' % "no")
-            
+
             # needs secure channel
             if d["needs_secure_channel"]:
                 self.needs_SC.setText('<tt>%s' % "yes")
@@ -189,9 +190,9 @@ class SatochipSettingsDialog(WindowModalDialog):
         if (not is_pin):
             return
 
-        
-        oldpin= list(oldpin)    
-        newpin= list(newpin)  
+
+        oldpin= list(oldpin)
+        newpin= list(newpin)
         (response, sw1, sw2)= client.cc.card_change_PIN(0, oldpin, newpin)
         if (sw1==0x90 and sw2==0x00):
             msg= _("PIN changed successfully!")
@@ -316,5 +317,4 @@ class SatochipSettingsDialog(WindowModalDialog):
 
         reset_2FA= cb_reset_2FA.isChecked()
         return (passphrase, reset_2FA)
-            
-    
+

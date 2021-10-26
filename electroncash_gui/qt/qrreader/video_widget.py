@@ -25,6 +25,7 @@
 # SOFTWARE.
 
 from PyQt5.QtWidgets import QWidget
+from PyQt5 import QtWidgets
 from PyQt5.QtGui import QPixmap, QPainter, QPaintEvent
 
 class QrReaderVideoWidget(QWidget):

@@ -44,6 +44,7 @@ from electroncash.bitcoin import COINBASE_MATURITY
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtWidgets import QAbstractItemView, QApplication, QFileDialog, QMenu
+from PyQt5 import QtWidgets
 
 
 class UTXOList(MyTreeWidget):

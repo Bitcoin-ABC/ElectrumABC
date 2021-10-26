@@ -28,6 +28,7 @@ import time
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QBrush, QColor, QIcon, QFont
 from PyQt5.QtWidgets import QMenu
+from PyQt5 import QtWidgets
 
 
 from .util import (

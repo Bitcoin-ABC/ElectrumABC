@@ -48,6 +48,7 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtGui import QColor, QCursor, QFont, QIcon, QKeySequence, QTextOption
 from PyQt5.QtWidgets import *
+from PyQt5 import QtWidgets
 from collections import OrderedDict
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
 from functools import partial
