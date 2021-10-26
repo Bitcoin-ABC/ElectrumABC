@@ -689,12 +689,12 @@ class PasswordDialog(WindowModalDialog):
         self.password = None
 
         vbox = QtWidgets.QVBoxLayout(self)
-        self.msglabel = QLabel(message)
+        self.msglabel = QtWidgets.QLabel(message)
         self.msglabel.setWordWrap(True)
         self.msglabel.setMinimumWidth(250)
         self.msglabel.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Expanding)
         hbox = QtWidgets.QHBoxLayout()
-        iconlabel = QLabel(); iconlabel.setPixmap(get_icon_fusion_logo().pixmap(32))
+        iconlabel = QtWidgets.QLabel(); iconlabel.setPixmap(get_icon_fusion_logo().pixmap(32))
         hbox.addWidget(iconlabel)
         hbox.addWidget(self.msglabel, 1, Qt.AlignLeft|Qt.AlignVCenter)
         cmargins = hbox.contentsMargins(); cmargins.setBottom(10); hbox.setContentsMargins(cmargins)  # pad the bottom a bit
@@ -791,7 +791,7 @@ class FusionButton(StatusBarButton):
         self.icon_fusing_problem = self.style().standardIcon(QStyle.SP_MessageBoxWarning)
 
 #        title = QWidgetAction(self)
-#        title.setDefaultWidget(QLabel("<i>" + _("CashFusion") + "</i>"))
+#        title.setDefaultWidget(QtWidgets.QLabel("<i>" + _("CashFusion") + "</i>"))
         self.action_toggle = QAction(_("Auto-Fuse in Background"))
         self.action_toggle.setCheckable(True)
         self.action_toggle.triggered.connect(self.toggle_autofuse)
@@ -935,7 +935,7 @@ class SettingsWidget(QtWidgets.QWidget):
 
         grid = QtWidgets.QGridLayout() ; slayout.addLayout(grid)
 
-        grid.addWidget(QLabel(_("Server")), 0, 0)
+        grid.addWidget(QtWidgets.QLabel(_("Server")), 0, 0)
         hbox = QtWidgets.QHBoxLayout(); grid.addLayout(hbox, 0, 1)
         self.combo_server_host = QComboBox()
         self.combo_server_host.setEditable(True)
@@ -946,7 +946,7 @@ class SettingsWidget(QtWidgets.QWidget):
         self.combo_server_host.lineEdit().textEdited.connect(self.user_changed_server)
         self.combo_server_host.addItems([f'{s[0]} ({s[1]}{" - ssl" if s[2] else ""})' for s in Global.Defaults.ServerList])
         hbox.addWidget(self.combo_server_host)
-        hbox.addWidget(QLabel(_("P:")))
+        hbox.addWidget(QtWidgets.QLabel(_("P:")))
         self.le_server_port = QLineEdit()
         self.le_server_port.setMaximumWidth(50)
         self.le_server_port.setValidator(PortValidator(self.le_server_port))
@@ -957,22 +957,22 @@ class SettingsWidget(QtWidgets.QWidget):
         self.cb_server_ssl.clicked.connect(self.user_changed_server)
         hbox.addWidget(self.cb_server_ssl)
 
-        self.server_error_label = QLabel()
+        self.server_error_label = QtWidgets.QLabel()
         self.server_error_label.setAlignment(Qt.AlignTop|Qt.AlignJustify)
         grid.addWidget(self.server_error_label, 1, 0, 1, -1)
 
-        grid.addWidget(QLabel(_("Tor")), 2, 0)
+        grid.addWidget(QtWidgets.QLabel(_("Tor")), 2, 0)
         hbox = QtWidgets.QHBoxLayout(); grid.addLayout(hbox, 2, 1)
         self.le_tor_host = QLineEdit('localhost')
         self.le_tor_host.textEdited.connect(self.user_edit_torhost)
         hbox.addWidget(self.le_tor_host)
-        hbox.addWidget(QLabel(_("P:")))
+        hbox.addWidget(QtWidgets.QLabel(_("P:")))
         self.le_tor_port = QLineEdit()
         self.le_tor_port.setMaximumWidth(50)
         self.le_tor_port.setValidator(UserPortValidator(self.le_tor_port))
         self.le_tor_port.textEdited.connect(self.user_edit_torport)
         hbox.addWidget(self.le_tor_port)
-        self.l_tor_status = QLabel()
+        self.l_tor_status = QtWidgets.QLabel()
         hbox.addWidget(self.l_tor_status)
         self.b_tor_refresh = QPushButton()
         self.b_tor_refresh.clicked.connect(self.torscanthread_ping.set)
@@ -1164,7 +1164,7 @@ class WalletSettingsDialog(WindowModalDialog):
         main_layout = QtWidgets.QVBoxLayout(self)
 
         hbox = QtWidgets.QHBoxLayout()
-        hbox.addWidget(QLabel(_('Fusion mode:')))
+        hbox.addWidget(QtWidgets.QLabel(_('Fusion mode:')))
         self.mode_cb = mode_cb = QComboBox()
 
         hbox.addWidget(mode_cb)
@@ -1202,7 +1202,7 @@ class WalletSettingsDialog(WindowModalDialog):
         main_layout.addWidget(box)
         slayout = QtWidgets.QVBoxLayout(box)
 
-        lbl = QLabel(_("Allow this wallet to participate multiply in the same fusion round?"))
+        lbl = QtWidgets.QLabel(_("Allow this wallet to participate multiply in the same fusion round?"))
         lbl.setWordWrap(True)
         slayout.addWidget(lbl)
         box = QtWidgets.QHBoxLayout(); box.setContentsMargins(0,0,0,0)
@@ -1226,7 +1226,7 @@ class WalletSettingsDialog(WindowModalDialog):
         normal_page_layout = QtWidgets.QVBoxLayout(normal_page_w)
         self.confkey2idx['normal'] = stacked_layout.addWidget(normal_page_w)
         mode_cb.addItem(_('Normal'))
-        lbl = QLabel("- " + _("Normal mode") + " -")
+        lbl = QtWidgets.QLabel("- " + _("Normal mode") + " -")
         lbl.setAlignment(Qt.AlignCenter)
         normal_page_layout.addWidget(lbl)
 
@@ -1235,7 +1235,7 @@ class WalletSettingsDialog(WindowModalDialog):
         consolidate_page_layout = QtWidgets.QVBoxLayout(consolidate_page_w)
         self.confkey2idx['consolidate'] = stacked_layout.addWidget(consolidate_page_w)
         mode_cb.addItem(_('Consolidate'))
-        lbl = QLabel("- " + _("Consolidation mode") + " -")
+        lbl = QtWidgets.QLabel("- " + _("Consolidation mode") + " -")
         lbl.setAlignment(Qt.AlignCenter)
         consolidate_page_layout.addWidget(lbl)
 
@@ -1244,7 +1244,7 @@ class WalletSettingsDialog(WindowModalDialog):
         fanout_page_layout = QtWidgets.QVBoxLayout(fanout_page_w)
         self.confkey2idx['fan-out'] = stacked_layout.addWidget(fanout_page_w)
         mode_cb.addItem(_('Fan-out'))
-        lbl = QLabel("- " + _("Fan-out mode") + " -")
+        lbl = QtWidgets.QLabel("- " + _("Fan-out mode") + " -")
         lbl.setAlignment(Qt.AlignCenter)
         fanout_page_layout.addWidget(lbl)
 
@@ -1296,7 +1296,7 @@ class WalletSettingsDialog(WindowModalDialog):
         low_warn_blurb = _("Are you trying to consolidate?")
         low_warn_tooltip = _("Click for consolidation tips")
         low_warn_blurb_link = '<a href="unused">' + low_warn_blurb + '</a>'
-        self.l_warn_selection = QLabel("<center>" + low_warn_blurb_link + "</center>")
+        self.l_warn_selection = QtWidgets.QLabel("<center>" + low_warn_blurb_link + "</center>")
         self.l_warn_selection.setToolTip(low_warn_tooltip)
         self.l_warn_selection.linkActivated.connect(self._show_low_warn_help)
         self.l_warn_selection.setAlignment(Qt.AlignJustify|Qt.AlignVCenter)
@@ -1309,7 +1309,7 @@ class WalletSettingsDialog(WindowModalDialog):
         box = QGroupBox(_("Auto-Fusion Limits")) ; custom_page_layout.addWidget(box)
         slayout = QtWidgets.QVBoxLayout(box)
         grid = QtWidgets.QGridLayout() ; slayout.addLayout(grid)
-        grid.addWidget(QLabel(_("Number of queued fusions")), 0, 0)
+        grid.addWidget(QtWidgets.QLabel(_("Number of queued fusions")), 0, 0)
         self.sb_queued_autofuse = QSpinBox()
         self.sb_queued_autofuse.setRange(1, 10)  # hard-coded rande 1-10, maybe have this come from some constants?
         self.sb_queued_autofuse.setMinimumWidth(50)  # just so it doesn't end up too tiny
@@ -1583,7 +1583,7 @@ class ServerWidget(ServerFusionsBaseMixin, QtWidgets.QWidget):
 
         slayout = QtWidgets.QVBoxLayout(self.serverbox)
 
-        self.l_server_status = QLabel()
+        self.l_server_status = QtWidgets.QLabel()
         slayout.addWidget(self.l_server_status)
 
         self.t_server_waiting = QTableWidget()

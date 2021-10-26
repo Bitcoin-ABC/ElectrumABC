@@ -1,7 +1,7 @@
 from functools import partial
 
 from PyQt5.QtCore import QObject, Qt, pyqtSignal
-from PyQt5.QtWidgets import QLabel
+from PyQt5 import QtWidgets
 
 from electroncash.constants import PROJECT_NAME
 from electroncash.plugins import hook
@@ -58,7 +58,7 @@ class Plugin(LabelsPlugin):
             d.sigs = MySigs(d)
             d.sigs.ok_button_disable_sig.connect(d.ok_button.setDisabled) # disable ok button while the TaskThread runs ..
             hbox = QtWidgets.QHBoxLayout()
-            hbox.addWidget(QLabel(_("LabelSync options:")))
+            hbox.addWidget(QtWidgets.QLabel(_("LabelSync options:")))
             upload = ThreadedButton(_("Force upload"),
                                     partial(Weak(self.do_force_upload), wallet, dlgRef),
                                     partial(Weak(self.done_processing), dlgRef),
@@ -79,15 +79,15 @@ class Plugin(LabelsPlugin):
             vbox = QtWidgets.QVBoxLayout(d)
             if wallet.network:
                 # has network, so the fact that the wallet isn't in the list means it's incompatible
-                l = QLabel('<b>' + _("LabelSync not supported for this wallet type") + '</b>')
+                l = QtWidgets.QLabel('<b>' + _("LabelSync not supported for this wallet type") + '</b>')
                 l.setAlignment(Qt.AlignCenter)
                 vbox.addWidget(l)
-                l = QLabel(_("(Only deterministic wallets are supported)"))
+                l = QtWidgets.QLabel(_("(Only deterministic wallets are supported)"))
                 l.setAlignment(Qt.AlignCenter)
                 vbox.addWidget(l)
             else:
                 # Does not have network, so we won't speak of incompatibility, but instead remind user offline mode means OFFLINE! ;)
-                l = QLabel(_(f"You are using {PROJECT_NAME} in offline mode;"
+                l = QtWidgets.QLabel(_(f"You are using {PROJECT_NAME} in offline mode;"
                              f" restart Electron Cash if you want to get "
                              f"connected"))
                 l.setWordWrap(True)

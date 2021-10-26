@@ -3,7 +3,8 @@ import threading
 
 from PyQt5.QtCore import Qt, QEventLoop, pyqtSignal, QRegExp
 from PyQt5.QtGui import QRegExpValidator
-from PyQt5.QtWidgets import (QLabel, QPushButton,
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import (QPushButton,
                              QButtonGroup, QGroupBox,
                              QTextEdit, QLineEdit, QRadioButton, QCheckBox,
                              QMessageBox,  QSlider, QTabWidget,
@@ -62,7 +63,7 @@ class CharacterDialog(WindowModalDialog):
         self.character_pos = 0
         self.word_pos = 0
         self.loop = QEventLoop()
-        self.word_help = QLabel()
+        self.word_help = QtWidgets.QLabel()
         self.char_buttons = []
 
         vbox = QtWidgets.QVBoxLayout(self)
@@ -176,7 +177,7 @@ class QtHandler(QtHandlerBase):
         dialog = WindowModalDialog(self.top_level_window(), _("Enter PIN"))
         matrix = self.pin_matrix_widget_class()
         vbox = QtWidgets.QVBoxLayout()
-        vbox.addWidget(QLabel(msg))
+        vbox.addWidget(QtWidgets.QLabel(msg))
         vbox.addWidget(matrix)
         vbox.addLayout(Buttons(CancelButton(dialog), OkButton(dialog)))
         dialog.setLayout(vbox)
@@ -220,7 +221,7 @@ class QtPlugin(QtPluginBase):
     def request_trezor_init_settings(self, wizard, method, device):
         vbox = QtWidgets.QVBoxLayout()
         next_enabled = True
-        label = QLabel(_("Enter a label to name your device:"))
+        label = QtWidgets.QLabel(_("Enter a label to name your device:"))
         name = QLineEdit()
         hl = QtWidgets.QHBoxLayout()
         hl.addWidget(label)
@@ -263,13 +264,13 @@ class QtPlugin(QtPluginBase):
                 text.textChanged.connect(set_enabled)
                 next_enabled = False
 
-            vbox.addWidget(QLabel(msg))
+            vbox.addWidget(QtWidgets.QLabel(msg))
             vbox.addWidget(text)
             pin = QLineEdit()
             pin.setValidator(QRegExpValidator(QRegExp('[1-9]{0,9}')))
             pin.setMaximumWidth(100)
             hbox_pin = QtWidgets.QHBoxLayout()
-            hbox_pin.addWidget(QLabel(_("Enter your PIN (digits 1-9):")))
+            hbox_pin.addWidget(QtWidgets.QLabel(_("Enter your PIN (digits 1-9):")))
             hbox_pin.addWidget(pin)
             hbox_pin.addStretch(1)
 
@@ -428,17 +429,17 @@ class SettingsDialog(WindowModalDialog):
         info_layout = QtWidgets.QVBoxLayout(info_tab)
         info_glayout = QtWidgets.QGridLayout()
         info_glayout.setColumnStretch(2, 1)
-        device_label = QLabel()
-        pin_set_label = QLabel()
-        passphrases_label = QLabel()
-        version_label = QLabel()
-        device_id_label = QLabel()
-        bl_hash_label = QLabel()
+        device_label = QtWidgets.QLabel()
+        pin_set_label = QtWidgets.QLabel()
+        passphrases_label = QtWidgets.QLabel()
+        version_label = QtWidgets.QLabel()
+        device_id_label = QtWidgets.QLabel()
+        bl_hash_label = QtWidgets.QLabel()
         bl_hash_label.setWordWrap(True)
-        coins_label = QLabel()
+        coins_label = QtWidgets.QLabel()
         coins_label.setWordWrap(True)
-        language_label = QLabel()
-        initialized_label = QLabel()
+        language_label = QtWidgets.QLabel()
+        initialized_label = QtWidgets.QLabel()
         rows = [
             (_("Device Label"), device_label),
             (_("PIN set"), pin_set_label),
@@ -451,7 +452,7 @@ class SettingsDialog(WindowModalDialog):
             (_("Initialized"), initialized_label),
         ]
         for row_num, (label, widget) in enumerate(rows):
-            info_glayout.addWidget(QLabel(label), row_num, 0)
+            info_glayout.addWidget(QtWidgets.QLabel(label), row_num, 0)
             info_glayout.addWidget(widget, row_num, 1)
         info_layout.addLayout(info_glayout)
 
@@ -461,11 +462,11 @@ class SettingsDialog(WindowModalDialog):
         settings_glayout = QtWidgets.QGridLayout()
 
         # Settings tab - Label
-        label_msg = QLabel(_("Name this {}.  If you have multiple devices "
+        label_msg = QtWidgets.QLabel(_("Name this {}.  If you have multiple devices "
                              "their labels help distinguish them.")
                            .format(plugin.device))
         label_msg.setWordWrap(True)
-        label_label = QLabel(_("Device Label"))
+        label_label = QtWidgets.QLabel(_("Device Label"))
         label_edit = QLineEdit()
         label_edit.setMinimumWidth(150)
         label_edit.setMaxLength(plugin.MAX_LABEL_LEN)
@@ -478,12 +479,12 @@ class SettingsDialog(WindowModalDialog):
         settings_glayout.addWidget(label_msg, 1, 1, 1, -1)
 
         # Settings tab - PIN
-        pin_label = QLabel(_("PIN Protection"))
+        pin_label = QtWidgets.QLabel(_("PIN Protection"))
         pin_button = QPushButton()
         pin_button.clicked.connect(set_pin)
         settings_glayout.addWidget(pin_label, 2, 0)
         settings_glayout.addWidget(pin_button, 2, 1)
-        pin_msg = QLabel(_("PIN protection is strongly recommended.  "
+        pin_msg = QtWidgets.QLabel(_("PIN protection is strongly recommended.  "
                            "A PIN is your only protection against someone "
                            "stealing your bitcoins if they obtain physical "
                            "access to your {}.").format(plugin.device))
@@ -492,15 +493,15 @@ class SettingsDialog(WindowModalDialog):
         settings_glayout.addWidget(pin_msg, 3, 1, 1, -1)
 
         # Settings tab - Session Timeout
-        timeout_label = QLabel(_("Session Timeout"))
-        timeout_minutes = QLabel()
+        timeout_label = QtWidgets.QLabel(_("Session Timeout"))
+        timeout_minutes = QtWidgets.QLabel()
         timeout_slider = QSlider(Qt.Horizontal)
         timeout_slider.setRange(1, 60)
         timeout_slider.setSingleStep(1)
         timeout_slider.setTickInterval(5)
         timeout_slider.setTickPosition(QSlider.TicksBelow)
         timeout_slider.setTracking(True)
-        timeout_msg = QLabel(
+        timeout_msg = QtWidgets.QLabel(
             _("Clear the session after the specified period "
               "of inactivity.  Once a session has timed out, "
               "your PIN and passphrase (if enabled) must be "
@@ -525,7 +526,7 @@ class SettingsDialog(WindowModalDialog):
         # Advanced tab - clear PIN
         clear_pin_button = QPushButton(_("Disable PIN"))
         clear_pin_button.clicked.connect(clear_pin)
-        clear_pin_warning = QLabel(
+        clear_pin_warning = QtWidgets.QLabel(
             _("If you disable your PIN, anyone with physical access to your "
               "{} device can spend your bitcoins.").format(plugin.device))
         clear_pin_warning.setWordWrap(True)
@@ -546,11 +547,11 @@ class SettingsDialog(WindowModalDialog):
         # Advanced tab - wipe device
         wipe_device_button = QPushButton(_("Wipe Device"))
         wipe_device_button.clicked.connect(wipe_device)
-        wipe_device_msg = QLabel(
+        wipe_device_msg = QtWidgets.QLabel(
             _("Wipe the device, removing all data from it.  The firmware "
               "is left unchanged."))
         wipe_device_msg.setWordWrap(True)
-        wipe_device_warning = QLabel(
+        wipe_device_warning = QtWidgets.QLabel(
             _("Only wipe a device if you have the recovery seed written down "
               "and the device wallet(s) are empty, otherwise the bitcoins "
               "will be lost forever."))
@@ -563,7 +564,7 @@ class SettingsDialog(WindowModalDialog):
             # This loop is needed to lay out the word-wrap labels properly
             # so that they grow down rather than across.
             w = advanced_glayout.itemAt(i).widget()
-            if isinstance(w, QLabel) and w.wordWrap():
+            if isinstance(w, QtWidgets.QLabel) and w.wordWrap():
                 sp = w.sizePolicy()
                 sp.setHorizontalPolicy(QSizePolicy.Ignored)
                 sp.setVerticalPolicy(QSizePolicy.MinimumExpanding)

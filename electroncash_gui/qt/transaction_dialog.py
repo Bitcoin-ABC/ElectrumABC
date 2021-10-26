@@ -112,7 +112,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         self.setLayout(vbox)
 
         self.tx_hash_e  = ButtonsLineEdit()
-        l = QLabel(_("&Transaction ID:"))
+        l = QtWidgets.QLabel(_("&Transaction ID:"))
         l.setBuddy(self.tx_hash_e)
         vbox.addWidget(l)
         self.tx_hash_e.addCopyButton()
@@ -122,17 +122,17 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         self.tx_hash_e.addButton(icon, qr_show, _("Show as QR code"))
         self.tx_hash_e.setReadOnly(True)
         vbox.addWidget(self.tx_hash_e)
-        self.tx_desc = QLabel()
+        self.tx_desc = QtWidgets.QLabel()
         vbox.addWidget(self.tx_desc)
-        self.status_label = QLabel()
+        self.status_label = QtWidgets.QLabel()
         vbox.addWidget(self.status_label)
-        self.date_label = QLabel()
+        self.date_label = QtWidgets.QLabel()
         vbox.addWidget(self.date_label)
-        self.amount_label = QLabel()
+        self.amount_label = QtWidgets.QLabel()
         vbox.addWidget(self.amount_label)
-        self.size_label = QLabel()
+        self.size_label = QtWidgets.QLabel()
         vbox.addWidget(self.size_label)
-        self.fee_label = QLabel()
+        self.fee_label = QtWidgets.QLabel()
         vbox.addWidget(self.fee_label)
 
         for l in (self.tx_desc, self.status_label, self.date_label, self.amount_label, self.size_label, self.fee_label):
@@ -527,7 +527,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
 
     def add_io(self, vbox):
         if self.tx.locktime > 0:
-            lbl = QLabel(_("LockTime: {lock_time}").format(lock_time=self.tx.locktime))
+            lbl = QtWidgets.QLabel(_("LockTime: {lock_time}").format(lock_time=self.tx.locktime))
             lbl.setTextInteractionFlags(lbl.textInteractionFlags() | Qt.TextSelectableByMouse)
             vbox.addWidget(lbl)
 
@@ -537,7 +537,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         self.i_text = i_text = TextBrowserKeyboardFocusFilter()
         num_inputs = len(self.tx.inputs())
         inputs_lbl_text = ngettext("&Input", "&Inputs ({num_inputs})", num_inputs).format(num_inputs=num_inputs)
-        l = QLabel(inputs_lbl_text)
+        l = QtWidgets.QLabel(inputs_lbl_text)
         l.setBuddy(i_text)
         hbox.addWidget(l)
 
@@ -553,7 +553,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
             # it makes no sense to enable this checkbox if the network is offline
             chk.setHidden(True)
 
-        self.schnorr_label = QLabel(_('{} = Schnorr signed').format(SCHNORR_SIGIL))
+        self.schnorr_label = QtWidgets.QLabel(_('{} = Schnorr signed').format(SCHNORR_SIGIL))
         self.schnorr_label.setAlignment(Qt.AlignVCenter | Qt.AlignRight)
         f = self.schnorr_label.font()
         f.setPointSize(f.pointSize()-1)  # make it a little smaller
@@ -584,13 +584,13 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         self.o_text = o_text = TextBrowserKeyboardFocusFilter()
         num_outputs = len(self.tx.outputs())
         outputs_lbl_text = ngettext("&Output", "&Outputs ({num_outputs})", num_outputs).format(num_outputs=num_outputs)
-        l = QLabel(outputs_lbl_text)
+        l = QtWidgets.QLabel(outputs_lbl_text)
         l.setBuddy(o_text)
         hbox.addWidget(l)
 
         box_char = "█"
-        self.recv_legend = QLabel("<font color=" + ColorScheme.GREEN.as_color(background=True).name() + ">" + box_char + "</font> = " + _("Receiving Address"))
-        self.change_legend = QLabel("<font color=" + ColorScheme.YELLOW.as_color(background=True).name() + ">" + box_char + "</font> = " + _("Change Address"))
+        self.recv_legend = QtWidgets.QLabel("<font color=" + ColorScheme.GREEN.as_color(background=True).name() + ">" + box_char + "</font> = " + _("Receiving Address"))
+        self.change_legend = QtWidgets.QLabel("<font color=" + ColorScheme.YELLOW.as_color(background=True).name() + ">" + box_char + "</font> = " + _("Change Address"))
         f = self.recv_legend.font(); f.setPointSize(f.pointSize()-1)
         self.recv_legend.setFont(f)
         self.change_legend.setFont(f)

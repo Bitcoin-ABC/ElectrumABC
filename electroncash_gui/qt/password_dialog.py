@@ -29,7 +29,7 @@ import math
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QLineEdit, QLabel, QCheckBox
+from PyQt5.QtWidgets import QLineEdit, QCheckBox
 from PyQt5 import QtWidgets
 
 from electroncash.i18n import _
@@ -84,7 +84,7 @@ class PasswordLayout:
         self.pw_strength = None  # Will be a QLabel if kind != PW_PASSPHRASE
 
         vbox = QtWidgets.QVBoxLayout()
-        label = QLabel(msg + "\n")
+        label = QtWidgets.QLabel(msg + "\n")
         label.setWordWrap(True)
 
         grid = QtWidgets.QGridLayout()
@@ -100,7 +100,7 @@ class PasswordLayout:
             logo_grid.setColumnMinimumWidth(0, 70)
             logo_grid.setColumnStretch(1,1)
 
-            logo = QLabel()
+            logo = QtWidgets.QLabel()
             logo.setAlignment(Qt.AlignCenter)
 
             logo_grid.addWidget(logo,  0, 0)
@@ -110,23 +110,23 @@ class PasswordLayout:
             m1 = _('New Password:') if kind == PW_CHANGE else _('Password:')
             msgs = [m1, _('Confirm Password:')]
             if wallet and wallet.has_password():
-                grid.addWidget(QLabel(_('Current Password:')), 0, 0)
+                grid.addWidget(QtWidgets.QLabel(_('Current Password:')), 0, 0)
                 grid.addWidget(self.pw, 0, 1, 1, -1)
                 lockfile = ":icons/lock.svg"
             else:
                 lockfile = ":icons/unlock.svg"
             logo.setPixmap(QIcon(lockfile).pixmap(36))
 
-        grid.addWidget(QLabel(msgs[0]), 1, 0)
+        grid.addWidget(QtWidgets.QLabel(msgs[0]), 1, 0)
         grid.addWidget(self.new_pw, 1, 1, 1, -1)
 
-        grid.addWidget(QLabel(msgs[1]), 2, 0)
+        grid.addWidget(QtWidgets.QLabel(msgs[1]), 2, 0)
         grid.addWidget(self.conf_pw, 2, 1, 1, -1)
         vbox.addLayout(grid)
 
         # Password Strength Label
         if kind != PW_PASSPHRASE:
-            self.pw_strength = QLabel()
+            self.pw_strength = QtWidgets.QLabel()
             grid.addWidget(self.pw_strength, 3, 0, 1, 2)
             self.new_pw.textChanged.connect(self.pw_changed)
 
@@ -227,10 +227,10 @@ class PasswordDialog(WindowModalDialog):
         self.pw = pw = QLineEdit()
         pw.setEchoMode(2)
         vbox = QtWidgets.QVBoxLayout()
-        vbox.addWidget(QLabel(msg))
+        vbox.addWidget(QtWidgets.QLabel(msg))
         grid = QtWidgets.QGridLayout()
         grid.setSpacing(8)
-        grid.addWidget(QLabel(_('Password')), 1, 0)
+        grid.addWidget(QtWidgets.QLabel(_('Password')), 1, 0)
         grid.addWidget(pw, 1, 1)
         vbox.addLayout(grid)
         vbox.addLayout(Buttons(CancelButton(self), OkButton(self)))

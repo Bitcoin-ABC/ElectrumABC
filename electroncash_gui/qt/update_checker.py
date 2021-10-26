@@ -94,10 +94,10 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
         self.content = QtWidgets.QVBoxLayout()
         self.content.setContentsMargins(*([10]*4))
 
-        self.heading_label = QLabel()
+        self.heading_label = QtWidgets.QLabel()
         self.content.addWidget(self.heading_label)
 
-        self.detail_label = QLabel()
+        self.detail_label = QtWidgets.QLabel()
         self.detail_label.setTextInteractionFlags(Qt.LinksAccessibleByMouse)
         self.detail_label.setOpenExternalLinks(True)
         self.detail_label.setWordWrap(True)
@@ -109,8 +109,8 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
         self.content.addWidget(self.pb)
 
         versions = QtWidgets.QHBoxLayout()
-        versions.addWidget(QLabel(_(f"Current version: {version.PACKAGE_VERSION}")))
-        self.latest_version_label = QLabel(_(f"Latest version: {' '}"))
+        versions.addWidget(QtWidgets.QLabel(_(f"Current version: {version.PACKAGE_VERSION}")))
+        self.latest_version_label = QtWidgets.QLabel(_(f"Latest version: {' '}"))
         versions.addWidget(self.latest_version_label)
         self.content.addLayout(versions)
 

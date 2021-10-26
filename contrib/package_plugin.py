@@ -137,7 +137,7 @@ class App(QtWidgets.QWidget):
         groupBox = QGroupBox("Metadata")
         groupLayout = QtWidgets.QFormLayout()
         outerVLayout.addWidget(groupBox)
-        label = QLabel("This is a test")
+        label = QtWidgets.QLabel("This is a test")
         groupBox.setLayout(groupLayout)
         self.displayNameEdit = QLineEdit()
         self.displayNameEdit.setPlaceholderText("Scheduled Payments")
@@ -184,7 +184,7 @@ class App(QtWidgets.QWidget):
         outerVLayout.addLayout(buttonsHLayout)
 
         self.closeButton = QPushButton("Close")
-        self.checksumLabel = QLabel("Computed SHA256 checksum of plugin archive..")
+        self.checksumLabel = QtWidgets.QLabel("Computed SHA256 checksum of plugin archive..")
         self.checksumLabel.setMinimumWidth(350)
         buttonsHLayout = QtWidgets.QHBoxLayout()
         buttonsHLayout.addWidget(self.checksumLabel)

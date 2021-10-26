@@ -32,7 +32,7 @@ import grp
 
 from PyQt5.QtCore import Qt, QObject
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QLabel, QPushButton
+from PyQt5.QtWidgets import QPushButton
 from PyQt5 import QtWidgets
 
 from electroncash.util import _, PrintError
@@ -65,7 +65,7 @@ class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
         self.setLayout(layout)
         layout.setContentsMargins(20,20,20,20)
 
-        info_label = QLabel()
+        info_label = QtWidgets.QLabel()
         info_label.setText(
             _('This tool installs hardware wallet "udev rules" on your '
               'system.') +
@@ -83,12 +83,12 @@ class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
 
         hbox = QtWidgets.QHBoxLayout()
         hbox.addStretch(2)
-        status_title = QLabel()
+        status_title = QtWidgets.QLabel()
         status_title.setText(_('udev Rules Status:'))
         status_title.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         hbox.addWidget(status_title)
         hbox.addStretch(1)
-        self.status_label = QLabel()
+        self.status_label = QtWidgets.QLabel()
         self.status_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         font = self.status_label.font()
         font.setPointSize(15)

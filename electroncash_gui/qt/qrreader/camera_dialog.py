@@ -31,7 +31,7 @@ import os
 from typing import List
 
 from PyQt5.QtMultimedia import QCameraInfo, QCamera, QCameraViewfinderSettings
-from PyQt5.QtWidgets import QCheckBox, QPushButton, QLabel
+from PyQt5.QtWidgets import QCheckBox, QPushButton
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QSize, QRect, Qt, pyqtSignal, PYQT_VERSION
@@ -121,7 +121,7 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QtWidgets.QDialog):
         vbox.setContentsMargins(0, 0, 0, 0)
         vbox.addLayout(self.video_layout)
 
-        self.lowres_label = QLabel(_("Note: This camera generates frames of relatively low resolution; QR scanning accuracy may be affected"))
+        self.lowres_label = QtWidgets.QLabel(_("Note: This camera generates frames of relatively low resolution; QR scanning accuracy may be affected"))
         self.lowres_label.setWordWrap(True)
         self.lowres_label.setAlignment(Qt.AlignVCenter | Qt.AlignHCenter)
         vbox.addWidget(self.lowres_label)

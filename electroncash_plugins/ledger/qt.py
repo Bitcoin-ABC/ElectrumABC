@@ -1,6 +1,6 @@
 from functools import partial
 
-from PyQt5.QtWidgets import QInputDialog, QLineEdit, QLabel
+from PyQt5.QtWidgets import QInputDialog, QLineEdit
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import  *
 
@@ -52,7 +52,7 @@ class Ledger_Handler(QtHandlerBase):
     def message_dialog(self, msg):
         self.clear_dialog()
         self.dialog = dialog = WindowModalDialog(self.top_level_window(), _("Ledger Status"))
-        l = QLabel(msg)
+        l = QtWidgets.QLabel(msg)
         vbox = QtWidgets.QVBoxLayout(dialog)
         vbox.addWidget(l)
         dialog.show()

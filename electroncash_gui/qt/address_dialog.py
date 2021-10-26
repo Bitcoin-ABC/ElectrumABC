@@ -65,7 +65,7 @@ class AddressDialog(PrintError, WindowModalDialog):
         vbox = QtWidgets.QVBoxLayout()
         self.setLayout(vbox)
 
-        vbox.addWidget(QLabel(_("Address:")))
+        vbox.addWidget(QtWidgets.QLabel(_("Address:")))
         self.addr_e = ButtonsLineEdit()
         icon = ":icons/qrcode_white.svg" if ColorScheme.dark_scheme else ":icons/qrcode.svg"
         self.addr_e.addButton(icon, self.show_qr, _("Show QR Code"))
@@ -86,7 +86,7 @@ class AddressDialog(PrintError, WindowModalDialog):
                 # watching only wallets (totally lacks a private/public key pair for this address)
                 pubkeys = None
         if pubkeys:
-            vbox.addWidget(QLabel(_("Public keys") + ':'))
+            vbox.addWidget(QtWidgets.QLabel(_("Public keys") + ':'))
             for pubkey in pubkeys:
                 pubkey_e = ButtonsLineEdit(pubkey)
                 pubkey_e.addCopyButton()
@@ -97,7 +97,7 @@ class AddressDialog(PrintError, WindowModalDialog):
         except BaseException as e:
             redeem_script = None
         if redeem_script:
-            vbox.addWidget(QLabel(_("Redeem Script") + ':'))
+            vbox.addWidget(QtWidgets.QLabel(_("Redeem Script") + ':'))
             redeem_e = ShowQRTextEdit(text=redeem_script)
             redeem_e.addCopyButton()
             vbox.addWidget(redeem_e)
@@ -118,7 +118,7 @@ class AddressDialog(PrintError, WindowModalDialog):
         vbox.addWidget(gb)
         # /Cash Accounts
 
-        vbox.addWidget(QLabel(_("History")))
+        vbox.addWidget(QtWidgets.QLabel(_("History")))
         self.hw = HistoryList(self.parent)
         self.hw.get_domain = self.get_domain
         vbox.addWidget(self.hw)

@@ -42,7 +42,7 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
         self.resize(450, 400)
         self.main_window = main_window
         vbox = QtWidgets.QVBoxLayout(self)
-        l = QLabel(
+        l = QtWidgets.QLabel(
             "<p><font size=+1><b><i>" + _("Scanning Beyond the Gap") + "</i></b></font></p><p>"
             + _("Deterministic wallets can contain a nearly infinite number of addresses. However, usually only a relatively small block of addresses at the beginning are ever used.")
             + "</p><p>" + _("Normally, when you (re)generate a wallet from its seed, addresses are derived and added to the wallet until a block of addresses is found without a history. This is referred to as the gap.")
@@ -54,7 +54,7 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
         vbox.addWidget(l)
         vbox.addStretch(1)
         hbox = QtWidgets.QHBoxLayout()
-        l = QLabel(_("Number of addresses to scan:"))
+        l = QtWidgets.QLabel(_("Number of addresses to scan:"))
         hbox.addWidget(l)
         self.num_sb = QSpinBox(); self.num_sb.setMinimum(1); self.num_sb.setMaximum(1000000);
         self.num_sb.setValue(100)
@@ -69,9 +69,9 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
         vbox.addLayout(hbox)
         self.prog = QProgressBar(); self.prog.setMinimum(0); self.prog.setMaximum(100);
         vbox.addWidget(self.prog)
-        self.prog_label = QLabel()
+        self.prog_label = QtWidgets.QLabel()
         vbox.addWidget(self.prog_label)
-        self.found_label = QLabel()
+        self.found_label = QtWidgets.QLabel()
         vbox.addWidget(self.found_label)
         vbox.addStretch(1)
         self.cancel_but = QPushButton(_("Cancel"))

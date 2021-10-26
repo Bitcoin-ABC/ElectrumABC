@@ -4,7 +4,7 @@ from electroncash.plugins import run_hook
 from electroncash_gui.qt.util import EnterButton, Buttons, CloseButton, OkButton, CancelButton, WindowModalDialog, WWLabel
 
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import QPushButton, QLabel, QLineEdit, QCheckBox
+from PyQt5.QtWidgets import QPushButton, QLineEdit, QCheckBox
 from PyQt5 import QtWidgets
 from functools import partial
 
@@ -88,7 +88,7 @@ class SatochipSettingsDialog(WindowModalDialog):
         grid.setColumnStretch(3, 1)
 
         # see <http://doc.qt.io/archives/qt-4.8/richtext-html-subset.html>
-        title = QLabel('''<center>
+        title = QtWidgets.QLabel('''<center>
 <span style="font-size: x-large">Satochip Wallet</span>
 <br><a href="https://satochip.io">satochip.io</a>''')
         title.setTextInteractionFlags(Qt.LinksAccessibleByMouse)
@@ -104,10 +104,10 @@ class SatochipSettingsDialog(WindowModalDialog):
             ('needs_SC', _("Secure Channel")),
         ]
         for row_num, (member_name, label) in enumerate(rows):
-            widget = QLabel('<tt>')
+            widget = QtWidgets.QLabel('<tt>')
             widget.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard)
 
-            grid.addWidget(QLabel(label), y, 0, 1,1, Qt.AlignRight)
+            grid.addWidget(QtWidgets.QLabel(label), y, 0, 1,1, Qt.AlignRight)
             grid.addWidget(widget, y, 1, 1, 1, Qt.AlignLeft)
             setattr(self, member_name, widget)
             y += 1

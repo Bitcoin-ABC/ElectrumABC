@@ -96,13 +96,13 @@ class ExceptionDialog(QtWidgets.QDialog):
         main_box = QtWidgets.QVBoxLayout()
         main_box.setContentsMargins(20, 20, 20, 20)
 
-        heading = QLabel('<h2>' + _('Sorry!') + '</h2>')
+        heading = QtWidgets.QLabel('<h2>' + _('Sorry!') + '</h2>')
         main_box.addWidget(heading)
-        l = QLabel(_(f'Something went wrong running {PROJECT_NAME}.'))
+        l = QtWidgets.QLabel(_(f'Something went wrong running {PROJECT_NAME}.'))
         l.setWordWrap(True)
         main_box.addWidget(l)
 
-        l = QLabel(_('To help us diagnose and fix the problem, you can send us'
+        l = QtWidgets.QLabel(_('To help us diagnose and fix the problem, you can send us'
                      ' a bug report that contains useful debug information:'))
         l.setWordWrap(True)
         main_box.addWidget(l)
@@ -113,7 +113,7 @@ class ExceptionDialog(QtWidgets.QDialog):
 
         main_box.addWidget(self.report_textfield)
 
-        label = QLabel(
+        label = QtWidgets.QLabel(
             "<br/>You will be able to add more information after clicking on"
             " <i>Open a Bug Report</i><br/><br/>")
         label.setWordWrap(True)

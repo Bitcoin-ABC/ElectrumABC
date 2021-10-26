@@ -117,7 +117,7 @@ class SeedLayout(QtWidgets.QVBoxLayout):
         self.seed_e.setMaximumHeight(75)
         hbox = QtWidgets.QHBoxLayout()
         if icon:
-            logo = QLabel()
+            logo = QtWidgets.QLabel()
             logo.setPixmap(QIcon(":icons/seed.png").pixmap(64))
             logo.setMaximumWidth(60)
             hbox.addWidget(logo)
@@ -125,7 +125,7 @@ class SeedLayout(QtWidgets.QVBoxLayout):
         self.addLayout(hbox)
         hbox = QtWidgets.QHBoxLayout()
         hbox.addStretch(1)
-        self.seed_type_label = QLabel('')
+        self.seed_type_label = QtWidgets.QLabel('')
         hbox.addWidget(self.seed_type_label)
         if self.options:
             opt_button = EnterButton(_('Options'), self.seed_options)
@@ -136,21 +136,21 @@ class SeedLayout(QtWidgets.QVBoxLayout):
         grid_row = 0
         if seed_type:
             seed_type_text = mnemo.format_seed_type_name_for_ui(seed_type)
-            grid_maybe.addWidget(QLabel(_("Seed format") + ':'), grid_row, 0)
-            grid_maybe.addWidget(QLabel(f'<b>{seed_type_text}</b>'), grid_row, 1, Qt.AlignLeft)
+            grid_maybe.addWidget(QtWidgets.QLabel(_("Seed format") + ':'), grid_row, 0)
+            grid_maybe.addWidget(QtWidgets.QLabel(f'<b>{seed_type_text}</b>'), grid_row, 1, Qt.AlignLeft)
             grid_row += 1
         if passphrase:
             passphrase_e = QLineEdit()
             passphrase_e.setText(passphrase)
             passphrase_e.setReadOnly(True)
-            grid_maybe.addWidget(QLabel(_("Your seed extension is") + ':'), grid_row, 0)
+            grid_maybe.addWidget(QtWidgets.QLabel(_("Your seed extension is") + ':'), grid_row, 0)
             grid_maybe.addWidget(passphrase_e, grid_row, 1)
             grid_row += 1
         if derivation:
             der_e = QLineEdit()
             der_e.setText(str(derivation))
             der_e.setReadOnly(True)
-            grid_maybe.addWidget(QLabel(_("Wallet derivation path") + ':'), grid_row, 0)
+            grid_maybe.addWidget(QtWidgets.QLabel(_("Wallet derivation path") + ':'), grid_row, 0)
             grid_maybe.addWidget(der_e, grid_row, 1)
             grid_row += 1
         if grid_row > 0:  # only if above actually added widgets

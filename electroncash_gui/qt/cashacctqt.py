@@ -74,7 +74,7 @@ class VerifyingDialog(WaitingDialog):
                          disable_escape_key=disable_escape_key)
         hbox = QtWidgets.QHBoxLayout()
         self._vbox.removeWidget(self._label)
-        icon_lbl = QLabel()
+        icon_lbl = QtWidgets.QLabel()
         icon_lbl.setPixmap(QIcon(":icons/cashacct-logo.png").pixmap(50))
         hbox.addWidget(icon_lbl)
         hbox.addWidget(self._label)
@@ -190,7 +190,7 @@ def resolve_cashacct(parent : MessageBoxMixin, name : str, wallet : Abstract_Wal
     return None
 
 
-class ButtonAssociatedLabel(QLabel):
+class ButtonAssociatedLabel(QtWidgets.QLabel):
     ''' A QLabel, that if clicked on, sends a 'click()' call to an associated
     QAbstractButton. '''
 
@@ -580,11 +580,11 @@ def lookup_cash_account_dialog(
 
     vbox = QtWidgets.QVBoxLayout(d)
     hbox = QtWidgets.QHBoxLayout()
-    label = QLabel()
+    label = QtWidgets.QLabel()
     label.setPixmap(QIcon(":icons/cashacct-logo.png").pixmap(50))
     hbox.addWidget(label)
     hbox.addItem(QSpacerItem(10, 1))
-    label = QLabel("<font size=+1><b>" + title + "</b></font>" + blurb)
+    label = QtWidgets.QLabel("<font size=+1><b>" + title + "</b></font>" + blurb)
     if callable(title_label_link_activated_slot):
         label.linkActivated.connect(title_label_link_activated_slot)
     label.setAlignment(Qt.AlignVCenter|Qt.AlignLeft)
@@ -616,7 +616,7 @@ def lookup_cash_account_dialog(
     vbox.addLayout(grid)
     vbox.addItem(QSpacerItem(20,10))
     frame = QScrollArea()
-    tit_lbl = QLabel()
+    tit_lbl = QtWidgets.QLabel()
     vbox.addWidget(tit_lbl)
     extra_buttons = []
     # Extra Buttons
@@ -811,7 +811,7 @@ def cash_account_detail_dialog(parent : MessageBoxMixin,  # Should be an Electru
     destroyed_print_error(d)
 
     grid = QtWidgets.QGridLayout(d)
-    em_lbl = QLabel(f'<span style="white-space:nowrap; font-size:75pt;">{info.emoji}</span>')
+    em_lbl = QtWidgets.QLabel(f'<span style="white-space:nowrap; font-size:75pt;">{info.emoji}</span>')
     em_lbl.setToolTip(f'<span style="white-space:nowrap;">{ca_string_em}</span>')
     grid.addWidget(em_lbl, 0, 0, 3, 1)
     fsize = 26
@@ -855,7 +855,7 @@ def cash_account_detail_dialog(parent : MessageBoxMixin,  # Should be an Electru
             return
 
     # name
-    name_lbl = QLabel(name_txt)
+    name_lbl = QtWidgets.QLabel(name_txt)
     grid.addWidget(name_lbl, 0, 1, 1, 1)
     # copy name
     copy_name_but = QPushButton()
@@ -868,7 +868,7 @@ def cash_account_detail_dialog(parent : MessageBoxMixin,  # Should be an Electru
                                     parent.copy_to_clipboard(text=ca_string_em, tooltip=_('Cash Account copied to clipboard'), widget=copy_but) )
     grid.addWidget(copy_name_but, 0, 2, 1, 1)
     # address label
-    addr_lbl = QLabel(f'<span style="white-space:nowrap; font-size:15pt;"><a href="{info.address.to_full_ui_string()}"><pre>{info.address.to_full_ui_string()}</pre></a></span>')
+    addr_lbl = QtWidgets.QLabel(f'<span style="white-space:nowrap; font-size:15pt;"><a href="{info.address.to_full_ui_string()}"><pre>{info.address.to_full_ui_string()}</pre></a></span>')
     addr_lbl.linkActivated.connect(open_link)
     grid.addWidget(addr_lbl, 1, 1, 1, 1)
     # copy address label
@@ -887,7 +887,7 @@ def cash_account_detail_dialog(parent : MessageBoxMixin,  # Should be an Electru
 
     # Mined in block
     viewtx_txt = _("Mined in block")
-    view_tx_lbl = QLabel(f'<span style="white-space:nowrap; font-size:11pt;">{ismine_txt}{viewtx_txt}: <a href="{info.txid}">{cashacct.num2bh(info.number)}</a></span>')
+    view_tx_lbl = QtWidgets.QLabel(f'<span style="white-space:nowrap; font-size:11pt;">{ismine_txt}{viewtx_txt}: <a href="{info.txid}">{cashacct.num2bh(info.number)}</a></span>')
     view_tx_lbl.setToolTip(_("View Registration Transaction"))
     view_tx_lbl.linkActivated.connect(open_link)
     grid.addWidget(view_tx_lbl, 2, 1, 1, 1, Qt.AlignTop | Qt.AlignRight)
@@ -946,7 +946,7 @@ def cash_account_detail_dialog(parent : MessageBoxMixin,  # Should be an Electru
 
     # make all labels allow select text & click links
     for c in d.children():
-        if isinstance(c, QLabel):
+        if isinstance(c, QtWidgets.QLabel):
             c.setTextInteractionFlags(c.textInteractionFlags() | Qt.TextSelectableByMouse | Qt.LinksAccessibleByMouse)
 
     try:

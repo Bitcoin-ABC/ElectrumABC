@@ -84,14 +84,14 @@ class Bip38Importer(WindowModalDialog, util.PrintError):
         grid = QtWidgets.QGridLayout(self)
         grid.setContentsMargins(24,24,24,24)
         grid.setSpacing(10)
-        top_title = QLabel('<font size=+1><b>{}</b></font> - {}'
+        top_title = QtWidgets.QLabel('<font size=+1><b>{}</b></font> - {}'
                            .format(_('BIP38 Import'), message), self)
         top_title.setWordWrap(True)
 
         grid.addWidget(top_title, 0, 0, 1, 2)
 
-        self.key_tit = QLabel('      ', self)
-        self.key_lbl = QLabel('      ', self)
+        self.key_tit = QtWidgets.QLabel('      ', self)
+        self.key_lbl = QtWidgets.QLabel('      ', self)
         f = self.key_lbl.font()
         f.setBold(True); f.setFamily(MONOSPACE_FONT)
         self.key_lbl.setFont(f)
@@ -138,7 +138,7 @@ class Bip38Importer(WindowModalDialog, util.PrintError):
 
         hlp = _('The decrypted private key (WIF key) originally used to create this BIP38 key.')
         wif_tit = HelpLabel(_('Decrypted Private Key:'), hlp)
-        self.wif_lbl = QLabel('     ', self)
+        self.wif_lbl = QtWidgets.QLabel('     ', self)
         self.wif_lbl.setTextInteractionFlags(Qt.TextSelectableByMouse|Qt.TextSelectableByKeyboard)
 
         grid.addWidget(wif_tit, 3, 0)
@@ -146,7 +146,7 @@ class Bip38Importer(WindowModalDialog, util.PrintError):
 
         hlp = _('The address for the decrypted private key.')
         adr_tit = HelpLabel(_('Address:'), hlp)
-        self.adr_lbl = QLabel('    ', self)
+        self.adr_lbl = QtWidgets.QLabel('    ', self)
         self.adr_lbl.setTextInteractionFlags(Qt.TextSelectableByMouse|Qt.TextSelectableByKeyboard)
 
         grid.addWidget(adr_tit, 4, 0)

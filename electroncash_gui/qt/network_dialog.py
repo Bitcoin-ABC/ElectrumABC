@@ -483,11 +483,11 @@ class NetworkChoiceLayout(QObject, PrintError):
                                    + _('Due to potential security risks, you may only disable SSL when using a Tor Proxy.'))
         grid.addWidget(self.ssl_help, 2, 4)
 
-        grid.addWidget(QLabel(_('Server') + ':'), 3, 0)
+        grid.addWidget(QtWidgets.QLabel(_('Server') + ':'), 3, 0)
         grid.addWidget(self.server_host, 3, 1, 1, 2)
         grid.addWidget(self.server_port, 3, 3)
 
-        self.server_list_label = label = QLabel('') # will get set by self.update()
+        self.server_list_label = label = QtWidgets.QLabel('') # will get set by self.update()
         grid.addWidget(label, 4, 0, 1, 5)
         self.servers_list = ServerListWidget(self)
         grid.addWidget(self.servers_list, 5, 0, 1, 5)
@@ -611,31 +611,31 @@ class NetworkChoiceLayout(QObject, PrintError):
               "your transaction server.")
         ])
         row = 0
-        self.status_label = QLabel('')
+        self.status_label = QtWidgets.QLabel('')
         self.status_label.setTextInteractionFlags(self.status_label.textInteractionFlags() | Qt.TextSelectableByMouse)
-        grid.addWidget(QLabel(_('Status') + ':'), row, 0)
+        grid.addWidget(QtWidgets.QLabel(_('Status') + ':'), row, 0)
         grid.addWidget(self.status_label, row, 1, 1, 3)
         grid.addWidget(HelpButton(msg), row, 4)
         row += 1
 
-        self.server_label = QLabel('')
+        self.server_label = QtWidgets.QLabel('')
         self.server_label.setTextInteractionFlags(self.server_label.textInteractionFlags() | Qt.TextSelectableByMouse)
         msg = _(f"{PROJECT_NAME} sends your wallet addresses to a single "
                 f"server, in order to receive your transaction history.")
-        grid.addWidget(QLabel(_('Server') + ':'), row, 0)
+        grid.addWidget(QtWidgets.QLabel(_('Server') + ':'), row, 0)
         grid.addWidget(self.server_label, row, 1, 1, 3)
         grid.addWidget(HelpButton(msg), row, 4)
         row += 1
 
-        self.height_label = QLabel('')
+        self.height_label = QtWidgets.QLabel('')
         self.height_label.setTextInteractionFlags(self.height_label.textInteractionFlags() | Qt.TextSelectableByMouse)
         msg = _('This is the height of your local copy of the blockchain.')
-        grid.addWidget(QLabel(_('Blockchain') + ':'), row, 0)
+        grid.addWidget(QtWidgets.QLabel(_('Blockchain') + ':'), row, 0)
         grid.addWidget(self.height_label, row, 1)
         grid.addWidget(HelpButton(msg), row, 4)
         row += 1
 
-        self.reqs_label = QLabel('')
+        self.reqs_label = QtWidgets.QLabel('')
         self.reqs_label.setTextInteractionFlags(self.height_label.textInteractionFlags() | Qt.TextSelectableByMouse)
         msg = _('The number of unanswered network requests.\n\n'
                 "You can configure:\n\n"
@@ -643,16 +643,16 @@ class NetworkChoiceLayout(QObject, PrintError):
                 "    - ChunkSize: requests to enqueue every 100ms\n\n"
                 "If the connection drops when synchronizing, you may wish "
                 "to reduce these values to throttle requests to the server.")
-        grid.addWidget(QLabel(_('Pending requests') + ':'), row, 0)
+        grid.addWidget(QtWidgets.QLabel(_('Pending requests') + ':'), row, 0)
         hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.reqs_label)
         hbox.setContentsMargins(0, 0, 12, 0)
-        hbox.addWidget(QLabel(_("Limit:")))
+        hbox.addWidget(QtWidgets.QLabel(_("Limit:")))
         self.req_max_sb = sb = QSpinBox()
         sb.setRange(1, 2000)
         sb.setFocusPolicy(Qt.TabFocus|Qt.ClickFocus|Qt.WheelFocus)
         hbox.addWidget(sb)
-        hbox.addWidget(QLabel(_("ChunkSize:")))
+        hbox.addWidget(QtWidgets.QLabel(_("ChunkSize:")))
         self.req_chunk_sb = sb = QSpinBox()
         sb.setRange(1, 100)
         sb.setFocusPolicy(Qt.TabFocus|Qt.ClickFocus|Qt.WheelFocus)
@@ -680,7 +680,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         self.req_max_sb.valueChanged.connect(req_max_changed)
         self.req_chunk_sb.valueChanged.connect(req_chunk_changed)
 
-        self.split_label = QLabel('')
+        self.split_label = QtWidgets.QLabel('')
         self.split_label.setTextInteractionFlags(self.split_label.textInteractionFlags() | Qt.TextSelectableByMouse)
         grid.addWidget(self.split_label, row, 0, 1, 3)
         row += 2
@@ -1052,7 +1052,7 @@ class NetworkChoiceLayout(QObject, PrintError):
             return
         d = WindowModalDialog(parent.top_level_window(), _("Banned Servers"))
         vbox = QtWidgets.QVBoxLayout(d)
-        vbox.addWidget(QLabel(_("Banned Servers") + " ({})".format(len(bl))))
+        vbox.addWidget(QtWidgets.QLabel(_("Banned Servers") + " ({})".format(len(bl))))
         tree = QTreeWidget()
         tree.setHeaderLabels([_('Host'), _('Port')])
         for s in bl:

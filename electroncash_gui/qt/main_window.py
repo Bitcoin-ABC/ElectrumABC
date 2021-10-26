@@ -1242,7 +1242,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
 
         self.receive_message_e = QLineEdit()
-        label = QLabel(_('&Description'))
+        label = QtWidgets.QLabel(_('&Description'))
         label.setBuddy(self.receive_message_e)
         grid.addWidget(label, 2, 0)
         grid.addWidget(self.receive_message_e, 2, 1, 1, -1)
@@ -1267,7 +1267,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         ]
 
         self.receive_amount_e = BTCAmountEdit(self.get_decimal_point)
-        label = QLabel(_('Requested &amount'))
+        label = QtWidgets.QLabel(_('Requested &amount'))
         label.setBuddy(self.receive_amount_e)
         grid.addWidget(label, 4, 0)
         grid.addWidget(self.receive_amount_e, 4, 1)
@@ -1323,7 +1323,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         buttons.addStretch(1)
         grid.addLayout(buttons, 6, 2, 1, -1)
 
-        self.receive_requests_label = QLabel(_('Re&quests'))
+        self.receive_requests_label = QtWidgets.QLabel(_('Re&quests'))
 
         from .request_list import RequestList
         self.request_list = RequestList(self)
@@ -1451,7 +1451,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
     def view_and_paste(self, title, msg, data):
         dialog = WindowModalDialog(self.top_level_window(), title)
         vbox = QtWidgets.QVBoxLayout()
-        label = QLabel(msg)
+        label = QtWidgets.QLabel(msg)
         label.setWordWrap(True)
         vbox.addWidget(label)
         pr_e = ShowQRTextEdit(text=data)
@@ -1679,7 +1679,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             self.opreturn_label,
         ]
 
-        self.from_label = QLabel(_('&From'))
+        self.from_label = QtWidgets.QLabel(_('&From'))
         grid.addWidget(self.from_label, 4, 0)
         self.from_list = MyTreeWidget(self, self.from_list_menu, ['',''])
         self.from_label.setBuddy(self.from_list)
@@ -1820,7 +1820,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.message_opreturn_e.editingFinished.connect(entry_changed)
         self.opreturn_rawhex_cb.stateChanged.connect(entry_changed)
 
-        self.invoices_label = QLabel(_('Invoices'))
+        self.invoices_label = QtWidgets.QLabel(_('Invoices'))
         from .invoice_list import InvoiceList
         self.invoice_list = InvoiceList(self)
         self.invoice_list.chkVisible()
@@ -2639,22 +2639,22 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         grid.setColumnStretch(1, 2)
         grid.setColumnStretch(2, 1)
 
-        label = QLabel(_('&Address to convert'))
+        label = QtWidgets.QLabel(_('&Address to convert'))
         label.setBuddy(source_address)
         grid.addWidget(label, 0, 0)
         grid.addWidget(source_address, 0, 1)
 
-        label = QLabel(_('&Cash address'))
+        label = QtWidgets.QLabel(_('&Cash address'))
         label.setBuddy(cash_address)
         grid.addWidget(label, 1, 0)
         grid.addWidget(cash_address, 1, 1)
 
-        label = QLabel(_('&BCH address'))
+        label = QtWidgets.QLabel(_('&BCH address'))
         label.setBuddy(cash_address_bch)
         grid.addWidget(label, 2, 0)
         grid.addWidget(cash_address_bch, 2, 1)
 
-        label = QLabel(_('&Legacy address'))
+        label = QtWidgets.QLabel(_('&Legacy address'))
         label.setBuddy(legacy_address)
         grid.addWidget(label, 3, 0)
         grid.addWidget(legacy_address, 3, 1)
@@ -2868,19 +2868,19 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         d = WindowModalDialog(self.top_level_window(), _("Invoice"))
         vbox = QtWidgets.QVBoxLayout(d)
         grid = QtWidgets.QGridLayout()
-        grid.addWidget(QLabel(_("Requestor") + ':'), 0, 0)
-        grid.addWidget(QLabel(pr.get_requestor()), 0, 1)
-        grid.addWidget(QLabel(_("Amount") + ':'), 1, 0)
+        grid.addWidget(QtWidgets.QLabel(_("Requestor") + ':'), 0, 0)
+        grid.addWidget(QtWidgets.QLabel(pr.get_requestor()), 0, 1)
+        grid.addWidget(QtWidgets.QLabel(_("Amount") + ':'), 1, 0)
         outputs_str = '\n'.join(map(lambda x: self.format_amount(x[2])+ self.base_unit() + ' @ ' + x[1].to_full_ui_string(), pr.get_outputs()))
-        grid.addWidget(QLabel(outputs_str), 1, 1)
+        grid.addWidget(QtWidgets.QLabel(outputs_str), 1, 1)
         expires = pr.get_expiration_date()
-        grid.addWidget(QLabel(_("Memo") + ':'), 2, 0)
-        grid.addWidget(QLabel(pr.get_memo()), 2, 1)
-        grid.addWidget(QLabel(_("Signature") + ':'), 3, 0)
-        grid.addWidget(QLabel(pr.get_verify_status()), 3, 1)
+        grid.addWidget(QtWidgets.QLabel(_("Memo") + ':'), 2, 0)
+        grid.addWidget(QtWidgets.QLabel(pr.get_memo()), 2, 1)
+        grid.addWidget(QtWidgets.QLabel(_("Signature") + ':'), 3, 0)
+        grid.addWidget(QtWidgets.QLabel(pr.get_verify_status()), 3, 1)
         if expires:
-            grid.addWidget(QLabel(_("Expires") + ':'), 4, 0)
-            grid.addWidget(QLabel(format_time(expires)), 4, 1)
+            grid.addWidget(QtWidgets.QLabel(_("Expires") + ':'), 4, 0)
+            grid.addWidget(QtWidgets.QLabel(format_time(expires)), 4, 1)
         vbox.addLayout(grid)
         weakD = Weak.ref(d)
         def do_export():
@@ -2951,7 +2951,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         sb.setFixedHeight(35)
         qtVersion = qVersion()
 
-        self.balance_label = QLabel("")
+        self.balance_label = QtWidgets.QLabel("")
         sb.addWidget(self.balance_label)
 
         self._search_box_spacer = QtWidgets.QWidget()
@@ -3092,15 +3092,15 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
     def new_contact_dialog(self):
         d = WindowModalDialog(self.top_level_window(), _("New Contact"))
         vbox = QtWidgets.QVBoxLayout(d)
-        vbox.addWidget(QLabel(_('New Contact') + ':'))
+        vbox.addWidget(QtWidgets.QLabel(_('New Contact') + ':'))
         grid = QtWidgets.QGridLayout()
         line1 = QLineEdit()
         line1.setFixedWidth(350)
         line2 = QLineEdit()
         line2.setFixedWidth(350)
-        grid.addWidget(QLabel(_("Name")), 1, 0)
+        grid.addWidget(QtWidgets.QLabel(_("Name")), 1, 0)
         grid.addWidget(line1, 1, 1)
-        grid.addWidget(QLabel(_("Address")), 2, 0)
+        grid.addWidget(QtWidgets.QLabel(_("Address")), 2, 0)
         grid.addWidget(line2, 2, 1)
         vbox.addLayout(grid)
         vbox.addLayout(Buttons(CancelButton(d), OkButton(d)))
@@ -3125,12 +3125,12 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         wallet_type = self.wallet.storage.get('wallet_type', '')
         grid = QtWidgets.QGridLayout()
         basename = os.path.basename(self.wallet.storage.path)
-        grid.addWidget(QLabel(_("Wallet name")+ ':'), 0, 0)
-        grid.addWidget(QLabel(basename), 0, 1)
-        grid.addWidget(QLabel(_("Wallet type")+ ':'), 1, 0)
-        grid.addWidget(QLabel(wallet_type), 1, 1)
-        grid.addWidget(QLabel(_("Script type")+ ':'), 2, 0)
-        grid.addWidget(QLabel(self.wallet.txin_type), 2, 1)
+        grid.addWidget(QtWidgets.QLabel(_("Wallet name")+ ':'), 0, 0)
+        grid.addWidget(QtWidgets.QLabel(basename), 0, 1)
+        grid.addWidget(QtWidgets.QLabel(_("Wallet type")+ ':'), 1, 0)
+        grid.addWidget(QtWidgets.QLabel(wallet_type), 1, 1)
+        grid.addWidget(QtWidgets.QLabel(_("Script type")+ ':'), 2, 0)
+        grid.addWidget(QtWidgets.QLabel(self.wallet.txin_type), 2, 1)
         vbox.addLayout(grid)
         if self.wallet.is_deterministic():
             mpk_text = ShowQRTextEdit()
@@ -3149,7 +3149,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                 labels_clayout = ChoicesLayout(_("Master Public Keys"), labels, on_click)
                 vbox.addLayout(labels_clayout.layout())
             else:
-                vbox.addWidget(QLabel(_("Master Public Key")))
+                vbox.addWidget(QtWidgets.QLabel(_("Master Public Key")))
             show_mpk(0)
             vbox.addWidget(mpk_text)
         vbox.addStretch(1)
@@ -3218,9 +3218,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         d = WindowModalDialog(self.top_level_window(), _("Private key"))
         d.setMinimumSize(600, 150)
         vbox = QtWidgets.QVBoxLayout()
-        vbox.addWidget(QLabel('{}: {}'.format(_("Address"), address)))
-        vbox.addWidget(QLabel(_("Script type") + ': ' + xtype))
-        pk_lbl = QLabel(_("Private key") + ':')
+        vbox.addWidget(QtWidgets.QLabel('{}: {}'.format(_("Address"), address)))
+        vbox.addWidget(QtWidgets.QLabel(_("Script type") + ': ' + xtype))
+        pk_lbl = QtWidgets.QLabel(_("Private key") + ':')
         vbox.addWidget(pk_lbl)
         keys_e = ShowQRTextEdit(text=pk)
         keys_e.addCopyButton()
@@ -3269,7 +3269,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         setup_encrypt_button()
         # /BIP38 Encrypt Button
         vbox.addWidget(keys_e)
-        vbox.addWidget(QLabel(_("Redeem Script") + ':'))
+        vbox.addWidget(QtWidgets.QLabel(_("Redeem Script") + ':'))
         rds_e = ShowQRTextEdit(text=address.to_script().hex())
         rds_e.addCopyButton()
         vbox.addWidget(rds_e)
@@ -3335,18 +3335,18 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         message_e = QTextEdit()
         message_e.setAcceptRichText(False)
-        layout.addWidget(QLabel(_('Message')), 1, 0)
+        layout.addWidget(QtWidgets.QLabel(_('Message')), 1, 0)
         layout.addWidget(message_e, 1, 1)
         layout.setRowStretch(2,3)
 
         address_e = QLineEdit()
         address_e.setText(address.to_full_ui_string() if address else '')
-        layout.addWidget(QLabel(_('Address')), 2, 0)
+        layout.addWidget(QtWidgets.QLabel(_('Address')), 2, 0)
         layout.addWidget(address_e, 2, 1)
 
         signature_e = QTextEdit()
         signature_e.setAcceptRichText(False)
-        layout.addWidget(QLabel(_('Signature')), 3, 0)
+        layout.addWidget(QtWidgets.QLabel(_('Signature')), 3, 0)
         layout.addWidget(signature_e, 3, 1)
         layout.setRowStretch(3,1)
 
@@ -3394,7 +3394,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         message_e = QTextEdit()
         message_e.setAcceptRichText(False)
-        layout.addWidget(QLabel(_('Message')), 1, 0)
+        layout.addWidget(QtWidgets.QLabel(_('Message')), 1, 0)
         layout.addWidget(message_e, 1, 1)
         layout.setRowStretch(2,3)
 
@@ -3404,12 +3404,12 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             if not isinstance(pubkey, str):
                 pubkey = pubkey.to_ui_string()
             pubkey_e.setText(pubkey)
-        layout.addWidget(QLabel(_('Public key')), 2, 0)
+        layout.addWidget(QtWidgets.QLabel(_('Public key')), 2, 0)
         layout.addWidget(pubkey_e, 2, 1)
 
         encrypted_e = QTextEdit()
         encrypted_e.setAcceptRichText(False)
-        layout.addWidget(QLabel(_('Encrypted')), 3, 0)
+        layout.addWidget(QtWidgets.QLabel(_('Encrypted')), 3, 0)
         layout.addWidget(encrypted_e, 3, 1)
         layout.setRowStretch(3,1)
 
@@ -3625,7 +3625,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         if bip38:
             del lines[0]  # No need to scream-WARN them since BIP38 *are* encrypted
         msg = '\n'.join(lines)
-        vbox.addWidget(QLabel(msg))
+        vbox.addWidget(QtWidgets.QLabel(msg))
 
         if bip38:
             wwlbl = WWLabel()
@@ -3824,7 +3824,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         fee_time_w.setToolTip(_("The amount of overall time in seconds to allow for downloading fee data before giving up"))
         hbox = QtWidgets.QHBoxLayout(fee_time_w)
         hbox.setContentsMargins(20, 0, 0, 0)
-        hbox.addWidget(QLabel(_("Timeout:")), 0, Qt.AlignRight)
+        hbox.addWidget(QtWidgets.QLabel(_("Timeout:")), 0, Qt.AlignRight)
         fee_time_sb = QSpinBox()
         fee_time_sb.setMinimum(10)
         fee_time_sb.setMaximum(9999)
@@ -3951,14 +3951,14 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         d.setMinimumSize(600, 300)
 
         vbox = QtWidgets.QVBoxLayout(d)
-        bip38_warn_label = QLabel(_("<b>BIP38 support is disabled because a requisite library is not installed.</b> Please install 'cryptodomex' or omit BIP38 private keys (private keys starting in 6P...). Decrypt keys to WIF format (starting with 5, K, or L) in order to sweep."))
+        bip38_warn_label = QtWidgets.QLabel(_("<b>BIP38 support is disabled because a requisite library is not installed.</b> Please install 'cryptodomex' or omit BIP38 private keys (private keys starting in 6P...). Decrypt keys to WIF format (starting with 5, K, or L) in order to sweep."))
         bip38_warn_label.setWordWrap(True)
         bip38_warn_label.setHidden(True)
         vbox.addWidget(bip38_warn_label)
         extra = ""
         if bitcoin.is_bip38_available():
             extra += " " + _('or BIP38 keys')
-        vbox.addWidget(QLabel(_("Enter private keys") + extra + " :"))
+        vbox.addWidget(QtWidgets.QLabel(_("Enter private keys") + extra + " :"))
 
         keys_e = ScanQRTextEdit(allow_multi=True)
         keys_e.setTabChangesFocus(True)
@@ -4424,7 +4424,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                    else '' )
             err_msg = _("Dark theme is not available. Please install QDarkStyle to access this feature.")
         lbltxt = _('Color theme') + ':'
-        colortheme_label = HelpLabel(lbltxt, msg) if msg else QLabel(lbltxt)
+        colortheme_label = HelpLabel(lbltxt, msg) if msg else QtWidgets.QLabel(lbltxt)
         def on_colortheme(x):
             item_data = colortheme_combo.itemData(x)
             if not dark_theme_available and item_data == 'dark':
@@ -4698,8 +4698,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         fiat_address_checkbox.setText(_('Show fiat balance for addresses'))
 
         fiat_widgets = []
-        fiat_widgets.append((QLabel(_('Fiat currency:')), ccy_combo))
-        fiat_widgets.append((QLabel(_('Source:')), ex_combo))
+        fiat_widgets.append((QtWidgets.QLabel(_('Fiat currency:')), ccy_combo))
+        fiat_widgets.append((QtWidgets.QLabel(_('Source:')), ex_combo))
         fiat_widgets.append((hist_checkbox, None))
         fiat_widgets.append((fiat_address_checkbox, None))
 
@@ -5030,13 +5030,13 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             "it is normal to see a new unconfirmed transaction in your history.")
         vbox.addWidget(WWLabel(_(msg2)))
         grid = QtWidgets.QGridLayout()
-        grid.addWidget(QLabel(_('Total size') + ':'), 0, 0)
-        grid.addWidget(QLabel(_('{total_size} bytes').format(total_size=total_size)), 0, 1)
+        grid.addWidget(QtWidgets.QLabel(_('Total size') + ':'), 0, 0)
+        grid.addWidget(QtWidgets.QLabel(_('{total_size} bytes').format(total_size=total_size)), 0, 1)
         max_fee = new_tx.output_value()
-        grid.addWidget(QLabel(_('Input amount') + ':'), 1, 0)
-        grid.addWidget(QLabel(self.format_amount(max_fee) + ' ' + self.base_unit()), 1, 1)
-        output_amount = QLabel('')
-        grid.addWidget(QLabel(_('Output amount') + ':'), 2, 0)
+        grid.addWidget(QtWidgets.QLabel(_('Input amount') + ':'), 1, 0)
+        grid.addWidget(QtWidgets.QLabel(self.format_amount(max_fee) + ' ' + self.base_unit()), 1, 1)
+        output_amount = QtWidgets.QLabel('')
+        grid.addWidget(QtWidgets.QLabel(_('Output amount') + ':'), 2, 0)
         grid.addWidget(output_amount, 2, 1)
         fee_e = BTCAmountEdit(self.get_decimal_point)
         def f(x):
@@ -5045,7 +5045,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         fee_e.textChanged.connect(f)
         fee = self.config.fee_per_kb() * total_size / 1000
         fee_e.setAmount(fee)
-        grid.addWidget(QLabel(_('Fee' + ':')), 3, 0)
+        grid.addWidget(QtWidgets.QLabel(_('Fee' + ':')), 3, 0)
         grid.addWidget(fee_e, 3, 1)
         def on_rate(dyn, pos, fee_rate):
             fee = fee_rate * total_size / 1000
@@ -5114,15 +5114,15 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         if icon:
             hbox = QtWidgets.QHBoxLayout()
             hbox.setContentsMargins(0,0,0,0)
-            ic_lbl = QLabel()
+            ic_lbl = QtWidgets.QLabel()
             ic_lbl.setPixmap(icon.pixmap(50))
             hbox.addWidget(ic_lbl)
             hbox.addItem(QSpacerItem(10, 1))
-            t_lbl = QLabel("<font size=+1><b>" + (title or '') + "</b></font>")
+            t_lbl = QtWidgets.QLabel("<font size=+1><b>" + (title or '') + "</b></font>")
             hbox.addWidget(t_lbl, 0, Qt.AlignLeft)
             hbox.addStretch(1)
             vbox.addLayout(hbox)
-        vbox.addWidget(QLabel(_('Choose an address') + ':'))
+        vbox.addWidget(QtWidgets.QLabel(_('Choose an address') + ':'))
         l = AddressList(self, picker=True)
         try:
             l.setObjectName("AddressList - " + d.windowTitle())

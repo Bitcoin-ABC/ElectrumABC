@@ -93,9 +93,9 @@ class ThreadedButton(QPushButton):
         self.thread = None
 
 
-class WWLabel(QLabel):
+class WWLabel(QtWidgets.QLabel):
     def __init__ (self, text="", parent=None):
-        QLabel.__init__(self, text, parent)
+        QtWidgets.QLabel.__init__(self, text, parent)
         self.setWordWrap(True)
         self.setTextInteractionFlags(self.textInteractionFlags() | Qt.TextSelectableByMouse)
 
@@ -105,7 +105,7 @@ class HelpMixin:
         assert isinstance(self, QtWidgets.QWidget), "HelpMixin must be a QWidget instance!"
         self.help_text = help_text
         self.custom_parent = custom_parent
-        if isinstance(self, QLabel):
+        if isinstance(self, QtWidgets.QLabel):
             self.setTextInteractionFlags(
                 (self.textInteractionFlags() | Qt.TextSelectableByMouse)
                 & ~Qt.TextSelectableByKeyboard)
@@ -113,9 +113,9 @@ class HelpMixin:
     def show_help(self):
         QMessageBox.information(self.custom_parent or self, _('Help'), self.help_text)
 
-class HelpLabel(HelpMixin, QLabel):
+class HelpLabel(HelpMixin, QtWidgets.QLabel):
     def __init__(self, text, help_text, *, custom_parent=None):
-        QLabel.__init__(self, text)
+        QtWidgets.QLabel.__init__(self, text)
         HelpMixin.__init__(self, help_text, custom_parent=custom_parent)
         self.setCursor(QCursor(Qt.PointingHandCursor))
         self.font = self.font()
@@ -126,12 +126,12 @@ class HelpLabel(HelpMixin, QLabel):
     def enterEvent(self, event):
         self.font.setUnderline(True)
         self.setFont(self.font)
-        return QLabel.enterEvent(self, event)
+        return QtWidgets.QLabel.enterEvent(self, event)
 
     def leaveEvent(self, event):
         self.font.setUnderline(False)
         self.setFont(self.font)
-        return QLabel.leaveEvent(self, event)
+        return QtWidgets.QLabel.leaveEvent(self, event)
 
 class HelpButton(HelpMixin, QPushButton):
     def __init__(self, text, *, button_text='?', fixed_size=True, icon=None,
@@ -369,7 +369,7 @@ class WaitingDialog(WindowModalDialog):
         self.auto_cleanup = auto_cleanup
         self.disable_escape_key = disable_escape_key
         self._vbox = vbox = QtWidgets.QVBoxLayout(self)
-        self._label = label = QLabel(message)
+        self._label = label = QtWidgets.QLabel(message)
         vbox.addWidget(label)
         self.accepted.connect(self.on_accepted)
         self.rejected.connect(self.on_rejected)
@@ -437,11 +437,11 @@ def line_dialog(parent, title, label, ok_label, default=None,
     if isinstance(icon, QIcon):
         hbox = QtWidgets.QHBoxLayout()
         hbox.setContentsMargins(0,0,0,0)
-        ic_lbl = QLabel()
+        ic_lbl = QtWidgets.QLabel()
         ic_lbl.setPixmap(icon.pixmap(50))
         hbox.addWidget(ic_lbl)
         hbox.addItem(QSpacerItem(10, 1))
-        t_lbl = QLabel("<font size=+1><b>" + title + "</b></font>")
+        t_lbl = QtWidgets.QLabel("<font size=+1><b>" + title + "</b></font>")
         hbox.addWidget(t_lbl, 0, Qt.AlignLeft)
         hbox.addStretch(1)
         l.addLayout(hbox)
@@ -472,7 +472,7 @@ def text_dialog(parent, title, label, ok_label, default=None, allow_multi=False)
     dialog.setMinimumWidth(500)
     l = QtWidgets.QVBoxLayout()
     dialog.setLayout(l)
-    l.addWidget(QLabel(label))
+    l.addWidget(QtWidgets.QLabel(label))
     txt = ScanQRTextEdit(allow_multi=allow_multi)
     if default:
         txt.setText(default)
@@ -520,7 +520,7 @@ def address_combo(addresses):
     addr_combo.setCurrentIndex(0)
 
     hbox = QtWidgets.QHBoxLayout()
-    hbox.addWidget(QLabel(_('Address to sweep to:')))
+    hbox.addWidget(QtWidgets.QLabel(_('Address to sweep to:')))
     hbox.addWidget(addr_combo)
     return hbox, addr_combo
 
