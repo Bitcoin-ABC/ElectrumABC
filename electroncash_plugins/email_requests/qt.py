@@ -38,7 +38,6 @@ from email.mime.base import MIMEBase
 from email.encoders import encode_base64
 
 from PyQt5.QtCore import QObject, pyqtSignal
-from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
 from electroncash.plugins import BasePlugin, hook

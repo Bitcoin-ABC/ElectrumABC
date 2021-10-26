@@ -42,7 +42,7 @@ import tempfile
 import traceback
 import urllib.parse
 
-from PyQt5.QtGui import *
+from PyQt5 import Qt
 from PyQt5.QtWidgets import *
 
 ## Start copied from .util

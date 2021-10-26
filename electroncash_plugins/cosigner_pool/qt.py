@@ -31,7 +31,6 @@ import sys, traceback, queue
 from xmlrpc.client import ServerProxy, Transport
 import http.client
 
-from PyQt5.QtGui import *
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import *
 

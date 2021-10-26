@@ -32,7 +32,7 @@ from electroncash.plugins import run_hook
 from electroncash.util import PrintError
 from electroncash.constants import PROJECT_NAME
 
-from PyQt5.QtGui import *
+from PyQt5.QtGui import QCursor, QIcon, QFont
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import *
 

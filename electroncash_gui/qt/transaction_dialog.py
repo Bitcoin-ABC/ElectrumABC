@@ -31,8 +31,8 @@ import time
 
 from enum import Enum, auto
 
-from PyQt5.QtCore import QTimer, QUrl, pyqtSignal
-from PyQt5.QtGui import *
+from PyQt5.QtCore import QTimer, Qt, QUrl, pyqtSignal
+from PyQt5.QtGui import QBrush, QCursor, QFont, QIcon, QKeySequence, QTextCharFormat
 from PyQt5.QtWidgets import *
 
 from electroncash import cashacct

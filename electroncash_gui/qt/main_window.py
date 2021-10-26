@@ -42,10 +42,11 @@ from PyQt5.QtCore import (
     QStringListModel,
     Qt,
     QTimer,
+    pyqtBoundSignal,
     pyqtSignal,
     qVersion,
 )
-from PyQt5.QtGui import *
+from PyQt5.QtGui import QColor, QCursor, QFont, QIcon, QKeySequence, QTextOption
 from PyQt5.QtWidgets import *
 from collections import OrderedDict
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal

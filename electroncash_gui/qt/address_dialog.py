@@ -29,7 +29,7 @@ from electroncash.address import Address
 from electroncash.util import PrintError
 
 from PyQt5.QtCore import QTimer
-from PyQt5.QtGui import *
+from PyQt5.QtGui import QCursor
 from PyQt5.QtWidgets import *
 
 from .history_list import HistoryList

@@ -6,7 +6,7 @@
 #
 # LICENSE: MIT
 #
-from PyQt5.QtGui import *
+from PyQt5.QtGui import QBrush, QColor, QPainter, QPalette, QPen
 from PyQt5.QtCore import (
     QAbstractAnimation,
     QEvent,
@@ -15,6 +15,7 @@ from PyQt5.QtCore import (
     QPointF,
     QPropertyAnimation,
     QRectF,
+    Qt,
     QTimer,
     pyqtProperty,
     pyqtSignal,

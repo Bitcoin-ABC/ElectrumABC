@@ -1,4 +1,4 @@
-from PyQt5.QtGui import *
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QVBoxLayout, QGridLayout, QPushButton)
 from electroncash.plugins import BasePlugin, hook
 from electroncash.i18n import _

@@ -7,8 +7,8 @@ import time
 import threading
 import traceback
 
-from PyQt5.QtCore import QEventLoop, QThread, pyqtSignal
-from PyQt5.QtGui import *
+from PyQt5.QtCore import QEventLoop, QRect, Qt, QThread, pyqtSignal
+from PyQt5.QtGui import QIcon, QPainter, QPalette, QPen
 from PyQt5.QtWidgets import *
 
 from electroncash import keystore, Wallet, WalletStorage

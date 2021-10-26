@@ -36,7 +36,7 @@ from typing import Callable
 try:
     import PyQt5
     from PyQt5 import QtCore
-    from PyQt5.QtGui import *
+    from PyQt5.QtGui import QGuiApplication, QIcon, QFontDatabase, QScreen
     from PyQt5.QtWidgets import *
 except Exception:
     if sys.platform.startswith('win'):
