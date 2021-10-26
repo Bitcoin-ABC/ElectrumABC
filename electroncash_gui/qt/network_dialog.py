@@ -145,10 +145,10 @@ class NetworkDialog(MessageBoxMixin, QtWidgets.QDialog):
 
 
 
-class NodesListWidget(QTreeWidget):
+class NodesListWidget(QtWidgets.QTreeWidget):
 
     def __init__(self, parent):
-        QTreeWidget.__init__(self)
+        QtWidgets.QTreeWidget.__init__(self)
         self.parent = parent
         self.setHeaderLabels([_('Connected node'), '', _('Height')])
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -232,9 +232,9 @@ class NodesListWidget(QTreeWidget):
 
         h = self.header()
         h.setStretchLastSection(False)
-        h.setSectionResizeMode(0, QHeaderView.Stretch)
-        h.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        h.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        h.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        h.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+        h.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
 
 
 class ServerFlag:
@@ -256,10 +256,10 @@ class ServerFlag:
         BadCertificate: ""
     }
 
-class ServerListWidget(QTreeWidget):
+class ServerListWidget(QtWidgets.QTreeWidget):
 
     def __init__(self, parent):
-        QTreeWidget.__init__(self)
+        QtWidgets.QTreeWidget.__init__(self)
         self.parent = parent
         self.setHeaderLabels(['', _('Host'), '', _('Port')])
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -384,10 +384,10 @@ class ServerListWidget(QTreeWidget):
 
         h = self.header()
         h.setStretchLastSection(False)
-        h.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        h.setSectionResizeMode(1, QHeaderView.Stretch)
-        h.setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        h.setSectionResizeMode(3, QHeaderView.ResizeToContents)
+        h.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
+        h.setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
+        h.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
+        h.setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)
 
 
 class NetworkChoiceLayout(QObject, PrintError):
@@ -1053,7 +1053,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         d = WindowModalDialog(parent.top_level_window(), _("Banned Servers"))
         vbox = QtWidgets.QVBoxLayout(d)
         vbox.addWidget(QtWidgets.QLabel(_("Banned Servers") + " ({})".format(len(bl))))
-        tree = QTreeWidget()
+        tree = QtWidgets.QTreeWidget()
         tree.setHeaderLabels([_('Host'), _('Port')])
         for s in bl:
             host, port, protocol = deserialize_server(s)
@@ -1063,8 +1063,8 @@ class NetworkChoiceLayout(QObject, PrintError):
         tree.setIndentation(3)
         h = tree.header()
         h.setStretchLastSection(False)
-        h.setSectionResizeMode(0, QHeaderView.Stretch)
-        h.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        h.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        h.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
         vbox.addWidget(tree)
 
         clear_but = QtWidgets.QPushButton(_("Clear ban list"))

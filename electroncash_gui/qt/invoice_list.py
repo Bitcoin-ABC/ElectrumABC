@@ -26,9 +26,6 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import (
-    QHeaderView,
-)
 
 from .util import (
     MONOSPACE_FONT,
@@ -48,7 +45,7 @@ class InvoiceList(MyTreeWidget):
     def __init__(self, parent):
         MyTreeWidget.__init__(self, parent, self.create_menu, [_('Expires'), _('Requestor'), _('Description'), _('Amount'), _('Status')], 2)
         self.setSortingEnabled(True)
-        self.header().setSectionResizeMode(1, QHeaderView.Interactive)
+        self.header().setSectionResizeMode(1, QtWidgets.QHeaderView.Interactive)
         self.setColumnWidth(1, 200)
 
     def on_update(self):

@@ -152,7 +152,7 @@ class ContactList(PrintError, MyTreeWidget):
                 _(f"{PROJECT_NAME} was unable to export your contacts.")
                 + "\n" + repr(e))
 
-    def find_item(self, key: Contact) -> QTreeWidgetItem:
+    def find_item(self, key: Contact) -> QtWidgets.QTreeWidgetItem:
         ''' Rather than store the item reference in a lambda, we store its key.
         Storing the item reference can lead to C++ Runtime Errors if the
         underlying QTreeWidgetItem is deleted on .update() while the right-click
@@ -169,7 +169,7 @@ class ContactList(PrintError, MyTreeWidget):
             self.editItem(item, column)
 
     @staticmethod
-    def _i2c(item : QTreeWidgetItem) -> Contact:
+    def _i2c(item : QtWidgets.QTreeWidgetItem) -> Contact:
         return item.data(0, ContactList.DataRoles.Contact)
 
     def _get_ca_unverified(self, include_temp=False) -> Set[Contact]:
@@ -307,7 +307,7 @@ class ContactList(PrintError, MyTreeWidget):
             tip = _("Your own Cash Accounts are now shown")
         else:
             tip = _("Your own Cash Accounts are now hidden")
-        QToolTip.showText(QCursor.pos(), tip, self)
+        QtWidgets.QToolTip.showText(QCursor.pos(), tip, self)
 
     def get_full_contacts(self, include_pseudo: bool = True) -> List[Contact]:
         ''' Returns all the contacts, with the "My CashAcct" pseudo-contacts

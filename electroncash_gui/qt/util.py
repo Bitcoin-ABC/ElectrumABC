@@ -24,7 +24,6 @@ from PyQt5.QtGui import (
     QPixmap,
 )
 from PyQt5.QtCore import QObject, Qt, QThread, QTimer, pyqtSignal
-from PyQt5.QtWidgets import *
 from PyQt5 import QtWidgets
 
 if platform.system() == 'Windows':
@@ -254,7 +253,7 @@ class MessageBoxMixin:
                 defaultButton=QtWidgets.QMessageBox.NoButton,  # IFF buttons is a list, use a string appearing in the list to specify this
                 rich_text=False, detail_text=None, informative_text=None,
                 checkbox_text=None, checkbox_ischecked=False,  # If checkbox_text is set, will add a checkbox, and return value becomes a tuple (result(), isChecked())
-                escapeButton=QMessageBox.NoButton,  # IFF buttons is a list, use a string appearing in the list to specify this
+                escapeButton=QtWidgets.QMessageBox.NoButton,  # IFF buttons is a list, use a string appearing in the list to specify this
                 app_modal=False  # IFF true, set the popup window to be application modal
                 ):
         ''' Note about 'new' msg_box API (this applies to all of the above functions that call into this as well):
@@ -572,7 +571,7 @@ class ElectrumItemDelegate(QtWidgets.QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         return self.parent().createEditor(parent, option, index)
 
-class MyTreeWidget(QTreeWidget):
+class MyTreeWidget(QtWidgets.QTreeWidget):
 
     class SortSpec(namedtuple("SortSpec", "column, qt_sort_order")):
         ''' Used to specify member: default_sort '''
@@ -603,7 +602,7 @@ class MyTreeWidget(QTreeWidget):
     def __init__(self, parent, create_menu, headers, stretch_column=None,
                  editable_columns=None,
                  *, deferred_updates=False, save_sort_settings=False):
-        QTreeWidget.__init__(self, parent)
+        QtWidgets.QTreeWidget.__init__(self, parent)
         self.parent = parent
         self.config = self.parent.config
         self.stretch_column = stretch_column
@@ -658,7 +657,7 @@ class MyTreeWidget(QTreeWidget):
         self.setHeaderLabels(headers)
         self.header().setStretchLastSection(False)
         for col in range(len(headers)):
-            sm = QHeaderView.Stretch if col == self.stretch_column else QHeaderView.ResizeToContents
+            sm = QtWidgets.QHeaderView.Stretch if col == self.stretch_column else QtWidgets.QHeaderView.ResizeToContents
             self.header().setSectionResizeMode(col, sm)
 
     def editItem(self, item, column):
@@ -1342,7 +1341,7 @@ def webopen(url: str):
     else:
         webbrowser.open(url)
 
-class TextBrowserKeyboardFocusFilter(QTextBrowser):
+class TextBrowserKeyboardFocusFilter(QtWidgets.QTextBrowser):
     """
     This is a QTextBrowser that only enables keyboard text selection when the focus reason is
     keyboard shortcuts or when a key is pressed while focused. Any other focus reason will

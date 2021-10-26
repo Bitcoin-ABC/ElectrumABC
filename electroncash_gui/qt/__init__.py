@@ -37,7 +37,6 @@ try:
     import PyQt5
     from PyQt5 import QtCore
     from PyQt5.QtGui import QGuiApplication, QIcon, QFontDatabase, QScreen
-    from PyQt5.QtWidgets import *
     from PyQt5 import QtWidgets
 except Exception:
     if sys.platform.startswith('win'):
@@ -227,7 +226,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         self.update_checker.got_new_version.connect(self.on_new_version)
         # init tray
         self.dark_icon = self.config.get("dark_icon", False)
-        self.tray = QSystemTrayIcon(self.tray_icon(), self)
+        self.tray = QtWidgets.QSystemTrayIcon(self.tray_icon(), self)
         self.tray.setToolTip(f'{PROJECT_NAME}')
         self.tray.activated.connect(self.tray_activated)
         self.build_tray_menu()
@@ -513,7 +512,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         self.tray.setIcon(self.tray_icon())
 
     def tray_activated(self, reason):
-        if reason == QSystemTrayIcon.DoubleClick:
+        if reason == QtWidgets.QSystemTrayIcon.DoubleClick:
             if all([w.is_hidden() for w in self.windows]):
                 for w in self.windows:
                     w.bring_to_top()
@@ -916,7 +915,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
                                       20000)
             except TypeError:
                 self.tray.showMessage(f"{PROJECT_NAME}", message,
-                                      QSystemTrayIcon.Information, 20000)
+                                      QtWidgets.QSystemTrayIcon.Information, 20000)
 
     def is_cashaddr(self) -> bool:
         return bool(self.get_config_addr_format() == Address.FMT_CASHADDR)

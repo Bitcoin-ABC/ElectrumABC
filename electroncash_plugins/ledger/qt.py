@@ -1,7 +1,7 @@
 from functools import partial
 
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import  *
+from PyQt5.QtCore import pyqtSignal
 
 from electroncash.i18n import _
 from electroncash.plugins import hook

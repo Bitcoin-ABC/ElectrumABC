@@ -1275,7 +1275,7 @@ class WalletSettingsDialog(WindowModalDialog):
 
         self.amt_selector_size = BTCAmountEdit(main_window.get_decimal_point)
         grid.addWidget(self.amt_selector_size, 0, 1)
-        self.sb_selector_fraction = QDoubleSpinBox()
+        self.sb_selector_fraction = QtWidgets.QDoubleSpinBox()
         self.sb_selector_fraction.setRange(0.1, 100.)
         self.sb_selector_fraction.setSuffix("%")
         self.sb_selector_fraction.setDecimals(1)
@@ -1586,7 +1586,7 @@ class ServerWidget(ServerFusionsBaseMixin, QtWidgets.QWidget):
         self.l_server_status = QtWidgets.QLabel()
         slayout.addWidget(self.l_server_status)
 
-        self.t_server_waiting = QTableWidget()
+        self.t_server_waiting = QtWidgets.QTableWidget()
         self.t_server_waiting.setColumnCount(3)
         self.t_server_waiting.setRowCount(len(Params.tiers))
         self.t_server_waiting.setHorizontalHeaderLabels([_('Tier (sats)'), _('Num players'), ''])
@@ -1607,8 +1607,8 @@ class ServerWidget(ServerFusionsBaseMixin, QtWidgets.QWidget):
             table = self.t_server_waiting
             table.setRowCount(len(self.plugin.fusion_server.waiting_pools))
             for i,(t,pool) in enumerate(self.plugin.fusion_server.waiting_pools.items()):
-                table.setItem(i,0,QTableWidgetItem(str(t)))
-                table.setItem(i,1,QTableWidgetItem(str(len(pool.pool))))
+                table.setItem(i,0,QtWidgets.QTableWidgetItem(str(t)))
+                table.setItem(i,1,QtWidgets.QTableWidgetItem(str(len(pool.pool))))
         else:
             self.t_server_waiting.setEnabled(False)
             self.l_server_status.setText(_('Server status: NOT RUNNING'))
@@ -1637,7 +1637,7 @@ class FusionsWindow(ServerFusionsBaseMixin, QtWidgets.QDialog):
 
         clayout = QtWidgets.QVBoxLayout(clientbox)
 
-        self.t_active_fusions = QTreeWidget()
+        self.t_active_fusions = QtWidgets.QTreeWidget()
         self.t_active_fusions.setHeaderLabels([_('Wallet'), _('Status'), _('Status Extra')])
         self.t_active_fusions.setContextMenuPolicy(Qt.CustomContextMenu)
         self.t_active_fusions.customContextMenuRequested.connect(self.create_menu_active_fusions)

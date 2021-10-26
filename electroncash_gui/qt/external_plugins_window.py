@@ -409,12 +409,12 @@ class ExternalPluginsDialog(WindowModalDialog, MessageBoxMixin):
             self.uninstallButton.setEnabled(False)
 
 
-class ExternalPluginTable(QTableWidget):
+class ExternalPluginTable(QtWidgets.QTableWidget):
     def __init__(self, parent, main_window):
         self.parent_widget = parent
         self.main_window = main_window
 
-        QTableWidget.__init__(self)
+        QtWidgets.QTableWidget.__init__(self)
 
         self.setAcceptDrops(True)
 
@@ -427,7 +427,7 @@ class ExternalPluginTable(QTableWidget):
 
         verticalHeader = self.verticalHeader()
         verticalHeader.setVisible(False)
-        verticalHeader.setSectionResizeMode(QHeaderView.Fixed)  # FIXME: won't look good on all platforms with all fonts
+        verticalHeader.setSectionResizeMode(QtWidgets.QHeaderView.Fixed)  # FIXME: won't look good on all platforms with all fonts
         verticalHeader.setDefaultSectionSize(80)  # FIXME: won't look good on all platforms with all fonts
         self.setStyleSheet("QTableWidget::item { padding: 10px; }")
 
@@ -496,7 +496,7 @@ class ExternalPluginTable(QTableWidget):
         header = self.horizontalHeader()
         header.setStretchLastSection(False)
         for col in range(header.count()):
-            sm = QHeaderView.Stretch if col == 1 else QHeaderView.ResizeToContents  # description field is the stretch column, others are resized to contents
+            sm = QtWidgets.QHeaderView.Stretch if col == 1 else QtWidgets.QHeaderView.ResizeToContents  # description field is the stretch column, others are resized to contents
             header.setSectionResizeMode(col, sm)
         del header
 
