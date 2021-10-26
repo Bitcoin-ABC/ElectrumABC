@@ -2,7 +2,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QBrush, QColor, QCursor, QPainter, QPen
 from PyQt5.QtWidgets import (
-    QApplication, QTextEdit, QPushButton,
+    QApplication, QTextEdit,
     QSizePolicy)
 from PyQt5 import QtWidgets
 
@@ -139,12 +139,12 @@ class QRDialog(WindowModalDialog):
         weakSelf = util.Weak.ref(self)
         weakQ = util.Weak.ref(qrw)
 
-        b = QPushButton(_("&Copy"))
+        b = QtWidgets.QPushButton(_("&Copy"))
         hbox.addWidget(b)
         weakBut = util.Weak.ref(b)
         b.clicked.connect(lambda: copy_to_clipboard(weakQ(), weakBut()))
 
-        b = QPushButton(_("&Save"))
+        b = QtWidgets.QPushButton(_("&Save"))
         hbox.addWidget(b)
         b.clicked.connect(lambda: save_to_file(weakQ(), weakSelf()))
 

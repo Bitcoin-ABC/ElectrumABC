@@ -142,8 +142,8 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
 
             hbox = QtWidgets.QHBoxLayout()
             vbox.addLayout(hbox)
-            self.installButton = QPushButton("Install")
-            self.cancelButton = QPushButton("Close")
+            self.installButton = QtWidgets.QPushButton("Install")
+            self.cancelButton = QtWidgets.QPushButton("Close")
             self.cancelButton.setDefault(True)
             if sys.platform == 'darwin':
                 # macOS convention is Cancel-on-left, "Action" on right
@@ -164,7 +164,7 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
         else:
             hbox = QtWidgets.QHBoxLayout()
             vbox.addLayout(hbox)
-            self.cancelButton = QPushButton("Close")
+            self.cancelButton = QtWidgets.QPushButton("Close")
             self.cancelButton.setDefault(True)
             hbox.addStretch(1)
             hbox.addWidget(self.cancelButton)
@@ -291,12 +291,12 @@ class ExternalPluginsDialog(WindowModalDialog, MessageBoxMixin):
 
         # The row of buttons under the plugin list for actions related to the plugins within it.
         hbox = QtWidgets.QHBoxLayout()
-        self.installButton = QPushButton(_("Add Plugin"))
+        self.installButton = QtWidgets.QPushButton(_("Add Plugin"))
         hbox.addWidget(self.installButton)
         hbox.addStretch(1)
-        self.settingsButton = QPushButton(_("Settings"))
-        self.toggleButton = QPushButton("")
-        self.uninstallButton = QPushButton(_("Uninstall"))
+        self.settingsButton = QtWidgets.QPushButton(_("Settings"))
+        self.toggleButton = QtWidgets.QPushButton("")
+        self.uninstallButton = QtWidgets.QPushButton(_("Uninstall"))
         hbox.addWidget(self.settingsButton)
         hbox.addWidget(self.toggleButton)
         hbox.addWidget(self.uninstallButton)

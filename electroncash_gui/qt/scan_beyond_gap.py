@@ -74,8 +74,8 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
         self.found_label = QtWidgets.QLabel()
         vbox.addWidget(self.found_label)
         vbox.addStretch(1)
-        self.cancel_but = QPushButton(_("Cancel"))
-        self.scan_but = QPushButton(_("Start Scan"))
+        self.cancel_but = QtWidgets.QPushButton(_("Cancel"))
+        self.scan_but = QtWidgets.QPushButton(_("Start Scan"))
         vbox.addLayout(Buttons(self.cancel_but, self.scan_but))
 
         self.cancel_but.clicked.connect(self.cancel)

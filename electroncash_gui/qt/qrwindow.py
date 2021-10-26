@@ -25,7 +25,7 @@
 # SOFTWARE.
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QPushButton, QSizePolicy
+from PyQt5.QtWidgets import QSizePolicy
 from PyQt5 import QtWidgets
 
 
@@ -74,8 +74,8 @@ class QR_Window(QtWidgets.QWidget, MessageBoxMixin):
 
         vbox.addStretch(2)
 
-        copyBut = QPushButton(_("Copy QR Image"))
-        saveBut = QPushButton(_("Save QR Image"))
+        copyBut = QtWidgets.QPushButton(_("Copy QR Image"))
+        saveBut = QtWidgets.QPushButton(_("Save QR Image"))
         vbox.addLayout(Buttons(copyBut, saveBut))
 
         weakSelf = Weak.ref(self)  # Qt & Python GC hygeine: don't hold references to self in non-method slots as it appears Qt+Python GC don't like this too much and may leak memory in that case.

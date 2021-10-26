@@ -59,9 +59,9 @@ from electroncash.i18n import _
 
 
 
-class EnterButton(QPushButton):
+class EnterButton(QtWidgets.QPushButton):
     def __init__(self, text, func):
-        QPushButton.__init__(self, text)
+        QtWidgets.QPushButton.__init__(self, text)
         self.func = func
         self.clicked.connect(func)
 
@@ -72,9 +72,9 @@ class EnterButton(QPushButton):
             super().keyPressEvent(e)
 
 
-class ThreadedButton(QPushButton):
+class ThreadedButton(QtWidgets.QPushButton):
     def __init__(self, text, task, on_success=None, on_error=None):
-        QPushButton.__init__(self, text)
+        QtWidgets.QPushButton.__init__(self, text)
         self.task = task
         self.thread = None
         self.on_success = on_success
@@ -133,10 +133,10 @@ class HelpLabel(HelpMixin, QtWidgets.QLabel):
         self.setFont(self.font)
         return QtWidgets.QLabel.leaveEvent(self, event)
 
-class HelpButton(HelpMixin, QPushButton):
+class HelpButton(HelpMixin, QtWidgets.QPushButton):
     def __init__(self, text, *, button_text='?', fixed_size=True, icon=None,
                  tool_tip=None, custom_parent=None):
-        QPushButton.__init__(self, button_text or '')
+        QtWidgets.QPushButton.__init__(self, button_text or '')
         HelpMixin.__init__(self, text, custom_parent=custom_parent)
         self.setToolTip(tool_tip or _("Show help"))
         self.setCursor(QCursor(Qt.PointingHandCursor))
@@ -161,37 +161,37 @@ class Buttons(QtWidgets.QHBoxLayout):
         for b in buttons:
             self.addWidget(b)
 
-class CloseButton(QPushButton):
+class CloseButton(QtWidgets.QPushButton):
     def __init__(self, dialog):
-        QPushButton.__init__(self, _("C&lose"))
+        QtWidgets.QPushButton.__init__(self, _("C&lose"))
         self.clicked.connect(dialog.close)
         self.setDefault(True)
 
-class CopyButton(QPushButton):
+class CopyButton(QtWidgets.QPushButton):
     def __init__(self, text_getter, app=None, callback=None):
-        QPushButton.__init__(self, _("&Copy"))
+        QtWidgets.QPushButton.__init__(self, _("&Copy"))
         if not app:
             app = QApplication.instance()
         self.clicked.connect(lambda: app.clipboard().setText(text_getter()))
         if callback:
             self.clicked.connect(callback)
 
-class CopyCloseButton(QPushButton):
+class CopyCloseButton(QtWidgets.QPushButton):
     def __init__(self, text_getter, app, dialog):
-        QPushButton.__init__(self, _("&Copy and Close"))
+        QtWidgets.QPushButton.__init__(self, _("&Copy and Close"))
         self.clicked.connect(lambda: app.clipboard().setText(text_getter()))
         self.clicked.connect(dialog.close)
         self.setDefault(True)
 
-class OkButton(QPushButton):
+class OkButton(QtWidgets.QPushButton):
     def __init__(self, dialog, label=None):
-        QPushButton.__init__(self, label or _("&OK"))
+        QtWidgets.QPushButton.__init__(self, label or _("&OK"))
         self.clicked.connect(dialog.accept)
         self.setDefault(True)
 
-class CancelButton(QPushButton):
+class CancelButton(QtWidgets.QPushButton):
     def __init__(self, dialog, label=None):
-        QPushButton.__init__(self, label or _("C&ancel"))
+        QtWidgets.QPushButton.__init__(self, label or _("C&ancel"))
         self.clicked.connect(dialog.reject)
 
 class MessageBoxMixin:
@@ -552,7 +552,7 @@ def filename_field(config, defaultname, select_msg):
         if p:
             filename_e.setText(p)
 
-    button = QPushButton(_('File'))
+    button = QtWidgets.QPushButton(_('File'))
     button.clicked.connect(func)
     hbox.addWidget(button)
     hbox.addWidget(filename_e)
@@ -894,7 +894,7 @@ class OverlayControlMixin:
 
         Use `index` to insert it not at the end of the layout by anywhere in the
         layout. If None, it will be appended to the right of the layout. '''
-        button = QPushButton(self.overlay_widget)
+        button = QtWidgets.QPushButton(self.overlay_widget)
         button.setToolTip(tooltip)
         button.setCursor(QCursor(Qt.PointingHandCursor))
         if icon_name:

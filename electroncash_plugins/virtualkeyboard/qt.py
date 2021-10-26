@@ -1,5 +1,5 @@
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QPushButton
+from PyQt5 import QtWidgets
 from electroncash.plugins import BasePlugin, hook
 from electroncash.i18n import _
 from electroncash_gui.qt.util import MONOSPACE_FONT
@@ -12,7 +12,7 @@ class Plugin(BasePlugin):
 
     @hook
     def password_dialog(self, pw, grid, pos):
-        vkb_button = QPushButton(_("+"))
+        vkb_button = QtWidgets.QPushButton(_("+"))
         vkb_button.setFixedWidth(20)
         vkb_button.clicked.connect(lambda: self.toggle_vkb(grid, pw))
         grid.addWidget(vkb_button, pos, 2)
@@ -46,7 +46,7 @@ class Plugin(BasePlugin):
         grid.setSpacing(2)
         font = QFont(MONOSPACE_FONT)
         for i,c in enumerate(s):
-            l_button = QPushButton(c)
+            l_button = QtWidgets.QPushButton(c)
             l_button.setFont(font)
             l_button.clicked.connect(add_target(c))
             grid.addWidget(l_button, i // 6, i % 6)

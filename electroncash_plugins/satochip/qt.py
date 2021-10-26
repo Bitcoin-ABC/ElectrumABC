@@ -4,7 +4,7 @@ from electroncash.plugins import run_hook
 from electroncash_gui.qt.util import EnterButton, Buttons, CloseButton, OkButton, CancelButton, WindowModalDialog, WWLabel
 
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import QPushButton
+from PyQt5.QtWidgets import QtWidgets.QPushButton
 from PyQt5 import QtWidgets
 from functools import partial
 
@@ -114,12 +114,12 @@ class SatochipSettingsDialog(WindowModalDialog):
 
         body_layout.addLayout(grid)
 
-        pin_btn = QPushButton('Change PIN')
+        pin_btn = QtWidgets.QPushButton('Change PIN')
         def _change_pin():
             thread.add(connect_and_doit, on_success=self.change_pin)
         pin_btn.clicked.connect(_change_pin)
 
-        seed_btn = QPushButton('reset seed')
+        seed_btn = QtWidgets.QPushButton('reset seed')
         def _reset_seed():
             thread.add(connect_and_doit, on_success=self.reset_seed)
             thread.add(connect_and_doit, on_success=self.show_values)

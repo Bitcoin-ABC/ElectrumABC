@@ -454,7 +454,7 @@ class InfoGroupBox(PrintError, QGroupBox):
                         button_make_naked(ab)
                         hbox.addWidget(ab)
             # copy button
-            copy_but = QPushButton(QIcon(":icons/copy.png"), "")
+            copy_but = QtWidgets.QPushButton(QIcon(":icons/copy.png"), "")
             button_make_naked(copy_but)
             hbox.addWidget(copy_but)
             grid.addLayout(hbox, row*3, col*5+3, 1, 1)
@@ -606,7 +606,7 @@ def lookup_cash_account_dialog(
                         f"and {PROJECT_NAME} will search for the contact and "
                         f"present you with its resolved address."))
     label.setBuddy(acct)
-    search = QPushButton(_("Lookup"))
+    search = QtWidgets.QPushButton(_("Lookup"))
     search.setEnabled(False)
     grid.addWidget(label, 0, 0, 1, 1, Qt.AlignRight)
     grid.addWidget(acct, 0, 1, 1, 1, Qt.AlignLeft)
@@ -621,10 +621,10 @@ def lookup_cash_account_dialog(
     extra_buttons = []
     # Extra Buttons
     if add_to_contacts_button:
-        def create_add_to_contacts_button_callback(item: tuple) -> QPushButton:
+        def create_add_to_contacts_button_callback(item: tuple) -> QtWidgets.QPushButton:
             info, min_chash, ca_string = item
             ca_string_em = wallet.cashacct.fmt_info(info, min_chash, emoji=True)
-            but = QPushButton(QIcon(":icons/tab_contacts.png"), "")
+            but = QtWidgets.QPushButton(QIcon(":icons/tab_contacts.png"), "")
             if isinstance(info.address, Address):
                 if ca_string in all_cashacct_contacts or wallet.is_mine(info.address):
                     but.setDisabled(True)
@@ -656,7 +656,7 @@ def lookup_cash_account_dialog(
             info, min_chash, ca_string = item
             ca_string_em = wallet.cashacct.fmt_info(info, min_chash, emoji=True)
             icon_file = ":icons/paper-plane.svg" if not ColorScheme.dark_scheme else ":icons/paper-plane_dark_theme.svg"
-            but = QPushButton(QIcon(icon_file), "")
+            but = QtWidgets.QPushButton(QIcon(icon_file), "")
             if isinstance(info.address, Address):
                 payto_str = _("Pay to")
                 but.setToolTip(f'<span style="white-space:nowrap">{payto_str}<br>&nbsp;&nbsp;&nbsp;<b>{ca_string_em}</b></span>')
@@ -858,7 +858,7 @@ def cash_account_detail_dialog(parent : MessageBoxMixin,  # Should be an Electru
     name_lbl = QtWidgets.QLabel(name_txt)
     grid.addWidget(name_lbl, 0, 1, 1, 1)
     # copy name
-    copy_name_but = QPushButton()
+    copy_name_but = QtWidgets.QPushButton()
     copy_name_but.setIcon(QIcon(":icons/copy.png"))
     button_make_naked(copy_name_but)
     copy_name_but.setToolTip('<span style="white-space:nowrap">'
@@ -872,7 +872,7 @@ def cash_account_detail_dialog(parent : MessageBoxMixin,  # Should be an Electru
     addr_lbl.linkActivated.connect(open_link)
     grid.addWidget(addr_lbl, 1, 1, 1, 1)
     # copy address label
-    copy_addr_but = QPushButton()
+    copy_addr_but = QtWidgets.QPushButton()
     copy_addr_but.setIcon(QIcon(":icons/copy.png"))
     button_make_naked(copy_addr_but)
     copy_addr_but.setToolTip(_("Copy {}").format(_("Address")))
@@ -908,7 +908,7 @@ def cash_account_detail_dialog(parent : MessageBoxMixin,  # Should be an Electru
 
     grid.addWidget(tabs, 3, 0, 1, -1, Qt.AlignTop | Qt.AlignHCenter)
 
-    def_but = QPushButton()
+    def_but = QtWidgets.QPushButton()
     mk_def_txt = _("Make default for address")
     is_def_txt = _("Is default for address")
     mk_def_tt = _("Make this Cash Account the default for this address")

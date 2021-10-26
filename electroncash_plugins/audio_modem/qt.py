@@ -11,7 +11,7 @@ from electroncash.util import print_msg, print_error
 from electroncash.i18n import _
 
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import (QComboBox, QPushButton)
+from PyQt5.QtWidgets import QComboBox
 from PyQt5 import QtWidgets
 
 
@@ -76,7 +76,7 @@ class Plugin(BasePlugin):
         combo.currentIndexChanged.connect(_index_changed)
         layout.addWidget(combo, 0, 1)
 
-        ok_button = QPushButton(_("OK"))
+        ok_button = QtWidgets.QPushButton(_("OK"))
         ok_button.clicked.connect(d.accept)
         layout.addWidget(ok_button, 1, 1)
 
@@ -84,7 +84,7 @@ class Plugin(BasePlugin):
 
     @hook
     def transaction_dialog(self, dialog):
-        b = QPushButton()
+        b = QtWidgets.QPushButton()
         b.setIcon(QIcon(":icons/speaker.png"))
 
         def handler():

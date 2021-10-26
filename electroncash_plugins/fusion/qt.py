@@ -468,7 +468,7 @@ class Plugin(FusionPlugin, QObject):
         return True
     def settings_widget(self, window):
         # called from main_window.py internal_plugins_dialog
-        btn = QPushButton(_('Settings'))
+        btn = QtWidgets.QPushButton(_('Settings'))
         btn.clicked.connect(self.show_settings_dialog)
         return btn
 
@@ -974,7 +974,7 @@ class SettingsWidget(QtWidgets.QWidget):
         hbox.addWidget(self.le_tor_port)
         self.l_tor_status = QtWidgets.QLabel()
         hbox.addWidget(self.l_tor_status)
-        self.b_tor_refresh = QPushButton()
+        self.b_tor_refresh = QtWidgets.QPushButton()
         self.b_tor_refresh.clicked.connect(self.torscanthread_ping.set)
         self.b_tor_refresh.setIcon(self.style().standardIcon(QStyle.SP_BrowserReload))
         self.b_tor_refresh.setDefault(False); self.b_tor_refresh.setAutoDefault(False)
@@ -983,7 +983,7 @@ class SettingsWidget(QtWidgets.QWidget):
         self.cb_tor_auto.clicked.connect(self.cb_tor_auto_clicked)
         hbox.addWidget(self.cb_tor_auto)
 
-        btn = QPushButton(_("Fusions...")); btn.setDefault(False); btn.setAutoDefault(False)
+        btn = QtWidgets.QPushButton(_("Fusions...")); btn.setDefault(False); btn.setAutoDefault(False)
         btn.clicked.connect(self.plugin.show_util_window)
         buts = Buttons(btn)
         buts.setAlignment(Qt.AlignRight | Qt.AlignTop)
@@ -1591,7 +1591,7 @@ class ServerWidget(ServerFusionsBaseMixin, QtWidgets.QWidget):
         self.t_server_waiting.setRowCount(len(Params.tiers))
         self.t_server_waiting.setHorizontalHeaderLabels([_('Tier (sats)'), _('Num players'), ''])
         for i, t in enumerate(Params.tiers):
-            button = QPushButton(_("Start"))
+            button = QtWidgets.QPushButton(_("Start"))
             button.setDefault(False); button.setAutoDefault(False)  # on some platforms if we don't do this, one of the buttons traps "Enter" key
             button.clicked.connect(partial(self.clicked_start_fuse, t))
             self.t_server_waiting.setCellWidget(i, 2, button)

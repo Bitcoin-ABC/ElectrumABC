@@ -254,7 +254,7 @@ class Plugin(BasePlugin):
     def transaction_dialog(self, d):
         window, state = self._find_window_and_state_for_wallet(d.wallet)
         if window and state:
-            d.cosigner_send_button = b = QPushButton(_("Send to cosigner"))
+            d.cosigner_send_button = b = QtWidgets.QPushButton(_("Send to cosigner"))
             b.wallet_ref = Weak.ref(window.wallet)
             b.clicked.connect(lambda: Plugin.do_send_static(d))
             d.buttons.insert(0, b)

@@ -156,28 +156,28 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
 
         self.add_io(vbox)
 
-        self.freeze_button = b = QPushButton(self._make_freeze_button_text())
+        self.freeze_button = b = QtWidgets.QPushButton(self._make_freeze_button_text())
         b.setToolTip(_("Lock/unlock the coin(s) being spent in this transaction.\n\n"
                        "Use this facility if you wish to broadcast this transaction later,\n"
                        "in order to prevent its inputs from being accidentally spent."))
         b.clicked.connect(self.do_freeze_unfreeze)
 
-        self.sign_button = b = QPushButton(_("&Sign"))
+        self.sign_button = b = QtWidgets.QPushButton(_("&Sign"))
         b.clicked.connect(self.sign)
         b.setToolTip(_("Sign the transaction"))
 
-        self.broadcast_button = b = QPushButton(_("&Broadcast"))
+        self.broadcast_button = b = QtWidgets.QPushButton(_("&Broadcast"))
         b.clicked.connect(self.do_broadcast)
         b.setToolTip(_("Submit the transaction to the blockchain"))
         self.last_broadcast_time = 0
 
-        self.save_button = b = QPushButton(_("S&ave"))
+        self.save_button = b = QtWidgets.QPushButton(_("S&ave"))
         b.setToolTip(_("Save the transaction to a file"))
         b.clicked.connect(self.save)
 
         self.cancel_button = b = CloseButton(self)
 
-        self.qr_button = b = QPushButton()
+        self.qr_button = b = QtWidgets.QPushButton()
         b.setToolTip(_("Show transaction QR code"))
         b.setIcon(QIcon(icon))
         b.clicked.connect(self.show_qr)

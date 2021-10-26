@@ -114,9 +114,9 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
         versions.addWidget(self.latest_version_label)
         self.content.addLayout(versions)
 
-        close_button = QPushButton(_("Close"))
+        close_button = QtWidgets.QPushButton(_("Close"))
         close_button.clicked.connect(self.close)
-        self.cancel_or_check_button = QPushButton(_("Cancel"))
+        self.cancel_or_check_button = QtWidgets.QPushButton(_("Cancel"))
         self.cancel_or_check_button.clicked.connect(self.cancel_or_check)
         self.content.addLayout(Buttons(self.cancel_or_check_button, close_button))
         grid = QtWidgets.QGridLayout()

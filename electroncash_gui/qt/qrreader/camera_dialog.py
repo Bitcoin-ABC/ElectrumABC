@@ -31,7 +31,6 @@ import os
 from typing import List
 
 from PyQt5.QtMultimedia import QCameraInfo, QCamera, QCameraViewfinderSettings
-from PyQt5.QtWidgets import QPushButton
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QSize, QRect, Qt, pyqtSignal, PYQT_VERSION
@@ -141,7 +140,7 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QtWidgets.QDialog):
         self.flip_x.stateChanged.connect(self._on_flip_x_changed)
         controls_layout.addWidget(self.flip_x)
 
-        close_but = QPushButton(_("&Close"))
+        close_but = QtWidgets.QPushButton(_("&Close"))
         close_but.clicked.connect(self.reject)
         controls_layout.addWidget(close_but)
 

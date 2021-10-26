@@ -32,7 +32,6 @@ import grp
 
 from PyQt5.QtCore import Qt, QObject
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QPushButton
 from PyQt5 import QtWidgets
 
 from electroncash.util import _, PrintError
@@ -100,16 +99,16 @@ class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
         button_layout = QtWidgets.QHBoxLayout()
         layout.addLayout(button_layout)
 
-        close_button = QPushButton(_('&Close'))
+        close_button = QtWidgets.QPushButton(_('&Close'))
         close_button.clicked.connect(self.reject)
         button_layout.addWidget(close_button)
         button_layout.addStretch(1)
-        self.uninstall_button = QPushButton()
+        self.uninstall_button = QtWidgets.QPushButton()
         self.uninstall_button.setText(_('&Uninstall'))
         self.uninstall_button.clicked.connect(self.uninstallClicked)
         button_layout.addWidget(self.uninstall_button)
 
-        self.install_button = QPushButton()
+        self.install_button = QtWidgets.QPushButton()
         self.install_button.setText(_('&Install'))
         self.install_button.clicked.connect(self.installClicked)
         button_layout.addWidget(self.install_button)

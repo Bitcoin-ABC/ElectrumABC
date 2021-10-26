@@ -124,12 +124,12 @@ class ExceptionDialog(QtWidgets.QDialog):
 
         buttons.addStretch(1)
 
-        report_button = QPushButton(_('Open a Bug Report'))
+        report_button = QtWidgets.QPushButton(_('Open a Bug Report'))
         report_button.clicked.connect(self.send_report)
         report_button.setIcon(QIcon(":icons/tab_send.png"))
         buttons.addWidget(report_button)
 
-        close_button = QPushButton('Close')
+        close_button = QtWidgets.QPushButton('Close')
         close_button.clicked.connect(self.reject)
         buttons.addWidget(close_button)
 

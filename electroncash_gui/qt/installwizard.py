@@ -125,9 +125,9 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         self.accept_signal.connect(self.accept)
         self.title = QtWidgets.QLabel()
         self.main_widget = QtWidgets.QWidget()
-        self.back_button = QPushButton(_("Back"), self)
+        self.back_button = QtWidgets.QPushButton(_("Back"), self)
         self.back_button.setText(_('Back') if self.can_go_back() else _('Cancel'))
-        self.next_button = QPushButton(_("Next"), self)
+        self.next_button = QtWidgets.QPushButton(_("Next"), self)
         self.next_button.setDefault(True)
         self.logo = QtWidgets.QLabel()
         self.please_wait = QtWidgets.QLabel(_("Please wait..."))
@@ -174,7 +174,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         hbox.addWidget(QtWidgets.QLabel(_('Wallet') + ':'))
         self.name_e = QtWidgets.QLineEdit()
         hbox.addWidget(self.name_e)
-        button = QPushButton(_('Choose...'))
+        button = QtWidgets.QPushButton(_('Choose...'))
         hbox.addWidget(button)
         vbox.addLayout(hbox)
 
@@ -435,7 +435,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         but_title, but_action = extra_button
         hbox = QtWidgets.QHBoxLayout()
         hbox.setContentsMargins(12,24,12,12)
-        but = QPushButton(but_title)
+        but = QtWidgets.QPushButton(but_title)
         hbox.addStretch(1)
         hbox.addWidget(but)
         layout.addLayout(hbox)
@@ -533,7 +533,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         if scannable:
             hbox = QtWidgets.QHBoxLayout()
             hbox.setContentsMargins(12,24,12,12)
-            but = QPushButton(_("Scan Derivation Paths..."))
+            but = QtWidgets.QPushButton(_("Scan Derivation Paths..."))
             hbox.addStretch(1)
             hbox.addWidget(but)
             vbox.addLayout(hbox)

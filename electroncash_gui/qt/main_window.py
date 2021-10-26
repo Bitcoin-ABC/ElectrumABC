@@ -125,9 +125,9 @@ except ImportError as e:
     pass  # we tried to pre-load it, failure is ok; camera just won't be available
 
 
-class StatusBarButton(QPushButton):
+class StatusBarButton(QtWidgets.QPushButton):
     def __init__(self, icon, tooltip, func):
-        QPushButton.__init__(self, icon, '')
+        QtWidgets.QPushButton.__init__(self, icon, '')
         self.setToolTip(tooltip)
         self.setFlat(True)
         self.setMaximumWidth(25)
@@ -1301,10 +1301,10 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.expires_label.hide()
         grid.addWidget(self.expires_label, 5, 1)
 
-        self.save_request_button = QPushButton(_('&Save'))
+        self.save_request_button = QtWidgets.QPushButton(_('&Save'))
         self.save_request_button.clicked.connect(self.save_payment_request)
 
-        self.new_request_button = QPushButton(_('&Clear'))
+        self.new_request_button = QtWidgets.QPushButton(_('&Clear'))
         self.new_request_button.clicked.connect(self.new_payment_request)
 
         weakSelf = Weak.ref(self)
@@ -1343,7 +1343,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         vbox2.setSpacing(4)
         vbox2.addWidget(self.receive_qr, Qt.AlignHCenter|Qt.AlignTop)
         self.receive_qr.setToolTip(_('Receive request QR code (click for details)'))
-        but = uribut = QPushButton(_('Copy &URI'))
+        but = uribut = QtWidgets.QPushButton(_('Copy &URI'))
         def on_copy_uri():
             if self.receive_qr.data:
                 uri = str(self.receive_qr.data)
@@ -3226,7 +3226,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         keys_e.addCopyButton()
         # BIP38 Encrypt Button
         def setup_encrypt_button():
-            encrypt_but = QPushButton(_("Encrypt BIP38") + "...")
+            encrypt_but = QtWidgets.QPushButton(_("Encrypt BIP38") + "...")
             f = encrypt_but.font(); f.setPointSize(f.pointSize()-1); encrypt_but.setFont(f)  # make font -= 1
             encrypt_but.setEnabled(bool(bitcoin.Bip38Key.canEncrypt()))
             encrypt_but.setToolTip(_("Encrypt this private key using BIP38 encryption")
@@ -3352,15 +3352,15 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         hbox = QtWidgets.QHBoxLayout()
 
-        b = QPushButton(_("Sign"))
+        b = QtWidgets.QPushButton(_("Sign"))
         b.clicked.connect(lambda: self.do_sign(address_e, message_e, signature_e))
         hbox.addWidget(b)
 
-        b = QPushButton(_("Verify"))
+        b = QtWidgets.QPushButton(_("Verify"))
         b.clicked.connect(lambda: self.do_verify(address_e, message_e, signature_e))
         hbox.addWidget(b)
 
-        b = QPushButton(_("Close"))
+        b = QtWidgets.QPushButton(_("Close"))
         b.clicked.connect(d.accept)
         hbox.addWidget(b)
         layout.addLayout(hbox, 4, 1)
@@ -3414,15 +3414,15 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         layout.setRowStretch(3,1)
 
         hbox = QtWidgets.QHBoxLayout()
-        b = QPushButton(_("Encrypt"))
+        b = QtWidgets.QPushButton(_("Encrypt"))
         b.clicked.connect(lambda: self.do_encrypt(message_e, pubkey_e, encrypted_e))
         hbox.addWidget(b)
 
-        b = QPushButton(_("Decrypt"))
+        b = QtWidgets.QPushButton(_("Decrypt"))
         b.clicked.connect(lambda: self.do_decrypt(message_e, pubkey_e, encrypted_e))
         hbox.addWidget(b)
 
-        b = QPushButton(_("Close"))
+        b = QtWidgets.QPushButton(_("Close"))
         b.clicked.connect(d.accept)
         hbox.addWidget(b)
 

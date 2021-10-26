@@ -657,7 +657,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         sb.setRange(1, 100)
         sb.setFocusPolicy(Qt.TabFocus|Qt.ClickFocus|Qt.WheelFocus)
         hbox.addWidget(sb)
-        but = QPushButton(_("Reset"))
+        but = QtWidgets.QPushButton(_("Reset"))
         f = but.font()
         f.setPointSize(f.pointSize()-2)
         but.setFont(f)
@@ -1067,7 +1067,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         h.setSectionResizeMode(1, QHeaderView.ResizeToContents)
         vbox.addWidget(tree)
 
-        clear_but = QPushButton(_("Clear ban list"))
+        clear_but = QtWidgets.QPushButton(_("Clear ban list"))
         weakSelf = Weak.ref(self)
         weakD = Weak.ref(d)
         clear_but.clicked.connect(lambda: weakSelf() and weakSelf().on_clear_blacklist() and weakD().reject())

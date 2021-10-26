@@ -4,8 +4,7 @@ import threading
 from PyQt5.QtCore import Qt, QEventLoop, pyqtSignal, QRegExp
 from PyQt5.QtGui import QRegExpValidator
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import (QPushButton,
-                             QButtonGroup, QGroupBox,
+from PyQt5.QtWidgets import (QButtonGroup, QGroupBox,
                              QTextEdit, QRadioButton,
                              QMessageBox,  QSlider, QTabWidget,
                              QSizePolicy)
@@ -47,9 +46,9 @@ CHARACTER_RECOVERY = (
     "Press ENTER or the Seed Entered button once the last word in your "
     "seed is auto-completed.")
 
-class CharacterButton(QPushButton):
+class CharacterButton(QtWidgets.QPushButton):
     def __init__(self, text=None):
-        QPushButton.__init__(self, text)
+        QtWidgets.QPushButton.__init__(self, text)
 
     def keyPressEvent(self, event):
         event.setAccepted(False)   # Pass through Enter and Space keys
@@ -82,8 +81,8 @@ class CharacterDialog(WindowModalDialog):
         hbox.addStretch(1)
         vbox.addLayout(hbox)
 
-        self.finished_button = QPushButton(_("Seed Entered"))
-        self.cancel_button = QPushButton(_("Cancel"))
+        self.finished_button = QtWidgets.QPushButton(_("Seed Entered"))
+        self.cancel_button = QtWidgets.QPushButton(_("Cancel"))
         self.finished_button.clicked.connect(partial(self.process_key,
                                                      Qt.Key_Return))
         self.cancel_button.clicked.connect(self.rejected)
@@ -470,7 +469,7 @@ class SettingsDialog(WindowModalDialog):
         label_edit = QtWidgets.QLineEdit()
         label_edit.setMinimumWidth(150)
         label_edit.setMaxLength(plugin.MAX_LABEL_LEN)
-        label_apply = QPushButton(_("Apply"))
+        label_apply = QtWidgets.QPushButton(_("Apply"))
         label_apply.clicked.connect(rename)
         label_edit.textChanged.connect(set_label_enabled)
         settings_glayout.addWidget(label_label, 0, 0)
@@ -480,7 +479,7 @@ class SettingsDialog(WindowModalDialog):
 
         # Settings tab - PIN
         pin_label = QtWidgets.QLabel(_("PIN Protection"))
-        pin_button = QPushButton()
+        pin_button = QtWidgets.QPushButton()
         pin_button.clicked.connect(set_pin)
         settings_glayout.addWidget(pin_label, 2, 0)
         settings_glayout.addWidget(pin_button, 2, 1)
@@ -524,7 +523,7 @@ class SettingsDialog(WindowModalDialog):
         advanced_glayout = QtWidgets.QGridLayout()
 
         # Advanced tab - clear PIN
-        clear_pin_button = QPushButton(_("Disable PIN"))
+        clear_pin_button = QtWidgets.QPushButton(_("Disable PIN"))
         clear_pin_button.clicked.connect(clear_pin)
         clear_pin_warning = QtWidgets.QLabel(
             _("If you disable your PIN, anyone with physical access to your "
@@ -535,7 +534,7 @@ class SettingsDialog(WindowModalDialog):
         advanced_glayout.addWidget(clear_pin_warning, 1, 0, 1, 5)
 
         # Advanced tab - toggle passphrase protection
-        passphrase_button = QPushButton()
+        passphrase_button = QtWidgets.QPushButton()
         passphrase_button.clicked.connect(toggle_passphrase)
         passphrase_msg = WWLabel(PASSPHRASE_HELP)
         passphrase_warning = WWLabel(PASSPHRASE_NOT_PIN)
@@ -545,7 +544,7 @@ class SettingsDialog(WindowModalDialog):
         advanced_glayout.addWidget(passphrase_warning, 5, 0, 1, 5)
 
         # Advanced tab - wipe device
-        wipe_device_button = QPushButton(_("Wipe Device"))
+        wipe_device_button = QtWidgets.QPushButton(_("Wipe Device"))
         wipe_device_button.clicked.connect(wipe_device)
         wipe_device_msg = QtWidgets.QLabel(
             _("Wipe the device, removing all data from it.  The firmware "
