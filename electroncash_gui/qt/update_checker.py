@@ -32,7 +32,6 @@ import sys
 import threading
 import time
 from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtWidgets import *
 from PyQt5 import QtWidgets
 
 from electroncash import version, bitcoin, address

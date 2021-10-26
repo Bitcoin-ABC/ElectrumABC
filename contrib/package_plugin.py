@@ -43,7 +43,6 @@ import traceback
 import urllib.parse
 
 from PyQt5 import Qt
-from PyQt5.QtWidgets import *
 from PyQt5 import QtWidgets
 
 ## Start copied from .util

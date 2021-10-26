@@ -29,7 +29,6 @@ Cash Accounts related classes and functions - Qt UI related.
 # TODO: whittle these * imports down to what we actually use
 from PyQt5.QtCore import Qt, QTimer, QRect
 from PyQt5.QtGui import QCursor, QIcon
-from PyQt5.QtWidgets import *
 from PyQt5 import QtWidgets
 from .util import (
     Buttons,

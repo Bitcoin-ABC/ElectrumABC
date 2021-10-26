@@ -9,7 +9,6 @@ import traceback
 
 from PyQt5.QtCore import QEventLoop, QRect, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon, QPainter, QPalette, QPen
-from PyQt5.QtWidgets import *
 from PyQt5 import QtWidgets
 
 from electroncash import keystore, Wallet, WalletStorage

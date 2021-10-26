@@ -30,7 +30,6 @@ from electroncash.util import PrintError
 
 from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QCursor
-from PyQt5.QtWidgets import *
 from PyQt5 import QtWidgets
 
 from .history_list import HistoryList

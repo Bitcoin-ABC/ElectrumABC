@@ -20,7 +20,6 @@ from PyQt5.QtCore import (
     pyqtProperty,
     pyqtSignal,
 )
-from PyQt5.QtWidgets import *
 from PyQt5 import QtWidgets
 import sys
 

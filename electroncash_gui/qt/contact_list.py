@@ -34,7 +34,6 @@ from electroncash.constants import PROJECT_NAME
 
 from PyQt5.QtGui import QCursor, QIcon, QFont
 from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtWidgets import *
 from PyQt5 import QtWidgets
 
 from .util import (MyTreeWidget, webopen, ColorScheme, MONOSPACE_FONT,
