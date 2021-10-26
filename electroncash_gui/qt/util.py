@@ -13,7 +13,7 @@ from locale import atof
 from electroncash.util import print_error, PrintError, Weak, finalization_print_error
 from electroncash.wallet import Abstract_Wallet
 from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt5.QtCore import QObject, Qt, QThread, QTimer, pyqtSignal
 from PyQt5.QtWidgets import *
 
 if platform.system() == 'Windows':

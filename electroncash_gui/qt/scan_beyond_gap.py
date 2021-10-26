@@ -24,7 +24,7 @@
 # SOFTWARE.
 import threading
 
-from PyQt5.QtCore import *
+from PyQt5.QtCore import pyqtSignal, QTimer
 from PyQt5.QtWidgets import *
 
 from .util import Buttons, WindowModalDialog

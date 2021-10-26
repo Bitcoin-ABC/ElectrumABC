@@ -3,7 +3,7 @@
 #
 import threading
 
-from PyQt5.QtCore import *
+from PyQt5.QtCore import QTimer, pyqtSignal
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 

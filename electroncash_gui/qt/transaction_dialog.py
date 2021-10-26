@@ -31,7 +31,7 @@ import time
 
 from enum import Enum, auto
 
-from PyQt5.QtCore import *
+from PyQt5.QtCore import QTimer, QUrl, pyqtSignal
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 

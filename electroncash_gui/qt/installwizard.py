@@ -7,7 +7,7 @@ import time
 import threading
 import traceback
 
-from PyQt5.QtCore import *
+from PyQt5.QtCore import QEventLoop, QThread, pyqtSignal
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 

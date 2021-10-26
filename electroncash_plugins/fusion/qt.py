@@ -30,7 +30,7 @@ import weakref
 from functools import partial
 from typing import Optional
 
-from PyQt5.QtCore import *
+from PyQt5.QtCore import QMargins, QObject, QPoint, QSize, Qt, QTimer, pyqtSignal
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 

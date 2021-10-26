@@ -35,7 +35,7 @@ from typing import Callable
 
 try:
     import PyQt5
-    from PyQt5.QtCore import *
+    from PyQt5 import QtCore
     from PyQt5.QtGui import *
     from PyQt5.QtWidgets import *
 except Exception:
@@ -77,7 +77,7 @@ from electroncash.constants import PROJECT_NAME, REPOSITORY_URL
 from .installwizard import InstallWizard, GoBack
 
 from . import icons # This needs to be imported once app-wide then the :icons/ namespace becomes available for Qt icon filenames.
-from .util import *   # * needed for plugins (FIXME)
+#from .util import *   # * needed for plugins (FIXME)
 from .main_window import ElectrumWindow, windows_qt_use_freetype
 from .network_dialog import NetworkDialog
 from .exception_window import ExceptionHook
@@ -109,10 +109,10 @@ def _pre_and_post_app_setup(config) -> Callable[[], None]:
         # font if needed.
         os.environ['QT_QPA_PLATFORM'] = 'windows:fontengine=freetype'
 
-    QCoreApplication.setAttribute(Qt.AA_X11InitThreads)
-    if hasattr(Qt, "AA_ShareOpenGLContexts"):
-        QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
-    if sys.platform not in ('darwin',) and hasattr(Qt, "AA_EnableHighDpiScaling"):
+    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_X11InitThreads)
+    if hasattr(QtCore.Qt, "AA_ShareOpenGLContexts"):
+        QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
+    if sys.platform not in ('darwin',) and hasattr(QtCore.Qt, "AA_EnableHighDpiScaling"):
         # The below only applies to non-macOS. On macOS this setting is
         # never used (because it is implicitly auto-negotiated by the OS
         # in a differernt way).
@@ -129,9 +129,9 @@ def _pre_and_post_app_setup(config) -> Callable[[], None]:
         disable_scaling = config.get('qt_disable_highdpi', False)
         enable_scaling = config.get('qt_enable_highdpi', True)
         if not disable_scaling and enable_scaling:
-            QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
-    if hasattr(Qt, "AA_UseHighDpiPixmaps"):
-        QCoreApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
+            QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
+    if hasattr(QtCore.Qt, "AA_UseHighDpiPixmaps"):
+        QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps)
 
     def setup_layout_direction():
         """Sets the app layout direction depending on language. To be called
@@ -141,10 +141,10 @@ def _pre_and_post_app_setup(config) -> Callable[[], None]:
         lc = i18n.language.info().get('language')
         lc = '' if not isinstance(lc, str) else lc
         lc = lc.split('_')[0]
-        layout_direction = Qt.LeftToRight
+        layout_direction = QtCore.Qt.LeftToRight
         blurb = "left-to-right"
         if lc in {'ar', 'fa', 'he', 'ps', 'ug', 'ur'}:  # Right-to-left languages
-            layout_direction = Qt.RightToLeft
+            layout_direction = QtCore.Qt.RightToLeft
             blurb = "right-to-left"
         print_error("Setting layout direction:", blurb)
         QApplication.instance().setLayoutDirection(layout_direction)
@@ -164,18 +164,18 @@ def init_qapplication(config):
         call_after_app()
 
 
-class ElectrumGui(QObject, PrintError):
-    new_window_signal = pyqtSignal(str, object)
-    update_available_signal = pyqtSignal(bool)
-    addr_fmt_changed = pyqtSignal()  # app-wide signal for when cashaddr format is toggled. This used to live in each ElectrumWindow instance but it was recently refactored to here.
-    cashaddr_status_button_hidden_signal = pyqtSignal(bool)  # app-wide signal for when cashaddr toggle button is hidden from the status bar
-    shutdown_signal = pyqtSignal()  # signal for requesting an app-wide full shutdown
-    do_in_main_thread_signal = pyqtSignal(object, object, object)
+class ElectrumGui(QtCore.QObject, PrintError):
+    new_window_signal = QtCore.pyqtSignal(str, object)
+    update_available_signal = QtCore.pyqtSignal(bool)
+    addr_fmt_changed = QtCore.pyqtSignal()  # app-wide signal for when cashaddr format is toggled. This used to live in each ElectrumWindow instance but it was recently refactored to here.
+    cashaddr_status_button_hidden_signal = QtCore.pyqtSignal(bool)  # app-wide signal for when cashaddr toggle button is hidden from the status bar
+    shutdown_signal = QtCore.pyqtSignal()  # signal for requesting an app-wide full shutdown
+    do_in_main_thread_signal = QtCore.pyqtSignal(object, object, object)
 
     instance = None
 
     def __init__(self, config, daemon, plugins):
-        super(__class__, self).__init__() # QObject init
+        super(__class__, self).__init__() # QtCore.QObject init
         assert __class__.instance is None, "ElectrumGui is a singleton, yet an instance appears to already exist! FIXME!"
         __class__.instance = self
 
@@ -203,8 +203,8 @@ class ElectrumGui(QObject, PrintError):
         self.new_version_available = None
         self._set_icon()
         self.app.installEventFilter(self)
-        self.timer = QTimer(self); self.timer.setSingleShot(False); self.timer.setInterval(500) #msec
-        self.gc_timer = QTimer(self); self.gc_timer.setSingleShot(True); self.gc_timer.timeout.connect(ElectrumGui.gc); self.gc_timer.setInterval(500) #msec
+        self.timer = QtCore.QTimer(self); self.timer.setSingleShot(False); self.timer.setInterval(500) #msec
+        self.gc_timer = QtCore.QTimer(self); self.gc_timer.setSingleShot(True); self.gc_timer.timeout.connect(ElectrumGui.gc); self.gc_timer.setInterval(500) #msec
         self.nd = None
         self._last_active_window = None  # we remember the last activated ElectrumWindow as a Weak.ref
         Address.set_address_format(self.get_config_addr_format())
@@ -220,7 +220,7 @@ class ElectrumGui(QObject, PrintError):
         self._wallet_password_cache = Weak.KeyDictionary()
         # /
         self.update_checker = UpdateChecker()
-        self.update_checker_timer = QTimer(self)
+        self.update_checker_timer = QtCore.QTimer(self)
         self.update_checker_timer.timeout.connect(self.on_auto_update_timeout)
         self.update_checker_timer.setSingleShot(False)
         self.update_checker.got_new_version.connect(self.on_new_version)
@@ -235,7 +235,7 @@ class ElectrumGui(QObject, PrintError):
         if self.has_auto_update_check():
             self._start_auto_update_timer(first_run=True)
         self.app.focusChanged.connect(self.on_focus_change)  # track last window the user interacted with
-        self.shutdown_signal.connect(self.close, Qt.QueuedConnection)
+        self.shutdown_signal.connect(self.close, QtCore.Qt.QueuedConnection)
         run_hook('init_qt', self)
         # We did this once already in the set_dark_theme call, but we do this
         # again here just in case some plugin modified the color scheme.
@@ -366,7 +366,7 @@ class ElectrumGui(QObject, PrintError):
         self._expire_cached_password(wallet)
         if password is None:
             return
-        timer = QTimer()  # NB a top-level parentless QObject will get delete by Python when its Python refct goes to 0, which is what we want here. Future programmers: Do not give this timer a parent!
+        timer = QtCore.QTimer()  # NB a top-level parentless QObject will get delete by Python when its Python refct goes to 0, which is what we want here. Future programmers: Do not give this timer a parent!
         self._wallet_password_cache[wallet] = (password, timer)
         weakWallet = Weak.ref(wallet)
         weakSelf = Weak.ref(self)
@@ -402,7 +402,7 @@ class ElectrumGui(QObject, PrintError):
         ''' Returns a 3-tuple of the form (major, minor, revision) eg
         (5, 12, 4) for the current Qt version derived from the QT_VERSION
         global provided by Qt. '''
-        return ( (QT_VERSION >> 16) & 0xff,  (QT_VERSION >> 8) & 0xff, QT_VERSION & 0xff )
+        return ( (QtCore.QT_VERSION >> 16) & 0xff,  (QtCore.QT_VERSION >> 8) & 0xff, QtCore.QT_VERSION & 0xff )
 
     def _load_fonts(self):
         ''' All apologies for the contorted nature of this platform code.
@@ -457,7 +457,7 @@ class ElectrumGui(QObject, PrintError):
     def _check_and_warn_qt_version(self):
         if sys.platform == 'linux' and self.qt_version() < (5, 12):
             msg = _(f"{PROJECT_NAME} on Linux requires PyQt5 5.12+.\n\n"
-                    f"You have version {QT_VERSION_STR} installed.\n\n"
+                    f"You have version {QtCore.QT_VERSION_STR} installed.\n\n"
                     "Please upgrade otherwise you may experience "
                     "font rendering issues with emojis and other unicode "
                     f"characters used by {PROJECT_NAME}.")
@@ -466,7 +466,7 @@ class ElectrumGui(QObject, PrintError):
 
     def eventFilter(self, obj, event):
         ''' This event filter allows us to open bitcoincash: URIs on macOS '''
-        if event.type() == QEvent.FileOpen:
+        if event.type() == QtCore.QEvent.FileOpen:
             if len(self.windows) >= 1:
                 self.windows[0].pay_to_URI(event.url().toString())
                 return True
@@ -658,7 +658,7 @@ class ElectrumGui(QObject, PrintError):
         if uri:
             w.pay_to_URI(uri)
         w.bring_to_top()
-        w.setWindowState(w.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
+        w.setWindowState(w.windowState() & ~QtCore.Qt.WindowMinimized | QtCore.Qt.WindowActive)
 
         # this will activate the window
         w.activateWindow()
@@ -822,12 +822,12 @@ class ElectrumGui(QObject, PrintError):
             parent = parent if isinstance(parent, QWidget) else None
             d = QMessageBoxMixin(icon, title, message, QMessageBox.Ok, parent)
             if not rich_text:
-                d.setTextFormat(Qt.PlainText)
-                d.setTextInteractionFlags(Qt.TextSelectableByMouse)
+                d.setTextFormat(QtCore.Qt.PlainText)
+                d.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
             else:
-                d.setTextFormat(Qt.AutoText)
-                d.setTextInteractionFlags(Qt.TextSelectableByMouse|Qt.LinksAccessibleByMouse)
-            d.setWindowModality(Qt.WindowModal if parent else Qt.ApplicationModal)
+                d.setTextFormat(QtCore.Qt.AutoText)
+                d.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse|QtCore.Qt.LinksAccessibleByMouse)
+            d.setWindowModality(QtCore.Qt.WindowModal if parent else QtCore.Qt.ApplicationModal)
             d.exec_()
             d.setParent(None)
 
@@ -838,8 +838,8 @@ class ElectrumGui(QObject, PrintError):
         is_lin = sys.platform in ('linux',)
         if not is_win and not is_lin:
             return
-        if (hasattr(Qt, "AA_EnableHighDpiScaling")
-                and self.app.testAttribute(Qt.AA_EnableHighDpiScaling)
+        if (hasattr(QtCore.Qt, "AA_EnableHighDpiScaling")
+                and self.app.testAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
                 # first run check:
                 and self.config.get('qt_enable_highdpi', None) is None
                 and (is_lin # we can't check pixel ratio on linux as apparently it's unreliable, so always show this message on linux
@@ -989,7 +989,7 @@ class ElectrumGui(QObject, PrintError):
             self.gc_timer.stop()
             self._stop_auto_update_timer()
             # clipboard persistence. see http://www.mail-archive.com/pyqt@riverbankcomputing.com/msg17328.html
-            event = QEvent(QEvent.Clipboard)
+            event = QtCore.QEvent(QtCore.QEvent.Clipboard)
             self.app.sendEvent(self.app.clipboard(), event)
             self.tray.hide()
         self.app.aboutToQuit.connect(clean_up)

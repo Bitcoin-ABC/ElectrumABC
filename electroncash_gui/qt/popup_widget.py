@@ -7,7 +7,18 @@
 # LICENSE: MIT
 #
 from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt5.QtCore import (
+    QAbstractAnimation,
+    QEvent,
+    QObject,
+    QPoint,
+    QPointF,
+    QPropertyAnimation,
+    QRectF,
+    QTimer,
+    pyqtProperty,
+    pyqtSignal,
+)
 from PyQt5.QtWidgets import *
 import sys
 

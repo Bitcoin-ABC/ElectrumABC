@@ -1,15 +1,14 @@
 from functools import partial
 
 from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QVBoxLayout)
 
 from electroncash.constants import PROJECT_NAME
 from electroncash.plugins import hook
 from electroncash.i18n import _
-from electroncash_gui.qt import EnterButton
 from electroncash_gui.qt.main_window import ElectrumWindow
-from electroncash_gui.qt.util import ThreadedButton, Buttons
+from electroncash_gui.qt.util import EnterButton, ThreadedButton, Buttons
 from electroncash_gui.qt.util import WindowModalDialog, OkButton, WaitingDialog
 from electroncash.util import Weak
 

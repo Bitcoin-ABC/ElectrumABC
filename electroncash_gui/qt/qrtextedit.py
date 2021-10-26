@@ -6,7 +6,7 @@ from electroncash import util
 from electroncash.qrreaders import get_qr_reader
 
 from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt5.QtCore import QPoint
 from PyQt5.QtWidgets import QFileDialog, QAbstractButton, QApplication, QMenu
 
 from .util import ButtonsTextEdit, MessageBoxMixin, ColorScheme

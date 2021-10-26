@@ -33,7 +33,7 @@ from electroncash.util import PrintError
 from electroncash.constants import PROJECT_NAME
 
 from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import *
 
 from .util import (MyTreeWidget, webopen, ColorScheme, MONOSPACE_FONT,

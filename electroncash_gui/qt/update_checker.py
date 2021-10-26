@@ -31,7 +31,7 @@ import requests
 import sys
 import threading
 import time
-from PyQt5.QtCore import *
+from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 

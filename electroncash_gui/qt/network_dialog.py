@@ -32,7 +32,7 @@ import socket
 from functools import partial
 
 from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt5.QtCore import QObject, Qt, QTimer, QThread, pyqtSignal
 from PyQt5.QtWidgets import *
 import PyQt5.QtCore as QtCore
 

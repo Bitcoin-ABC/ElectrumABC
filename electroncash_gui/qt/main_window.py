@@ -35,7 +35,16 @@ import sys
 import threading
 import time
 import traceback
-from PyQt5.QtCore import *
+from PyQt5.QtCore import (
+    QObject,
+    QRect,
+    QSize,
+    QStringListModel,
+    Qt,
+    QTimer,
+    pyqtSignal,
+    qVersion,
+)
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from collections import OrderedDict
