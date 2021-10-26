@@ -3,7 +3,8 @@ files: |
         electroncash/tests/.*py|
         electroncash/constants.py|
         electroncash/keystore.py|
-        electroncash_gui/qt/address_list.py
+        electroncash_gui/qt/address_list.py|
+        electroncash_gui/qt/exception_window.py
     )$
 repos:
 -   repo: https://github.com/pycqa/isort
