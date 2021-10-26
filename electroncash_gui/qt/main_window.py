@@ -1218,7 +1218,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             def on_copy(slf):
                 ''' overrides super class '''
                 QApplication.instance().clipboard().setText(slf.text()[3:] + ' ' + slf.text()[:1]) # cut off the leading emoji, and add it to the end
-                QToolTip.showText(QCursor.pos(), _("Cash Account copied to clipboard"), slf)
+                QtWidgets.QToolTip.showText(QCursor.pos(), _("Cash Account copied to clipboard"), slf)
             def on_network_qt(slf, event, args=None):
                 ''' pick up cash account changes and update receive tab. Called
                 from GUI thread. '''
@@ -1939,7 +1939,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         item = self.from_list.itemAt(position)
         if not item:
             return
-        menu = QMenu()
+        menu = QtWidgets.QMenu()
         name = item.data(0, Qt.UserRole)
         action = menu.addAction(_("Remove"), lambda: self.from_list_delete(name))
         if item.data(0, Qt.UserRole+1):
@@ -1977,7 +1977,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                 twi.setForeground(i, b)
 
         def new(item, is_unremovable=False):
-            ret = QTreeWidgetItem( [format(item), self.format_amount(item['value']) ])
+            ret = QtWidgets.QTreeWidgetItem( [format(item), self.format_amount(item['value']) ])
             ret.setData(0, Qt.UserRole, name(item))
             ret.setData(0, Qt.UserRole+1, is_unremovable)
             return ret
@@ -4837,7 +4837,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         # This also hopefully helps accelerate this window's GC.
         children = [c for c in self.children()
                     if (isinstance(c, (QWidget, QAction, TaskThread))
-                        and not isinstance(c, (QStatusBar, QMenuBar, QFocusFrame, QShortcut)))]
+                        and not isinstance(c, (QStatusBar, QtWidgets.QMenuBar, QFocusFrame, QShortcut)))]
         for c in children:
             try: c.disconnect()
             except TypeError: pass
@@ -5098,7 +5098,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         tooltip = tooltip or _("Text copied to clipboard")
         widget = widget or self
         qApp.clipboard().setText(text)
-        QToolTip.showText(QCursor.pos(), tooltip, widget)
+        QtWidgets.QToolTip.showText(QCursor.pos(), tooltip, widget)
 
     def _pick_address(self, *, title=None, icon=None) -> Address:
         ''' Returns None on user cancel, or a valid is_mine Address object

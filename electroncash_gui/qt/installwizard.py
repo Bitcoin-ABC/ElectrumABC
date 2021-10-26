@@ -737,8 +737,8 @@ class DerivationDialog(QDialog):
         vbox.addWidget(self.label)
 
         self.table = QTableWidget(self)
-        self.table.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.table.verticalHeader().setVisible(False)
         self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.table.setSortingEnabled(False)

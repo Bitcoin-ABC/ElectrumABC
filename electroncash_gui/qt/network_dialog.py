@@ -159,7 +159,7 @@ class NodesListWidget(QTreeWidget):
         if not item:
             return
         is_server = not bool(item.data(0, Qt.UserRole))
-        menu = QMenu()
+        menu = QtWidgets.QMenu()
         if is_server:
             server = item.data(1, Qt.UserRole)
             menu.addAction(_("Use as server"), lambda: self.parent.follow_server(server))
@@ -196,7 +196,7 @@ class NodesListWidget(QTreeWidget):
             name = b.get_name()
             if n_chains > 1:
                 # group the servers as children of a parent chain item
-                blockchain_root_item = QTreeWidgetItem(
+                blockchain_root_item = QtWidgets.QTreeWidgetItem(
                     [name + f'@{b.get_base_height()}', '', f'{b.height()}'])
                 blockchain_root_item.setData(0, Qt.UserRole, 1)
                 blockchain_root_item.setData(1, Qt.UserRole, b.base_height)
@@ -215,7 +215,7 @@ class NodesListWidget(QTreeWidget):
                 if is_onion and i.host in servers and 'display' in servers[i.host]:
                     display_text = servers[i.host]['display'] + ' (.onion)'
 
-                item = QTreeWidgetItem([display_text + star, '', '%d'%i.tip])
+                item = QtWidgets.QTreeWidgetItem([display_text + star, '', '%d'%i.tip])
                 item.setData(0, Qt.UserRole, 0)
                 item.setData(1, Qt.UserRole, i.server)
                 if i.server == selection_data:
@@ -269,7 +269,7 @@ class ServerListWidget(QTreeWidget):
         item = self.currentItem()
         if not item:
             return
-        menu = QMenu()
+        menu = QtWidgets.QMenu()
         server = item.data(2, Qt.UserRole)
         if self.parent.can_set_server(server):
             useAction = menu.addAction(_("Use as server"), lambda: self.set_server(server))
@@ -370,7 +370,7 @@ class ServerListWidget(QTreeWidget):
                 if is_onion and 'display' in d:
                     display_text = d['display'] + ' (.onion)'
 
-                x = QTreeWidgetItem([flag, display_text, '', port])
+                x = QtWidgets.QTreeWidgetItem([flag, display_text, '', port])
                 if is_onion:
                     x.setIcon(2, QIcon(":icons/tor_logo.svg"))
                 if tt: x.setToolTip(0, tt)
@@ -1057,7 +1057,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         tree.setHeaderLabels([_('Host'), _('Port')])
         for s in bl:
             host, port, protocol = deserialize_server(s)
-            item = QTreeWidgetItem([host, str(port)])
+            item = QtWidgets.QTreeWidgetItem([host, str(port)])
             item.setFlags(Qt.ItemIsEnabled)
             tree.addTopLevelItem(item)
         tree.setIndentation(3)

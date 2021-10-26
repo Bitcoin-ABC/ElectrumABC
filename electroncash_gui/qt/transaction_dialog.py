@@ -775,7 +775,7 @@ class TxDialog(QDialog, MessageBoxMixin, PrintError):
             widget.copy()
         else:
             qApp.clipboard().setText(text)
-        QToolTip.showText(QCursor.pos(), _("Text copied to clipboard"), widget)
+        QtWidgets.QToolTip.showText(QCursor.pos(), _("Text copied to clipboard"), widget)
 
     def _open_internal_link(self, target):
         ''' accepts either a str txid, str address, or a QUrl which should be
@@ -793,7 +793,7 @@ class TxDialog(QDialog, MessageBoxMixin, PrintError):
 
     def on_context_menu_for_inputs(self, pos):
         i_text = self.i_text
-        menu = QMenu()
+        menu = QtWidgets.QMenu()
         global_pos = i_text.viewport().mapToGlobal(pos)
 
         charFormat, cursor = QTextCharFormat(), i_text.cursorForPosition(pos)
@@ -868,7 +868,7 @@ class TxDialog(QDialog, MessageBoxMixin, PrintError):
 
     def on_context_menu_for_outputs(self, pos):
         o_text = self.o_text
-        menu = QMenu()
+        menu = QtWidgets.QMenu()
         global_pos = o_text.viewport().mapToGlobal(pos)
 
         charFormat, cursor = QTextCharFormat(), o_text.cursorForPosition(pos)

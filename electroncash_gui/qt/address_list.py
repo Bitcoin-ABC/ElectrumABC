@@ -32,7 +32,6 @@ from functools import partial
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QCursor, QFont, QIcon, QKeySequence
-from PyQt5.QtWidgets import QAbstractItemView, QMenu, QToolTip, QTreeWidgetItem
 
 import electroncash.web as web
 from electroncash import networks
@@ -68,10 +67,10 @@ class AddressList(MyTreeWidget):
         self.refresh_headers()
         self.picker = picker
         if self.picker:
-            self.setSelectionMode(QAbstractItemView.SingleSelection)
+            self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
             self.editable_columns = []
         else:
-            self.setSelectionMode(QAbstractItemView.ExtendedSelection)
+            self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.setSortingEnabled(True)
         self.wallet = self.parent.wallet
         self.monospace_font = QFont(MONOSPACE_FONT)
@@ -209,7 +208,7 @@ class AddressList(MyTreeWidget):
         for is_change in sequences:
             if len(sequences) > 1:
                 name = _("Receiving") if not is_change else _("Change")
-                seq_item = QTreeWidgetItem([name, "", "", "", "", ""])
+                seq_item = QtWidgets.QTreeWidgetItem([name, "", "", "", "", ""])
                 account_item.addChild(seq_item)
                 # first time we create this widget, auto-expand the default address list
                 if not had_item_count:
@@ -217,7 +216,7 @@ class AddressList(MyTreeWidget):
                     expanded_item_names.add(item_path(seq_item))
             else:
                 seq_item = account_item
-            hidden_item = QTreeWidgetItem(
+            hidden_item = QtWidgets.QTreeWidgetItem(
                 [_("Empty") if is_change else _("Used"), "", "", "", "", ""]
             )
             has_hidden = False
@@ -323,7 +322,7 @@ class AddressList(MyTreeWidget):
             return
         addrs = [addr for addr in addrs if isinstance(addr, Address)]
 
-        menu = QMenu()
+        menu = QtWidgets.QMenu()
 
         where_to_insert_dupe_copy_cash_account = None
 
@@ -602,7 +601,7 @@ class AddressList(MyTreeWidget):
         shows a tooltip optionally, and updates self."""
         self.wallet.cashacct.set_address_default(ca_info)
         if show_tip:
-            QToolTip.showText(
+            QtWidgets.QToolTip.showText(
                 QCursor.pos(),
                 _("Cash Account has been made the default for this address"),
                 self,

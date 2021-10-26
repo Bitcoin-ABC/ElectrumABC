@@ -660,7 +660,7 @@ class Plugin(FusionPlugin, QObject):
                 tip = _("Fusion transactions are now hidden")
             else:
                 tip = _("Fusion transactions are now shown")
-            QToolTip.showText(QCursor.pos(), tip, history_list)
+            QtWidgets.QToolTip.showText(QCursor.pos(), tip, history_list)
             history_list.update() # unconditionally update this history list as it may be embedded in the address_detail window and not a global history list..
             for w in self.gui.windows:
                 # Need to update all the other open windows.
@@ -1641,7 +1641,7 @@ class FusionsWindow(ServerFusionsBaseMixin, QDialog):
         self.t_active_fusions.setHeaderLabels([_('Wallet'), _('Status'), _('Status Extra')])
         self.t_active_fusions.setContextMenuPolicy(Qt.CustomContextMenu)
         self.t_active_fusions.customContextMenuRequested.connect(self.create_menu_active_fusions)
-        self.t_active_fusions.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.t_active_fusions.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.t_active_fusions.itemDoubleClicked.connect(self.on_double_clicked)
         clayout.addWidget(self.t_active_fusions)
 
@@ -1656,7 +1656,7 @@ class FusionsWindow(ServerFusionsBaseMixin, QDialog):
         for fusion in reversed(self.plugin.get_all_fusions()):
             wname = fusion.target_wallet.diagnostic_name()
             status, status_ext = fusion.status
-            item = QTreeWidgetItem( [ wname, status, status_ext] )
+            item = QtWidgets.QTreeWidgetItem( [ wname, status, status_ext] )
             item.setToolTip(0, wname)  # this doesn't always fit in the column
             item.setToolTip(2, status_ext or '')  # neither does this
             item.setData(0, Qt.UserRole, weakref.ref(fusion))
@@ -1677,7 +1677,7 @@ class FusionsWindow(ServerFusionsBaseMixin, QDialog):
         selection_of_1_fusion = list(fusions)[0] if len(fusions) == 1 else None
         has_live = 'running' in statuses or 'waiting' in statuses
 
-        menu = QMenu()
+        menu = QtWidgets.QMenu()
         def cancel():
             for fusion in fusions:
                 fusion.stop(_('Stop requested by user'))

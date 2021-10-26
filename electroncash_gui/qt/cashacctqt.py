@@ -209,7 +209,7 @@ class ButtonAssociatedLabel(QLabel):
             if self.but.isEnabled():
                 self.but.click()
             elif self.but.toolTip() and not self.hasSelectedText():
-                QToolTip.showText(QCursor.pos(), self.but.toolTip(), self)
+                QtWidgets.QToolTip.showText(QCursor.pos(), self.but.toolTip(), self)
 
 
 def naked_button_style() -> str:
@@ -643,7 +643,7 @@ def lookup_cash_account_dialog(
                             all_cashacct_contacts.add(new_contact.name)
                         else:
                             msg = _("Error occurred adding to Contacts")
-                        QToolTip.showText(QCursor.pos(), msg, frame, QRect(), 5000)
+                        QtWidgets.QToolTip.showText(QCursor.pos(), msg, frame, QRect(), 5000)
                     # /add_contact
                     but.clicked.connect(add_contact_slot)
             else:
@@ -917,7 +917,7 @@ def cash_account_detail_dialog(parent : MessageBoxMixin,  # Should be an Electru
         wallet.cashacct.set_address_default(info)
         parent.ca_address_default_changed_signal.emit(info)  # updates all concerned widgets, including self
         tt = is_def_txt
-        QToolTip.showText(QCursor.pos(), tt, def_but)
+        QtWidgets.QToolTip.showText(QCursor.pos(), tt, def_but)
     def update_def_but(new_def):
         if new_def and new_def.address != info.address:
             # not related, abort

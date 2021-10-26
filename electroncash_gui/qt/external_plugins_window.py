@@ -421,8 +421,8 @@ class ExternalPluginTable(QTableWidget):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.create_menu)
 
-        self.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.setSortingEnabled(False)
 
         verticalHeader = self.verticalHeader()
@@ -439,7 +439,7 @@ class ExternalPluginTable(QTableWidget):
         selected_id = self.get_selected_key()
         if selected_id is None:
             return
-        menu = QMenu()
+        menu = QtWidgets.QMenu()
         menu.addAction(_("About"), lambda: self.parent_widget.show_installed_plugin_about_dialog(selected_id))
 
         menu.exec_(self.viewport().mapToGlobal(position))

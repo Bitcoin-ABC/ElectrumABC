@@ -112,7 +112,7 @@ class AddressDialog(PrintError, WindowModalDialog):
             if item:
                 info, ch, mch = item
                 self.wallet.cashacct.set_address_default(info)
-                QToolTip.showText(QCursor.pos(), _("Cash Account has been made the default for this address"), gb)
+                QtWidgets.QToolTip.showText(QCursor.pos(), _("Cash Account has been made the default for this address"), gb)
                 self.parent.ca_address_default_changed_signal.emit(info)
         gb.buttonGroup().buttonClicked.connect(on_button_click)
         vbox.addWidget(gb)

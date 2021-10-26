@@ -59,7 +59,7 @@ class ContactList(PrintError, MyTreeWidget):
         MyTreeWidget.__init__(self, parent, self.create_menu,
                               ["", _('Name'), _('Label'), _('Address'), _('Type') ], 2, [1,2],  # headers, stretch_column, editable_columns
                               deferred_updates=True, save_sort_settings=True)
-        self.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.setSortingEnabled(True)
         self.wallet = parent.wallet
         self.setIndentation(0)
@@ -184,7 +184,7 @@ class ContactList(PrintError, MyTreeWidget):
         )
 
     def create_menu(self, position):
-        menu = QMenu()
+        menu = QtWidgets.QMenu()
         selected = self.selectedItems()
         i2c = self._i2c
         ca_unverified = self._get_ca_unverified(include_temp=False)
@@ -419,7 +419,7 @@ class ContactList(PrintError, MyTreeWidget):
                 except:
                     ''' This may happen because we may not have always enforced this as strictly as we could have in legacy code. Just move on.. '''
             label = self.wallet.get_label(label_key)
-            item = QTreeWidgetItem(["", name, label, address, type_names[_type]])
+            item = QtWidgets.QTreeWidgetItem(["", name, label, address, type_names[_type]])
             item.setData(0, self.DataRoles.Contact, contact)
             item.DataRole = self.DataRoles.Contact
             if _type in ('cashacct', 'cashacct_W', 'cashacct_T'):

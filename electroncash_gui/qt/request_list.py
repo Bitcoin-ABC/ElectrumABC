@@ -31,7 +31,6 @@ from electroncash.plugins import run_hook
 from electroncash.paymentrequest import pr_tooltips, PR_UNKNOWN
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QTreeWidgetItem, QMenu
 from PyQt5 import QtWidgets
 from .util import MyTreeWidget, pr_icons
 
@@ -130,7 +129,7 @@ class RequestList(MyTreeWidget):
             signature = req.get('sig')
             requestor = req.get('name', '')
             amount_str = self.parent.format_amount(amount) if amount else ""
-            item = QTreeWidgetItem([date, address.to_full_ui_string(), '', message,
+            item = QtWidgets.QTreeWidgetItem([date, address.to_full_ui_string(), '', message,
                                     amount_str, _(pr_tooltips.get(status,''))])
             item.setData(0, Qt.UserRole, address)
             if signature is not None:
@@ -152,7 +151,7 @@ class RequestList(MyTreeWidget):
         column = self.currentColumn()
         column_title = self.headerItem().text(column)
         column_data = item.text(column)
-        menu = QMenu(self)
+        menu = QtWidgets.QMenu(self)
         menu.addAction(_("Copy {}").format(column_title), lambda: self.parent.app.clipboard().setText(column_data.strip()))
         menu.addAction(_("Copy URI"), lambda: self.parent.view_and_paste('URI', '', self.parent.get_request_URI(addr)))
         menu.addAction(_("Save as BIP70 file"), lambda: self.parent.export_payment_request(addr))

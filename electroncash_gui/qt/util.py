@@ -912,7 +912,7 @@ class OverlayControlMixin:
 
     def on_copy(self):
         QApplication.instance().clipboard().setText(self.text())
-        QToolTip.showText(QCursor.pos(), _("Text copied to clipboard"), self)
+        QtWidgets.QToolTip.showText(QCursor.pos(), _("Text copied to clipboard"), self)
 
     def keyPressEvent(self, e):
         if not self.hasFocus():
@@ -1065,7 +1065,7 @@ class _ColorScheme:
 
 ColorScheme = _ColorScheme()
 
-class SortableTreeWidgetItem(QTreeWidgetItem):
+class SortableTreeWidgetItem(QtWidgets.QTreeWidgetItem):
     DataRole = Qt.UserRole + 1
 
     def __lt__(self, other):
@@ -1318,7 +1318,7 @@ def destroyed_print_error(qobject, msg=None):
         if not name:
             if isinstance(qobject, QAction) and qobject.text():
                 name = "Action: " + qobject.text()
-            elif isinstance(qobject, QMenu) and qobject.title():
+            elif isinstance(qobject, QtWidgets.QMenu) and qobject.title():
                 name = "QMenu: " + qobject.title()
             else:
                 try:

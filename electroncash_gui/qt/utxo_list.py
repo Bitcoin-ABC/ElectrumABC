@@ -43,7 +43,7 @@ from electroncash.bitcoin import COINBASE_MATURITY
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QFont
-from PyQt5.QtWidgets import QAbstractItemView, QApplication, QFileDialog, QMenu
+from PyQt5.QtWidgets import QApplication, QFileDialog
 from PyQt5 import QtWidgets
 
 
@@ -73,7 +73,7 @@ class UTXOList(MyTreeWidget):
         MyTreeWidget.__init__(self, parent, self.create_menu, columns,
                               stretch_column = UTXOList.Col.label,
                               deferred_updates = True, save_sort_settings = True)
-        self.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.setSortingEnabled(True)
         self.wallet = self.parent.wallet
         self.parent.ca_address_default_changed_signal.connect(self._ca_on_address_default_change)
@@ -228,7 +228,7 @@ class UTXOList(MyTreeWidget):
 
     @if_not_dead
     def create_menu(self, position):
-        menu = QMenu()
+        menu = QtWidgets.QMenu()
         selected = self.get_selected()
         def create_menu_inner():
             if not selected:

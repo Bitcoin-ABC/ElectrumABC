@@ -3,7 +3,7 @@ from electroncash.i18n import _
 
 from PyQt5.QtGui import QCursor
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QSlider, QToolTip
+from PyQt5.QtWidgets import QSlider
 from PyQt5 import QtWidgets
 
 class FeeSlider(QSlider):
@@ -20,7 +20,7 @@ class FeeSlider(QSlider):
     def moved(self, pos):
         fee_rate = self.config.static_fee(pos)
         tooltip = self.get_tooltip(pos, fee_rate)
-        QToolTip.showText(QCursor.pos(), tooltip, self)
+        QtWidgets.QToolTip.showText(QCursor.pos(), tooltip, self)
         self.setToolTip(tooltip)
         self.callback(self.dyn, pos, fee_rate)
 

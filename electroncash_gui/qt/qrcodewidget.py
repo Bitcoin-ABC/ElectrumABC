@@ -3,7 +3,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QBrush, QColor, QCursor, QPainter, QPen
 from PyQt5.QtWidgets import (
     QApplication, QVBoxLayout, QTextEdit, QHBoxLayout, QPushButton, QWidget,
-    QSizePolicy, QToolTip)
+    QSizePolicy)
 
 import qrcode
 
@@ -115,7 +115,7 @@ def copy_to_clipboard(qrw, widget):
     p = qrw and qrw.grab()
     if p and not p.isNull():
         QApplication.clipboard().setPixmap(p)
-        QToolTip.showText(QCursor.pos(), _("QR code copied to clipboard"), widget)
+        QtWidgets.QToolTip.showText(QCursor.pos(), _("QR code copied to clipboard"), widget)
 
 
 class QRDialog(WindowModalDialog):

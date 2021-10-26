@@ -486,7 +486,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
             # the menus and they do not leak.
             m_old.clear()
             m_old.deleteLater()  # C++ object and its children will be deleted later when we return to the event loop
-        m = QMenu()
+        m = QtWidgets.QMenu()
         m.setObjectName("SysTray.QMenu")
         self.tray.setContextMenu(m)
         destroyed_print_error(m)

@@ -27,7 +27,6 @@ import time
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QBrush, QColor, QIcon, QFont
-from PyQt5.QtWidgets import QMenu
 from PyQt5 import QtWidgets
 
 
@@ -268,7 +267,7 @@ class HistoryList(MyTreeWidget):
         is_unconfirmed = height <= 0
         pr_key = self.wallet.invoices.paid.get(tx_hash)
 
-        menu = QMenu()
+        menu = QtWidgets.QMenu()
 
         menu.addAction(_("&Copy {}").format(column_title), lambda: self.parent.app.clipboard().setText(column_data.strip()))
         if column in self.editable_columns:
