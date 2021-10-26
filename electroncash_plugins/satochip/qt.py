@@ -4,7 +4,6 @@ from electroncash.plugins import run_hook
 from electroncash_gui.qt.util import EnterButton, Buttons, CloseButton, OkButton, CancelButton, WindowModalDialog, WWLabel
 
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import QtWidgets.QPushButton
 from PyQt5 import QtWidgets
 from functools import partial
 

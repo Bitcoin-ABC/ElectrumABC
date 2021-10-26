@@ -113,7 +113,7 @@ class NetworkDialog(MessageBoxMixin, QtWidgets.QDialog):
                                              ]),
                                     rich_text=False,
                                     title=_('Security Warning'),
-                                    icon=QMessageBox.Critical,
+                                    icon=QtWidgets.QMessageBox.Critical,
                                     checkbox_text=("Don't ask me again"))
             if chk: self.nlayout.config.set_key('non_ssl_noprompt', True)
             if not ok:
@@ -301,7 +301,7 @@ class ServerListWidget(QTreeWidget):
 
     def on_remove_pinned_certificate(self, server):
         if not self.parent.remove_pinned_certificate(server):
-            QMessageBox.critical(None, _("Remove pinned certificate"),
+            QtWidgets.QMessageBox.critical(None, _("Remove pinned certificate"),
                                  _("Failed to remove the pinned certificate. Check the log for errors."))
 
     def set_server(self, s):
@@ -403,7 +403,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         self.td = TorDetector(self, self.network)
         self.td.found_proxy.connect(self.suggest_proxy)
 
-        self.tabs = tabs = QTabWidget()
+        self.tabs = tabs = QtWidgets.QTabWidget()
         self.server_tab = server_tab = QtWidgets.QWidget()
         weakTd = Weak.ref(self.td)
         class ProxyTab(QtWidgets.QWidget):
@@ -1009,7 +1009,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         if controller.status == TorController.Status.ERRORED and self.tabs.isVisible():
             tbname = self._tor_client_names[self.network.tor_controller.tor_binary_type]
             msg = _("The {tor_binary_name} client experienced an error or could not be started.").format(tor_binary_name=tbname)
-            QMessageBox.critical(None, _("Tor Client Error"), msg)
+            QtWidgets.QMessageBox.critical(None, _("Tor Client Error"), msg)
 
     def set_tor_socks_port(self):
         socks_port = int(self.tor_socks_port.text())

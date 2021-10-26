@@ -1,9 +1,6 @@
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QBrush, QColor, QCursor, QPainter, QPen
-from PyQt5.QtWidgets import (
-    QTextEdit,
-    QSizePolicy)
 from PyQt5 import QtWidgets
 
 import qrcode
@@ -24,10 +21,10 @@ class QRCodeWidget(QtWidgets.QWidget, util.PrintError):
         self.data = None
         self.qr = None
         self.fixedSize = fixedSize
-        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
         if fixedSize:
             self.setFixedSize(fixedSize, fixedSize)
-            self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+            self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         self.setData(data)
 
 
@@ -128,7 +125,7 @@ class QRDialog(WindowModalDialog):
         qrw = QRCodeWidget(data)
         vbox.addWidget(qrw, 1)
         if show_text:
-            text = QTextEdit()
+            text = QtWidgets.QTextEdit()
             text.setText(data)
             text.setReadOnly(True)
             vbox.addWidget(text)

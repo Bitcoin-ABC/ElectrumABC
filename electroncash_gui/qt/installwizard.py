@@ -248,11 +248,11 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
                     self.storage.decrypt(password)
                     break
                 except InvalidPassword as e:
-                    QMessageBox.information(None, _('Error'), str(e))
+                    QtWidgets.QMessageBox.information(None, _('Error'), str(e))
                     continue
                 except BaseException as e:
                     traceback.print_exc(file=sys.stdout)
-                    QMessageBox.information(None, _('Error'), str(e))
+                    QtWidgets.QMessageBox.information(None, _('Error'), str(e))
                     return
 
         path = self.storage.path
@@ -578,8 +578,8 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
     @wizard_dialog
     def multisig_dialog(self, run_next):
         cw = CosignWidget(2, 2)
-        m_edit = QSlider(Qt.Horizontal, self)
-        n_edit = QSlider(Qt.Horizontal, self)
+        m_edit = QtWidgets.QSlider(Qt.Horizontal, self)
+        n_edit = QtWidgets.QSlider(Qt.Horizontal, self)
         n_edit.setMinimum(1)
         n_edit.setMaximum(15)
         m_edit.setMinimum(1)

@@ -1,6 +1,5 @@
 from functools import partial
 
-from PyQt5.QtWidgets import QInputDialog
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import  *
 
@@ -42,7 +41,7 @@ class Ledger_Handler(QtHandlerBase):
         self.auth_signal.connect(self.auth_dialog)
 
     def word_dialog(self, msg):
-        response = QInputDialog.getText(self.top_level_window(), "Ledger Wallet Authentication", msg, QtWidgets.QLineEdit.Password)
+        response = QtWidgets.QInputDialog.getText(self.top_level_window(), "Ledger Wallet Authentication", msg, QtWidgets.QLineEdit.Password)
         if not response[1]:
             self.word = None
         else:

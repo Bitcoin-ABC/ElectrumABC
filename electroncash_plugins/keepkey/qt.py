@@ -4,9 +4,6 @@ import threading
 from PyQt5.QtCore import Qt, QEventLoop, pyqtSignal, QRegExp
 from PyQt5.QtGui import QRegExpValidator
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import (QTextEdit, QRadioButton,
-                             QMessageBox,  QSlider, QTabWidget,
-                             QSizePolicy)
 
 from electroncash_gui.qt.util import (WindowModalDialog, WWLabel, Buttons, CancelButton,
                                       OkButton, CloseButton)
@@ -241,7 +238,7 @@ class QtPlugin(QtPluginBase):
             gb.setTitle(_("Select your seed length:"))
             bg = QtWidgets.QButtonGroup()
             for i, count in enumerate([12, 18, 24]):
-                rb = QRadioButton(gb)
+                rb = QtWidgets.QRadioButton(gb)
                 rb.setText(_("{} words").format(count))
                 bg.addButton(rb)
                 bg.setId(rb, i)
@@ -250,7 +247,7 @@ class QtPlugin(QtPluginBase):
             cb_pin = QtWidgets.QCheckBox(_('Enable PIN protection'))
             cb_pin.setChecked(True)
         else:
-            text = QTextEdit()
+            text = QtWidgets.QTextEdit()
             text.setMaximumHeight(60)
             if method == TIM_MNEMONIC:
                 msg = _("Enter your BIP39 mnemonic:")
@@ -411,7 +408,7 @@ class SettingsDialog(WindowModalDialog):
                 msg = _("Are you SURE you want to wipe the device?\n"
                         "Your wallet still has bitcoins in it!")
                 if not self.question(msg, title=title,
-                                     icon=QMessageBox.Critical):
+                                     icon=QtWidgets.QMessageBox.Critical):
                     return
             invoke_client('wipe_device', unpair_after=True)
 
@@ -493,11 +490,11 @@ class SettingsDialog(WindowModalDialog):
         # Settings tab - Session Timeout
         timeout_label = QtWidgets.QLabel(_("Session Timeout"))
         timeout_minutes = QtWidgets.QLabel()
-        timeout_slider = QSlider(Qt.Horizontal)
+        timeout_slider = QtWidgets.QSlider(Qt.Horizontal)
         timeout_slider.setRange(1, 60)
         timeout_slider.setSingleStep(1)
         timeout_slider.setTickInterval(5)
-        timeout_slider.setTickPosition(QSlider.TicksBelow)
+        timeout_slider.setTickPosition(QtWidgets.QSlider.TicksBelow)
         timeout_slider.setTracking(True)
         timeout_msg = QtWidgets.QLabel(
             _("Clear the session after the specified period "
@@ -564,13 +561,13 @@ class SettingsDialog(WindowModalDialog):
             w = advanced_glayout.itemAt(i).widget()
             if isinstance(w, QtWidgets.QLabel) and w.wordWrap():
                 sp = w.sizePolicy()
-                sp.setHorizontalPolicy(QSizePolicy.Ignored)
-                sp.setVerticalPolicy(QSizePolicy.MinimumExpanding)
+                sp.setHorizontalPolicy(QtWidgets.QSizePolicy.Ignored)
+                sp.setVerticalPolicy(QtWidgets.QSizePolicy.MinimumExpanding)
                 w.setSizePolicy(sp)
         advanced_layout.addLayout(advanced_glayout)
         advanced_layout.addStretch(1)
 
-        tabs = QTabWidget(self)
+        tabs = QtWidgets.QTabWidget(self)
         tabs.addTab(info_tab, _("Information"))
         tabs.addTab(settings_tab, _("Settings"))
         tabs.addTab(advanced_tab, _("Advanced"))

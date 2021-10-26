@@ -173,7 +173,7 @@ class Plugin(BasePlugin):
         self.obj.email_error.emit(err)
 
     def on_error_qt(self, err):
-        QMessageBox.warning(None, _("Email Error"), err)
+        QtWidgets.QMessageBox.warning(None, _("Email Error"), err)
 
     def new_invoice(self):
         self.parent.invoices.add(self.pr)
@@ -203,7 +203,7 @@ class Plugin(BasePlugin):
             return
         if not pr:
             return
-        recipient, ok = QInputDialog.getText(window, _('Send request'), _('Email invoice to:'))
+        recipient, ok = QtWidgets.QInputDialog.getText(window, _('Send request'), _('Email invoice to:'))
         if not ok:
             return
         recipient = str(recipient)

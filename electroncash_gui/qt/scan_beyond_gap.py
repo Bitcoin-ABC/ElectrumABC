@@ -50,7 +50,7 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
             + "</p><p>" + _("If you think this wallet may have a transaction history for addresses beyond the gap, use this tool to search for them. If any history for an address is found, those addresses (plus all intervening addresses), will be added to your wallet.")
             + "</p>")
         l.setWordWrap(True)
-        l.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        l.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         vbox.addWidget(l)
         vbox.addStretch(1)
         hbox = QtWidgets.QHBoxLayout()

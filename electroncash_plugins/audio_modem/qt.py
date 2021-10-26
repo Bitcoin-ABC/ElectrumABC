@@ -11,7 +11,6 @@ from electroncash.util import print_msg, print_error
 from electroncash.i18n import _
 
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QComboBox
 from PyQt5 import QtWidgets
 
 
@@ -71,7 +70,7 @@ class Plugin(BasePlugin):
             bitrate = bitrates[index]
             self.modem_config = amodem.config.bitrates[bitrate]
 
-        combo = QComboBox()
+        combo = QtWidgets.QComboBox()
         combo.addItems([str(x) for x in bitrates])
         combo.currentIndexChanged.connect(_index_changed)
         layout.addWidget(combo, 0, 1)

@@ -111,7 +111,7 @@ class HelpMixin:
                 & ~Qt.TextSelectableByKeyboard)
 
     def show_help(self):
-        QMessageBox.information(self.custom_parent or self, _('Help'), self.help_text)
+        QtWidgets.QMessageBox.information(self.custom_parent or self, _('Help'), self.help_text)
 
 class HelpLabel(HelpMixin, QtWidgets.QLabel):
     def __init__(self, text, help_text, *, custom_parent=None):
@@ -208,9 +208,9 @@ class MessageBoxMixin:
     def top_level_window(self):
         return self.top_level_window_recurse()
 
-    def question(self, msg, parent=None, title=None, icon=None, defaultButton=QMessageBox.No, **kwargs):
-        Yes, No = QMessageBox.Yes, QMessageBox.No
-        if icon is None: icon = QMessageBox.Question
+    def question(self, msg, parent=None, title=None, icon=None, defaultButton=QtWidgets.QMessageBox.No, **kwargs):
+        Yes, No = QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No
+        if icon is None: icon = QtWidgets.QMessageBox.Question
         retval = self.msg_box(icon,
                               parent, title or '',
                               msg, buttons=Yes|No, defaultButton=defaultButton, **kwargs)
@@ -227,31 +227,31 @@ class MessageBoxMixin:
 
     def show_warning(self, msg, parent=None, title=None, **kwargs):
         icon = kwargs.pop('icon', None)  # may be 0
-        if icon is None: icon = QMessageBox.Warning
+        if icon is None: icon = QtWidgets.QMessageBox.Warning
         return self.msg_box(icon, parent,
                             title or _('Warning'), msg, **kwargs)
 
     def show_error(self, msg, parent=None, title=None, **kwargs):
         icon = kwargs.pop('icon', None)  # may be 0
-        if icon is None: icon = QMessageBox.Warning
+        if icon is None: icon = QtWidgets.QMessageBox.Warning
         return self.msg_box(icon, parent,
                             title or _('Error'), msg, **kwargs)
 
     def show_critical(self, msg, parent=None, title=None, **kwargs):
         icon = kwargs.pop('icon', None)  # may be 0
-        if icon is None: icon = QMessageBox.Critical
+        if icon is None: icon = QtWidgets.QMessageBox.Critical
         return self.msg_box(icon, parent,
                             title or _('Critical Error'), msg, **kwargs)
 
     def show_message(self, msg, parent=None, title=None, **kwargs):
         icon = kwargs.pop('icon', None)  # may be 0
-        if icon is None: icon = QMessageBox.Information
+        if icon is None: icon = QtWidgets.QMessageBox.Information
         return self.msg_box(icon, parent,
                             title or _('Information'), msg, **kwargs)
 
     def msg_box(self, icon, parent, title, text,
-                buttons=QMessageBox.Ok,  # Also accepts a list/tuple of str's (for custom buttons)
-                defaultButton=QMessageBox.NoButton,  # IFF buttons is a list, use a string appearing in the list to specify this
+                buttons=QtWidgets.QMessageBox.Ok,  # Also accepts a list/tuple of str's (for custom buttons)
+                defaultButton=QtWidgets.QMessageBox.NoButton,  # IFF buttons is a list, use a string appearing in the list to specify this
                 rich_text=False, detail_text=None, informative_text=None,
                 checkbox_text=None, checkbox_ischecked=False,  # If checkbox_text is set, will add a checkbox, and return value becomes a tuple (result(), isChecked())
                 escapeButton=QMessageBox.NoButton,  # IFF buttons is a list, use a string appearing in the list to specify this
@@ -275,7 +275,7 @@ class MessageBoxMixin:
             # Return value will be the index of the button push in this list!
             for b in buttons:
                 assert isinstance(b, (str, QAbstractButton)), "MessageBoxMixin msg_box API usage error: expected a list of str's or QAbstractButtons!"
-                role = QMessageBox.AcceptRole if defaultButton == b else QMessageBox.RejectRole
+                role = QtWidgets.QMessageBox.AcceptRole if defaultButton == b else QtWidgets.QMessageBox.RejectRole
                 but = d.addButton(b, role)
                 if b == defaultButton:
                     d.setDefaultButton(but)
@@ -321,7 +321,7 @@ class MessageBoxMixin:
             print_error("MsgBoxMixin WARNING: client code is killing the dialog box's parent before function return:", str(e))
         return ret
 
-class QMessageBoxMixin(QMessageBox, MessageBoxMixin):
+class QMessageBoxMixin(QtWidgets.QMessageBox, MessageBoxMixin):
     ''' This class's sole purpose is so that MessageBoxMixin.msg_box() always
     presents a message box that has the mixin methods.
     See https://github.com/Electron-Cash/Electron-Cash/issues/980. '''
@@ -495,7 +495,7 @@ class ChoicesLayout(object):
 
         self.group = group = QtWidgets.QButtonGroup()
         for i,c in enumerate(choices):
-            button = QRadioButton(gb2)
+            button = QtWidgets.QRadioButton(gb2)
             button.setText(c)
             vbox2.addWidget(button)
             group.addButton(button)
@@ -530,10 +530,10 @@ def filename_field(config, defaultname, select_msg):
     gb = QtWidgets.QGroupBox(_("Format"))
     vbox = QtWidgets.QVBoxLayout()
     gb.setLayout(vbox)
-    b1 = QRadioButton()
+    b1 = QtWidgets.QRadioButton()
     b1.setText(_("CSV"))
     b1.setChecked(True)
-    b2 = QRadioButton()
+    b2 = QtWidgets.QRadioButton()
     b2.setText(_("JSON"))
     vbox.addWidget(b1)
     vbox.addWidget(b2)
@@ -1366,6 +1366,6 @@ class TextBrowserKeyboardFocusFilter(QTextBrowser):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
-    t = WaitingDialog(None, 'testing ...', lambda: [time.sleep(1)], lambda x: QMessageBox.information(None, 'done', "done"))
+    t = WaitingDialog(None, 'testing ...', lambda: [time.sleep(1)], lambda x: QtWidgets.QMessageBox.information(None, 'done', "done"))
     t.start()
     app.exec_()

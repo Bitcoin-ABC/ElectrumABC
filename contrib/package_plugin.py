@@ -149,7 +149,7 @@ class App(QtWidgets.QWidget):
         self.projectUrlEdit = QtWidgets.QLineEdit()
         self.projectUrlEdit.setPlaceholderText("https://github.com/rt121212121/electron_cash_scheduled_payments_plugin")
         groupLayout.addRow('Project Url', self.projectUrlEdit)
-        self.descriptionEdit = QTextEdit()
+        self.descriptionEdit = QtWidgets.QTextEdit()
         self.descriptionEdit.setPlaceholderText("Add scheduled payments at a fixed time either on a given day every week, or a specific day every month.")
         self.descriptionEdit.setAcceptRichText(False)
         groupLayout.addRow('Description', self.descriptionEdit)
@@ -256,7 +256,7 @@ class App(QtWidgets.QWidget):
                 self.packageNameEdit.setText(directory_name)
                 self.refresh_ui()
             else:
-                QMessageBox.information(self, 'Invalid Directory', 'The directory needs to be a Python package.')
+                QtWidgets.QMessageBox.information(self, 'Invalid Directory', 'The directory needs to be a Python package.')
 
     def on_package_plugin(self):
         self.archive_file_path, used_filter = QtWidgets.QFileDialog.getSaveFileName(self, "Save Plugin Archive", None, "Plugin archive (*.zip)")
@@ -269,7 +269,7 @@ class App(QtWidgets.QWidget):
         self.checksumLabel.setTextInteractionFlags(Qt.TextSelectableByMouse)
 
         file_name = os.path.basename(self.archive_file_path)
-        QMessageBox.information(self, 'Success!', 'Created plugin archive '+ file_name +'.')
+        QtWidgets.QMessageBox.information(self, 'Success!', 'Created plugin archive '+ file_name +'.')
 
     def build_manifest(self):
         display_name = self.displayNameEdit.text().strip()
@@ -297,10 +297,10 @@ class App(QtWidgets.QWidget):
         try:
             self.write_manifest(self.manifest_file_path)
         except OSError:
-            QMessageBox.critical(self, 'File Error', 'Unable to write to selected file.')
+            QtWidgets.QMessageBox.critical(self, 'File Error', 'Unable to write to selected file.')
             return
         except:
-            QMessageBox.critical(self, 'Encoding Error', 'Problem serialising json data.')
+            QtWidgets.QMessageBox.critical(self, 'Encoding Error', 'Problem serialising json data.')
             traceback.print_exc()
             return
 
@@ -313,7 +313,7 @@ class App(QtWidgets.QWidget):
             try:
                 metadata = json.load(f)
             except json.JSONDecodeError:
-                QMessageBox.critical(self, 'Invalid JSON File', 'Unable to load the file as valid JSON.')
+                QtWidgets.QMessageBox.critical(self, 'Invalid JSON File', 'Unable to load the file as valid JSON.')
                 return
 
         self.displayNameEdit.setText(str(metadata.get("display_name", "")))

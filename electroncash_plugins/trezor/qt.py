@@ -4,12 +4,6 @@ import os
 from PyQt5.QtCore import QEventLoop, Qt, QStandardPaths, pyqtSignal
 from PyQt5.QtGui import QImage, QBitmap, qRed, qGreen, qBlue
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import (
-    QMessageBox,
-    QRadioButton,
-    QSlider,
-    QTabWidget,
-)
 
 from electroncash_gui.qt.util import (
     Buttons,
@@ -284,7 +278,7 @@ class QtPlugin(QtPluginBase):
         gb.setTitle(_("Select your seed length:"))
         bg_numwords = QtWidgets.QButtonGroup()
         for i, count in enumerate([12, 18, 24]):
-            rb = QRadioButton(gb)
+            rb = QtWidgets.QRadioButton(gb)
             rb.setText(_("%d words") % count)
             bg_numwords.addButton(rb)
             bg_numwords.setId(rb, i)
@@ -314,14 +308,14 @@ class QtPlugin(QtPluginBase):
             gb_rectype.setTitle(_("Select recovery type:"))
             bg_rectype = QtWidgets.QButtonGroup()
 
-            rb1 = QRadioButton(gb_rectype)
+            rb1 = QtWidgets.QRadioButton(gb_rectype)
             rb1.setText(_('Scrambled words'))
             bg_rectype.addButton(rb1)
             bg_rectype.setId(rb1, RECOVERY_TYPE_SCRAMBLED_WORDS)
             hbox_rectype.addWidget(rb1)
             rb1.setChecked(True)
 
-            rb2 = QRadioButton(gb_rectype)
+            rb2 = QtWidgets.QRadioButton(gb_rectype)
             rb2.setText(_('Matrix'))
             bg_rectype.addButton(rb2)
             bg_rectype.setId(rb2, RECOVERY_TYPE_MATRIX)
@@ -572,7 +566,7 @@ class SettingsDialog(WindowModalDialog):
                 msg = _("Are you SURE you want to wipe the device?\n"
                         "Your wallet still has bitcoins in it!")
                 if not self.question(msg, title=title,
-                                     icon=QMessageBox.Critical):
+                                     icon=QtWidgets.QMessageBox.Critical):
                     return
             invoke_client('wipe_device', unpair_after=True)
 
@@ -670,11 +664,11 @@ class SettingsDialog(WindowModalDialog):
         # Settings tab - Session Timeout
         timeout_label = QtWidgets.QLabel(_("Session Timeout"))
         timeout_minutes = QtWidgets.QLabel()
-        timeout_slider = QSlider(Qt.Horizontal)
+        timeout_slider = QtWidgets.QSlider(Qt.Horizontal)
         timeout_slider.setRange(1, 60)
         timeout_slider.setSingleStep(1)
         timeout_slider.setTickInterval(5)
-        timeout_slider.setTickPosition(QSlider.TicksBelow)
+        timeout_slider.setTickPosition(QtWidgets.QSlider.TicksBelow)
         timeout_slider.setTracking(True)
         timeout_msg = QtWidgets.QLabel(
             _("Clear the session after the specified period "
@@ -738,7 +732,7 @@ class SettingsDialog(WindowModalDialog):
         advanced_layout.addLayout(advanced_glayout)
         advanced_layout.addStretch(1)
 
-        tabs = QTabWidget(self)
+        tabs = QtWidgets.QTabWidget(self)
         tabs.addTab(info_tab, _("Information"))
         tabs.addTab(settings_tab, _("Settings"))
         tabs.addTab(advanced_tab, _("Advanced"))

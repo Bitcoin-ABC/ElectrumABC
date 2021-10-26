@@ -226,7 +226,7 @@ def button_make_naked(but: QAbstractButton) -> QAbstractButton:
     which is the look we use for the lookup results and various other odds and
     ends. Returns the button passed to it. '''
     but.setStyleSheet(naked_button_style())
-    but.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+    but.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
     return but
 
 class InfoGroupBox(PrintError, QtWidgets.QGroupBox):
@@ -387,7 +387,7 @@ class InfoGroupBox(PrintError, QtWidgets.QGroupBox):
             BUTTON_FACTORY = lambda *args: QtWidgets.QCheckBox()
             but_grp.setExclusive(False)
         else:
-            BUTTON_FACTORY = lambda *args: QRadioButton()
+            BUTTON_FACTORY = lambda *args: QtWidgets.QRadioButton()
             but_grp.setExclusive(True)
         hide_but = button_type == __class__.ButtonType.NoButton
 
@@ -895,7 +895,7 @@ def cash_account_detail_dialog(parent : MessageBoxMixin,  # Should be an Electru
     grid.setRowStretch(2, 1)
 
     # QR
-    tabs = QTabWidget()
+    tabs = QtWidgets.QTabWidget()
     full_addr_str = info.address.to_full_ui_string()
     qr_address = QRCodeWidget(full_addr_str, fixedSize=True)
     qr_address.setToolTip(full_addr_str)

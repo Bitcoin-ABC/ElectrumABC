@@ -237,7 +237,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         self.completions = QStringListModel()
 
-        self.tabs = tabs = QTabWidget(self)
+        self.tabs = tabs = QtWidgets.QTabWidget(self)
         self.send_tab = self.create_send_tab()
         self.receive_tab = self.create_receive_tab()
         self.addresses_tab = self.create_addresses_tab()
@@ -265,7 +265,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         add_optional_tab(tabs, self.converter_tab, QIcon(":icons/tab_converter.svg"), _("Address Converter"), "converter")
         add_optional_tab(tabs, self.console_tab, QIcon(":icons/tab_console.png"), _("Con&sole"), "console", False)
 
-        tabs.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        tabs.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         self.setCentralWidget(tabs)
 
         if self.config.get("is_maximized"):
@@ -823,7 +823,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         year_start_ec = 2017
         year_end_ec = 2020
         year_start = 2020
-        QMessageBox.about(
+        QtWidgets.QMessageBox.about(
             self, f"{PROJECT_NAME}",
             f"<p><font size=+3><b>{PROJECT_NAME}</b></font></p><p>"
             + _("Version") + f" {self.wallet.electrum_version}" + "</p>" +
@@ -1349,7 +1349,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                 uri = str(self.receive_qr.data)
                 self.copy_to_clipboard(uri, _('Receive request URI copied to clipboard'), uribut)
         but.clicked.connect(on_copy_uri)
-        but.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        but.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         but.setToolTip(_('Click to copy the receive request URI to the clipboard'))
         vbox2.addWidget(but)
         vbox2.setAlignment(but, Qt.AlignHCenter|Qt.AlignVCenter)
@@ -2184,7 +2184,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                 ).format(PROJECT_NAME, CURRENCY)
                 res = self.msg_box(
                     parent=self,
-                    icon=QMessageBox.Warning,
+                    icon=QtWidgets.QMessageBox.Warning,
                     title=_("You are sending to a legacy address"),
                     rich_text=True,
                     text=msg1,
@@ -3333,7 +3333,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         layout = QtWidgets.QGridLayout(d)
 
-        message_e = QTextEdit()
+        message_e = QtWidgets.QTextEdit()
         message_e.setAcceptRichText(False)
         layout.addWidget(QtWidgets.QLabel(_('Message')), 1, 0)
         layout.addWidget(message_e, 1, 1)
@@ -3344,7 +3344,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         layout.addWidget(QtWidgets.QLabel(_('Address')), 2, 0)
         layout.addWidget(address_e, 2, 1)
 
-        signature_e = QTextEdit()
+        signature_e = QtWidgets.QTextEdit()
         signature_e.setAcceptRichText(False)
         layout.addWidget(QtWidgets.QLabel(_('Signature')), 3, 0)
         layout.addWidget(signature_e, 3, 1)
@@ -3392,7 +3392,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         layout = QtWidgets.QGridLayout(d)
 
-        message_e = QTextEdit()
+        message_e = QtWidgets.QTextEdit()
         message_e.setAcceptRichText(False)
         layout.addWidget(QtWidgets.QLabel(_('Message')), 1, 0)
         layout.addWidget(message_e, 1, 1)
@@ -3407,7 +3407,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         layout.addWidget(QtWidgets.QLabel(_('Public key')), 2, 0)
         layout.addWidget(pubkey_e, 2, 1)
 
-        encrypted_e = QTextEdit()
+        encrypted_e = QtWidgets.QTextEdit()
         encrypted_e.setAcceptRichText(False)
         layout.addWidget(QtWidgets.QLabel(_('Encrypted')), 3, 0)
         layout.addWidget(encrypted_e, 3, 1)
@@ -3561,7 +3561,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         from electroncash import transaction
         ok = txid is not None
         if not ok:
-            txid, ok = QInputDialog.getText(parent, _('Lookup transaction'), _('Transaction ID') + ':')
+            txid, ok = QtWidgets.QInputDialog.getText(parent, _('Lookup transaction'), _('Transaction ID') + ':')
         if ok and txid:
             ok, r = self.network.get_raw_tx_for_txid(txid, timeout=10.0)
             if not ok:
@@ -3647,7 +3647,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             wwlbl.linkActivated.connect(toggle_ww_txt)
             vbox.addWidget(wwlbl)
 
-        e = QTextEdit()
+        e = QtWidgets.QTextEdit()
         e.setFont(QFont(MONOSPACE_FONT))
         e.setWordWrapMode(QTextOption.NoWrap)
         e.setReadOnly(True)
@@ -4134,7 +4134,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         d.setObjectName('WindowModalDialog - Preferences')
         destroyed_print_error(d)
         vbox = QtWidgets.QVBoxLayout()
-        tabs = QTabWidget()
+        tabs = QtWidgets.QTabWidget()
         gui_widgets = []
         misc_widgets = []
         global_tx_widgets, per_wallet_tx_widgets = [], []

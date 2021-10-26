@@ -603,7 +603,7 @@ class Plugin(FusionPlugin, QObject):
                         parent = None,
                         app_modal = True,
                         rich_text = True,
-                        defaultButton = QMessageBox.Yes
+                        defaultButton = QtWidgets.QMessageBox.Yes
                     )
                     if answer:
                         def on_status(controller):
@@ -692,7 +692,7 @@ class PasswordDialog(WindowModalDialog):
         self.msglabel = QtWidgets.QLabel(message)
         self.msglabel.setWordWrap(True)
         self.msglabel.setMinimumWidth(250)
-        self.msglabel.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Expanding)
+        self.msglabel.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Expanding)
         hbox = QtWidgets.QHBoxLayout()
         iconlabel = QtWidgets.QLabel(); iconlabel.setPixmap(get_icon_fusion_logo().pixmap(32))
         hbox.addWidget(iconlabel)
@@ -774,7 +774,7 @@ class DisabledFusionButton(StatusBarButton):
         self.setToolTip(_("CashFusion (disabled)"))
 
     def show_message(self):
-        QMessageBox.information(Plugin.get_suitable_dialog_window_parent(self.wallet),
+        QtWidgets.QMessageBox.information(Plugin.get_suitable_dialog_window_parent(self.wallet),
                                 _("CashFusion is disabled"), self.message)
 
 class FusionButton(StatusBarButton):
@@ -865,11 +865,11 @@ class FusionButton(StatusBarButton):
         else:
             running = plugin.disable_autofusing(self.wallet)
             if running:
-                res = QMessageBox.question(Plugin.get_suitable_dialog_window_parent(self.wallet),
+                res = QtWidgets.QMessageBox.question(Plugin.get_suitable_dialog_window_parent(self.wallet),
                                            _("Disabling automatic Cash Fusions"),
                                            _("New automatic fusions will not be started, but you have {num} currently in progress."
                                              " Would you like to signal them to stop?").format(num=len(running)) )
-                if res == QMessageBox.Yes:
+                if res == QtWidgets.QMessageBox.Yes:
                     for f in running:
                         f.stop('Stop requested by user')
         self.update_state()
@@ -941,7 +941,7 @@ class SettingsWidget(QtWidgets.QWidget):
         self.combo_server_host.setEditable(True)
         self.combo_server_host.setInsertPolicy(QComboBox.NoInsert)
         self.combo_server_host.setCompleter(None)
-        self.combo_server_host.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.combo_server_host.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         self.combo_server_host.activated.connect(self.combo_server_activated)
         self.combo_server_host.lineEdit().textEdited.connect(self.user_changed_server)
         self.combo_server_host.addItems([f'{s[0]} ({s[1]}{" - ssl" if s[2] else ""})' for s in Global.Defaults.ServerList])
@@ -1262,11 +1262,11 @@ class WalletSettingsDialog(WindowModalDialog):
 
         grid = QtWidgets.QGridLayout() ; slayout.addLayout(grid)
 
-        self.radio_select_size = QRadioButton(_("Target typical output amount"))
+        self.radio_select_size = QtWidgets.QRadioButton(_("Target typical output amount"))
         grid.addWidget(self.radio_select_size, 0, 0)
-        self.radio_select_fraction = QRadioButton(_("Per-coin random chance"))
+        self.radio_select_fraction = QtWidgets.QRadioButton(_("Per-coin random chance"))
         grid.addWidget(self.radio_select_fraction, 1, 0)
-        self.radio_select_count = QRadioButton(_("Target number of coins in wallet"))
+        self.radio_select_count = QtWidgets.QRadioButton(_("Target number of coins in wallet"))
         grid.addWidget(self.radio_select_count, 2, 0)
 
         self.radio_select_size.clicked.connect(self.edited_size)
@@ -1300,7 +1300,7 @@ class WalletSettingsDialog(WindowModalDialog):
         self.l_warn_selection.setToolTip(low_warn_tooltip)
         self.l_warn_selection.linkActivated.connect(self._show_low_warn_help)
         self.l_warn_selection.setAlignment(Qt.AlignJustify|Qt.AlignVCenter)
-        qs = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        qs = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         qs.setRetainSizeWhenHidden(True)
         self.l_warn_selection.setSizePolicy(qs)
         slayout.addWidget(self.l_warn_selection)

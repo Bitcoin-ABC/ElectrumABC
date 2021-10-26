@@ -25,7 +25,6 @@
 # SOFTWARE.
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QSizePolicy
 from PyQt5 import QtWidgets
 
 
@@ -43,12 +42,12 @@ class QR_Window(QtWidgets.QWidget, MessageBoxMixin):
         self.label = ''
         self.amount = 0
         self.setFocusPolicy(Qt.NoFocus)
-        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
 
         main_box = QtWidgets.QHBoxLayout(self)
         main_box.setContentsMargins(12,12,12,12)
         self.qrw = QRCodeWidget()
-        self.qrw.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        self.qrw.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
         main_box.addWidget(self.qrw, 2)
 
         vbox = QtWidgets.QVBoxLayout()

@@ -93,7 +93,7 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
         self.descriptionLabel = QtWidgets.QLabel()
         self.descriptionLabel.setWordWrap(True)
         # Long description labels that wrap should push the form layout's row to grow
-        p = self.descriptionLabel.sizePolicy(); p.setVerticalPolicy(QSizePolicy.MinimumExpanding); self.descriptionLabel.setSizePolicy(p)
+        p = self.descriptionLabel.sizePolicy(); p.setVerticalPolicy(QtWidgets.QSizePolicy.MinimumExpanding); self.descriptionLabel.setSizePolicy(p)
         self.metadataFormLayout.addRow(_("Description"), self.descriptionLabel)
         self.supportedInterfacesLayout = QtWidgets.QVBoxLayout()
         self.supportedInterfacesLabel = QtWidgets.QLabel(_("Integration"))

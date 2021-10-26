@@ -3,13 +3,12 @@ from electroncash.i18n import _
 
 from PyQt5.QtGui import QCursor
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QSlider
 from PyQt5 import QtWidgets
 
-class FeeSlider(QSlider):
+class FeeSlider(QtWidgets.QSlider):
 
     def __init__(self, window, config, callback):
-        QSlider.__init__(self, Qt.Horizontal)
+        QtWidgets.QSlider.__init__(self, Qt.Horizontal)
         self.config = config
         self.window = window
         self.callback = callback

@@ -73,7 +73,7 @@ class LedgerAuthDialog(QtWidgets.QDialog):
         self.populate_modes()
         self.modes.currentIndexChanged.connect(on_change_mode)
 
-        self.helpmsg = QTextEdit()
+        self.helpmsg = QtWidgets.QTextEdit()
         self.helpmsg.setStyleSheet("QTextEdit { background-color: lightgray; }")
         self.helpmsg.setReadOnly(True)
         vbox.addWidget(self.helpmsg)
@@ -95,7 +95,7 @@ class LedgerAuthDialog(QtWidgets.QDialog):
         self.cardbox = QtWidgets.QWidget()
         card = QtWidgets.QVBoxLayout()
         self.cardbox.setLayout(card)
-        self.addrtext = QTextEdit()
+        self.addrtext = QtWidgets.QTextEdit()
         self.addrtext.setStyleSheet("QTextEdit { color:blue; background-color:lightgray; padding:15px 10px; border:none; font-size:20pt; }")
         self.addrtext.setReadOnly(True)
         self.addrtext.setMaximumHeight(120)

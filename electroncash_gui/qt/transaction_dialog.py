@@ -771,7 +771,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
 
     @staticmethod
     def _copy_to_clipboard(text, widget):
-        if not text and isinstance(widget, QTextEdit):
+        if not text and isinstance(widget, QtWidgets.QTextEdit):
             widget.copy()
         else:
             qApp.clipboard().setText(text)

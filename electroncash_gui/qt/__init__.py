@@ -298,7 +298,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
                 if shutil.which('apt'):
                     msg += "\n\n" + _("On Debian-based distros, you can run:\n\n    sudo apt install python3-pyqt5.qtsvg")
 
-            QMessageBox.critical(None, _("QtSvg Missing"), msg)  # this works even if app is not exec_() yet.
+            QtWidgets.QMessageBox.critical(None, _("QtSvg Missing"), msg)  # this works even if app is not exec_() yet.
             self.app.exit(1)
             sys.exit(msg)
 
@@ -462,7 +462,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
                     "Please upgrade otherwise you may experience "
                     "font rendering issues with emojis and other unicode "
                     f"characters used by {PROJECT_NAME}.")
-            QMessageBox.warning(None, _("PyQt5 Upgrade Needed"), msg)  # this works even if app is not exec_() yet.
+            QtWidgets.QMessageBox.warning(None, _("PyQt5 Upgrade Needed"), msg)  # this works even if app is not exec_() yet.
 
 
     def eventFilter(self, obj, event):
@@ -652,7 +652,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
                 self.warning(
                     title=_('Error'),
                     message = 'Cannot load wallet:\n' + str(e),
-                    icon=QMessageBox.Critical
+                    icon=QtWidgets.QMessageBox.Critical
                 )
                 return
             w = self.create_window_for_wallet(wallet)
@@ -780,7 +780,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
             return True
         return False
 
-    def warn_if_no_secp(self, parent=None, message=None, icon=QMessageBox.Warning):
+    def warn_if_no_secp(self, parent=None, message=None, icon=QtWidgets.QMessageBox.Warning):
         ''' Returns True if it DID warn: ie if there's no secp and ecc operations
         are slow, otherwise returns False if we have secp.
 
@@ -814,14 +814,14 @@ class ElectrumGui(QtCore.QObject, PrintError):
                      message=msg, rich_text=True)
         return True
 
-    def warning(self, title, message, icon = QMessageBox.Warning, parent = None, rich_text=False):
-        if not isinstance(icon, QMessageBox.Icon):
-            icon = QMessageBox.Warning
+    def warning(self, title, message, icon = QtWidgets.QMessageBox.Warning, parent = None, rich_text=False):
+        if not isinstance(icon, QtWidgets.QMessageBox.Icon):
+            icon = QtWidgets.QMessageBox.Warning
         if isinstance(parent, MessageBoxMixin):
             parent.msg_box(title=title, text=message, icon=icon, parent=None, rich_text=rich_text)
         else:
             parent = parent if isinstance(parent, QtWidgets.QWidget) else None
-            d = QMessageBoxMixin(icon, title, message, QMessageBox.Ok, parent)
+            d = QMessageBoxMixin(icon, title, message, QtWidgets.QMessageBox.Ok, parent)
             if not rich_text:
                 d.setTextFormat(QtCore.Qt.PlainText)
                 d.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)

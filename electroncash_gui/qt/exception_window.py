@@ -107,7 +107,7 @@ class ExceptionDialog(QtWidgets.QDialog):
         l.setWordWrap(True)
         main_box.addWidget(l)
 
-        self.report_textfield = QTextEdit()
+        self.report_textfield = QtWidgets.QTextEdit()
         self.report_textfield.setReadOnly(True)
         self.report_textfield.setText(self.get_report_string("html"))
 
