@@ -64,7 +64,7 @@ class LedgerAuthDialog(QtWidgets.QDialog):
         modelayout = QtWidgets.QHBoxLayout()
         self.modebox.setLayout(modelayout)
         modelayout.addWidget(QtWidgets.QLabel(_("Method:")))
-        self.modes = QComboBox()
+        self.modes = QtWidgets.QComboBox()
         modelayout.addWidget(self.modes, 2)
         modelayout.addStretch(1)
         self.modebox.setMaximumHeight(50)

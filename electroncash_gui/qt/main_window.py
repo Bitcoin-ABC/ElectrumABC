@@ -47,7 +47,6 @@ from PyQt5.QtCore import (
     qVersion,
 )
 from PyQt5.QtGui import QColor, QCursor, QFont, QIcon, QKeySequence, QTextOption
-from PyQt5.QtWidgets import *
 from PyQt5 import QtWidgets
 from collections import OrderedDict
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
@@ -175,7 +174,7 @@ def set_windows_qt_use_freetype(config, b):
         config.set_key('windows_qt_use_freetype', bool(b))
 
 
-class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
+class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     # Note: self.clean_up_connections automatically detects signals named XXX_signal and disconnects them on window close.
     payment_request_ok_signal = pyqtSignal()
@@ -192,7 +191,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
     status_icon_dict = dict()  # app-globel cache of "status_*" -> QIcon instances (for update_status() speedup)
 
     def __init__(self, gui_object, wallet):
-        QMainWindow.__init__(self)
+        QtWidgets.QMainWindow.__init__(self)
 
         self.gui_object = gui_object
         self.wallet = wallet
@@ -275,14 +274,14 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         # We use a weak reference here to help along python gc of QShortcut children: prevent the lambdas below from holding a strong ref to self.
         wrtabs = Weak.ref(tabs)
-        self._shortcuts.add( QShortcut(QKeySequence("Ctrl+W"), self, self.close) )
+        self._shortcuts.add( QtWidgets.QShortcut(QKeySequence("Ctrl+W"), self, self.close) )
         # Below is now added to the menu as Ctrl+R but we'll also support F5 like browsers do
-        self._shortcuts.add( QShortcut(QKeySequence("F5"), self, self.update_wallet) )
-        self._shortcuts.add( QShortcut(QKeySequence("Ctrl+PgUp"), self, lambda: wrtabs() and wrtabs().setCurrentIndex((wrtabs().currentIndex() - 1)%wrtabs().count())) )
-        self._shortcuts.add( QShortcut(QKeySequence("Ctrl+PgDown"), self, lambda: wrtabs() and wrtabs().setCurrentIndex((wrtabs().currentIndex() + 1)%wrtabs().count())) )
+        self._shortcuts.add( QtWidgets.QShortcut(QKeySequence("F5"), self, self.update_wallet) )
+        self._shortcuts.add( QtWidgets.QShortcut(QKeySequence("Ctrl+PgUp"), self, lambda: wrtabs() and wrtabs().setCurrentIndex((wrtabs().currentIndex() - 1)%wrtabs().count())) )
+        self._shortcuts.add( QtWidgets.QShortcut(QKeySequence("Ctrl+PgDown"), self, lambda: wrtabs() and wrtabs().setCurrentIndex((wrtabs().currentIndex() + 1)%wrtabs().count())) )
 
         for i in range(tabs.count()):
-            self._shortcuts.add( QShortcut(QKeySequence("Alt+" + str(i + 1)), self, lambda i=i: wrtabs() and wrtabs().setCurrentIndex(i)) )
+            self._shortcuts.add( QtWidgets.QShortcut(QKeySequence("Alt+" + str(i + 1)), self, lambda i=i: wrtabs() and wrtabs().setCurrentIndex(i)) )
 
         self.gui_object.addr_fmt_changed.connect(self.update_cashaddr_icon)
         self.payment_request_ok_signal.connect(self.payment_request_ok)
@@ -733,7 +732,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             # This turns off the heuristic matching based on name and keeps the
             # "Preferences" action out of the application menu and into the
             # actual menu we specified on macOS.
-            a.setMenuRole(QAction.NoRole)
+            a.setMenuRole(QtWidgets.QAction.NoRole)
         gui_object = self.gui_object
         weakSelf = Weak.ref(self)
         tools_menu.addAction(_("&Network") + "...", lambda: gui_object.show_network_dialog(weakSelf()), QKeySequence("Ctrl+K"))
@@ -1279,7 +1278,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         grid.addWidget(self.fiat_receive_e, 4, 2, Qt.AlignLeft)
         self.connect_fields(self, self.receive_amount_e, self.fiat_receive_e, None)
 
-        self.expires_combo = QComboBox()
+        self.expires_combo = QtWidgets.QComboBox()
         self.expires_combo.addItems([_(i[0]) for i in expiration_values])
         self.expires_combo.setCurrentIndex(3)
         self.expires_combo.setFixedWidth(self.receive_amount_e.width())
@@ -1643,7 +1642,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         grid.addWidget(payto_label, 1, 0)
         grid.addWidget(self.payto_e, 1, 1, 1, -1)
 
-        completer = QCompleter(self.payto_e)
+        completer = QtWidgets.QCompleter(self.payto_e)
         completer.setCaseSensitivity(False)
         self.payto_e.setCompleter(completer)
         completer.setModel(self.completions)
@@ -2947,7 +2946,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
     def create_status_bar(self):
 
-        sb = QStatusBar()
+        sb = QtWidgets.QStatusBar()
         sb.setFixedHeight(35)
         qtVersion = qVersion()
 
@@ -3825,7 +3824,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         hbox = QtWidgets.QHBoxLayout(fee_time_w)
         hbox.setContentsMargins(20, 0, 0, 0)
         hbox.addWidget(QtWidgets.QLabel(_("Timeout:")), 0, Qt.AlignRight)
-        fee_time_sb = QSpinBox()
+        fee_time_sb = QtWidgets.QSpinBox()
         fee_time_sb.setMinimum(10)
         fee_time_sb.setMaximum(9999)
         fee_time_sb.setSuffix(" " + _("seconds"))
@@ -4142,7 +4141,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         # language
         lang_help = _('Select which language is used in the GUI (after restart).')
         lang_label = HelpLabel(_('Language') + ':', lang_help)
-        lang_combo = QComboBox()
+        lang_combo = QtWidgets.QComboBox()
         from electroncash.i18n import languages, get_system_language_match, match_language
 
         language_names = []
@@ -4183,7 +4182,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         nz_help = _('Number of zeros displayed after the decimal point. For example, if this is set to 2, "1." will be displayed as "1.00"')
         nz_label = HelpLabel(_('Zeros after decimal point') + ':', nz_help)
-        nz = QSpinBox()
+        nz = QtWidgets.QSpinBox()
         nz.setMinimum(0)
         nz.setMaximum(self.decimal_point)
         nz.setValue(self.num_zeros)
@@ -4319,7 +4318,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
               + '\n1 MegaXEC = 1 BCHA = 1,000,000 XEC.\n' \
               + _(' These settings affects the fields in the Send tab')+' '
         unit_label = HelpLabel(_('Base unit') + ':', msg)
-        unit_combo = QComboBox()
+        unit_combo = QtWidgets.QComboBox()
         unit_combo.addItems(units_for_menu)
         unit_combo.setCurrentIndex(unit_names.index(self.base_unit()))
         def on_unit(x, nz):
@@ -4346,7 +4345,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         block_explorers = web.BE_sorted_list()
         msg = _('Choose which online block explorer to use for functions that open a web browser')
         block_ex_label = HelpLabel(_('Online block explorer') + ':', msg)
-        block_ex_combo = QComboBox()
+        block_ex_combo = QtWidgets.QComboBox()
         block_ex_combo.addItems(block_explorers)
         block_ex_combo.setCurrentIndex(block_ex_combo.findText(web.BE_name_from_config(self.config)))
         def on_be(x):
@@ -4355,7 +4354,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         block_ex_combo.currentIndexChanged.connect(on_be)
         gui_widgets.append((block_ex_label, block_ex_combo))
 
-        qr_combo = QComboBox()
+        qr_combo = QtWidgets.QComboBox()
         qr_label = HelpLabel(_('Video device'), '')
         qr_did_scan = False
         def set_no_camera(e=''):
@@ -4404,7 +4403,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         qr_combo.currentIndexChanged.connect(on_video_device)
         gui_widgets.append((qr_label, qr_combo))
 
-        colortheme_combo = QComboBox()
+        colortheme_combo = QtWidgets.QComboBox()
         colortheme_combo.addItem(_('Default'), 'default')  # We can't name this "light" in the UI as sometimes the default is actually dark-looking eg on Mojave or on some Linux desktops.
         colortheme_combo.addItem(_('Dark'), 'dark')
         theme_name = self.config.get('qt_gui_color_theme', 'default')
@@ -4487,7 +4486,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         address_w = QtWidgets.QGroupBox(_('Address Format'))
         address_w.setToolTip(_('Select between Cash Address and Legacy formats for addresses'))
         hbox = QtWidgets.QHBoxLayout(address_w)
-        cashaddr_cbox = QComboBox()
+        cashaddr_cbox = QtWidgets.QComboBox()
         cashaddr_cbox.addItem(QIcon(':icons/tab_converter.svg'),
                               _("CashAddr"),
                               Address.FMT_CASHADDR)
@@ -4576,8 +4575,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         # Fiat Currency
         hist_checkbox = QtWidgets.QCheckBox()
         fiat_address_checkbox = QtWidgets.QCheckBox()
-        ccy_combo = QComboBox()
-        ex_combo = QComboBox()
+        ccy_combo = QtWidgets.QComboBox()
+        ex_combo = QtWidgets.QComboBox()
 
         enable_opreturn = bool(self.config.get('enable_opreturn'))
         opret_cb = QtWidgets.QCheckBox(_('Enable OP_RETURN output'))
@@ -4723,7 +4722,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                     if a:
                         grid.addWidget(a, i, 0, 1, 2)
                     else:
-                        grid.addItem(QSpacerItem(15, 15), i, 0, 1, 2)
+                        grid.addItem(QtWidgets.QSpacerItem(15, 15), i, 0, 1, 2)
             for thing, name in tabs_info:
                 tab = QtWidgets.QWidget()
                 if isinstance(thing, dict):
@@ -4836,8 +4835,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         # Reparent children to 'None' so python GC can clean them up sooner rather than later.
         # This also hopefully helps accelerate this window's GC.
         children = [c for c in self.children()
-                    if (isinstance(c, (QtWidgets.QWidget, QAction, TaskThread))
-                        and not isinstance(c, (QStatusBar, QtWidgets.QMenuBar, QFocusFrame, QShortcut)))]
+                    if (isinstance(c, (QtWidgets.QWidget, QtWidgets.QAction, TaskThread))
+                        and not isinstance(c, (QtWidgets.QStatusBar, QtWidgets.QMenuBar, QtWidgets.QFocusFrame, QtWidgets.QShortcut)))]
         for c in children:
             try: c.disconnect()
             except TypeError: pass
@@ -4919,7 +4918,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         vbox = QtWidgets.QVBoxLayout(d)
 
         # plugins
-        scroll = QScrollArea()
+        scroll = QtWidgets.QScrollArea()
         scroll.setEnabled(True)
         scroll.setWidgetResizable(True)
         scroll.setMinimumSize(400,250)
@@ -5097,7 +5096,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
     def copy_to_clipboard(self, text, tooltip=None, widget=None):
         tooltip = tooltip or _("Text copied to clipboard")
         widget = widget or self
-        qApp.clipboard().setText(text)
+        QtWidgets.qApp.clipboard().setText(text)
         QtWidgets.QToolTip.showText(QCursor.pos(), tooltip, widget)
 
     def _pick_address(self, *, title=None, icon=None) -> Address:
@@ -5117,7 +5116,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             ic_lbl = QtWidgets.QLabel()
             ic_lbl.setPixmap(icon.pixmap(50))
             hbox.addWidget(ic_lbl)
-            hbox.addItem(QSpacerItem(10, 1))
+            hbox.addItem(QtWidgets.QSpacerItem(10, 1))
             t_lbl = QtWidgets.QLabel("<font size=+1><b>" + (title or '') + "</b></font>")
             hbox.addWidget(t_lbl, 0, Qt.AlignLeft)
             hbox.addStretch(1)

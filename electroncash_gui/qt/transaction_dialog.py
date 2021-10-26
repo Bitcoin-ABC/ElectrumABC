@@ -542,7 +542,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         hbox.addWidget(l)
 
 
-        hbox.addSpacerItem(QSpacerItem(20, 0))  # 20 px padding
+        hbox.addSpacerItem(QtWidgets.QSpacerItem(20, 0))  # 20 px padding
         self.dl_input_chk = chk = QtWidgets.QCheckBox(_("&Download input data"))
         chk.setChecked(self.is_fetch_input_data())
         chk.clicked.connect(self.set_fetch_input_data)
@@ -774,7 +774,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         if not text and isinstance(widget, QtWidgets.QTextEdit):
             widget.copy()
         else:
-            qApp.clipboard().setText(text)
+            QtWidgets.qApp.clipboard().setText(text)
         QtWidgets.QToolTip.showText(QCursor.pos(), _("Text copied to clipboard"), widget)
 
     def _open_internal_link(self, target):

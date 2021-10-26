@@ -146,7 +146,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         inner_vbox.addStretch(1)
         scroll_widget = QtWidgets.QWidget()
         scroll_widget.setLayout(inner_vbox)
-        scroll = QScrollArea()
+        scroll = QtWidgets.QScrollArea()
         scroll.setWidget(scroll_widget)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         scroll.setWidgetResizable(True)

@@ -792,16 +792,16 @@ class FusionButton(StatusBarButton):
 
 #        title = QWidgetAction(self)
 #        title.setDefaultWidget(QtWidgets.QLabel("<i>" + _("CashFusion") + "</i>"))
-        self.action_toggle = QAction(_("Auto-Fuse in Background"))
+        self.action_toggle = QtWidgets.QAction(_("Auto-Fuse in Background"))
         self.action_toggle.setCheckable(True)
         self.action_toggle.triggered.connect(self.toggle_autofuse)
-        action_separator1 = QAction(self); action_separator1.setSeparator(True)
-        action_wsettings = QAction(_("Wallet Fusion Settings..."), self)
+        action_separator1 = QtWidgets.QAction(self); action_separator1.setSeparator(True)
+        action_wsettings = QtWidgets.QAction(_("Wallet Fusion Settings..."), self)
         action_wsettings.triggered.connect(self.show_wallet_settings)
-        action_settings = QAction(_("Server Settings..."), self)
+        action_settings = QtWidgets.QAction(_("Server Settings..."), self)
         action_settings.triggered.connect(self.plugin.show_settings_dialog)
-        action_separator2 = QAction(self); action_separator2.setSeparator(True)
-        action_util = QAction(_("Fusions..."), self)
+        action_separator2 = QtWidgets.QAction(self); action_separator2.setSeparator(True)
+        action_util = QtWidgets.QAction(_("Fusions..."), self)
         action_util.triggered.connect(self.plugin.show_util_window)
 
         self.addActions([self.action_toggle, action_separator1,
@@ -937,9 +937,9 @@ class SettingsWidget(QtWidgets.QWidget):
 
         grid.addWidget(QtWidgets.QLabel(_("Server")), 0, 0)
         hbox = QtWidgets.QHBoxLayout(); grid.addLayout(hbox, 0, 1)
-        self.combo_server_host = QComboBox()
+        self.combo_server_host = QtWidgets.QComboBox()
         self.combo_server_host.setEditable(True)
-        self.combo_server_host.setInsertPolicy(QComboBox.NoInsert)
+        self.combo_server_host.setInsertPolicy(QtWidgets.QComboBox.NoInsert)
         self.combo_server_host.setCompleter(None)
         self.combo_server_host.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         self.combo_server_host.activated.connect(self.combo_server_activated)
@@ -1165,7 +1165,7 @@ class WalletSettingsDialog(WindowModalDialog):
 
         hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(QtWidgets.QLabel(_('Fusion mode:')))
-        self.mode_cb = mode_cb = QComboBox()
+        self.mode_cb = mode_cb = QtWidgets.QComboBox()
 
         hbox.addWidget(mode_cb)
 
@@ -1177,7 +1177,7 @@ class WalletSettingsDialog(WindowModalDialog):
         hbox = QtWidgets.QHBoxLayout(gb)
         self.chk_fuse_depth = chk = QtWidgets.QCheckBox(_("Fuse coins this many times"))
         hbox.addWidget(chk, 1)
-        self.sb_fuse_depth = sb = QSpinBox()
+        self.sb_fuse_depth = sb = QtWidgets.QSpinBox()
         sb.setRange(1, MAX_LIMIT_FUSE_DEPTH)
         sb.setMinimumWidth(75)
         hbox.addWidget(sb)
@@ -1206,7 +1206,7 @@ class WalletSettingsDialog(WindowModalDialog):
         lbl.setWordWrap(True)
         slayout.addWidget(lbl)
         box = QtWidgets.QHBoxLayout(); box.setContentsMargins(0,0,0,0)
-        self.combo_self_fuse = QComboBox()
+        self.combo_self_fuse = QtWidgets.QComboBox()
         self.combo_self_fuse.addItem(_('No'), 1)
         self.combo_self_fuse.addItem(_('Yes - as up to two players'), 2)
         box.addStretch(1)
@@ -1280,7 +1280,7 @@ class WalletSettingsDialog(WindowModalDialog):
         self.sb_selector_fraction.setSuffix("%")
         self.sb_selector_fraction.setDecimals(1)
         grid.addWidget(self.sb_selector_fraction, 1, 1)
-        self.sb_selector_count = QSpinBox()
+        self.sb_selector_count = QtWidgets.QSpinBox()
         self.sb_selector_count.setRange(COIN_FRACTION_FUDGE_FACTOR, 9999)  # Somewhat hardcoded limit of 9999 is arbitrary, have this come from constants?
         grid.addWidget(self.sb_selector_count, 2, 1)
 
@@ -1310,7 +1310,7 @@ class WalletSettingsDialog(WindowModalDialog):
         slayout = QtWidgets.QVBoxLayout(box)
         grid = QtWidgets.QGridLayout() ; slayout.addLayout(grid)
         grid.addWidget(QtWidgets.QLabel(_("Number of queued fusions")), 0, 0)
-        self.sb_queued_autofuse = QSpinBox()
+        self.sb_queued_autofuse = QtWidgets.QSpinBox()
         self.sb_queued_autofuse.setRange(1, 10)  # hard-coded rande 1-10, maybe have this come from some constants?
         self.sb_queued_autofuse.setMinimumWidth(50)  # just so it doesn't end up too tiny
         grid.addWidget(self.sb_queued_autofuse, 0, 1)

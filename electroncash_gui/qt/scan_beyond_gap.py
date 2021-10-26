@@ -56,10 +56,10 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
         hbox = QtWidgets.QHBoxLayout()
         l = QtWidgets.QLabel(_("Number of addresses to scan:"))
         hbox.addWidget(l)
-        self.num_sb = QSpinBox(); self.num_sb.setMinimum(1); self.num_sb.setMaximum(1000000);
+        self.num_sb = QtWidgets.QSpinBox(); self.num_sb.setMinimum(1); self.num_sb.setMaximum(1000000);
         self.num_sb.setValue(100)
         hbox.addWidget(self.num_sb)
-        self.which_cb = QComboBox()
+        self.which_cb = QtWidgets.QComboBox()
         self.which_cb.addItem(_("Both Receiving & Change (x2)"))
         self.which_cb.addItem(_("Receiving Addresses Only"))
         self.which_cb.addItem(_("Change Addresses Only"))
@@ -67,7 +67,7 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
         hbox.addWidget(self.which_cb)
         hbox.addStretch(1)
         vbox.addLayout(hbox)
-        self.prog = QProgressBar(); self.prog.setMinimum(0); self.prog.setMaximum(100);
+        self.prog = QtWidgets.QProgressBar(); self.prog.setMinimum(0); self.prog.setMaximum(100);
         vbox.addWidget(self.prog)
         self.prog_label = QtWidgets.QLabel()
         vbox.addWidget(self.prog_label)

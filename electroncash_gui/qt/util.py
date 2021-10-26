@@ -375,7 +375,7 @@ class WaitingDialog(WindowModalDialog):
         self.rejected.connect(self.on_rejected)
         self._pbar = None
         if progress_bar:
-            self._pbar = p =QProgressBar()
+            self._pbar = p =QtWidgets.QProgressBar()
             p.setMinimum(progress_min)
             p.setMaximum(progress_max)
             if isinstance(progress_bar, str):
@@ -440,7 +440,7 @@ def line_dialog(parent, title, label, ok_label, default=None,
         ic_lbl = QtWidgets.QLabel()
         ic_lbl.setPixmap(icon.pixmap(50))
         hbox.addWidget(ic_lbl)
-        hbox.addItem(QSpacerItem(10, 1))
+        hbox.addItem(QtWidgets.QSpacerItem(10, 1))
         t_lbl = QtWidgets.QLabel("<font size=+1><b>" + title + "</b></font>")
         hbox.addWidget(t_lbl, 0, Qt.AlignLeft)
         hbox.addStretch(1)
@@ -515,7 +515,7 @@ class ChoicesLayout(object):
         return self.group.checkedId()
 
 def address_combo(addresses):
-    addr_combo = QComboBox()
+    addr_combo = QtWidgets.QComboBox()
     addr_combo.addItems(addr.to_full_ui_string() for addr in addresses)
     addr_combo.setCurrentIndex(0)
 
@@ -1316,7 +1316,7 @@ def destroyed_print_error(qobject, msg=None):
         else:
             name = qobject.objectName() or ""
         if not name:
-            if isinstance(qobject, QAction) and qobject.text():
+            if isinstance(qobject, QtWidgets.QAction) and qobject.text():
                 name = "Action: " + qobject.text()
             elif isinstance(qobject, QtWidgets.QMenu) and qobject.title():
                 name = "QMenu: " + qobject.title()

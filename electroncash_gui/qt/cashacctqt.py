@@ -79,7 +79,7 @@ class VerifyingDialog(WaitingDialog):
         hbox.addWidget(icon_lbl)
         hbox.addWidget(self._label)
         self._vbox.addLayout(hbox)
-        prog = QProgressBar()
+        prog = QtWidgets.QProgressBar()
         prog.setRange(0,0)
         self._vbox.addWidget(prog)
         if auto_show and not auto_exec:
@@ -488,14 +488,14 @@ class InfoGroupBox(PrintError, QtWidgets.QGroupBox):
 
             if (col % cols) == 0:
                 # insert stretch in between the two columns
-                spacer = QSpacerItem(1,0)
+                spacer = QtWidgets.QSpacerItem(1,0)
                 grid.addItem(spacer, row, col*5+4, 1, 1)
                 grid.setColumnStretch(col*5+4, 10)
 
             if self.show_addresses:
                 # in-between row spaer. Only added if showing addresses
                 # to make the address line visually closer to the line above it
-                spacer = QSpacerItem(1, 8)
+                spacer = QtWidgets.QSpacerItem(1, 8)
                 grid.addItem(spacer, row*3+2, col*5, 1, 4)
 
             col += 1
@@ -503,11 +503,11 @@ class InfoGroupBox(PrintError, QtWidgets.QGroupBox):
 
         if len(items) == 1:
             # just 1 item, put it on the left
-            grid.addItem(QSpacerItem(2,1), 0, 5)
+            grid.addItem(QtWidgets.QSpacerItem(2,1), 0, 5)
             grid.setColumnStretch(5, 100)
         if len(items) <= 2:
             # just 1 row, push it up to the top
-            grid.addItem(QSpacerItem(1,2), 3, 0, -1, -1)
+            grid.addItem(QtWidgets.QSpacerItem(1,2), 3, 0, -1, -1)
             grid.setRowStretch(3, 100)
 
 
@@ -583,7 +583,7 @@ def lookup_cash_account_dialog(
     label = QtWidgets.QLabel()
     label.setPixmap(QIcon(":icons/cashacct-logo.png").pixmap(50))
     hbox.addWidget(label)
-    hbox.addItem(QSpacerItem(10, 1))
+    hbox.addItem(QtWidgets.QSpacerItem(10, 1))
     label = QtWidgets.QLabel("<font size=+1><b>" + title + "</b></font>" + blurb)
     if callable(title_label_link_activated_slot):
         label.linkActivated.connect(title_label_link_activated_slot)
@@ -614,8 +614,8 @@ def lookup_cash_account_dialog(
     grid.addWidget(label2, 0, 3, 1, 1, Qt.AlignLeft)
     grid.setColumnStretch(3, 5)
     vbox.addLayout(grid)
-    vbox.addItem(QSpacerItem(20,10))
-    frame = QScrollArea()
+    vbox.addItem(QtWidgets.QSpacerItem(20,10))
+    frame = QtWidgets.QScrollArea()
     tit_lbl = QtWidgets.QLabel()
     vbox.addWidget(tit_lbl)
     extra_buttons = []

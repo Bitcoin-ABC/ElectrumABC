@@ -103,7 +103,7 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
         self.detail_label.setWordWrap(True)
         self.content.addWidget(self.detail_label)
 
-        self.pb = QProgressBar()
+        self.pb = QtWidgets.QProgressBar()
         self.pb.setMaximum(100)
         self.pb.setMinimum(0)
         self.content.addWidget(self.pb)
