@@ -30,14 +30,12 @@ import sys
 import traceback
 import urllib.parse
 import webbrowser
-
 from typing import Optional
 
-
 import PyQt5.QtCore as QtCore
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QIcon
-from PyQt5 import QtWidgets
 
 from electroncash import PACKAGE_VERSION
 from electroncash.constants import PROJECT_NAME, REPOSITORY_URL
@@ -47,7 +45,8 @@ from electroncash.util import finalization_print_error, print_error
 from .main_window import ElectrumWindow
 from .util import destroyed_print_error
 
-issue_template_html = """<h2>Traceback</h2>
+issue_template_html = (
+    """<h2>Traceback</h2>
 <pre>
 {traceback}
 </pre>
@@ -60,9 +59,12 @@ issue_template_html = """<h2>Traceback</h2>
   <li>Wallet type: {wallet_type}</li>
   <li>Locale: {locale}</li>
 </ul>
-""" % PROJECT_NAME
+"""
+    % PROJECT_NAME
+)
 
-issue_template_markdown = """
+issue_template_markdown = (
+    """
 # Description
 <!--- Please add under this line additional information, such as a description
  of what action led to the error--->
@@ -80,29 +82,34 @@ issue_template_markdown = """
 - Wallet type: {wallet_type}
 - Locale: {locale}
 
-""" % PROJECT_NAME
+"""
+    % PROJECT_NAME
+)
 
 
 class ExceptionDialog(QtWidgets.QDialog):
-
     def __init__(self, config, exctype, value, tb):
         super().__init__()
         self.exc_args = (exctype, value, tb)
         self.config = config
-        self.setWindowTitle(f'{PROJECT_NAME} - ' + _('An Error Occurred'))
+        self.setWindowTitle(f"{PROJECT_NAME} - " + _("An Error Occurred"))
         self.setMinimumSize(600, 600)
 
         main_box = QtWidgets.QVBoxLayout()
         main_box.setContentsMargins(20, 20, 20, 20)
 
-        heading = QtWidgets.QLabel('<h2>' + _('Sorry!') + '</h2>')
+        heading = QtWidgets.QLabel("<h2>" + _("Sorry!") + "</h2>")
         main_box.addWidget(heading)
-        l = QtWidgets.QLabel(_(f'Something went wrong running {PROJECT_NAME}.'))
+        l = QtWidgets.QLabel(_(f"Something went wrong running {PROJECT_NAME}."))
         l.setWordWrap(True)
         main_box.addWidget(l)
 
-        l = QtWidgets.QLabel(_('To help us diagnose and fix the problem, you can send us'
-                     ' a bug report that contains useful debug information:'))
+        l = QtWidgets.QLabel(
+            _(
+                "To help us diagnose and fix the problem, you can send us"
+                " a bug report that contains useful debug information:"
+            )
+        )
         l.setWordWrap(True)
         main_box.addWidget(l)
 
@@ -114,7 +121,8 @@ class ExceptionDialog(QtWidgets.QDialog):
 
         label = QtWidgets.QLabel(
             "<br/>You will be able to add more information after clicking on"
-            " <i>Open a Bug Report</i><br/><br/>")
+            " <i>Open a Bug Report</i><br/><br/>"
+        )
         label.setWordWrap(True)
         label.setTextFormat(QtCore.Qt.RichText)
         main_box.addWidget(label)
@@ -123,12 +131,12 @@ class ExceptionDialog(QtWidgets.QDialog):
 
         buttons.addStretch(1)
 
-        report_button = QtWidgets.QPushButton(_('Open a Bug Report'))
+        report_button = QtWidgets.QPushButton(_("Open a Bug Report"))
         report_button.clicked.connect(self.send_report)
         report_button.setIcon(QIcon(":icons/tab_send.png"))
         buttons.addWidget(report_button)
 
-        close_button = QtWidgets.QPushButton('Close')
+        close_button = QtWidgets.QPushButton("Close")
         close_button.clicked.connect(self.reject)
         buttons.addWidget(close_button)
 
@@ -142,8 +150,8 @@ class ExceptionDialog(QtWidgets.QDialog):
         body = urllib.parse.quote(self.get_report_string())
         labels = "bug, crash report"
         webbrowser.open_new_tab(
-            f'{REPOSITORY_URL}/issues/new?'
-            f'title={title}&body={body}&labels={labels}')
+            f"{REPOSITORY_URL}/issues/new?title={title}&body={body}&labels={labels}"
+        )
 
     def closeEvent(self, event):
         sys.__excepthook__(*self.exc_args)
@@ -156,15 +164,15 @@ class ExceptionDialog(QtWidgets.QDialog):
             "os": platform.platform(),
             "locale": locale.getdefaultlocale()[0],
             "description": self.report_textfield.toPlainText(),
-            "wallet_type": _get_current_wallet_types()
+            "wallet_type": _get_current_wallet_types(),
         }
         return args
 
     def get_report_string(self, fmt: str = "markdown") -> str:
         info = self.get_additional_info()
         info["traceback"] = html.escape(
-            "".join(traceback.format_exception(*self.exc_args)),
-            quote=False)
+            "".join(traceback.format_exception(*self.exc_args)), quote=False
+        )
         if fmt == "html":
             return issue_template_html.format(**info)
         return issue_template_markdown.format(**info)
@@ -185,9 +193,11 @@ def set_enabled(config, b: bool):
 
 
 def _get_current_wallet_types():
-    wtypes = {str(getattr(w.wallet, 'wallet_type', 'Unknown'))
-              for w in QtWidgets.QApplication.instance().topLevelWidgets()
-              if isinstance(w, ElectrumWindow) and w.is_alive()}
+    wtypes = {
+        str(getattr(w.wallet, "wallet_type", "Unknown"))
+        for w in QtWidgets.QApplication.instance().topLevelWidgets()
+        if isinstance(w, ElectrumWindow) and w.is_alive()
+    }
     return ",".join(list(wtypes)) or "Unknown"
 
 
@@ -211,8 +221,7 @@ class ExceptionHook(QObject):
         sys.excepthook = self.handler
         self._report_exception.connect(self._show_window)
         print_error(f"[{__class__.__qualname__}] Installed.")
-        finalization_print_error(self,
-                                 f"[{__class__.__qualname__}] Finalized.")
+        finalization_print_error(self, f"[{__class__.__qualname__}] Finalized.")
         destroyed_print_error(self)
 
     @staticmethod
@@ -223,12 +232,15 @@ class ExceptionHook(QObject):
             ExceptionHook._instance = None
 
     def handler(self, exctype, value, tb):
-        if exctype is KeyboardInterrupt or exctype is SystemExit or not is_enabled(self.config):
+        if (
+            exctype is KeyboardInterrupt
+            or exctype is SystemExit
+            or not is_enabled(self.config)
+        ):
             sys.__excepthook__(exctype, value, tb)
         else:
             self._report_exception.emit(self.config, exctype, value, tb)
 
     def _show_window(self, config, exctype, value, tb):
-        self.dialog = ExceptionDialog(
-            config, exctype, value, tb)
+        self.dialog = ExceptionDialog(config, exctype, value, tb)
         self.dialog.show()
