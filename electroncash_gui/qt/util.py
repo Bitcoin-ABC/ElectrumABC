@@ -102,7 +102,7 @@ class WWLabel(QLabel):
 # --- Help widgets
 class HelpMixin:
     def __init__(self, help_text, *, custom_parent=None):
-        assert isinstance(self, QWidget), "HelpMixin must be a QWidget instance!"
+        assert isinstance(self, QtWidgets.QWidget), "HelpMixin must be a QWidget instance!"
         self.help_text = help_text
         self.custom_parent = custom_parent
         if isinstance(self, QLabel):
@@ -154,9 +154,9 @@ class HelpButton(HelpMixin, QPushButton):
 # --- /Help widgets
 
 
-class Buttons(QHBoxLayout):
+class Buttons(QtWidgets.QHBoxLayout):
     def __init__(self, *buttons):
-        QHBoxLayout.__init__(self)
+        QtWidgets.QHBoxLayout.__init__(self)
         self.addStretch(1)
         for b in buttons:
             self.addWidget(b)
@@ -198,7 +198,7 @@ class MessageBoxMixin:
     def top_level_window_recurse(self, window=None):
         window = window or self
         for n, child in enumerate(window.children()):
-            if (isinstance(child, QWidget) and child.isWindow()
+            if (isinstance(child, QtWidgets.QWidget) and child.isWindow()
                     and child.windowModality() != Qt.NonModal
                     # Test for visibility as old closed dialogs may not be GC-ed
                     and child.isVisible()):
@@ -368,7 +368,7 @@ class WaitingDialog(WindowModalDialog):
         WindowModalDialog.__init__(self, parent, title or _("Please wait"))
         self.auto_cleanup = auto_cleanup
         self.disable_escape_key = disable_escape_key
-        self._vbox = vbox = QVBoxLayout(self)
+        self._vbox = vbox = QtWidgets.QVBoxLayout(self)
         self._label = label = QLabel(message)
         vbox.addWidget(label)
         self.accepted.connect(self.on_accepted)
@@ -432,10 +432,10 @@ def line_dialog(parent, title, label, ok_label, default=None,
     dialog.setObjectName('WindowModalDialog - ' + title)
     destroyed_print_error(dialog)  # track object lifecycle
     dialog.setMinimumWidth(500)
-    l = QVBoxLayout()
+    l = QtWidgets.QVBoxLayout()
     dialog.setLayout(l)
     if isinstance(icon, QIcon):
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.setContentsMargins(0,0,0,0)
         ic_lbl = QLabel()
         ic_lbl.setPixmap(icon.pixmap(50))
@@ -470,7 +470,7 @@ def text_dialog(parent, title, label, ok_label, default=None, allow_multi=False)
     from .qrtextedit import ScanQRTextEdit
     dialog = WindowModalDialog(parent, title)
     dialog.setMinimumWidth(500)
-    l = QVBoxLayout()
+    l = QtWidgets.QVBoxLayout()
     dialog.setLayout(l)
     l.addWidget(QLabel(label))
     txt = ScanQRTextEdit(allow_multi=allow_multi)
@@ -483,14 +483,14 @@ def text_dialog(parent, title, label, ok_label, default=None, allow_multi=False)
 
 class ChoicesLayout(object):
     def __init__(self, msg, choices, on_clicked=None, checked_index=0):
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         if len(msg) > 50:
             vbox.addWidget(WWLabel(msg))
             msg = ""
         gb2 = QGroupBox(msg)
         vbox.addWidget(gb2)
 
-        vbox2 = QVBoxLayout()
+        vbox2 = QtWidgets.QVBoxLayout()
         gb2.setLayout(vbox2)
 
         self.group = group = QButtonGroup()
@@ -519,7 +519,7 @@ def address_combo(addresses):
     addr_combo.addItems(addr.to_full_ui_string() for addr in addresses)
     addr_combo.setCurrentIndex(0)
 
-    hbox = QHBoxLayout()
+    hbox = QtWidgets.QHBoxLayout()
     hbox.addWidget(QLabel(_('Address to sweep to:')))
     hbox.addWidget(addr_combo)
     return hbox, addr_combo
@@ -528,7 +528,7 @@ def address_combo(addresses):
 def filename_field(config, defaultname, select_msg):
 
     gb = QGroupBox(_("Format"))
-    vbox = QVBoxLayout()
+    vbox = QtWidgets.QVBoxLayout()
     gb.setLayout(vbox)
     b1 = QRadioButton()
     b1.setText(_("CSV"))
@@ -538,7 +538,7 @@ def filename_field(config, defaultname, select_msg):
     vbox.addWidget(b1)
     vbox.addWidget(b2)
 
-    hbox = QHBoxLayout()
+    hbox = QtWidgets.QHBoxLayout()
 
     directory = config.get('io_dir', os.path.expanduser('~'))
     path = os.path.join(directory, defaultname)
@@ -834,11 +834,11 @@ class OverlayControlMixin:
     '''
 
     def __init__(self, middle: bool = False):
-        assert isinstance(self, QWidget)
+        assert isinstance(self, QtWidgets.QWidget)
         self.middle = middle
-        self.overlay_widget = QWidget(self)
+        self.overlay_widget = QtWidgets.QWidget(self)
         self._updateSverlayStyleSheet()
-        self.overlay_layout = QHBoxLayout(self.overlay_widget)
+        self.overlay_layout = QtWidgets.QHBoxLayout(self.overlay_widget)
         self.overlay_layout.setContentsMargins(0, 0, 0, 0)
         self.overlay_layout.setSpacing(1)
         self._updateOverlayPos()
@@ -879,7 +879,7 @@ class OverlayControlMixin:
             x -= scrollbar_width
         self.overlay_widget.move(x, y)
 
-    def addWidget(self, widget: QWidget, index: int = None):
+    def addWidget(self, widget: QtWidgets.QWidget, index: int = None):
         if index is not None:
             self.overlay_layout.insertWidget(index, widget)
         else:
@@ -1349,7 +1349,7 @@ class TextBrowserKeyboardFocusFilter(QTextBrowser):
     deactivate keyboard text selection.
     """
 
-    def __init__(self, parent: QWidget = None):
+    def __init__(self, parent: QtWidgets.QWidget = None):
         super().__init__(parent)
 
     def focusInEvent(self, e: QFocusEvent):

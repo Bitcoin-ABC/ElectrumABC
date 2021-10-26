@@ -11,7 +11,7 @@ from electroncash.util import print_msg, print_error
 from electroncash.i18n import _
 
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import (QComboBox, QGridLayout, QLabel, QPushButton)
+from PyQt5.QtWidgets import (QComboBox, QLabel, QPushButton)
 
 
 PLATFORM_LIBS = {
@@ -61,7 +61,7 @@ class Plugin(BasePlugin):
             return
         d = WindowModalDialog(window, _("Audio Modem Settings"))
 
-        layout = QGridLayout(d)
+        layout = QtWidgets.QGridLayout(d)
         layout.addWidget(QLabel(_('Bit rate [kbps]: ')), 0, 0)
 
         bitrates = list(sorted(amodem.config.bitrates.keys()))

@@ -77,12 +77,12 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
         self.setMinimumWidth(600)
         #self.setMaximumWidth(600)
 
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         self.setLayout(vbox)
 
         groupBox = QGroupBox(_("Plugin Metadata"))
-        self.metadataFormLayout = QFormLayout(groupBox)
-        self.metadataFormLayout.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
+        self.metadataFormLayout = QtWidgets.QFormLayout(groupBox)
+        self.metadataFormLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
         self.pluginNameLabel = QLabel()
         self.metadataFormLayout.addRow(_("Name"), self.pluginNameLabel)
         self.versionLabel = QLabel()
@@ -95,7 +95,7 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
         # Long description labels that wrap should push the form layout's row to grow
         p = self.descriptionLabel.sizePolicy(); p.setVerticalPolicy(QSizePolicy.MinimumExpanding); self.descriptionLabel.setSizePolicy(p)
         self.metadataFormLayout.addRow(_("Description"), self.descriptionLabel)
-        self.supportedInterfacesLayout = QVBoxLayout()
+        self.supportedInterfacesLayout = QtWidgets.QVBoxLayout()
         self.supportedInterfacesLabel = QLabel(_("Integration"))
         self.supportedInterfacesLabel.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         self.supportedInterfacesLabel.setToolTip(_("Plugins should support one or more of these interfaces."))
@@ -103,14 +103,14 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
 
         self.qtInterfaceLabel = QLabel()
         self.qtInterfaceLabel.setMaximumWidth(20)
-        row = QHBoxLayout()
+        row = QtWidgets.QHBoxLayout()
         row.addWidget(self.qtInterfaceLabel)
         row.addWidget(QLabel(_("User interface.")))
         self.supportedInterfacesLayout.addLayout(row)
 
         self.cmdLineInterfaceLabel = QLabel()
         self.cmdLineInterfaceLabel.setMaximumWidth(20)
-        row = QHBoxLayout()
+        row = QtWidgets.QHBoxLayout()
         row.addWidget(self.cmdLineInterfaceLabel)
         row.addWidget(QLabel(_("Command-line.")))
         self.supportedInterfacesLayout.addLayout(row)
@@ -123,11 +123,11 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
         vbox.addWidget(groupBox,3)
 
         if self.is_preview:
-            confirmLayout = QVBoxLayout()
+            confirmLayout = QtWidgets.QVBoxLayout()
             confirmLayout.setAlignment(Qt.AlignHCenter)
             confirmGroupBox = QGroupBox(_("Risks and Dangers"))
             liabilityLabel = QLabel(_("I accept responsibility for any harm that comes from installing this plugin, and acknowledge:"))
-            rows = QVBoxLayout()
+            rows = QtWidgets.QVBoxLayout()
             self.liabilityCheckbox1 = QCheckBox(
                 _(f"The {PROJECT_NAME} Developers do NOT audit or vet "
                   f"any plugins."))
@@ -140,7 +140,7 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
             confirmGroupBox.setLayout(confirmLayout)
             vbox.addWidget(confirmGroupBox)
 
-            hbox = QHBoxLayout()
+            hbox = QtWidgets.QHBoxLayout()
             vbox.addLayout(hbox)
             self.installButton = QPushButton("Install")
             self.cancelButton = QPushButton("Close")
@@ -162,7 +162,7 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
             self.liabilityCheckbox2.clicked.connect(self.on_liability_toggled)
             self.liabilityCheckbox3.clicked.connect(self.on_liability_toggled)
         else:
-            hbox = QHBoxLayout()
+            hbox = QtWidgets.QHBoxLayout()
             vbox.addLayout(hbox)
             self.cancelButton = QPushButton("Close")
             self.cancelButton.setDefault(True)
@@ -270,13 +270,13 @@ class ExternalPluginsDialog(WindowModalDialog, MessageBoxMixin):
         self.setMinimumWidth(600)
         #self.setMaximumWidth(600)
 
-        vbox = QVBoxLayout(self)
+        vbox = QtWidgets.QVBoxLayout(self)
 
         # The warning message box at the top of the dialog window about dangers of installing plugins.
         self.descriptionGroupBox = QGroupBox()
         self.descriptionGroupBox.setTitle(_("Security Warning"))
         self.descriptionGroupBox.setAlignment(Qt.AlignHCenter)
-        descriptionGroupLayout = QVBoxLayout()
+        descriptionGroupLayout = QtWidgets.QVBoxLayout()
         self.descriptionGroupBox.setLayout(descriptionGroupLayout)
         self.descriptionLabel = QLabel(
             _(f"Install plugins at your own risk.\nThey have almost complete"
@@ -290,7 +290,7 @@ class ExternalPluginsDialog(WindowModalDialog, MessageBoxMixin):
         vbox.addWidget(self.pluginsList)
 
         # The row of buttons under the plugin list for actions related to the plugins within it.
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         self.installButton = QPushButton(_("Add Plugin"))
         hbox.addWidget(self.installButton)
         hbox.addStretch(1)

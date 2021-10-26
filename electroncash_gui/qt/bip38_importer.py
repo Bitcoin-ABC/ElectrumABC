@@ -81,7 +81,7 @@ class Bip38Importer(WindowModalDialog, util.PrintError):
         num = len(self.bip38_keys)
         if message is None:
             message = _('{} BIP38 keys were detected and require a password to decode').format(num)
-        grid = QGridLayout(self)
+        grid = QtWidgets.QGridLayout(self)
         grid.setContentsMargins(24,24,24,24)
         grid.setSpacing(10)
         top_title = QLabel('<font size=+1><b>{}</b></font> - {}'

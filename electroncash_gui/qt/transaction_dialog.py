@@ -108,7 +108,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         self.setMinimumWidth(750)
         self.setWindowTitle(_("Transaction"))
 
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         self.setLayout(vbox)
 
         self.tx_hash_e  = ButtonsLineEdit()
@@ -196,7 +196,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
 
         run_hook('transaction_dialog', self)
 
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addLayout(Buttons(*self.sharing_buttons))
         hbox.addStretch(1)
         hbox.addLayout(Buttons(*self.buttons))
@@ -531,7 +531,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
             lbl.setTextInteractionFlags(lbl.textInteractionFlags() | Qt.TextSelectableByMouse)
             vbox.addWidget(lbl)
 
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.setContentsMargins(0,12,0,0)
 
         self.i_text = i_text = TextBrowserKeyboardFocusFilter()
@@ -577,7 +577,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         vbox.addWidget(i_text)
 
 
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.setContentsMargins(0,0,0,0)
         vbox.addLayout(hbox)
 

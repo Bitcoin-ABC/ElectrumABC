@@ -3,10 +3,10 @@ import threading
 
 from PyQt5.QtCore import Qt, QEventLoop, pyqtSignal, QRegExp
 from PyQt5.QtGui import QRegExpValidator
-from PyQt5.QtWidgets import (QVBoxLayout, QLabel, QGridLayout, QPushButton,
-                             QHBoxLayout, QButtonGroup, QGroupBox,
-                             QTextEdit, QLineEdit, QRadioButton, QCheckBox, QWidget,
-                             QMessageBox, QFileDialog, QSlider, QTabWidget,
+from PyQt5.QtWidgets import (QLabel, QPushButton,
+                             QButtonGroup, QGroupBox,
+                             QTextEdit, QLineEdit, QRadioButton, QCheckBox,
+                             QMessageBox,  QSlider, QTabWidget,
                              QSizePolicy)
 
 from electroncash_gui.qt.util import (WindowModalDialog, WWLabel, Buttons, CancelButton,
@@ -65,9 +65,9 @@ class CharacterDialog(WindowModalDialog):
         self.word_help = QLabel()
         self.char_buttons = []
 
-        vbox = QVBoxLayout(self)
+        vbox = QtWidgets.QVBoxLayout(self)
         vbox.addWidget(WWLabel(CHARACTER_RECOVERY))
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.word_help)
         for i in range(4):
             char_button = CharacterButton('*')
@@ -175,7 +175,7 @@ class QtHandler(QtHandlerBase):
         self.clear_dialog()
         dialog = WindowModalDialog(self.top_level_window(), _("Enter PIN"))
         matrix = self.pin_matrix_widget_class()
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(QLabel(msg))
         vbox.addWidget(matrix)
         vbox.addLayout(Buttons(CancelButton(dialog), OkButton(dialog)))
@@ -218,11 +218,11 @@ class QtPlugin(QtPluginBase):
             SettingsDialog(window, self, keystore, device_id).exec_()
 
     def request_trezor_init_settings(self, wizard, method, device):
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         next_enabled = True
         label = QLabel(_("Enter a label to name your device:"))
         name = QLineEdit()
-        hl = QHBoxLayout()
+        hl = QtWidgets.QHBoxLayout()
         hl.addWidget(label)
         hl.addWidget(name)
         hl.addStretch(1)
@@ -234,7 +234,7 @@ class QtPlugin(QtPluginBase):
 
         if method in [TIM_NEW, TIM_RECOVER]:
             gb = QGroupBox()
-            hbox1 = QHBoxLayout()
+            hbox1 = QtWidgets.QHBoxLayout()
             gb.setLayout(hbox1)
             # KeepKey recovery doesn't need a word count
             if method == TIM_NEW:
@@ -268,7 +268,7 @@ class QtPlugin(QtPluginBase):
             pin = QLineEdit()
             pin.setValidator(QRegExpValidator(QRegExp('[1-9]{0,9}')))
             pin.setMaximumWidth(100)
-            hbox_pin = QHBoxLayout()
+            hbox_pin = QtWidgets.QHBoxLayout()
             hbox_pin.addWidget(QLabel(_("Enter your PIN (digits 1-9):")))
             hbox_pin.addWidget(pin)
             hbox_pin.addStretch(1)
@@ -424,9 +424,9 @@ class SettingsDialog(WindowModalDialog):
             config.set_session_timeout(timeout_slider.sliderPosition() * 60)
 
         # Information tab
-        info_tab = QWidget()
-        info_layout = QVBoxLayout(info_tab)
-        info_glayout = QGridLayout()
+        info_tab = QtWidgets.QWidget()
+        info_layout = QtWidgets.QVBoxLayout(info_tab)
+        info_glayout = QtWidgets.QGridLayout()
         info_glayout.setColumnStretch(2, 1)
         device_label = QLabel()
         pin_set_label = QLabel()
@@ -456,9 +456,9 @@ class SettingsDialog(WindowModalDialog):
         info_layout.addLayout(info_glayout)
 
         # Settings tab
-        settings_tab = QWidget()
-        settings_layout = QVBoxLayout(settings_tab)
-        settings_glayout = QGridLayout()
+        settings_tab = QtWidgets.QWidget()
+        settings_layout = QtWidgets.QVBoxLayout(settings_tab)
+        settings_glayout = QtWidgets.QGridLayout()
 
         # Settings tab - Label
         label_msg = QLabel(_("Name this {}.  If you have multiple devices "
@@ -518,9 +518,9 @@ class SettingsDialog(WindowModalDialog):
         settings_layout.addStretch(1)
 
         # Advanced tab
-        advanced_tab = QWidget()
-        advanced_layout = QVBoxLayout(advanced_tab)
-        advanced_glayout = QGridLayout()
+        advanced_tab = QtWidgets.QWidget()
+        advanced_layout = QtWidgets.QVBoxLayout(advanced_tab)
+        advanced_glayout = QtWidgets.QGridLayout()
 
         # Advanced tab - clear PIN
         clear_pin_button = QPushButton(_("Disable PIN"))
@@ -575,7 +575,7 @@ class SettingsDialog(WindowModalDialog):
         tabs.addTab(info_tab, _("Information"))
         tabs.addTab(settings_tab, _("Settings"))
         tabs.addTab(advanced_tab, _("Advanced"))
-        dialog_vbox = QVBoxLayout(self)
+        dialog_vbox = QtWidgets.QVBoxLayout(self)
         dialog_vbox.addWidget(tabs)
         dialog_vbox.addLayout(Buttons(CloseButton(self)))
 

@@ -41,7 +41,7 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
         super().__init__(parent=main_window, title=_("Scan Beyond Gap"))
         self.resize(450, 400)
         self.main_window = main_window
-        vbox = QVBoxLayout(self)
+        vbox = QtWidgets.QVBoxLayout(self)
         l = QLabel(
             "<p><font size=+1><b><i>" + _("Scanning Beyond the Gap") + "</i></b></font></p><p>"
             + _("Deterministic wallets can contain a nearly infinite number of addresses. However, usually only a relatively small block of addresses at the beginning are ever used.")
@@ -53,7 +53,7 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
         l.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         vbox.addWidget(l)
         vbox.addStretch(1)
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         l = QLabel(_("Number of addresses to scan:"))
         hbox.addWidget(l)
         self.num_sb = QSpinBox(); self.num_sb.setMinimum(1); self.num_sb.setMaximum(1000000);

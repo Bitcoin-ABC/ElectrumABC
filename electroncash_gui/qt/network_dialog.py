@@ -67,7 +67,7 @@ class NetworkDialog(MessageBoxMixin, QtWidgets.QDialog):
         self.setWindowTitle(_('Network'))
         self.setMinimumSize(500, 350)
         self.nlayout = NetworkChoiceLayout(self, network, config)
-        vbox = QVBoxLayout(self)
+        vbox = QtWidgets.QVBoxLayout(self)
         vbox.addLayout(self.nlayout.layout())
         # We don't want the close button's behavior to have the enter key close
         # the window because user may edit text fields, etc, so we do the below:
@@ -404,9 +404,9 @@ class NetworkChoiceLayout(QObject, PrintError):
         self.td.found_proxy.connect(self.suggest_proxy)
 
         self.tabs = tabs = QTabWidget()
-        self.server_tab = server_tab = QWidget()
+        self.server_tab = server_tab = QtWidgets.QWidget()
         weakTd = Weak.ref(self.td)
-        class ProxyTab(QWidget):
+        class ProxyTab(QtWidgets.QWidget):
             def showEvent(slf, e):
                 super().showEvent(e)
                 td = weakTd()
@@ -418,7 +418,7 @@ class NetworkChoiceLayout(QObject, PrintError):
                 if e.isAccepted() and td:
                     td.stop() # stops the tor detector when proxy_tab disappears
         self.proxy_tab = proxy_tab = ProxyTab()
-        self.blockchain_tab = blockchain_tab = QWidget()
+        self.blockchain_tab = blockchain_tab = QtWidgets.QWidget()
         tabs.addTab(blockchain_tab, _('Overview'))
         tabs.addTab(server_tab, _('Server'))
         tabs.addTab(proxy_tab, _('Proxy'))
@@ -427,7 +427,7 @@ class NetworkChoiceLayout(QObject, PrintError):
             tabs.setCurrentIndex(1)
 
         # server tab
-        grid = QGridLayout(server_tab)
+        grid = QtWidgets.QGridLayout(server_tab)
         grid.setSpacing(8)
 
         self.server_host = QLineEdit()
@@ -509,7 +509,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         grid.addWidget(HelpButton(msg), 6, 4)
 
         # Proxy tab
-        grid = QGridLayout(proxy_tab)
+        grid = QtWidgets.QGridLayout(proxy_tab)
         grid.setSpacing(8)
 
         # proxy setting
@@ -578,7 +578,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         grid.addWidget(self.tor_enabled, 1, 0, 1, 2)
         grid.addWidget(self.tor_enabled_help, 1, 4)
         # Custom Tor port
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addSpacing(20)  # indentation
         hbox.addWidget(self.tor_custom_port_cb, 0, Qt.AlignLeft|Qt.AlignVCenter)
         hbox.addWidget(self.tor_socks_port, 0, Qt.AlignLeft|Qt.AlignVCenter)
@@ -603,7 +603,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         grid.setRowStretch(8, 1)
 
         # Blockchain Tab
-        grid = QGridLayout(blockchain_tab)
+        grid = QtWidgets.QGridLayout(blockchain_tab)
         msg = ' '.join([
             _(f"{PROJECT_NAME} connects to several nodes in order to "
               f"download block headers and find out the longest blockchain."),
@@ -644,7 +644,7 @@ class NetworkChoiceLayout(QObject, PrintError):
                 "If the connection drops when synchronizing, you may wish "
                 "to reduce these values to throttle requests to the server.")
         grid.addWidget(QLabel(_('Pending requests') + ':'), row, 0)
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.reqs_label)
         hbox.setContentsMargins(0, 0, 12, 0)
         hbox.addWidget(QLabel(_("Limit:")))
@@ -689,7 +689,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         grid.addWidget(self.nodes_list_widget, row, 0, 1, 5)
         row += 1
 
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(tabs)
         self.layout_ = vbox
 
@@ -1051,7 +1051,7 @@ class NetworkChoiceLayout(QObject, PrintError):
             parent.show_error(_("Server ban list is empty!"))
             return
         d = WindowModalDialog(parent.top_level_window(), _("Banned Servers"))
-        vbox = QVBoxLayout(d)
+        vbox = QtWidgets.QVBoxLayout(d)
         vbox.addWidget(QLabel(_("Banned Servers") + " ({})".format(len(bl))))
         tree = QTreeWidget()
         tree.setHeaderLabels([_('Host'), _('Port')])

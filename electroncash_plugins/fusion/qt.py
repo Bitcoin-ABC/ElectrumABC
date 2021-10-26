@@ -688,12 +688,12 @@ class PasswordDialog(WindowModalDialog):
         self.callback_cancel = callback_cancel
         self.password = None
 
-        vbox = QVBoxLayout(self)
+        vbox = QtWidgets.QVBoxLayout(self)
         self.msglabel = QLabel(message)
         self.msglabel.setWordWrap(True)
         self.msglabel.setMinimumWidth(250)
         self.msglabel.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Expanding)
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         iconlabel = QLabel(); iconlabel.setPixmap(get_icon_fusion_logo().pixmap(32))
         hbox.addWidget(iconlabel)
         hbox.addWidget(self.msglabel, 1, Qt.AlignLeft|Qt.AlignVCenter)
@@ -701,14 +701,14 @@ class PasswordDialog(WindowModalDialog):
         vbox.addLayout(hbox, 1)
         self.pwle = QLineEdit()
         self.pwle.setEchoMode(2)
-        grid_for_hook_api = QGridLayout()
+        grid_for_hook_api = QtWidgets.QGridLayout()
         grid_for_hook_api.setContentsMargins(0,0,0,0)
         grid_for_hook_api.addWidget(self.pwle, 0, 0)
         run_hook('password_dialog', self.pwle, grid_for_hook_api, 0)  # this is for the virtual keyboard plugin
         vbox.addLayout(grid_for_hook_api)
         self.badpass_msg = "<i>" + _("Incorrect password entered. Please try again.") + "</i>"
 
-        buttons = QHBoxLayout()
+        buttons = QtWidgets.QHBoxLayout()
         buttons.addStretch(1)
         buttons.addWidget(CancelButton(self))
         okbutton = OkButton(self)
@@ -917,7 +917,7 @@ class FusionButton(StatusBarButton):
                 window.statusBar().showMessage(newTip, 7500)
 
 
-class SettingsWidget(QWidget):
+class SettingsWidget(QtWidgets.QWidget):
     torscanthread = None
     torscanthread_update = pyqtSignal(object)
 
@@ -927,16 +927,16 @@ class SettingsWidget(QWidget):
         self.torscanthread_ping = threading.Event()
         self.torscanthread_update.connect(self.torport_update)
 
-        main_layout = QVBoxLayout(self)
+        main_layout = QtWidgets.QVBoxLayout(self)
 
         box = QGroupBox(_("Network"))
         main_layout.addWidget(box, 0, Qt.AlignTop | Qt.AlignHCenter)
-        slayout = QVBoxLayout(box)
+        slayout = QtWidgets.QVBoxLayout(box)
 
-        grid = QGridLayout() ; slayout.addLayout(grid)
+        grid = QtWidgets.QGridLayout() ; slayout.addLayout(grid)
 
         grid.addWidget(QLabel(_("Server")), 0, 0)
-        hbox = QHBoxLayout(); grid.addLayout(hbox, 0, 1)
+        hbox = QtWidgets.QHBoxLayout(); grid.addLayout(hbox, 0, 1)
         self.combo_server_host = QComboBox()
         self.combo_server_host.setEditable(True)
         self.combo_server_host.setInsertPolicy(QComboBox.NoInsert)
@@ -962,7 +962,7 @@ class SettingsWidget(QWidget):
         grid.addWidget(self.server_error_label, 1, 0, 1, -1)
 
         grid.addWidget(QLabel(_("Tor")), 2, 0)
-        hbox = QHBoxLayout(); grid.addLayout(hbox, 2, 1)
+        hbox = QtWidgets.QHBoxLayout(); grid.addLayout(hbox, 2, 1)
         self.le_tor_host = QLineEdit('localhost')
         self.le_tor_host.textEdited.connect(self.user_edit_torhost)
         hbox.addWidget(self.le_tor_host)
@@ -1161,9 +1161,9 @@ class WalletSettingsDialog(WindowModalDialog):
         assert main_window
         self.wallet._cashfusion_settings_window = self
 
-        main_layout = QVBoxLayout(self)
+        main_layout = QtWidgets.QVBoxLayout(self)
 
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(QLabel(_('Fusion mode:')))
         self.mode_cb = mode_cb = QComboBox()
 
@@ -1174,7 +1174,7 @@ class WalletSettingsDialog(WindowModalDialog):
         self.gb_fuse_depth = gb = QGroupBox(_("Fusion Rounds"))
         gb.setToolTip(_("If checked, CashFusion will fuse each coin this many times.\n"
                         "If unchecked, Cashfusion will fuse indefinitely until paused."))
-        hbox = QHBoxLayout(gb)
+        hbox = QtWidgets.QHBoxLayout(gb)
         self.chk_fuse_depth = chk = QCheckBox(_("Fuse coins this many times"))
         hbox.addWidget(chk, 1)
         self.sb_fuse_depth = sb = QSpinBox()
@@ -1186,7 +1186,7 @@ class WalletSettingsDialog(WindowModalDialog):
         main_layout.addWidget(gb)
 
         self.gb_coinbase = gb = QGroupBox(_("Coinbase Coins"))
-        vbox = QVBoxLayout(gb)
+        vbox = QtWidgets.QVBoxLayout(gb)
         self.cb_coinbase = QCheckBox(_('Auto-fuse coinbase coins (if mature)'))
         self.cb_coinbase.clicked.connect(self._on_cb_coinbase)
         vbox.addWidget(self.cb_coinbase)
@@ -1200,12 +1200,12 @@ class WalletSettingsDialog(WindowModalDialog):
 
         box = QGroupBox(_("Self-Fusing"))
         main_layout.addWidget(box)
-        slayout = QVBoxLayout(box)
+        slayout = QtWidgets.QVBoxLayout(box)
 
         lbl = QLabel(_("Allow this wallet to participate multiply in the same fusion round?"))
         lbl.setWordWrap(True)
         slayout.addWidget(lbl)
-        box = QHBoxLayout(); box.setContentsMargins(0,0,0,0)
+        box = QtWidgets.QHBoxLayout(); box.setContentsMargins(0,0,0,0)
         self.combo_self_fuse = QComboBox()
         self.combo_self_fuse.addItem(_('No'), 1)
         self.combo_self_fuse.addItem(_('Yes - as up to two players'), 2)
@@ -1216,14 +1216,14 @@ class WalletSettingsDialog(WindowModalDialog):
         self.combo_self_fuse.activated.connect(self.chose_self_fuse)
 
 
-        self.stacked_layout = stacked_layout = QStackedLayout()
+        self.stacked_layout = stacked_layout = QtWidgets.QStackedLayout()
         main_layout.addLayout(stacked_layout)
 
         # Stacked Layout pages ...
 
         # Normal
-        normal_page_w = QWidget()
-        normal_page_layout = QVBoxLayout(normal_page_w)
+        normal_page_w = QtWidgets.QWidget()
+        normal_page_layout = QtWidgets.QVBoxLayout(normal_page_w)
         self.confkey2idx['normal'] = stacked_layout.addWidget(normal_page_w)
         mode_cb.addItem(_('Normal'))
         lbl = QLabel("- " + _("Normal mode") + " -")
@@ -1231,8 +1231,8 @@ class WalletSettingsDialog(WindowModalDialog):
         normal_page_layout.addWidget(lbl)
 
         # Consolidate
-        consolidate_page_w = QWidget()
-        consolidate_page_layout = QVBoxLayout(consolidate_page_w)
+        consolidate_page_w = QtWidgets.QWidget()
+        consolidate_page_layout = QtWidgets.QVBoxLayout(consolidate_page_w)
         self.confkey2idx['consolidate'] = stacked_layout.addWidget(consolidate_page_w)
         mode_cb.addItem(_('Consolidate'))
         lbl = QLabel("- " + _("Consolidation mode") + " -")
@@ -1240,8 +1240,8 @@ class WalletSettingsDialog(WindowModalDialog):
         consolidate_page_layout.addWidget(lbl)
 
         # Fan-out
-        fanout_page_w = QWidget()
-        fanout_page_layout = QVBoxLayout(fanout_page_w)
+        fanout_page_w = QtWidgets.QWidget()
+        fanout_page_layout = QtWidgets.QVBoxLayout(fanout_page_w)
         self.confkey2idx['fan-out'] = stacked_layout.addWidget(fanout_page_w)
         mode_cb.addItem(_('Fan-out'))
         lbl = QLabel("- " + _("Fan-out mode") + " -")
@@ -1249,8 +1249,8 @@ class WalletSettingsDialog(WindowModalDialog):
         fanout_page_layout.addWidget(lbl)
 
         # Custom
-        self.custom_page_w = custom_page_w = QWidget()
-        custom_page_layout = QVBoxLayout(custom_page_w)
+        self.custom_page_w = custom_page_w = QtWidgets.QWidget()
+        custom_page_layout = QtWidgets.QVBoxLayout(custom_page_w)
         custom_page_layout.setContentsMargins(0,0,0,0)
         self.confkey2idx['custom'] = stacked_layout.addWidget(custom_page_w)
         mode_cb.addItem(_('Custom'))
@@ -1258,9 +1258,9 @@ class WalletSettingsDialog(WindowModalDialog):
         mode_cb.currentIndexChanged.connect(self._on_mode_changed)  # intentionally connected after all items already added
 
         box = QGroupBox(_("Auto-Fusion Coin Selection")) ; custom_page_layout.addWidget(box)
-        slayout = QVBoxLayout(box)
+        slayout = QtWidgets.QVBoxLayout(box)
 
-        grid = QGridLayout() ; slayout.addLayout(grid)
+        grid = QtWidgets.QGridLayout() ; slayout.addLayout(grid)
 
         self.radio_select_size = QRadioButton(_("Target typical output amount"))
         grid.addWidget(self.radio_select_size, 0, 0)
@@ -1307,8 +1307,8 @@ class WalletSettingsDialog(WindowModalDialog):
         slayout.setAlignment(self.l_warn_selection, Qt.AlignCenter)
 
         box = QGroupBox(_("Auto-Fusion Limits")) ; custom_page_layout.addWidget(box)
-        slayout = QVBoxLayout(box)
-        grid = QGridLayout() ; slayout.addLayout(grid)
+        slayout = QtWidgets.QVBoxLayout(box)
+        grid = QtWidgets.QGridLayout() ; slayout.addLayout(grid)
         grid.addWidget(QLabel(_("Number of queued fusions")), 0, 0)
         self.sb_queued_autofuse = QSpinBox()
         self.sb_queued_autofuse.setRange(1, 10)  # hard-coded rande 1-10, maybe have this come from some constants?
@@ -1316,7 +1316,7 @@ class WalletSettingsDialog(WindowModalDialog):
         grid.addWidget(self.sb_queued_autofuse, 0, 1)
         self.cb_autofuse_only_all_confirmed = QCheckBox(_("Only auto-fuse when all coins are confirmed"))
         slayout.addWidget(self.cb_autofuse_only_all_confirmed)
-        grid.addWidget(QWidget(), 0, 2); grid.setColumnStretch(2, 1) # spacer
+        grid.addWidget(QtWidgets.QWidget(), 0, 2); grid.setColumnStretch(2, 1) # spacer
 
         self.sb_queued_autofuse.valueChanged.connect(self.edited_queued_autofuse)
         self.cb_autofuse_only_all_confirmed.clicked.connect(self.clicked_confirmed_only)
@@ -1536,7 +1536,7 @@ class WalletSettingsDialog(WindowModalDialog):
 
 class ServerFusionsBaseMixin:
     def __init__(self, plugin, refresh_interval=2000):
-        assert isinstance(self, QWidget)
+        assert isinstance(self, QtWidgets.QWidget)
         self.plugin = plugin
         self.refresh_interval = refresh_interval
 
@@ -1570,18 +1570,18 @@ class ServerFusionsBaseMixin:
         raise NotImplementedError('ServerFusionsBaseMixin refresh() needs an implementation')
 
 
-class ServerWidget(ServerFusionsBaseMixin, QWidget):
+class ServerWidget(ServerFusionsBaseMixin, QtWidgets.QWidget):
     def __init__(self, plugin, parent=None):
-        QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         ServerFusionsBaseMixin.__init__(self, plugin)
 
-        main_layout = QVBoxLayout(self)
+        main_layout = QtWidgets.QVBoxLayout(self)
 
         self.serverbox = QGroupBox(_("Server"))
         main_layout.addWidget(self.serverbox)
         #self.serverbox.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
 
-        slayout = QVBoxLayout(self.serverbox)
+        slayout = QtWidgets.QVBoxLayout(self.serverbox)
 
         self.l_server_status = QLabel()
         slayout.addWidget(self.l_server_status)
@@ -1630,12 +1630,12 @@ class FusionsWindow(ServerFusionsBaseMixin, QtWidgets.QDialog):
         self.setWindowTitle(_("CashFusion - Fusions"))
         self.setWindowIcon(get_icon_fusion_logo())
 
-        main_layout = QVBoxLayout(self)
+        main_layout = QtWidgets.QVBoxLayout(self)
 
         clientbox = QGroupBox(_("Fusions"))
         main_layout.addWidget(clientbox)
 
-        clayout = QVBoxLayout(clientbox)
+        clayout = QtWidgets.QVBoxLayout(clientbox)
 
         self.t_active_fusions = QTreeWidget()
         self.t_active_fusions.setHeaderLabels([_('Wallet'), _('Status'), _('Status Extra')])

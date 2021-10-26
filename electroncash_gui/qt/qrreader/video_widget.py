@@ -24,18 +24,18 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QtWidgets.QWidget
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QPixmap, QPainter, QPaintEvent
 
-class QrReaderVideoWidget(QWidget):
+class QrReaderVideoWidget(QtWidgets.QWidget):
     """
     Simple widget for drawing a pixmap
     """
 
     USE_BILINEAR_FILTER = True
 
-    def __init__(self, parent: QWidget = None):
+    def __init__(self, parent: QtWidgets.QWidget = None):
         super().__init__(parent)
 
         self.pixmap = None

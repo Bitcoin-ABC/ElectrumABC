@@ -29,7 +29,7 @@ import math
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QLineEdit, QVBoxLayout, QLabel, QGridLayout, QCheckBox
+from PyQt5.QtWidgets import QLineEdit, QLabel, QCheckBox
 from PyQt5 import QtWidgets
 
 from electroncash.i18n import _
@@ -83,11 +83,11 @@ class PasswordLayout:
         self.all_lineedits = ( self.pw, self.new_pw, self.conf_pw )
         self.pw_strength = None  # Will be a QLabel if kind != PW_PASSPHRASE
 
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         label = QLabel(msg + "\n")
         label.setWordWrap(True)
 
-        grid = QGridLayout()
+        grid = QtWidgets.QGridLayout()
         grid.setSpacing(8)
         grid.setColumnStretch(1, 1)
 
@@ -95,7 +95,7 @@ class PasswordLayout:
             vbox.addWidget(label)
             msgs = [_('Passphrase:'), _('Confirm Passphrase:')]
         else:
-            logo_grid = QGridLayout()
+            logo_grid = QtWidgets.QGridLayout()
             logo_grid.setSpacing(8)
             logo_grid.setColumnMinimumWidth(0, 70)
             logo_grid.setColumnStretch(1,1)
@@ -207,7 +207,7 @@ class ChangePasswordDialog(WindowModalDialog):
         OK_button = OkButton(self)
         self.playout = PasswordLayout(wallet, msg, PW_CHANGE, OK_button)
         self.setWindowTitle(self.playout.title())
-        vbox = QVBoxLayout(self)
+        vbox = QtWidgets.QVBoxLayout(self)
         vbox.addLayout(self.playout.layout())
         vbox.addStretch(1)
         vbox.addLayout(Buttons(CancelButton(self), OK_button))
@@ -226,9 +226,9 @@ class PasswordDialog(WindowModalDialog):
         WindowModalDialog.__init__(self, parent, _("Enter Password"))
         self.pw = pw = QLineEdit()
         pw.setEchoMode(2)
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(QLabel(msg))
-        grid = QGridLayout()
+        grid = QtWidgets.QGridLayout()
         grid.setSpacing(8)
         grid.addWidget(QLabel(_('Password')), 1, 0)
         grid.addWidget(pw, 1, 1)
@@ -256,7 +256,7 @@ class PassphraseDialog(WindowModalDialog):
         OK_button = OkButton(self)
         self.playout = PasswordLayout(wallet, msg, PW_PASSPHRASE, OK_button, permit_empty=permit_empty)
         self.setWindowTitle(title)
-        vbox = QVBoxLayout(self)
+        vbox = QtWidgets.QVBoxLayout(self)
         vbox.addLayout(self.playout.layout())
         vbox.addStretch(1)
         vbox.addLayout(Buttons(CancelButton(self), OK_button))

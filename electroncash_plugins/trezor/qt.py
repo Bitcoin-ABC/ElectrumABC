@@ -7,9 +7,7 @@ from PyQt5.QtWidgets import (
     QButtonGroup,
     QCheckBox,
     QFileDialog,
-    QGridLayout,
     QGroupBox,
-    QHBoxLayout,
     QLabel,
     QLineEdit,
     QMessageBox,
@@ -17,8 +15,6 @@ from PyQt5.QtWidgets import (
     QRadioButton,
     QSlider,
     QTabWidget,
-    QVBoxLayout,
-    QWidget,
 )
 
 from electroncash_gui.qt.util import (
@@ -69,10 +65,10 @@ class MatrixDialog(WindowModalDialog):
         self.num = 9
         self.loop = QEventLoop()
 
-        vbox = QVBoxLayout(self)
+        vbox = QtWidgets.QVBoxLayout(self)
         vbox.addWidget(WWLabel(MATRIX_RECOVERY))
 
-        grid = QGridLayout()
+        grid = QtWidgets.QGridLayout()
         grid.setSpacing(0)
         self.char_buttons = []
         for y in range(3):
@@ -166,7 +162,7 @@ class QtHandler(QtHandlerBase):
         self.clear_dialog()
         dialog = WindowModalDialog(self.top_level_window(), _("Enter PIN"))
         matrix = self.pin_matrix_widget_class()
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(QLabel(msg))
         vbox.addWidget(matrix)
         vbox.addLayout(Buttons(CancelButton(dialog), OkButton(dialog)))
@@ -194,11 +190,11 @@ class QtHandler(QtHandlerBase):
         conf_pw = QLineEdit()
         conf_pw.setEchoMode(2)
 
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         label = QLabel(msg + "\n")
         label.setWordWrap(True)
 
-        grid = QGridLayout()
+        grid = QtWidgets.QGridLayout()
         grid.setSpacing(8)
         grid.setColumnMinimumWidth(0, 150)
         grid.setColumnMinimumWidth(1, 100)
@@ -273,11 +269,11 @@ class QtPlugin(QtPluginBase):
             SettingsDialog(window, self, keystore, device_id).exec_()
 
     def request_trezor_init_settings(self, wizard, method, model):
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         next_enabled = True
         label = QLabel(_("Enter a label to name your device:"))
         name = QLineEdit()
-        hl = QHBoxLayout()
+        hl = QtWidgets.QHBoxLayout()
         hl.addWidget(label)
         hl.addWidget(name)
         hl.addStretch(1)
@@ -288,7 +284,7 @@ class QtPlugin(QtPluginBase):
             return ' '.join(text.split())
 
         gb = QGroupBox()
-        hbox1 = QHBoxLayout()
+        hbox1 = QtWidgets.QHBoxLayout()
         gb.setLayout(hbox1)
         vbox.addWidget(gb)
         gb.setTitle(_("Select your seed length:"))
@@ -318,7 +314,7 @@ class QtPlugin(QtPluginBase):
         # ask for recovery type (random word order OR matrix)
         if method == TIM_RECOVER and not model == 'T':
             gb_rectype = QGroupBox()
-            hbox_rectype = QHBoxLayout()
+            hbox_rectype = QtWidgets.QHBoxLayout()
             gb_rectype.setLayout(hbox_rectype)
             vbox.addWidget(gb_rectype)
             gb_rectype.setTitle(_("Select recovery type:"))
@@ -594,9 +590,9 @@ class SettingsDialog(WindowModalDialog):
             config.set_session_timeout(timeout_slider.sliderPosition() * 60)
 
         # Information tab
-        info_tab = QWidget()
-        info_layout = QVBoxLayout(info_tab)
-        info_glayout = QGridLayout()
+        info_tab = QtWidgets.QWidget()
+        info_layout = QtWidgets.QVBoxLayout(info_tab)
+        info_glayout = QtWidgets.QGridLayout()
         info_glayout.setColumnStretch(2, 1)
         device_label = QLabel()
         pin_set_label = QLabel()
@@ -623,9 +619,9 @@ class SettingsDialog(WindowModalDialog):
         info_layout.addLayout(info_glayout)
 
         # Settings tab
-        settings_tab = QWidget()
-        settings_layout = QVBoxLayout(settings_tab)
-        settings_glayout = QGridLayout()
+        settings_tab = QtWidgets.QWidget()
+        settings_layout = QtWidgets.QVBoxLayout(settings_tab)
+        settings_glayout = QtWidgets.QGridLayout()
 
         # Settings tab - Label
         label_msg = QLabel(_("Name this {}.  If you have multiple devices "
@@ -704,9 +700,9 @@ class SettingsDialog(WindowModalDialog):
         settings_layout.addStretch(1)
 
         # Advanced tab
-        advanced_tab = QWidget()
-        advanced_layout = QVBoxLayout(advanced_tab)
-        advanced_glayout = QGridLayout()
+        advanced_tab = QtWidgets.QWidget()
+        advanced_layout = QtWidgets.QVBoxLayout(advanced_tab)
+        advanced_glayout = QtWidgets.QGridLayout()
 
         # Advanced tab - clear PIN
         clear_pin_button = QPushButton(_("Disable PIN"))
@@ -752,7 +748,7 @@ class SettingsDialog(WindowModalDialog):
         tabs.addTab(info_tab, _("Information"))
         tabs.addTab(settings_tab, _("Settings"))
         tabs.addTab(advanced_tab, _("Advanced"))
-        dialog_vbox = QVBoxLayout(self)
+        dialog_vbox = QtWidgets.QVBoxLayout(self)
         dialog_vbox.addWidget(tabs)
         dialog_vbox.addLayout(Buttons(CloseButton(self)))
 

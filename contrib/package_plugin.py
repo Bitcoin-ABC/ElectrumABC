@@ -114,7 +114,7 @@ def build_manifest(display_name, version, project_url, description, minimum_ec_v
 
     return metadata
 
-class App(QWidget):
+class App(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
 

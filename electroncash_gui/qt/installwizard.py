@@ -52,11 +52,11 @@ MSG_RESTORE_PASSPHRASE = \
       "Leave this field empty if you did not use one or are unsure.")
 
 
-class CosignWidget(QWidget):
+class CosignWidget(QtWidgets.QWidget):
     size = 120
 
     def __init__(self, m, n):
-        QWidget.__init__(self)
+        QtWidgets.QWidget.__init__(self)
         self.R = QRect(0, 0, self.size, self.size)
         self.setGeometry(self.R)
         self.setMinimumHeight(self.size)
@@ -124,7 +124,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         self.setMinimumSize(600, 400)
         self.accept_signal.connect(self.accept)
         self.title = QLabel()
-        self.main_widget = QWidget()
+        self.main_widget = QtWidgets.QWidget()
         self.back_button = QPushButton(_("Back"), self)
         self.back_button.setText(_('Back') if self.can_go_back() else _('Cancel'))
         self.next_button = QPushButton(_("Next"), self)
@@ -137,23 +137,23 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         self.rejected.connect(lambda: self.loop.exit(0))
         self.back_button.clicked.connect(lambda: self.loop.exit(1))
         self.next_button.clicked.connect(lambda: self.loop.exit(2))
-        outer_vbox = QVBoxLayout(self)
-        inner_vbox = QVBoxLayout()
+        outer_vbox = QtWidgets.QVBoxLayout(self)
+        inner_vbox = QtWidgets.QVBoxLayout()
         inner_vbox.addWidget(self.title)
         inner_vbox.addWidget(self.main_widget)
         inner_vbox.addStretch(1)
         inner_vbox.addWidget(self.please_wait)
         inner_vbox.addStretch(1)
-        scroll_widget = QWidget()
+        scroll_widget = QtWidgets.QWidget()
         scroll_widget.setLayout(inner_vbox)
         scroll = QScrollArea()
         scroll.setWidget(scroll_widget)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         scroll.setWidgetResizable(True)
-        icon_vbox = QVBoxLayout()
+        icon_vbox = QtWidgets.QVBoxLayout()
         icon_vbox.addWidget(self.logo)
         icon_vbox.addStretch(1)
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addLayout(icon_vbox)
         hbox.addSpacing(5)
         hbox.addWidget(scroll)
@@ -169,8 +169,8 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
 
     def run_and_get_wallet(self):
 
-        vbox = QVBoxLayout()
-        hbox = QHBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(QLabel(_('Wallet') + ':'))
         self.name_e = QLineEdit()
         hbox.addWidget(self.name_e)
@@ -180,7 +180,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
 
         self.msg_label = QLabel('')
         vbox.addWidget(self.msg_label)
-        hbox2 = QHBoxLayout()
+        hbox2 = QtWidgets.QHBoxLayout()
         self.pw_e = QLineEdit('', self)
         self.pw_e.setFixedWidth(150)
         self.pw_e.setEchoMode(2)
@@ -319,7 +319,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         # Get rid of any prior layout by assigning it to a temporary widget
         prior_layout = self.main_widget.layout()
         if prior_layout:
-            QWidget().setLayout(prior_layout)
+            QtWidgets.QWidget().setLayout(prior_layout)
         self.main_widget.setLayout(layout)
         self.back_button.setEnabled(True)
         self.next_button.setEnabled(next_enabled)
@@ -433,7 +433,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
                 or not len(extra_button) == 2):
             return
         but_title, but_action = extra_button
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.setContentsMargins(12,24,12,12)
         but = QPushButton(but_title)
         hbox.addStretch(1)
@@ -455,7 +455,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         label.setTextInteractionFlags(textInteractionFlags)
         label.setOpenExternalLinks(True)
 
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(label)
         if extra_button:
             self._add_extra_button_to_layout(extra_button, vbox)
@@ -480,7 +480,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         c_values = [x[0] for x in choices]
         c_titles = [x[1] for x in choices]
         clayout = ChoicesLayout(message, c_titles)
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addLayout(clayout.layout())
         if extra_button:
             self._add_extra_button_to_layout(extra_button, vbox)
@@ -491,14 +491,14 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
     def query_choice(self, msg, choices):
         """called by hardware wallets"""
         clayout = ChoicesLayout(msg, choices)
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addLayout(clayout.layout())
         self.exec_layout(vbox, '')
         return clayout.selected_index()
 
     @wizard_dialog
     def line_dialog(self, run_next, title, message, default, test, warning=''):
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(WWLabel(message))
         line = QLineEdit()
         line.setText(default)
@@ -520,7 +520,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
                 derivation_line.setText(selected_path)
             derivation_scan_dialog.deleteLater()
 
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(WWLabel(message))
         line = QLineEdit()
         line.setText(default)
@@ -531,7 +531,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         vbox.addWidget(WWLabel(warning))
 
         if scannable:
-            hbox = QHBoxLayout()
+            hbox = QtWidgets.QHBoxLayout()
             hbox.setContentsMargins(12,24,12,12)
             but = QPushButton(_("Scan Derivation Paths..."))
             hbox.addStretch(1)
@@ -548,7 +548,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
             _("Here is your master public key."),
             _("Please share it with your cosigners.")
         ])
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         layout = SeedLayout(xpub, title=msg, icon=False)
         vbox.addLayout(layout.layout())
         self.exec_layout(vbox, _('Master Public Key'))
@@ -588,7 +588,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         m_edit.setValue(2)
         n_label = QLabel()
         m_label = QLabel()
-        grid = QGridLayout()
+        grid = QtWidgets.QGridLayout()
         grid.addWidget(n_label, 0, 0)
         grid.addWidget(n_edit, 0, 1)
         grid.addWidget(m_label, 1, 0)
@@ -604,7 +604,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         m_edit.valueChanged.connect(on_m)
         on_n(2)
         on_m(2)
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(cw)
         vbox.addWidget(WWLabel(_("Choose the number of signatures needed to unlock funds in your wallet:")))
         vbox.addLayout(grid)
@@ -729,7 +729,7 @@ class DerivationDialog(QtWidgets.QDialog):
         self.max_seen = 0
 
         self.setWindowTitle(_('Select Derivation Path'))
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         self.setLayout(vbox)
         vbox.setContentsMargins(24, 24, 24, 24)
 

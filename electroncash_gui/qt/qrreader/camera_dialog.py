@@ -31,7 +31,7 @@ import os
 from typing import List
 
 from PyQt5.QtMultimedia import QCameraInfo, QCamera, QCameraViewfinderSettings
-from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QCheckBox, QPushButton, QLabel
+from PyQt5.QtWidgets import QCheckBox, QPushButton, QLabel
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QSize, QRect, Qt, pyqtSignal, PYQT_VERSION
@@ -116,7 +116,7 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QtWidgets.QDialog):
         self.video_layout.addWidget(self.video_overlay)
 
         # Create root layout and add the video widget layout to it
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         self.setLayout(vbox)
         vbox.setContentsMargins(0, 0, 0, 0)
         vbox.addLayout(self.video_layout)
@@ -128,7 +128,7 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QtWidgets.QDialog):
         self.lowres_label.setHidden(True)
 
         # Create a layout for the controls
-        controls_layout = QHBoxLayout()
+        controls_layout = QtWidgets.QHBoxLayout()
         controls_layout.addStretch(2)
         controls_layout.setContentsMargins(10, 10, 10, 10)
         controls_layout.setSpacing(10)

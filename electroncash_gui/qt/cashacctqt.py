@@ -72,7 +72,7 @@ class VerifyingDialog(WaitingDialog):
                          auto_show=False, auto_exec=False,
                          title=title or _('Verifying Cash Account'),
                          disable_escape_key=disable_escape_key)
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         self._vbox.removeWidget(self._label)
         icon_lbl = QLabel()
         icon_lbl.setPixmap(QIcon(":icons/cashacct-logo.png").pixmap(50))
@@ -237,7 +237,7 @@ class InfoGroupBox(PrintError, QGroupBox):
         CheckBox = 2  # If specified, the on-screen buttons will be QCheckBox and selectedItems() may be a list of more than 1 result
 
     def __init__(self,
-                 parent : QWidget,  # widget parent for layout/embedding/etc
+                 parent : QtWidgets.QWidget,  # widget parent for layout/embedding/etc
                  main_window : MessageBoxMixin,  # may be same as 'parent'; will raise if not an ElectrumWindow instance
                  items: List[Tuple[cashacct.Info, str, str]] = [], # list of 2 or 3 tuple : Info, minimal_chash[, formatted_string]
                  title : str = None,
@@ -262,8 +262,8 @@ class InfoGroupBox(PrintError, QGroupBox):
         self.setItems(items=items, title=title, auto_resize_parent=False, button_type=button_type)
 
     def _setup(self):
-        self.w = QWidget(self)
-        self.vbox = QVBoxLayout(self)
+        self.w = QtWidgets.QWidget(self)
+        self.vbox = QtWidgets.QVBoxLayout(self)
         self.vbox.setContentsMargins(0,0,0,0)
         self.vbox.addWidget(self.w)
         self._but_grp = QButtonGroup(self)  # client code shouldn't use this but instead use selectedItems(), etc
@@ -356,10 +356,10 @@ class InfoGroupBox(PrintError, QGroupBox):
             self.w.setParent(None)
             self.w.deleteLater()
             self.w = None
-        self.w = w = QWidget(self)
+        self.w = w = QtWidgets.QWidget(self)
         self.vbox.addWidget(w)
 
-        grid = QGridLayout(w)
+        grid = QtWidgets.QGridLayout(w)
 
         if self.custom_contents_margins:
             grid.setContentsMargins(*self.custom_contents_margins)
@@ -444,7 +444,7 @@ class InfoGroupBox(PrintError, QGroupBox):
             grid.addWidget(details_lbl, row*3, col*5+2, 1, 1)
 
             # misc buttons
-            hbox = QHBoxLayout()
+            hbox = QtWidgets.QHBoxLayout()
             hbox.setContentsMargins(0,0,0,0)
             hbox.setSpacing(4)
             for func in self.extra_buttons:
@@ -533,7 +533,7 @@ def multiple_result_picker(parent, results, wallet=None, msg=None, title=None, g
     util.finalization_print_error(d)  # track object lifecycle
     destroyed_print_error(d)
 
-    vbox = QVBoxLayout(d)
+    vbox = QtWidgets.QVBoxLayout(d)
     lbl = WWLabel(msg)
     vbox.addWidget(lbl)
 
@@ -578,8 +578,8 @@ def lookup_cash_account_dialog(
     destroyed_print_error(d)
     all_cashacct_contacts = set(contact.name for contact in wallet.contacts.get_all(nocopy=True) if contact.type == 'cashacct')
 
-    vbox = QVBoxLayout(d)
-    hbox = QHBoxLayout()
+    vbox = QtWidgets.QVBoxLayout(d)
+    hbox = QtWidgets.QHBoxLayout()
     label = QLabel()
     label.setPixmap(QIcon(":icons/cashacct-logo.png").pixmap(50))
     hbox.addWidget(label)
@@ -591,7 +591,7 @@ def lookup_cash_account_dialog(
     hbox.addWidget(label)
     hbox.addStretch(2)
     vbox.addLayout(hbox)
-    grid = QGridLayout()
+    grid = QtWidgets.QGridLayout()
     grid.setContentsMargins(62, 32, 12, 12)
     acct = QLineEdit()
     acct.setPlaceholderText(_("Cash Account e.g. satoshi#123.45"))
@@ -810,7 +810,7 @@ def cash_account_detail_dialog(parent : MessageBoxMixin,  # Should be an Electru
     finalization_print_error(d)
     destroyed_print_error(d)
 
-    grid = QGridLayout(d)
+    grid = QtWidgets.QGridLayout(d)
     em_lbl = QLabel(f'<span style="white-space:nowrap; font-size:75pt;">{info.emoji}</span>')
     em_lbl.setToolTip(f'<span style="white-space:nowrap;">{ca_string_em}</span>')
     grid.addWidget(em_lbl, 0, 0, 3, 1)

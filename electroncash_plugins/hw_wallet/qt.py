@@ -29,7 +29,7 @@ import threading
 
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QLineEdit
+from PyQt5.QtWidgets import QLabel, QLineEdit
 from PyQt5 import QtWidgets
 from electroncash_gui.qt.password_dialog import PasswordDialog, PW_PASSPHRASE
 from electroncash_gui.qt.util import (
@@ -136,7 +136,7 @@ class QtHandlerBase(QObject, PrintError):
             pw = QLineEdit()
             pw.setEchoMode(2)
             pw.setMinimumWidth(200)
-            vbox = QVBoxLayout()
+            vbox = QtWidgets.QVBoxLayout()
             vbox.addWidget(WWLabel(msg))
             vbox.addWidget(pw)
             vbox.addLayout(Buttons(CancelButton(d), OkButton(d)))
@@ -147,7 +147,7 @@ class QtHandlerBase(QObject, PrintError):
 
     def word_dialog(self, msg):
         dialog = WindowModalDialog(self.top_level_window(), "")
-        hbox = QHBoxLayout(dialog)
+        hbox = QtWidgets.QHBoxLayout(dialog)
         hbox.addWidget(QLabel(msg))
         text = QLineEdit()
         text.setMaximumWidth(100)
@@ -164,7 +164,7 @@ class QtHandlerBase(QObject, PrintError):
         title = _('Please check your {} device').format(self.device)
         self.dialog = dialog = WindowModalDialog(self.top_level_window(), title)
         l = QLabel(msg)
-        vbox = QVBoxLayout(dialog)
+        vbox = QtWidgets.QVBoxLayout(dialog)
         vbox.addWidget(l)
         if on_cancel:
             dialog.rejected.connect(on_cancel)

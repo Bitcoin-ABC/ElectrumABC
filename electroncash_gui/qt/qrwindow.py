@@ -25,7 +25,7 @@
 # SOFTWARE.
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QPushButton, QSizePolicy
+from PyQt5.QtWidgets import QPushButton, QSizePolicy
 from PyQt5 import QtWidgets
 
 
@@ -35,7 +35,7 @@ from electroncash.i18n import _
 from electroncash.util import Weak
 from electroncash.constants import PROJECT_NAME
 
-class QR_Window(QWidget, MessageBoxMixin):
+class QR_Window(QtWidgets.QWidget, MessageBoxMixin):
 
     def __init__(self):
         super().__init__() # Top-level window. Parent needs to hold a reference to us and clean us up appropriately.
@@ -45,13 +45,13 @@ class QR_Window(QWidget, MessageBoxMixin):
         self.setFocusPolicy(Qt.NoFocus)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
 
-        main_box = QHBoxLayout(self)
+        main_box = QtWidgets.QHBoxLayout(self)
         main_box.setContentsMargins(12,12,12,12)
         self.qrw = QRCodeWidget()
         self.qrw.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         main_box.addWidget(self.qrw, 2)
 
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.setContentsMargins(12,12,12,12)
         main_box.addLayout(vbox,2)
         main_box.addStretch(1)

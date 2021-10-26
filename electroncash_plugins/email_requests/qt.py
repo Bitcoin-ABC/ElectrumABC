@@ -236,9 +236,9 @@ class Plugin(BasePlugin):
         d = WindowModalDialog(window.top_level_window(), _("Email settings"))
         d.setMinimumSize(500, 200)
 
-        vbox = QVBoxLayout(d)
+        vbox = QtWidgets.QVBoxLayout(d)
         vbox.addWidget(QLabel(_('Server hosting your email account')))
-        grid = QGridLayout()
+        grid = QtWidgets.QGridLayout()
         vbox.addLayout(grid)
         grid.addWidget(QLabel('Server (IMAP)'), 0, 0)
         server_e = QLineEdit()

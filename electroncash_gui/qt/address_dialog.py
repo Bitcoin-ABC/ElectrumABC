@@ -62,7 +62,7 @@ class AddressDialog(PrintError, WindowModalDialog):
         self.saved = True
 
         self.setMinimumWidth(self.MIN_WIDTH_FX_HIST if self.parent.fx and self.parent.fx.show_history() else self.MIN_WIDTH_NO_FX_HIST)
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         self.setLayout(vbox)
 
         vbox.addWidget(QLabel(_("Address:")))

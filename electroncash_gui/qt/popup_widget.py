@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import *
 from PyQt5 import QtWidgets
 import sys
 
-class PopupWidget(QWidget):
+class PopupWidget(QtWidgets.QWidget):
 
     #   enum PointerPosition
     LeftSide = 0; RightSide = 1;  TopSide = 2; BottomSide = 3; NoPointer = 4
@@ -44,7 +44,7 @@ class PopupWidget(QWidget):
             delete_on_hide, if True, will auto-delete this widget after it is hidden due to the timeout or due to calling hide().
         '''
         super().__init__(parent)
-        self.layout = QGridLayout(self)
+        self.layout = QtWidgets.QGridLayout(self)
         if sys.platform != 'darwin':
             self.layout.setContentsMargins(20,20,20,20)
         self.animation = QPropertyAnimation(self)
@@ -326,7 +326,7 @@ from electroncash.util import finalization_print_error
 _extant_popups = dict()
 def ShowPopupLabel(text, target, timeout, name="Global", pointer_position=PopupWidget.RightSide, opacity=0.9, onClick=None, onRightClick=None,
                    activation_hides=True, track_target=True, dark_mode=False):
-    assert isinstance(name, str) and isinstance(text, str) and isinstance(target, QWidget) and isinstance(timeout, (float, int)), "Invalid parameters"
+    assert isinstance(name, str) and isinstance(text, str) and isinstance(target, QtWidgets.QWidget) and isinstance(timeout, (float, int)), "Invalid parameters"
     window = target.window()
     if not window.isActiveWindow():
         return False

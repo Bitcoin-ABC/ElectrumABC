@@ -70,14 +70,14 @@ def seed_warning_msg(seed, has_der=False, has_ext=False):
     ]) % len(seed.split())
 
 
-class SeedLayout(QVBoxLayout):
+class SeedLayout(QtWidgets.QVBoxLayout):
     #options
     is_bip39 = False
     is_ext = False
 
     def seed_options(self):
         dialog = QtWidgets.QDialog()
-        vbox = QVBoxLayout(dialog)
+        vbox = QtWidgets.QVBoxLayout(dialog)
         if 'ext' in self.options:
             cb_ext = QCheckBox(_('Extend this seed with custom words') + " " + _("(aka 'passphrase')"))
             cb_ext.setChecked(self.is_ext)
@@ -99,7 +99,7 @@ class SeedLayout(QVBoxLayout):
 
     def __init__(self, seed=None, title=None, icon=True, msg=None, options=None, is_seed=None, passphrase=None, parent=None, editable=True,
                  derivation=None, seed_type=None):
-        QVBoxLayout.__init__(self)
+        QtWidgets.QVBoxLayout.__init__(self)
         self.parent = parent
         self.options = options or ()
         if title:
@@ -115,7 +115,7 @@ class SeedLayout(QVBoxLayout):
             self.saved_is_seed = self.is_seed
             self.seed_e.textChanged.connect(self.on_edit)
         self.seed_e.setMaximumHeight(75)
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         if icon:
             logo = QLabel()
             logo.setPixmap(QIcon(":icons/seed.png").pixmap(64))
@@ -123,7 +123,7 @@ class SeedLayout(QVBoxLayout):
             hbox.addWidget(logo)
         hbox.addWidget(self.seed_e)
         self.addLayout(hbox)
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addStretch(1)
         self.seed_type_label = QLabel('')
         hbox.addWidget(self.seed_type_label)
@@ -131,7 +131,7 @@ class SeedLayout(QVBoxLayout):
             opt_button = EnterButton(_('Options'), self.seed_options)
             hbox.addWidget(opt_button)
             self.addLayout(hbox)
-        grid_maybe = QGridLayout()  # may not be used if none of the below if expressions evaluates to true, that's ok.
+        grid_maybe = QtWidgets.QGridLayout()  # may not be used if none of the below if expressions evaluates to true, that's ok.
         grid_maybe.setColumnStretch(1, 1)  # we want the right-hand column to take up as much space as it needs.
         grid_row = 0
         if seed_type:
@@ -198,9 +198,9 @@ class SeedLayout(QVBoxLayout):
             self.seed_warning.setText('')
 
 
-class KeysLayout(QVBoxLayout):
+class KeysLayout(QtWidgets.QVBoxLayout):
     def __init__(self, parent=None, title=None, is_valid=None, allow_multi=False):
-        QVBoxLayout.__init__(self)
+        QtWidgets.QVBoxLayout.__init__(self)
         self.parent = parent
         self.is_valid = is_valid
         self.text_e = ScanQRTextEdit(allow_multi=allow_multi)
@@ -222,7 +222,7 @@ class SeedDialog(WindowModalDialog):
         WindowModalDialog.__init__(self, parent,
                                    (f'{PROJECT_NAME} - ' + _('Seed')))
         self.setMinimumWidth(400)
-        vbox = QVBoxLayout(self)
+        vbox = QtWidgets.QVBoxLayout(self)
         title =  _("Your wallet generation seed is:")
         slayout = SeedLayout(title=title, seed=seed, msg=True, passphrase=passphrase, editable=False, derivation=derivation, seed_type=seed_type)
         vbox.addLayout(slayout)

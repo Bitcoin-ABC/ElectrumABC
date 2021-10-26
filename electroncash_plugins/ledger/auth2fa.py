@@ -45,7 +45,7 @@ class LedgerAuthDialog(QtWidgets.QDialog):
         if self.devmode == 0x11 or self.txdata['confirmationType'] == 1:
             self.cfg['mode'] = 0
 
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         self.setLayout(vbox)
 
         def on_change_mode(idx):
@@ -60,8 +60,8 @@ class LedgerAuthDialog(QtWidgets.QDialog):
                 self.pin = ''.join(chr(int(str(i),16)) for i in self.pin)
             self.accept()
 
-        self.modebox = QWidget()
-        modelayout = QHBoxLayout()
+        self.modebox = QtWidgets.QWidget()
+        modelayout = QtWidgets.QHBoxLayout()
         self.modebox.setLayout(modelayout)
         modelayout.addWidget(QLabel(_("Method:")))
         self.modes = QComboBox()
@@ -78,8 +78,8 @@ class LedgerAuthDialog(QtWidgets.QDialog):
         self.helpmsg.setReadOnly(True)
         vbox.addWidget(self.helpmsg)
 
-        self.pinbox = QWidget()
-        pinlayout = QHBoxLayout()
+        self.pinbox = QtWidgets.QWidget()
+        pinlayout = QtWidgets.QHBoxLayout()
         self.pinbox.setLayout(pinlayout)
         self.pintxt = QLineEdit()
         self.pintxt.setEchoMode(2)
@@ -92,8 +92,8 @@ class LedgerAuthDialog(QtWidgets.QDialog):
         self.pinbox.setVisible(self.cfg['mode'] == 0)
         vbox.addWidget(self.pinbox)
 
-        self.cardbox = QWidget()
-        card = QVBoxLayout()
+        self.cardbox = QtWidgets.QWidget()
+        card = QtWidgets.QVBoxLayout()
         self.cardbox.setLayout(card)
         self.addrtext = QTextEdit()
         self.addrtext.setStyleSheet("QTextEdit { color:blue; background-color:lightgray; padding:15px 10px; border:none; font-size:20pt; }")
@@ -119,7 +119,7 @@ class LedgerAuthDialog(QtWidgets.QDialog):
                 self.addrtext.setHtml(_("Press Enter"))
 
         pin_changed('')
-        cardpin = QHBoxLayout()
+        cardpin = QtWidgets.QHBoxLayout()
         cardpin.addWidget(QLabel(_("Enter PIN:")))
         self.cardtxt = QLineEdit()
         self.cardtxt.setEchoMode(2)

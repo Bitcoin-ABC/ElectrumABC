@@ -44,7 +44,7 @@ from electroncash.util import PrintError, print_error
 from .util import Buttons
 
 
-class UpdateChecker(QWidget, PrintError):
+class UpdateChecker(QtWidgets.QWidget, PrintError):
     """A window that checks for updates.
 
     If ok, and a new version is detected, will present the hard-coded download
@@ -91,7 +91,7 @@ class UpdateChecker(QWidget, PrintError):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle(f'{PROJECT_NAME} - ' + _('Update Checker'))
-        self.content = QVBoxLayout()
+        self.content = QtWidgets.QVBoxLayout()
         self.content.setContentsMargins(*([10]*4))
 
         self.heading_label = QLabel()
@@ -108,7 +108,7 @@ class UpdateChecker(QWidget, PrintError):
         self.pb.setMinimum(0)
         self.content.addWidget(self.pb)
 
-        versions = QHBoxLayout()
+        versions = QtWidgets.QHBoxLayout()
         versions.addWidget(QLabel(_(f"Current version: {version.PACKAGE_VERSION}")))
         self.latest_version_label = QLabel(_(f"Latest version: {' '}"))
         versions.addWidget(self.latest_version_label)
@@ -119,7 +119,7 @@ class UpdateChecker(QWidget, PrintError):
         self.cancel_or_check_button = QPushButton(_("Cancel"))
         self.cancel_or_check_button.clicked.connect(self.cancel_or_check)
         self.content.addLayout(Buttons(self.cancel_or_check_button, close_button))
-        grid = QGridLayout()
+        grid = QtWidgets.QGridLayout()
         grid.addLayout(self.content, 0, 0)
         self.setLayout(grid)
 

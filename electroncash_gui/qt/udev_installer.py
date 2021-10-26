@@ -32,7 +32,7 @@ import grp
 
 from PyQt5.QtCore import Qt, QObject
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QMessageBox, QFrame, QWidget
+from PyQt5.QtWidgets import QLabel, QPushButton
 from PyQt5 import QtWidgets
 
 from electroncash.util import _, PrintError
@@ -51,7 +51,7 @@ class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
         (0x1209, 0x53c1), # TREZOR V2
     }
 
-    def __init__(self, parent: QWidget, plugins: Plugins):
+    def __init__(self, parent: QtWidgets.QWidget, plugins: Plugins):
         assert parent and plugins
         super().__init__(parent)
 
@@ -61,7 +61,7 @@ class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
 
         self.setWindowTitle(_('Hardware Wallet Support'))
 
-        layout = QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
         layout.setContentsMargins(20,20,20,20)
 
@@ -81,7 +81,7 @@ class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
 
         layout.addWidget(info_label)
 
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addStretch(2)
         status_title = QLabel()
         status_title.setText(_('udev Rules Status:'))
@@ -97,7 +97,7 @@ class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
         hbox.addStretch(2)
         layout.addLayout(hbox)
 
-        button_layout = QHBoxLayout()
+        button_layout = QtWidgets.QHBoxLayout()
         layout.addLayout(button_layout)
 
         close_button = QPushButton(_('&Close'))

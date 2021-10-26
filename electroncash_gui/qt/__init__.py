@@ -240,7 +240,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         run_hook('init_qt', self)
         # We did this once already in the set_dark_theme call, but we do this
         # again here just in case some plugin modified the color scheme.
-        ColorScheme.update_from_widget(QWidget())
+        ColorScheme.update_from_widget(QtWidgets.QWidget())
 
         self._check_and_warn_qt_version()
 
@@ -342,7 +342,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         # Even if we ourselves don't set the dark theme,
         # the OS/window manager/etc might set *a dark theme*.
         # Hence, try to choose colors accordingly:
-        ColorScheme.update_from_widget(QWidget(), force_dark=use_dark_theme)
+        ColorScheme.update_from_widget(QtWidgets.QWidget(), force_dark=use_dark_theme)
 
     def get_cached_password(self, wallet):
         ''' Passwords in the cache only live for a very short while (10 seconds)
@@ -570,8 +570,8 @@ class ElectrumGui(QtCore.QObject, PrintError):
         closed.'''
         if not new_focus_widget:
             return
-        if isinstance(new_focus_widget, QWidget):
-            window = QWidget.window(new_focus_widget)  # call base class because some widgets may actually override 'window' with Python attributes.
+        if isinstance(new_focus_widget, QtWidgets.QWidget):
+            window = QtWidgets.QWidget.window(new_focus_widget)  # call base class because some widgets may actually override 'window' with Python attributes.
             if isinstance(window, ElectrumWindow):
                 self._last_active_window = Weak.ref(window)
 
@@ -820,7 +820,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         if isinstance(parent, MessageBoxMixin):
             parent.msg_box(title=title, text=message, icon=icon, parent=None, rich_text=rich_text)
         else:
-            parent = parent if isinstance(parent, QWidget) else None
+            parent = parent if isinstance(parent, QtWidgets.QWidget) else None
             d = QMessageBoxMixin(icon, title, message, QMessageBox.Ok, parent)
             if not rich_text:
                 d.setTextFormat(QtCore.Qt.PlainText)

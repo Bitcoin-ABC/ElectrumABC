@@ -2,8 +2,9 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QBrush, QColor, QCursor, QPainter, QPen
 from PyQt5.QtWidgets import (
-    QApplication, QVBoxLayout, QTextEdit, QHBoxLayout, QPushButton, QWidget,
+    QApplication, QTextEdit, QPushButton,
     QSizePolicy)
+from PyQt5 import QtWidgets
 
 import qrcode
 
@@ -16,10 +17,10 @@ from electroncash_gui.qt.util import (
 )
 
 
-class QRCodeWidget(QWidget, util.PrintError):
+class QRCodeWidget(QtWidgets.QWidget, util.PrintError):
 
     def __init__(self, data = None, fixedSize=False):
-        QWidget.__init__(self)
+        QtWidgets.QWidget.__init__(self)
         self.data = None
         self.qr = None
         self.fixedSize = fixedSize
@@ -123,7 +124,7 @@ class QRDialog(WindowModalDialog):
     def __init__(self, data, parent=None, title = "", show_text=False):
         WindowModalDialog.__init__(self, parent, title)
 
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         qrw = QRCodeWidget(data)
         vbox.addWidget(qrw, 1)
         if show_text:
@@ -131,7 +132,7 @@ class QRDialog(WindowModalDialog):
             text.setText(data)
             text.setReadOnly(True)
             vbox.addWidget(text)
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addStretch(1)
 
         # Qt & Python GC hygiene: don't hold references to self in non-method slots as it appears Qt+Python GC don't like this too much and may leak memory in that case.

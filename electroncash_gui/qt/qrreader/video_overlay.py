@@ -26,7 +26,7 @@
 
 from typing import List
 
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QtWidgets.QWidget
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QPainter, QPaintEvent, QPen, QPainterPath, QColor, QTransform
 from PyQt5.QtCore import QPoint, QSize, QRect, QRectF, Qt
@@ -36,7 +36,7 @@ from electroncash.qrreaders import QrCodeResult
 
 from .validator import QrReaderValidatorResult
 
-class QrReaderVideoOverlay(QWidget):
+class QrReaderVideoOverlay(QtWidgets.QWidget):
     """
     Overlays the QR scanner results over the video
     """
@@ -48,7 +48,7 @@ class QrReaderVideoOverlay(QWidget):
     QR_FINDER_OPACITY = 0.25
     QR_FINDER_SIZE = 0.5
 
-    def __init__(self, parent: QWidget = None):
+    def __init__(self, parent: QtWidgets.QWidget = None):
         super().__init__(parent)
 
         self.results = []

@@ -93,7 +93,7 @@ class ExceptionDialog(QtWidgets.QDialog):
         self.setWindowTitle(f'{PROJECT_NAME} - ' + _('An Error Occurred'))
         self.setMinimumSize(600, 600)
 
-        main_box = QVBoxLayout()
+        main_box = QtWidgets.QVBoxLayout()
         main_box.setContentsMargins(20, 20, 20, 20)
 
         heading = QLabel('<h2>' + _('Sorry!') + '</h2>')
@@ -120,7 +120,7 @@ class ExceptionDialog(QtWidgets.QDialog):
         label.setTextFormat(QtCore.Qt.RichText)
         main_box.addWidget(label)
 
-        buttons = QHBoxLayout()
+        buttons = QtWidgets.QHBoxLayout()
 
         buttons.addStretch(1)
 

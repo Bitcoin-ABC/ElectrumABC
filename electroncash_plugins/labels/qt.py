@@ -1,7 +1,7 @@
 from functools import partial
 
 from PyQt5.QtCore import QObject, Qt, pyqtSignal
-from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QVBoxLayout)
+from PyQt5.QtWidgets import QLabel
 
 from electroncash.constants import PROJECT_NAME
 from electroncash.plugins import hook
@@ -57,7 +57,7 @@ class Plugin(LabelsPlugin):
                 ok_button_disable_sig = pyqtSignal(bool)
             d.sigs = MySigs(d)
             d.sigs.ok_button_disable_sig.connect(d.ok_button.setDisabled) # disable ok button while the TaskThread runs ..
-            hbox = QHBoxLayout()
+            hbox = QtWidgets.QHBoxLayout()
             hbox.addWidget(QLabel(_("LabelSync options:")))
             upload = ThreadedButton(_("Force upload"),
                                     partial(Weak(self.do_force_upload), wallet, dlgRef),
@@ -69,14 +69,14 @@ class Plugin(LabelsPlugin):
                                       partial(Weak(self.error_processing), dlgRef))
             d.thread_buts = (upload, download)
             d.finished.connect(partial(Weak(self.on_dlg_finished), dlgRef))
-            vbox = QVBoxLayout()
+            vbox = QtWidgets.QVBoxLayout()
             vbox.addWidget(upload)
             vbox.addWidget(download)
             hbox.addLayout(vbox)
-            vbox = QVBoxLayout(d)
+            vbox = QtWidgets.QVBoxLayout(d)
             vbox.addLayout(hbox)
         else:
-            vbox = QVBoxLayout(d)
+            vbox = QtWidgets.QVBoxLayout(d)
             if wallet.network:
                 # has network, so the fact that the wallet isn't in the list means it's incompatible
                 l = QLabel('<b>' + _("LabelSync not supported for this wallet type") + '</b>')

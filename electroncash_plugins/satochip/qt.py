@@ -4,7 +4,7 @@ from electroncash.plugins import run_hook
 from electroncash_gui.qt.util import EnterButton, Buttons, CloseButton, OkButton, CancelButton, WindowModalDialog, WWLabel
 
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import QPushButton, QLabel, QVBoxLayout, QWidget, QGridLayout, QLineEdit, QCheckBox
+from PyQt5.QtWidgets import QPushButton, QLabel, QLineEdit, QCheckBox
 from PyQt5 import QtWidgets
 from functools import partial
 
@@ -40,7 +40,7 @@ class Plugin(SatochipPlugin, QtPluginBase):
     def settings_dialog(self, window):
         # Return a settings dialog.
         d = WindowModalDialog(window, _("Email settings"))
-        vbox = QVBoxLayout(d)
+        vbox = QtWidgets.QVBoxLayout(d)
 
         d.setMinimumSize(500, 200)
         vbox.addStretch()
@@ -82,9 +82,9 @@ class SatochipSettingsDialog(WindowModalDialog):
                 raise RuntimeError("Device not connected")
             return client
 
-        body = QWidget()
-        body_layout = QVBoxLayout(body)
-        grid = QGridLayout()
+        body = QtWidgets.QWidget()
+        body_layout = QtWidgets.QVBoxLayout(body)
+        grid = QtWidgets.QGridLayout()
         grid.setColumnStretch(3, 1)
 
         # see <http://doc.qt.io/archives/qt-4.8/richtext-html-subset.html>
@@ -131,7 +131,7 @@ class SatochipSettingsDialog(WindowModalDialog):
         y += 5
         grid.addWidget(CloseButton(self), y, 1)
 
-        dialog_vbox = QVBoxLayout(self)
+        dialog_vbox = QtWidgets.QVBoxLayout(self)
         dialog_vbox.addWidget(body)
 
         # Fetch values and show them
@@ -306,7 +306,7 @@ class SatochipSettingsDialog(WindowModalDialog):
 
         cb_reset_2FA = QCheckBox(_('Also reset 2FA'))
 
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(WWLabel(msg))
         vbox.addWidget(pw)
         vbox.addWidget(cb_reset_2FA)

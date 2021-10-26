@@ -1155,7 +1155,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
     def create_receive_tab(self):
         # A 4-column grid layout.  All the stretch is in the last column.
         # The exchange rate plugin adds a fiat widget in column 2
-        self.receive_grid = grid = QGridLayout()
+        self.receive_grid = grid = QtWidgets.QGridLayout()
         grid.setSpacing(8)
         grid.setColumnStretch(3, 1)
 
@@ -1317,7 +1317,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.receive_qr = MyQRCodeWidget(fixedSize=200)
         self.receive_qr.setCursor(QCursor(Qt.PointingHandCursor))
 
-        self.receive_buttons = buttons = QHBoxLayout()
+        self.receive_buttons = buttons = QtWidgets.QHBoxLayout()
         buttons.addWidget(self.save_request_button)
         buttons.addWidget(self.new_request_button)
         buttons.addStretch(1)
@@ -1332,13 +1332,13 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.receive_requests_label.setBuddy(self.request_list)
 
         # layout
-        vbox_g = QVBoxLayout()
+        vbox_g = QtWidgets.QVBoxLayout()
         vbox_g.addLayout(grid)
         vbox_g.addStretch()
 
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addLayout(vbox_g)
-        vbox2 = QVBoxLayout()
+        vbox2 = QtWidgets.QVBoxLayout()
         vbox2.setContentsMargins(0,0,0,0)
         vbox2.setSpacing(4)
         vbox2.addWidget(self.receive_qr, Qt.AlignHCenter|Qt.AlignTop)
@@ -1356,7 +1356,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         hbox.addLayout(vbox2)
 
-        class ReceiveTab(QWidget):
+        class ReceiveTab(QtWidgets.QWidget):
             def showEvent(slf, e):
                 super().showEvent(e)
                 if e.isAccepted():
@@ -1366,7 +1366,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         w = ReceiveTab()
         w.searchable_list = self.request_list
-        vbox = QVBoxLayout(w)
+        vbox = QtWidgets.QVBoxLayout(w)
         vbox.addLayout(hbox)
         vbox.addStretch(1)
         vbox.addWidget(self.receive_requests_label)
@@ -1450,7 +1450,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
     def view_and_paste(self, title, msg, data):
         dialog = WindowModalDialog(self.top_level_window(), title)
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         label = QLabel(msg)
         label.setWordWrap(True)
         vbox.addWidget(label)
@@ -1609,7 +1609,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
     def create_send_tab(self):
         # A 4-column grid layout.  All the stretch is in the last column.
         # The exchange rate plugin adds a fiat widget in column 2
-        self.send_grid = grid = QGridLayout()
+        self.send_grid = grid = QtWidgets.QGridLayout()
         grid.setSpacing(8)
         grid.setColumnStretch(3, 1)
 
@@ -1666,7 +1666,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         grid.addWidget(self.opreturn_label,  3, 0)
         self.message_opreturn_e = MyLineEdit()
         self.opreturn_label.setBuddy(self.message_opreturn_e)
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.message_opreturn_e)
         self.opreturn_rawhex_cb = QCheckBox(_('&Raw hex script'))
         self.opreturn_rawhex_cb.setToolTip(_('If unchecked, the textbox contents are UTF8-encoded into a single-push script: <tt>OP_RETURN PUSH &lt;text&gt;</tt>. If checked, the text contents will be interpreted as a raw hexadecimal script to be appended after the OP_RETURN opcode: <tt>OP_RETURN &lt;script&gt;</tt>.'))
@@ -1708,7 +1708,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.max_button.setFixedWidth(140)
         self.max_button.setCheckable(True)
         grid.addWidget(self.max_button, 5, 3)
-        hbox = self.send_tab_extra_plugin_controls_hbox = QHBoxLayout()
+        hbox = self.send_tab_extra_plugin_controls_hbox = QtWidgets.QHBoxLayout()
         hbox.addStretch(1)
         grid.addLayout(hbox, 5, 4, 1, -1)
 
@@ -1760,7 +1760,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.preview_button.setToolTip(_('Display the details of your transactions before signing it.'))
         self.send_button = EnterButton(_("&Send"), self.do_send)
         self.clear_button = EnterButton(_("&Clear"), self.do_clear)
-        buttons = QHBoxLayout()
+        buttons = QtWidgets.QHBoxLayout()
         buttons.addStretch(1)
         buttons.addWidget(self.clear_button)
         buttons.addWidget(self.preview_button)
@@ -1825,13 +1825,13 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.invoice_list = InvoiceList(self)
         self.invoice_list.chkVisible()
 
-        vbox0 = QVBoxLayout()
+        vbox0 = QtWidgets.QVBoxLayout()
         vbox0.addLayout(grid)
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addLayout(vbox0)
 
-        w = QWidget()
-        vbox = QVBoxLayout(w)
+        w = QtWidgets.QWidget()
+        vbox = QtWidgets.QVBoxLayout(w)
         vbox.addLayout(hbox)
         vbox.addStretch(1)
         vbox.addWidget(self.invoices_label)
@@ -2419,7 +2419,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         # Needed by QtHandler for hardware wallets
         dialog = WindowModalDialog(self.top_level_window())
         clayout = ChoicesLayout(msg, choices)
-        vbox = QVBoxLayout(dialog)
+        vbox = QtWidgets.QVBoxLayout(dialog)
         vbox.addLayout(clayout.layout())
         buts = [OkButton(dialog)]
         if add_cancel_button:
@@ -2633,8 +2633,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         source_address.textChanged.connect(convert_address)
 
-        w = QWidget()
-        grid = QGridLayout()
+        w = QtWidgets.QWidget()
+        grid = QtWidgets.QGridLayout()
         grid.setSpacing(15)
         grid.setColumnStretch(1, 2)
         grid.setColumnStretch(2, 1)
@@ -2667,25 +2667,25 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             f"format."
         ))
 
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(label)
         vbox.addWidget(w)
         vbox.addStretch(1)
 
-        w = QWidget()
+        w = QtWidgets.QWidget()
         w.setLayout(vbox)
 
         return w
 
     def create_list_tab(self, l, list_header=None):
-        w = QWidget()
+        w = QtWidgets.QWidget()
         w.searchable_list = l
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         w.setLayout(vbox)
         vbox.setContentsMargins(0, 0, 0, 0)
         vbox.setSpacing(0)
         if list_header:
-            hbox = QHBoxLayout()
+            hbox = QtWidgets.QHBoxLayout()
             for b in list_header:
                 hbox.addWidget(b)
             hbox.addStretch()
@@ -2866,8 +2866,8 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
     def show_pr_details(self, pr):
         key = pr.get_id()
         d = WindowModalDialog(self.top_level_window(), _("Invoice"))
-        vbox = QVBoxLayout(d)
-        grid = QGridLayout()
+        vbox = QtWidgets.QVBoxLayout(d)
+        grid = QtWidgets.QGridLayout()
         grid.addWidget(QLabel(_("Requestor") + ':'), 0, 0)
         grid.addWidget(QLabel(pr.get_requestor()), 0, 1)
         grid.addWidget(QLabel(_("Amount") + ':'), 1, 0)
@@ -2954,7 +2954,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         self.balance_label = QLabel("")
         sb.addWidget(self.balance_label)
 
-        self._search_box_spacer = QWidget()
+        self._search_box_spacer = QtWidgets.QWidget()
         self._search_box_spacer.setFixedWidth(6)  # 6 px spacer
         self.search_box = QLineEdit()
         self.search_box.setPlaceholderText(_("Search wallet, {key}F to hide").format(key='Ctrl+' if sys.platform != 'darwin' else '⌘'))
@@ -3091,9 +3091,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
     def new_contact_dialog(self):
         d = WindowModalDialog(self.top_level_window(), _("New Contact"))
-        vbox = QVBoxLayout(d)
+        vbox = QtWidgets.QVBoxLayout(d)
         vbox.addWidget(QLabel(_('New Contact') + ':'))
-        grid = QGridLayout()
+        grid = QtWidgets.QGridLayout()
         line1 = QLineEdit()
         line1.setFixedWidth(350)
         line2 = QLineEdit()
@@ -3121,9 +3121,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         dialog = WindowModalDialog(self.top_level_window(), _("Wallet Information"))
         dialog.setMinimumSize(500, 100)
         mpk_list = self.wallet.get_master_public_keys()
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         wallet_type = self.wallet.storage.get('wallet_type', '')
-        grid = QGridLayout()
+        grid = QtWidgets.QGridLayout()
         basename = os.path.basename(self.wallet.storage.path)
         grid.addWidget(QLabel(_("Wallet name")+ ':'), 0, 0)
         grid.addWidget(QLabel(basename), 0, 1)
@@ -3217,7 +3217,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         xtype = bitcoin.deserialize_privkey(pk)[0]
         d = WindowModalDialog(self.top_level_window(), _("Private key"))
         d.setMinimumSize(600, 150)
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(QLabel('{}: {}'.format(_("Address"), address)))
         vbox.addWidget(QLabel(_("Script type") + ': ' + xtype))
         pk_lbl = QLabel(_("Private key") + ':')
@@ -3331,7 +3331,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         d = WindowModalDialog(self.top_level_window(), _('Sign/verify Message'))
         d.setMinimumSize(610, 290)
 
-        layout = QGridLayout(d)
+        layout = QtWidgets.QGridLayout(d)
 
         message_e = QTextEdit()
         message_e.setAcceptRichText(False)
@@ -3350,7 +3350,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         layout.addWidget(signature_e, 3, 1)
         layout.setRowStretch(3,1)
 
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
 
         b = QPushButton(_("Sign"))
         b.clicked.connect(lambda: self.do_sign(address_e, message_e, signature_e))
@@ -3390,7 +3390,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         d = WindowModalDialog(self.top_level_window(), _('Encrypt/decrypt Message'))
         d.setMinimumSize(610, 490)
 
-        layout = QGridLayout(d)
+        layout = QtWidgets.QGridLayout(d)
 
         message_e = QTextEdit()
         message_e.setAcceptRichText(False)
@@ -3413,7 +3413,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         layout.addWidget(encrypted_e, 3, 1)
         layout.setRowStretch(3,1)
 
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         b = QPushButton(_("Encrypt"))
         b.clicked.connect(lambda: self.do_encrypt(message_e, pubkey_e, encrypted_e))
         hbox.addWidget(b)
@@ -3617,7 +3617,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         d.setObjectName('WindowModalDialog - Private Key Export')
         destroyed_print_error(d)  # track object lifecycle
         d.setMinimumSize(850, 300)
-        vbox = QVBoxLayout(d)
+        vbox = QtWidgets.QVBoxLayout(d)
 
         lines = [ _("WARNING: ALL your private keys are secret."),
                   _("Exposing a single private key can compromise your entire wallet!"),
@@ -3806,7 +3806,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
     def export_history_dialog(self):
         d = WindowModalDialog(self.top_level_window(), _('Export History'))
         d.setMinimumSize(400, 200)
-        vbox = QVBoxLayout(d)
+        vbox = QtWidgets.QVBoxLayout(d)
         defaultname = os.path.expanduser('~/electron-cash-history.csv')
         select_msg = _('Select file to export your wallet transactions to')
         box, filename_e, csv_button = filename_field(self.config, defaultname, select_msg)
@@ -3820,9 +3820,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         fee_dl_chk.setEnabled(bool(self.wallet.network))
         fee_dl_chk.setToolTip(_("If this is checked, accurate fee and input value data will be retrieved from the network"))
         vbox.addWidget(fee_dl_chk)
-        fee_time_w = QWidget()
+        fee_time_w = QtWidgets.QWidget()
         fee_time_w.setToolTip(_("The amount of overall time in seconds to allow for downloading fee data before giving up"))
-        hbox = QHBoxLayout(fee_time_w)
+        hbox = QtWidgets.QHBoxLayout(fee_time_w)
         hbox.setContentsMargins(20, 0, 0, 0)
         hbox.addWidget(QLabel(_("Timeout:")), 0, Qt.AlignRight)
         fee_time_sb = QSpinBox()
@@ -3950,7 +3950,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         d = WindowModalDialog(self.top_level_window(), title=_('Sweep private keys'))
         d.setMinimumSize(600, 300)
 
-        vbox = QVBoxLayout(d)
+        vbox = QtWidgets.QVBoxLayout(d)
         bip38_warn_label = QLabel(_("<b>BIP38 support is disabled because a requisite library is not installed.</b> Please install 'cryptodomex' or omit BIP38 private keys (private keys starting in 6P...). Decrypt keys to WIF format (starting with 5, K, or L) in order to sweep."))
         bip38_warn_label.setWordWrap(True)
         bip38_warn_label.setHidden(True)
@@ -4133,7 +4133,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         d = SettingsModalDialog(self.top_level_window(), _('Preferences'))
         d.setObjectName('WindowModalDialog - Preferences')
         destroyed_print_error(d)
-        vbox = QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         tabs = QTabWidget()
         gui_widgets = []
         misc_widgets = []
@@ -4207,7 +4207,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             self.fee_slider_mogrifier()
 
         fee_gb = QGroupBox(_('Fees'))
-        fee_lo = QGridLayout(fee_gb)
+        fee_lo = QtWidgets.QGridLayout(fee_gb)
 
         customfee_e = BTCSatsByteEdit()
         customfee_e.setAmount(self.config.custom_fee_rate() / 1000.0 if self.config.has_custom_fee_rate() else None)
@@ -4257,7 +4257,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         disconnect_alias_received_signal = Weak.finalize(d, self.alias_received_signal.disconnect, set_alias_color)
         alias_e.editingFinished.connect(on_alias_edit)
         id_gb = QGroupBox(_("Identity"))
-        id_form = QFormLayout(id_gb)
+        id_form = QtWidgets.QFormLayout(id_gb)
         id_form.addRow(alias_label, alias_e)
 
         # SSL certificate
@@ -4288,7 +4288,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
 
         from . import exception_window as ew
         cr_gb = QGroupBox(_("Crash Reporter"))
-        cr_grid = QGridLayout(cr_gb)
+        cr_grid = QtWidgets.QGridLayout(cr_gb)
         cr_chk = QCheckBox()
         cr_chk.setChecked(ew.is_enabled(self.config))
         cr_chk.clicked.connect(lambda b: ew.set_enabled(self.config, b))
@@ -4302,10 +4302,10 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
               "to send a report.\n\nPrivate information is never revealed "
               "in crash reports to developers."))
         # The below dance ensures the checkbox is horizontally centered in the widget
-        cr_grid.addWidget(QWidget(), 0, 0, 1, 1)  # dummy spacer
+        cr_grid.addWidget(QtWidgets.QWidget(), 0, 0, 1, 1)  # dummy spacer
         cr_grid.addWidget(cr_chk, 0, 1, 1, 1, Qt.AlignRight)
         cr_grid.addWidget(cr_help, 0, 2, 1, 1, Qt.AlignLeft)
-        cr_grid.addWidget(QWidget(), 0, 3, 1, 1) # dummy spacer
+        cr_grid.addWidget(QtWidgets.QWidget(), 0, 3, 1, 1) # dummy spacer
         cr_grid.setColumnStretch(0, 1)
         cr_grid.setColumnStretch(3, 1)
 
@@ -4486,7 +4486,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         gui_widgets.append((None, None)) # spacer
         address_w = QGroupBox(_('Address Format'))
         address_w.setToolTip(_('Select between Cash Address and Legacy formats for addresses'))
-        hbox = QHBoxLayout(address_w)
+        hbox = QtWidgets.QHBoxLayout(address_w)
         cashaddr_cbox = QComboBox()
         cashaddr_cbox.addItem(QIcon(':icons/tab_converter.svg'),
                               _("CashAddr"),
@@ -4725,14 +4725,14 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                     else:
                         grid.addItem(QSpacerItem(15, 15), i, 0, 1, 2)
             for thing, name in tabs_info:
-                tab = QWidget()
+                tab = QtWidgets.QWidget()
                 if isinstance(thing, dict):
                     # This Prefs tab is laid out as groupboxes one atop another...
                     d = thing
-                    vbox = QVBoxLayout(tab)
+                    vbox = QtWidgets.QVBoxLayout(tab)
                     for groupName, widgets in d.items():
                         gbox = QGroupBox(groupName)
-                        grid = QGridLayout(gbox)
+                        grid = QtWidgets.QGridLayout(gbox)
                         grid.setColumnStretch(0,1)
                         for a,b in widgets:
                             add_widget_pair(a,b,grid)
@@ -4740,7 +4740,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                 else:
                     # Standard layout.. 1 tab has just a grid of widgets
                     widgets = thing
-                    grid = QGridLayout(tab)
+                    grid = QtWidgets.QGridLayout(tab)
                     grid.setColumnStretch(0,1)
                     for a,b in widgets:
                         add_widget_pair(a,b,grid)
@@ -4836,7 +4836,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         # Reparent children to 'None' so python GC can clean them up sooner rather than later.
         # This also hopefully helps accelerate this window's GC.
         children = [c for c in self.children()
-                    if (isinstance(c, (QWidget, QAction, TaskThread))
+                    if (isinstance(c, (QtWidgets.QWidget, QAction, TaskThread))
                         and not isinstance(c, (QStatusBar, QtWidgets.QMenuBar, QFocusFrame, QShortcut)))]
         for c in children:
             try: c.disconnect()
@@ -4916,7 +4916,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         gui_object = self.gui_object
         plugins = gui_object.plugins
 
-        vbox = QVBoxLayout(d)
+        vbox = QtWidgets.QVBoxLayout(d)
 
         # plugins
         scroll = QScrollArea()
@@ -4925,11 +4925,11 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         scroll.setMinimumSize(400,250)
         vbox.addWidget(scroll)
 
-        w = QWidget()
+        w = QtWidgets.QWidget()
         scroll.setWidget(w)
         w.setMinimumHeight(plugins.get_internal_plugin_count() * 35)
 
-        grid = QGridLayout()
+        grid = QtWidgets.QGridLayout()
         grid.setColumnStretch(0,1)
         weakGrid = Weak.ref(grid)
         w.setLayout(grid)
@@ -5017,7 +5017,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
     def cpfp(self, parent_tx, new_tx):
         total_size = parent_tx.estimated_size() + new_tx.estimated_size()
         d = WindowModalDialog(self.top_level_window(), _('Child Pays for Parent'))
-        vbox = QVBoxLayout(d)
+        vbox = QtWidgets.QVBoxLayout(d)
         msg = (
             "A CPFP is a transaction that sends an unconfirmed output back to "
             "yourself, with a high fee. The goal is to have miners confirm "
@@ -5029,7 +5029,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             "parent transactions. After you broadcast a CPFP transaction, "
             "it is normal to see a new unconfirmed transaction in your history.")
         vbox.addWidget(WWLabel(_(msg2)))
-        grid = QGridLayout()
+        grid = QtWidgets.QGridLayout()
         grid.addWidget(QLabel(_('Total size') + ':'), 0, 0)
         grid.addWidget(QLabel(_('{total_size} bytes').format(total_size=total_size)), 0, 1)
         max_fee = new_tx.output_value()
@@ -5110,9 +5110,9 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         d.setObjectName("Window Modal Dialog - " + d.windowTitle())
         destroyed_print_error(d)  # track object lifecycle
         d.setMinimumWidth(self.width()-150)
-        vbox = QVBoxLayout(d)
+        vbox = QtWidgets.QVBoxLayout(d)
         if icon:
-            hbox = QHBoxLayout()
+            hbox = QtWidgets.QHBoxLayout()
             hbox.setContentsMargins(0,0,0,0)
             ic_lbl = QLabel()
             ic_lbl.setPixmap(icon.pixmap(50))

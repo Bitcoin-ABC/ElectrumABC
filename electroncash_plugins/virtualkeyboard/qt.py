@@ -1,5 +1,5 @@
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import (QVBoxLayout, QGridLayout, QPushButton)
+from PyQt5.QtWidgets import QPushButton
 from electroncash.plugins import BasePlugin, hook
 from electroncash.i18n import _
 from electroncash_gui.qt.util import MONOSPACE_FONT
@@ -41,8 +41,8 @@ class Plugin(BasePlugin):
         def add_target(t):
             return lambda: pw.setText(str(pw.text()) + t)
 
-        vbox = QVBoxLayout()
-        grid = QGridLayout()
+        vbox = QtWidgets.QVBoxLayout()
+        grid = QtWidgets.QGridLayout()
         grid.setSpacing(2)
         font = QFont(MONOSPACE_FONT)
         for i,c in enumerate(s):

@@ -26,32 +26,31 @@
 
 from typing import List
 
-from PyQt5.QtWidgets import QLayout, QWidget, QLayoutItem
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, QSize, QRect, QPoint
 
-class FixedAspectRatioLayout(QLayout):
-    def __init__(self, parent: QWidget = None, aspect_ratio: float = 1.0):
+class FixedAspectRatioLayout(QtWidgets.QLayout):
+    def __init__(self, parent: QtWidgets.QWidget = None, aspect_ratio: float = 1.0):
         super().__init__(parent)
         self.aspect_ratio = aspect_ratio
-        self.items: List[QLayoutItem] = []
+        self.items: List[QtWidgets.QLayoutItem] = []
 
     def set_aspect_ratio(self, aspect_ratio: float = 1.0):
         self.aspect_ratio = aspect_ratio
         self.update()
 
-    def addItem(self, item: QLayoutItem):
+    def addItem(self, item: QtWidgets.QLayoutItem):
         self.items.append(item)
 
     def count(self) -> int:
         return len(self.items)
 
-    def itemAt(self, index: int) -> QLayoutItem:
+    def itemAt(self, index: int) -> QtWidgets.QLayoutItem:
         if index >= len(self.items):
             return None
         return self.items[index]
 
-    def takeAt(self, index: int) -> QLayoutItem:
+    def takeAt(self, index: int) -> QtWidgets.QLayoutItem:
         if index >= len(self.items):
             return None
         return self.items.pop(index)
