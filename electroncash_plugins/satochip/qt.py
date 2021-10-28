@@ -1,9 +1,16 @@
 from electroncash.i18n import _
 from electroncash.util import print_error
-from electroncash.plugins import run_hook
-from electroncash_gui.qt.util import EnterButton, Buttons, CloseButton, OkButton, CancelButton, WindowModalDialog, WWLabel
+from electroncash_gui.qt.util import (
+    EnterButton,
+    Buttons,
+    CloseButton,
+    OkButton,
+    CancelButton,
+    WindowModalDialog,
+    WWLabel,
+)
 
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt
 from PyQt5 import QtWidgets
 from functools import partial
 
@@ -12,9 +19,11 @@ from ..hw_wallet.qt import QtHandlerBase, QtPluginBase
 from .satochip import SatochipPlugin
 
 #pysatochip
-from pysatochip.CardConnector import CardConnector
 from pysatochip.Satochip2FA import Satochip2FA
-from pysatochip.version import SATOCHIP_PROTOCOL_MAJOR_VERSION, SATOCHIP_PROTOCOL_MINOR_VERSION
+from pysatochip.version import (
+    SATOCHIP_PROTOCOL_MAJOR_VERSION,
+    SATOCHIP_PROTOCOL_MINOR_VERSION,
+)
 
 class Plugin(SatochipPlugin, QtPluginBase):
     # icon_unpaired = "satochip_unpaired.png"

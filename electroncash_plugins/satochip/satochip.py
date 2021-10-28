@@ -1,41 +1,46 @@
-from struct import pack, unpack
+from struct import pack
 from os import urandom
 import hashlib
 import traceback
 import logging
 
 #electroncash
-from electroncash import bitcoin
 from electroncash import networks
-from electroncash.bitcoin import TYPE_ADDRESS, int_to_hex, var_int
+from electroncash.bitcoin import var_int
 from electroncash.constants import PROJECT_NAME
 from electroncash.i18n import _
-from electroncash.plugins import BasePlugin, Device
+from electroncash.plugins import Device
 from electroncash.keystore import Hardware_KeyStore
 from electroncash.transaction import Transaction
 from electroncash.wallet import Standard_Wallet
-from electroncash.util import print_error, bfh, bh2u, versiontuple, PrintError, is_verbose
+from electroncash.util import print_error, bfh, bh2u, PrintError, is_verbose
 from electroncash.bitcoin import hash_160, Hash
 from electroncash.mnemo import (
     Mnemonic_Electrum, seed_type_name, is_seed, bip39_mnemonic_to_seed)
-from electroncash.plugins import run_hook
 from electroncash.bitcoin import serialize_xpub
-from electroncash_gui.qt.qrcodewidget import QRCodeWidget, QRDialog #from electrum.gui.qt.qrcodewidget import QRCodeWidget, QRDialog
+from electroncash_gui.qt.qrcodewidget import QRDialog
 
 from ..hw_wallet import HW_PluginBase
 
 try:
     #pysatochip
     from pysatochip.CardConnector import CardConnector, UninitializedSeedError, logger
-    from pysatochip.JCconstants import JCconstants
-    from pysatochip.TxParser import TxParser
     from pysatochip.Satochip2FA import Satochip2FA
-    from pysatochip.ecc import CURVE_ORDER, der_sig_from_r_and_s, get_r_and_s_from_der_sig, ECPubkey
-    from pysatochip.version import SATOCHIP_PROTOCOL_MAJOR_VERSION, SATOCHIP_PROTOCOL_MINOR_VERSION, SATOCHIP_PROTOCOL_VERSION
+    from pysatochip.ecc import (
+        CURVE_ORDER,
+        der_sig_from_r_and_s,
+        get_r_and_s_from_der_sig,
+        ECPubkey
+    )
+    from pysatochip.version import (
+        SATOCHIP_PROTOCOL_MAJOR_VERSION,
+        SATOCHIP_PROTOCOL_MINOR_VERSION,
+        SATOCHIP_PROTOCOL_VERSION,
+    )
 
     #pyscard
     from smartcard.sw.SWExceptions import SWException
-    from smartcard.Exceptions import CardConnectionException, CardRequestTimeoutException
+    from smartcard.Exceptions import CardRequestTimeoutException
     from smartcard.CardType import AnyCardType
     from smartcard.CardRequest import CardRequest
     LIBS_AVAILABLE = True
@@ -359,7 +364,7 @@ class Satochip_KeyStore(Hardware_KeyStore):
 
         return compsig
 
-    def sign_transaction(self, tx, password, *, use_cache=False):
+    def sign_transaction(self, tx: Transaction, password, *, use_cache=False):
         self.print_error('sign_transaction(): tx: '+ str(tx)) #debugSatochip
 
         client = self.get_client()
