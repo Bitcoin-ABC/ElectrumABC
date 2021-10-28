@@ -310,7 +310,7 @@ class TrezorPlugin(HW_PluginBase):
         )
         return HDNodePathType(node=node, address_n=address_n)
 
-    def setup_device(self, device_info, wizard):
+    def setup_device(self, device_info, wizard, purpose):
         '''Called when creating a new wallet.  Select the device to use.  If
         the device is uninitialized, go through the intialization
         process.'''

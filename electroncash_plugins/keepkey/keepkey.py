@@ -288,7 +288,7 @@ class KeepKeyPlugin(HW_PluginBase):
         )
         return self.types.HDNodePathType(node=node, address_n=address_n)
 
-    def setup_device(self, device_info, wizard):
+    def setup_device(self, device_info, wizard, purpose):
         devmgr = self.device_manager()
         device_id = device_info.device.id_
         client = devmgr.client_by_id(device_id)

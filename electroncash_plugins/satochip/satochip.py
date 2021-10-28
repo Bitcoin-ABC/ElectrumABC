@@ -548,7 +548,7 @@ class SatochipPlugin(HW_PluginBase):
             self.print_error('create_client(): exception:'+str(e))
             return None
 
-    def setup_device(self, device_info, wizard):
+    def setup_device(self, device_info, wizard, purpose):
         self.print_error("setup_device()")#debugSatochip
         if not LIBS_AVAILABLE:
             raise RuntimeError("No libraries available")

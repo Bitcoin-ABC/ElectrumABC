@@ -104,7 +104,7 @@ def command(s):
             if c.requires_wallet and wallet is None:
                 raise BaseException(f"Wallet not loaded. Use '{SCRIPT_NAME}"
                                     f" daemon load_wallet'")
-            if c.requires_password and password is None and wallet.storage.get('use_encryption') \
+            if c.requires_password and password is None and wallet.has_password() \
                and not kwargs.get("unsigned"):
                 return {'error': 'Password required' }
             return func(*args, **kwargs)

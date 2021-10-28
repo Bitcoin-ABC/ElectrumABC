@@ -57,6 +57,13 @@ class HW_PluginBase(BasePlugin):
                 self.device_manager().unpair_xpub(keystore.xpub)
                 self._cleanup_keystore_extra(keystore)
 
+    def setup_device(self, device_info, wizard, purpose):
+        """Called when creating a new wallet or when using the device to decrypt
+        an existing wallet. Select the device to use.  If the device is
+        uninitialized, go through the initialization process.
+        """
+        raise NotImplementedError()
+
     def _cleanup_keystore_extra(self, keystore):
         # awkward cleanup code for the keystore 'thread' object (see qt.py)
         finalization_print_error(keystore)  # track object lifecycle

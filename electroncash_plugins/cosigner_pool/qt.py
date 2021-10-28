@@ -338,7 +338,7 @@ class Plugin(BasePlugin):
                                   'which makes them not compatible with the current design of cosigner pool.'))
             return
         password = None
-        if wallet.has_password():
+        if wallet.has_keystore_encryption():
             password = window.password_dialog(_('An encrypted transaction was retrieved from cosigning pool.') + '\n' +
                                               _('Please enter your password to decrypt it.'))
             if not password:

@@ -58,6 +58,10 @@ class KeyStore(PrintError):
     def can_import(self):
         return False
 
+    def may_have_password(self):
+        """Returns whether the keystore can be encrypted with a password."""
+        raise NotImplementedError()
+
     def get_tx_derivations(self, tx):
         keypairs = {}
         for txin in tx.inputs():
@@ -135,9 +139,6 @@ class Imported_KeyStore(Software_KeyStore):
 
     def is_deterministic(self):
         return False
-
-    def can_change_password(self):
-        return True
 
     def get_master_public_key(self):
         return None
@@ -246,9 +247,6 @@ class Deterministic_KeyStore(Software_KeyStore):
 
     def is_watching_only(self):
         return not self.has_seed()
-
-    def can_change_password(self):
-        return not self.is_watching_only()
 
     def add_seed(self, seed, *, seed_type="electrum"):
         if self.seed:
@@ -626,13 +624,19 @@ class Hardware_KeyStore(KeyStore, Xpub):
         assert not self.has_seed()
         return False
 
-    def can_change_password(self):
-        return False
-
     def needs_prevtx(self):
         """Returns true if this hardware wallet needs to know the input
         transactions to sign a transactions"""
         return True
+
+    def get_password_for_storage_encryption(self):
+        from .storage import get_derivation_used_for_hw_device_encryption
+
+        client = self.plugin.get_client(self)
+        derivation = get_derivation_used_for_hw_device_encryption()
+        xpub = client.get_xpub(derivation, "standard")
+        password = self.get_pubkey_from_xpub(xpub, ())
+        return password
 
 
 # extended pubkeys

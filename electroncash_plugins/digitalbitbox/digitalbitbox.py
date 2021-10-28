@@ -11,7 +11,7 @@ try:
     from electroncash.keystore import Hardware_KeyStore
     from ..hw_wallet import HW_PluginBase
     from electroncash.util import print_error, to_string, UserCancelled
-
+    from electroncash.base_wizard import HWD_SETUP_NEW_WALLET
     import time
     import hid
     import json
@@ -696,7 +696,7 @@ class DigitalBitboxPlugin(HW_PluginBase):
             return None
 
 
-    def setup_device(self, device_info, wizard):
+    def setup_device(self, device_info, wizard, purpose):
         devmgr = self.device_manager()
         device_id = device_info.device.id_
         client = devmgr.client_by_id(device_id)
@@ -704,7 +704,8 @@ class DigitalBitboxPlugin(HW_PluginBase):
             raise Exception(_('Failed to create a client for this device.') + '\n' +
                             _('Make sure it is in the correct state.'))
         client.handler = self.create_handler(wizard)
-        client.setupRunning = True
+        if purpose == HWD_SETUP_NEW_WALLET:
+            client.setupRunning = True
         client.get_xpub("m/44'/0'", 'standard')
 
 
