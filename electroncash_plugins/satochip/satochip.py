@@ -62,7 +62,7 @@ MSG_USE_2FA= _("Do you want to use 2-Factor-Authentication (2FA)?\n\nWith 2FA, "
                "any transaction must be confirmed on a second device such as your "
                "smartphone. First you have to install the Satochip-2FA android app on "
                "google play. Then you have to pair your 2FA device with your Satochip "
-               "by scanning the qr-code on the next screen. Warning: be sure to backup "
+               "by scanning the qr-code on the next screen.\n\nWarning: be sure to backup "
                "a copy of the qr-code in a safe place, in case you have to reinstall the app!")
 
 def bip32path2bytes(bip32path:str) -> (int, bytes):
@@ -120,13 +120,14 @@ class SatochipClient(PrintError):
         # TODO - currently empty #debugSatochip
         return ""
 
-
     def has_usable_connection_with_device(self):
         self.print_error(f"has_usable_connection_with_device()")#debugSatochip
         try:
-            (response, sw1, sw2)=self.cc.card_select() #TODO: something else?
-        except SWException as e:
-            self.print_error(e)
+            atr = self.cc.card_get_ATR()
+            self.print_error("Card ATR: " + bytes(atr).hex())
+        except Exception as e:
+            self.print_error(
+                f"Exception in has_usable_connection_with_device: {str(e)}")
             return False
         return True
 
@@ -217,8 +218,8 @@ class SatochipClient(PrintError):
             if len(password) < 4:
                 msg = _("PIN must have at least 4 characters.") + \
                       "\n\n" + _("Enter PIN:")
-            elif len(password) > 64:
-                msg = _("PIN must have less than 64 characters.") + \
+            elif len(password) > 16:
+                msg = _("PIN must have less than 16 characters.") + \
                       "\n\n" + _("Enter PIN:")
             else:
                 password = password.encode('utf8')
@@ -570,7 +571,7 @@ class SatochipPlugin(HW_PluginBase):
         client.cc.parser.authentikey_from_storage=None # https://github.com/simpleledger/Electron-Cash-SLP/pull/101#issuecomment-561238614
 
         # check setup
-        while(True):
+        while(client.cc.card_present):
             (response, sw1, sw2, d) = client.cc.card_get_status()
 
             # check version
@@ -603,22 +604,12 @@ class SatochipPlugin(HW_PluginBase):
                 msg_confirm = _("Please confirm the PIN code for your Satochip:")
                 msg_error = _("The PIN values do not match! Please type PIN again!")
                 (is_PIN, pin_0)= client.PIN_setup_dialog(msg, msg_confirm, msg_error)
-                # while (True):
-                    # msg = _("Enter a new PIN for your Satochip:")
-                    # (is_PIN, pin_0, pin_0)= client.PIN_dialog(msg)
-                    # msg = _("Please confirm the PIN code for your Satochip:")
-                    # (is_PIN, pin_confirm, pin_confirm)= client.PIN_dialog(msg)
-                    # if (pin_0 != pin_confirm):
-                        # msg= _("The PIN values do not match! Please type PIN again!")
-                        # client.handler.show_error(msg)
-                    # else:
-                        # break
                 pin_0= list(pin_0)
                 client.cc.set_pin(0, pin_0) #cache PIN value in client
                 pin_tries_0= 0x05;
-                ublk_tries_0= 0x01;
                 # PUK code can be used when PIN is unknown and the card is locked
                 # We use a random value as the PUK is not used currently in the electrum GUI
+                ublk_tries_0= 0x01;
                 ublk_0= list(urandom(16));
                 pin_tries_1= 0x01
                 ublk_tries_1= 0x01
@@ -645,16 +636,15 @@ class SatochipPlugin(HW_PluginBase):
         client.cc.card_verify_PIN()
 
         # get authentikey
-        while(True):
+        while(client.cc.card_present):
             try:
                 authentikey=client.cc.card_bip32_get_authentikey()
             except UninitializedSeedError:
 
                 # Option: setup 2-Factor-Authentication (2FA)
                 if not client.cc.needs_2FA:
-                    use_2FA=client.handler.yes_no_question(MSG_USE_2FA)
+                    use_2FA= False # we put 2FA activation in advanced options as it confuses some users
                     if (use_2FA):
-                        option_flags= 0x8000 # activate 2fa with hmac challenge-response
                         secret_2FA= urandom(20)
                         #secret_2FA=b'\0'*20 #for debug purpose
                         secret_2FA_hex=secret_2FA.hex()
@@ -666,6 +656,7 @@ class SatochipPlugin(HW_PluginBase):
                             d.exec_()
                         except Exception as e:
                             self.print_error("setup_device(): setup 2FA: "+str(e))
+                            return
                         # further communications will require an id and an encryption key (for privacy).
                         # Both are derived from the secret_2FA using a one-way function inside the Satochip
                         amount_limit= 0 # i.e. always use
