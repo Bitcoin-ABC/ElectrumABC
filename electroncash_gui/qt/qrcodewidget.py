@@ -118,15 +118,17 @@ def copy_to_clipboard(qrw, widget):
 
 class QRDialog(WindowModalDialog):
 
-    def __init__(self, data, parent=None, title = "", show_text=False):
+    def __init__(self, data, parent=None, title = "", show_text=False,
+                 *, help_text: str = ""):
         WindowModalDialog.__init__(self, parent, title)
 
         vbox = QtWidgets.QVBoxLayout()
         qrw = QRCodeWidget(data)
         vbox.addWidget(qrw, 1)
-        if show_text:
+        help_text = data if show_text else help_text
+        if help_text:
             text = QtWidgets.QTextEdit()
-            text.setText(data)
+            text.setText(help_text)
             text.setReadOnly(True)
             vbox.addWidget(text)
         hbox = QtWidgets.QHBoxLayout()

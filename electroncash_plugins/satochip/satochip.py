@@ -660,7 +660,9 @@ class SatochipPlugin(HW_PluginBase):
                         secret_2FA_hex=secret_2FA.hex()
                         # the secret must be shared with the second factor app (eg on a smartphone)
                         try:
-                            d = QRDialog(secret_2FA_hex, None, "Scan secret 2FA and save a copy", True)
+                            help_txt = "Scan the QR-code with your Satochip-2FA app and make a backup of the following secret: " + secret_2FA_hex
+                            d = QRDialog(secret_2FA_hex, None, "Scan secret 2FA and save a copy", show_text=False,
+                                         help_text=help_txt)
                             d.exec_()
                         except Exception as e:
                             self.print_error("setup_device(): setup 2FA: "+str(e))
