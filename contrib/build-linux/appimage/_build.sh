@@ -110,10 +110,10 @@ info "Preparing electrum-locale"
 
 info "Installing the application and its dependencies"
 mkdir -p "$CACHEDIR/pip_cache"
-"$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements.txt"
-"$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --only-binary pyqt5 --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-binaries.txt"
-"$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-hw.txt"
-"$python" -m pip install --no-deps --no-warn-script-location --cache-dir "$CACHEDIR/pip_cache" "$PROJECT_ROOT"
+"$python" -m pip install --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/requirements/requirements.txt"
+"$python" -m pip install --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/requirements/requirements-binaries.txt"
+"$python" -m pip install --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/requirements/requirements-hw.txt"
+"$python" -m pip install --cache-dir "$CACHEDIR/pip_cache" "$PROJECT_ROOT"
 "$python" -m pip uninstall -y -r "$CONTRIB/requirements/requirements-build-uninstall.txt"
 
 
@@ -198,14 +198,10 @@ for component in Bluetooth Concurrent Designer Help Location NetworkAuth Nfc Pos
 done
 rm -rf "$PYDIR"/site-packages/PyQt5/Qt.*
 
-# these are deleted as they were not deterministic; and are not needed anyway
+# these are deleted as they are not needed
 find "$APPDIR" -path '*/__pycache__*' -delete
 rm -rf "$PYDIR"/site-packages/*.dist-info/
 rm -rf "$PYDIR"/site-packages/*.egg-info/
-
-# set timestamps in dist, in order to make the installer reproducible
-find -exec touch -h -d '2000-11-11T11:11:11+00:00' {} +
-
 
 info "Creating the AppImage"
 (
