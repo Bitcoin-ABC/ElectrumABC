@@ -33,8 +33,8 @@ import struct
 from typing import List, Tuple
 
 from . import schnorr
-from .bitcoin import public_key_from_private_key, deserialize_privkey
 from .bitcoin import Hash as sha256d
+from .bitcoin import deserialize_privkey, public_key_from_private_key
 
 
 def write_compact_size(nsize: int) -> bytes:
@@ -85,8 +85,7 @@ class Key:
         return schnorr.sign(self.keydata, hash)
 
     def get_pubkey(self):
-        pubkey = public_key_from_private_key(self.keydata,
-                                             self.compressed)
+        pubkey = public_key_from_private_key(self.keydata, self.compressed)
         return PublicKey(bytes.fromhex(pubkey))
 
 
@@ -95,6 +94,7 @@ class COutPoint:
     An outpoint - a combination of a transaction hash and an index n into its
     vout.
     """
+
     def __init__(self, txid, n):
         self.txid: bytes = txid
         """Transaction ID (SHA256 hash).
@@ -108,7 +108,7 @@ class COutPoint:
         # the bytes reversal with [::-1].
         # Alternatively, I could have stored the txid as an int and used
         # ser_uint256 from https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/test/functional/test_framework/messages.py#L120
-        return self.txid[::-1] + struct.pack('<i', self.n)
+        return self.txid[::-1] + struct.pack("<i", self.n)
 
 
 class Stake:
@@ -125,7 +125,11 @@ class Stake:
         is_coinbase = 0
         height_ser = self.height << 1 | is_coinbase
 
-        return self.utxo.serialize() + struct.pack('qI', self.amount, height_ser) + self.pubkey.serialize()
+        return (
+            self.utxo.serialize()
+            + struct.pack("qI", self.amount, height_ser)
+            + self.pubkey.serialize()
+        )
 
     def get_hash(self, proofid) -> bytes:
         """Return the bitcoin hash of the concatenation of proofid
@@ -141,8 +145,9 @@ def uint256_from_bytes(s: bytes) -> int:
     return r
 
 
-def compute_limited_proof_id(sequence: int, expiration_time: int,
-                             stakes: List[Stake]) -> bytes:
+def compute_limited_proof_id(
+    sequence: int, expiration_time: int, stakes: List[Stake]
+) -> bytes:
     ss = struct.pack("<Qq", sequence, expiration_time)
     ss += write_compact_size(len(stakes))
     for s in stakes:
@@ -150,9 +155,9 @@ def compute_limited_proof_id(sequence: int, expiration_time: int,
     return sha256d(ss)
 
 
-def compute_proof_id(sequence: int, expiration_time: int,
-                     stakes: List[Stake],
-                     master: PublicKey) -> Tuple[bytes, bytes]:
+def compute_proof_id(
+    sequence: int, expiration_time: int, stakes: List[Stake], master: PublicKey
+) -> Tuple[bytes, bytes]:
     ss = ltd_id = compute_limited_proof_id(sequence, expiration_time, stakes)
     ss += master.serialize()
     proofid = sha256d(ss)
@@ -175,13 +180,19 @@ class StakeSigner:
         self.key: Key = key
 
     def sign(self, proofid: bytes) -> SignedStake:
-        return SignedStake(self.stake,
-                           self.key.sign_schnorr(self.stake.get_hash(proofid)))
+        return SignedStake(
+            self.stake, self.key.sign_schnorr(self.stake.get_hash(proofid))
+        )
 
 
 class Proof:
-    def __init__(self, sequence: int, expiration_time: int,
-                 master: PublicKey, signed_stakes: List[SignedStake]):
+    def __init__(
+        self,
+        sequence: int,
+        expiration_time: int,
+        master: PublicKey,
+        signed_stakes: List[SignedStake],
+    ):
         self.sequence = sequence
         """uint64"""
         self.expiration_time = expiration_time
@@ -192,12 +203,10 @@ class Proof:
         self.stakes: List[SignedStake] = signed_stakes
 
         ltd_id, proofid = compute_proof_id(
-            sequence, expiration_time,
-            [ss.stake for ss in signed_stakes], master
+            sequence, expiration_time, [ss.stake for ss in signed_stakes], master
         )
         self.limitedid: int = uint256_from_bytes(ltd_id)
         self.proofid: int = uint256_from_bytes(proofid)
-
 
     def serialize(self) -> bytes:
         p = struct.pack("<Qq", self.sequence, self.expiration_time)
@@ -212,9 +221,8 @@ class Proof:
         return p
 
 
-class ProofBuilder(object):
-    def __init__(self, sequence: int, expiration_time: int,
-                 master: str):
+class ProofBuilder:
+    def __init__(self, sequence: int, expiration_time: int, master: str):
         """
 
         :param sequence:
@@ -251,8 +259,10 @@ class ProofBuilder(object):
 
     def build(self):
         _ltd_id, proofid = compute_proof_id(
-            self.sequence, self.expiration_time,
-            [signer.stake for signer in self.stake_signers], self.master)
+            self.sequence,
+            self.expiration_time,
+            [signer.stake for signer in self.stake_signers],
+            self.master,
+        )
         signed_stakes = [signer.sign(proofid) for signer in self.stake_signers]
-        return Proof(self.sequence, self.expiration_time, self.master,
-                     signed_stakes)
+        return Proof(self.sequence, self.expiration_time, self.master, signed_stakes)

@@ -1,6 +1,7 @@
 files: |
     (?x)^(
         electroncash/tests/.*py|
+        electroncash/avaproof.py|
         electroncash/consolidate.py|
         electroncash/constants.py|
         electroncash/keystore.py|
