@@ -20,6 +20,7 @@ from .test_simple_config import suite as test_simple_config_suite
 from .test_slp import SLPTests
 from .test_storage_upgrade import TestStorageUpgrade
 from .test_transaction import suite as test_transaction_suite
+from .test_uint256 import suite as test_uint256_suite
 from .test_util import suite as test_util_suite
 from .test_wallet import suite as test_wallet_suite
 from .test_wallet_vertical import TestWalletKeystoreAddressIntegrity
@@ -48,6 +49,7 @@ def suite():
     test_suite.addTest(loadTests(SLPTests))
     test_suite.addTest(loadTests(TestStorageUpgrade))
     test_suite.addTest(test_transaction_suite())
+    test_suite.addTest(test_uint256_suite())
     test_suite.addTest(test_util_suite())
     test_suite.addTest(test_wallet_suite())
     test_suite.addTest(loadTests(TestWalletKeystoreAddressIntegrity))

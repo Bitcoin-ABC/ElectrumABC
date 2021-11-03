@@ -5,6 +5,7 @@ files: |
         electroncash/consolidate.py|
         electroncash/constants.py|
         electroncash/keystore.py|
+        electroncash/uint256.py|
         electroncash_gui/qt/address_list.py|
         electroncash_gui/qt/amountedit.py|
         electroncash_gui/qt/consolidate_coins_dialog.py|
