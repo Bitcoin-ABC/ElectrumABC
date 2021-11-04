@@ -1,6 +1,7 @@
 import unittest
 
 from ..avaproof import ProofBuilder
+from ..uint256 import UInt256
 
 
 class TestAvalancheProof(unittest.TestCase):
@@ -28,8 +29,8 @@ class TestAvalancheProof(unittest.TestCase):
         proof = proofbuilder.build()
         self.assertEqual(proof.serialize().hex(), expected_proof_hex)
 
-        self.assertEqual(f"{proof.limitedid:0{64}x}", expected_limited_proofid)
-        self.assertEqual(f"{proof.proofid:0{64}x}", expected_proofid)
+        self.assertEqual(proof.limitedid, expected_limited_proofid)
+        self.assertEqual(proof.proofid, expected_proofid)
 
     def test_single_stake(self):
         self._test(
@@ -38,7 +39,9 @@ class TestAvalancheProof(unittest.TestCase):
             1699999999,
             [
                 {
-                    "txid": "24ae50f5d4e81e340b29708ab11cab48364e2ae2c53f8439cbe983257919fcb7",
+                    "txid": UInt256.from_hex(
+                        "24ae50f5d4e81e340b29708ab11cab48364e2ae2c53f8439cbe983257919fcb7",
+                    ),
                     "vout": 0,
                     "amount": 0.0001,
                     "height": 672828,
@@ -54,8 +57,12 @@ class TestAvalancheProof(unittest.TestCase):
             "1110b7b69a62a3e770a5a0a8ead73727",
             # The following proofid and limited id were obtained by passing
             # the previous serialized proof to `bitcoin-cli decodeavalancheproof`
-            "9857a02ac4499b7d0ba81be3318a01a9a2230c22187b24d0038f30fc33bb9961",
-            "cb33d7fac9092089f0d473c13befa012e6ee4d19abf9a42248f731d5e59e74a2",
+            UInt256.from_hex(
+                "9857a02ac4499b7d0ba81be3318a01a9a2230c22187b24d0038f30fc33bb9961",
+            ),
+            UInt256.from_hex(
+                "cb33d7fac9092089f0d473c13befa012e6ee4d19abf9a42248f731d5e59e74a2",
+            ),
         )
 
 

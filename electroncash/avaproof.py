@@ -35,6 +35,7 @@ from typing import List, Tuple
 from . import schnorr
 from .bitcoin import Hash as sha256d
 from .bitcoin import deserialize_privkey, public_key_from_private_key
+from .uint256 import UInt256
 
 
 def write_compact_size(nsize: int) -> bytes:
@@ -96,19 +97,14 @@ class COutPoint:
     """
 
     def __init__(self, txid, n):
-        self.txid: bytes = txid
-        """Transaction ID (SHA256 hash).
-        This is a bytes object of length 32 ("uint256" in bitcoin ABC)"""
+        self.txid: UInt256 = txid
+        """Transaction ID (SHA256 hash)."""
 
         self.n: int = n
         """vout index (uint32)"""
 
     def serialize(self) -> bytes:
-        # The endianness of the txid/hash/uint256 needs to be changed, hence
-        # the bytes reversal with [::-1].
-        # Alternatively, I could have stored the txid as an int and used
-        # ser_uint256 from https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/test/functional/test_framework/messages.py#L120
-        return self.txid[::-1] + struct.pack("<i", self.n)
+        return self.txid.serialize() + struct.pack("<i", self.n)
 
 
 class Stake:
@@ -131,37 +127,30 @@ class Stake:
             + self.pubkey.serialize()
         )
 
-    def get_hash(self, proofid) -> bytes:
+    def get_hash(self, proofid: UInt256) -> bytes:
         """Return the bitcoin hash of the concatenation of proofid
         and the serialized stake."""
-        return sha256d(proofid + self.serialize())
-
-
-def uint256_from_bytes(s: bytes) -> int:
-    r = 0
-    t = struct.unpack("<IIIIIIII", s[:32])
-    for i in range(8):
-        r += t[i] << (i * 32)
-    return r
+        return sha256d(proofid.serialize() + self.serialize())
 
 
 def compute_limited_proof_id(
     sequence: int, expiration_time: int, stakes: List[Stake]
-) -> bytes:
+) -> UInt256:
     ss = struct.pack("<Qq", sequence, expiration_time)
     ss += write_compact_size(len(stakes))
     for s in stakes:
         ss += s.serialize()
-    return sha256d(ss)
+    return UInt256(sha256d(ss))
 
 
 def compute_proof_id(
     sequence: int, expiration_time: int, stakes: List[Stake], master: PublicKey
-) -> Tuple[bytes, bytes]:
-    ss = ltd_id = compute_limited_proof_id(sequence, expiration_time, stakes)
+) -> Tuple[UInt256, UInt256]:
+    ltd_id = compute_limited_proof_id(sequence, expiration_time, stakes)
+    ss = ltd_id.serialize()
     ss += master.serialize()
     proofid = sha256d(ss)
-    return ltd_id, proofid
+    return ltd_id, UInt256(proofid)
 
 
 class SignedStake:
@@ -179,7 +168,7 @@ class StakeSigner:
         self.stake: Stake = stake
         self.key: Key = key
 
-    def sign(self, proofid: bytes) -> SignedStake:
+    def sign(self, proofid: UInt256) -> SignedStake:
         return SignedStake(
             self.stake, self.key.sign_schnorr(self.stake.get_hash(proofid))
         )
@@ -202,11 +191,9 @@ class Proof:
 
         self.stakes: List[SignedStake] = signed_stakes
 
-        ltd_id, proofid = compute_proof_id(
+        self.limitedid, self.proofid = compute_proof_id(
             sequence, expiration_time, [ss.stake for ss in signed_stakes], master
         )
-        self.limitedid: int = uint256_from_bytes(ltd_id)
-        self.proofid: int = uint256_from_bytes(proofid)
 
     def serialize(self) -> bytes:
         p = struct.pack("<Qq", self.sequence, self.expiration_time)
@@ -238,7 +225,7 @@ class ProofBuilder:
 
         self.stake_signers: List[StakeSigner] = []
 
-    def add_utxo(self, txid, vout, value, height, wif_privkey):
+    def add_utxo(self, txid: UInt256, vout, value, height, wif_privkey):
         """
 
         :param str txid: Transaction hash (hex str)
@@ -251,7 +238,7 @@ class ProofBuilder:
         _txin_type, deser_privkey, compressed = deserialize_privkey(wif_privkey)
         privkey = Key(deser_privkey, compressed)
 
-        utxo = COutPoint(bytes.fromhex(txid), vout)
+        utxo = COutPoint(txid, vout)
         amount = int(10 ** 8 * value)
         stake = Stake(utxo, amount, height, privkey.get_pubkey())
 

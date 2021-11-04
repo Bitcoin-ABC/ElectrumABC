@@ -14,6 +14,7 @@ from electroncash.bitcoin import (
     public_key_from_private_key,
     ser_to_point
 )
+from electroncash.uint256 import UInt256
 
 from .password_dialog import PasswordDialog
 
@@ -171,7 +172,7 @@ class AvaProofWidget(QtWidgets.QWidget):
                 address = Address.from_string(address)
             priv_key = self.wallet.export_private_key(address, self._pwd)
             proofbuilder.add_utxo(
-                txid=utxo['prevout_hash'],
+                txid=UInt256.from_hex(utxo['prevout_hash']),
                 vout=utxo['prevout_n'],
                 # we need the value in "bitcoins"
                 value=utxo['value'] * 10**-8,
