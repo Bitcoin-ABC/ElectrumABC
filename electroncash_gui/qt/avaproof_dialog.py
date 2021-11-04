@@ -1,19 +1,14 @@
 
 from typing import List, Optional
 
-import ecdsa
 
 from PyQt5 import QtWidgets
 from PyQt5 import QtCore
 
 from electroncash.address import Address
-from electroncash.avaproof import ProofBuilder
-from electroncash.bitcoin import (
-    is_private_key,
-    deserialize_privkey,
-    public_key_from_private_key,
-    ser_to_point
-)
+from electroncash.avaproof import Key, ProofBuilder
+from electroncash.bitcoin import is_private_key, deserialize_privkey
+
 from electroncash.uint256 import UInt256
 
 from .password_dialog import PasswordDialog
@@ -71,13 +66,13 @@ class AvaProofWidget(QtWidgets.QWidget):
         layout.addSpacing(10)
 
         layout.addWidget(
-            QtWidgets.QLabel("Master public key (hex) or private key (WIF)"))
-        self.master_pubkey_edit = QtWidgets.QLineEdit()
-        self.master_pubkey_edit.setToolTip(
-            "Public key corresponding to the private key specified for the "
-            "node's -avasessionkey parameter."
+            QtWidgets.QLabel("Master private key (WIF)"))
+        self.master_key_edit = QtWidgets.QLineEdit()
+        self.master_key_edit.setToolTip(
+            "Private key that controls the proof. This is the key that signs the "
+            "delegation or signs the avalanche votes."
         )
-        layout.addWidget(self.master_pubkey_edit)
+        layout.addWidget(self.master_key_edit)
         layout.addSpacing(10)
 
         self.utxos_wigdet = QtWidgets.QTableWidget(len(utxos), 3)
@@ -154,17 +149,16 @@ class AvaProofWidget(QtWidgets.QWidget):
                     continue
             self._pwd = password
 
-        master = self.master_pubkey_edit.text()
-        if is_private_key(master):
-            txin_type, privkey, compressed = deserialize_privkey(master)
-            master = public_key_from_private_key(privkey, compressed)
-        if not self._validate_pubkey(master):
+        master = self.master_key_edit.text()
+        if not is_private_key(master):
             return
+
+        txin_type, privkey, compressed = deserialize_privkey(master)
 
         proofbuilder = ProofBuilder(
             sequence=self.sequence_sb.value(),
             expiration_time=self.calendar.dateTime().toSecsSinceEpoch(),
-            master=master)
+            master=Key(privkey, compressed))
         for utxo in self.utxos:
             address = utxo['address']
             if not isinstance(utxo['address'], Address):
@@ -182,25 +176,6 @@ class AvaProofWidget(QtWidgets.QWidget):
             )
         proof = proofbuilder.build()
         return proof.serialize().hex()
-
-    def _validate_pubkey(self, master: str):
-        """A valid public key must be a valid hexadecimal string
-        defining a valid point on the SECP256k1 elliptic curve."""
-        try:
-            key_bytes = bytes.fromhex(master)
-        except ValueError:
-            self.proof_display.setText(
-                f'<p style="color:red;">Master key: invalid hexadecimal</p>')
-            return False
-        try:
-            point = ser_to_point(key_bytes)
-            ecdsa.keys.VerifyingKey.from_public_point(
-                point, ecdsa.curves.SECP256k1)
-        except Exception:
-            self.proof_display.setText(
-                f'<p style="color:red;">Master key is not a valid public key</p>')
-            return False
-        return True
 
     def getProof(self) -> str:
         """Return proof, as a hexadecimal string.

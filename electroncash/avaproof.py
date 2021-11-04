@@ -213,7 +213,7 @@ class Proof:
 
 
 class ProofBuilder:
-    def __init__(self, sequence: int, expiration_time: int, master: str):
+    def __init__(self, sequence: int, expiration_time: int, master: Key):
         """
 
         :param sequence:
@@ -224,8 +224,9 @@ class ProofBuilder:
         """uint64"""
         self.expiration_time = expiration_time
         """int64"""
-        self.master: PublicKey = PublicKey(bytes.fromhex(master))
+        self.master: Key = master
         """Master public key"""
+        self.master_pub = master.get_pubkey()
 
         self.stake_signers: List[StakeSigner] = []
 
@@ -256,7 +257,9 @@ class ProofBuilder:
             self.sequence,
             self.expiration_time,
             [signer.stake for signer in self.stake_signers],
-            self.master,
+            self.master_pub,
         )
         signed_stakes = [signer.sign(proofid) for signer in self.stake_signers]
-        return Proof(self.sequence, self.expiration_time, self.master, signed_stakes)
+        return Proof(
+            self.sequence, self.expiration_time, self.master_pub, signed_stakes
+        )

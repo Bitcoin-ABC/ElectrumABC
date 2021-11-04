@@ -1,9 +1,15 @@
 import unittest
 
-from ..avaproof import ProofBuilder
+from ..avaproof import Key, ProofBuilder
+from ..bitcoin import deserialize_privkey
 from ..uint256 import UInt256
 
+privkey_wif = "Kwr371tjA9u2rFSMZjTNun2PXXP3WPZu2afRHTcta6KxEUdm1vEw"
+_, privkey, compressed = deserialize_privkey(privkey_wif)
+master = Key(privkey, compressed)
+# prove that this is the same key as before
 pubkey_hex = "030b4c866585dd868a9d62348a9cd008d6a312937048fff31670e7e920cfc7a744"
+assert master.get_pubkey().keydata.hex() == pubkey_hex
 utxos = [
     {
         "txid": UInt256.from_hex(
@@ -20,7 +26,10 @@ utxos = [
 # data from Bitcoin ABC's proof_tests.cpp
 sequence2 = 5502932407561118921
 expiration2 = 5658701220890886376
-master2 = "023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3"
+master_wif2 = "L4J6gEE4wL9ji2EQbzS5dPMTTsw8LRvcMst1Utij4e3X5ccUSdqW"
+_, privkey, compressed = deserialize_privkey(master_wif2)
+master2 = Key(privkey, compressed)
+# master_pub2 = "023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3"
 utxos2 = [
     {
         "txid": UInt256.from_hex(
@@ -80,7 +89,7 @@ expected_proofid2 = UInt256.from_hex(
 class TestAvalancheProof(unittest.TestCase):
     def _test(
         self,
-        pubk_hex,
+        master_key,
         sequence,
         expiration,
         utxos,
@@ -91,7 +100,7 @@ class TestAvalancheProof(unittest.TestCase):
         proofbuilder = ProofBuilder(
             sequence=sequence,
             expiration_time=expiration,
-            master=pubk_hex,
+            master=master_key,
         )
         for utxo in utxos:
             proofbuilder.add_utxo(
@@ -110,7 +119,7 @@ class TestAvalancheProof(unittest.TestCase):
 
     def test_1_stake(self):
         self._test(
-            pubkey_hex,
+            master,
             42,
             1699999999,
             utxos,
