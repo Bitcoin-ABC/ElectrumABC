@@ -81,6 +81,9 @@ class BaseBlob:
 
         return UInt256(bytes.fromhex(hex_str)[::-1])
 
+    def __repr__(self) -> str:
+        return self.to_string()
+
 
 class UInt256(BaseBlob):
     BITS = 256
