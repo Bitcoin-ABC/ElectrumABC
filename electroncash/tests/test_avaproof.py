@@ -30,6 +30,9 @@ master_wif2 = "L4J6gEE4wL9ji2EQbzS5dPMTTsw8LRvcMst1Utij4e3X5ccUSdqW"
 _, privkey, compressed = deserialize_privkey(master_wif2)
 master2 = Key(privkey, compressed)
 # master_pub2 = "023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3"
+payout_script_pubkey_hex = (
+    "21038439233261789dd340bdc1450172d9c671b72ee8c0b2736ed2a3a250760897fdac"
+)
 utxos2 = [
     {
         "txid": UInt256.from_hex(
@@ -66,33 +69,39 @@ expected_proof2 = (
     "c964aa6fde575e4ce8404581c7be874e21023beefdde700a6bc02036335b4df141c8bc67"
     "bb05a971f5ac2745fd683797dde3030b1e5f35704cb63360aa3d5f444ee35eea4c154c1a"
     "f6d4e7595b409ada4b42377764698a915c2ac4000000000f28db322102449fb5237efe8f"
-    "647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce68051427f8d544dd19f94420f"
-    "c2ffd0e7e63897f5ad4a7b6fee1fdda590da4c1f04bb3117ebaa8b1440376751f63c0d21"
-    "6efabeae800c6a120fdaff853c99a2aeade4ed76e1f19b2c2a0fcc069b4ace4a078cb5cc"
+    "647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce68048f14d2d4824e6741f5d89"
+    "a6a291d22865ce12f3c2ac3d0e1bc103135aea264d259eddf0b58107f672efbbc280dbd4"
+    "6ba74f76bccd72f7ac2408732d99b406a6e4ed76e1f19b2c2a0fcc069b4ace4a078cb5cc"
     "31e9e19b266d0af41ea8bb0c30c8b47c95a856d9aa000000007dfdd89a2102449fb5237e"
-    "fe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce6802113ed79acb8f947d9"
-    "b795ac2123bba19a48f167cbd7a7686f1beb956dd78e9c6a2fdd4111cd2091fa8008ecb5"
-    "e56dd814c0cf15a9f09bddc81d4a5baac912bfac098c86414715db364a4e32216084c561"
+    "fe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce6802f536d62d32d76efe2"
+    "1a92665ed64bbafd3b8c882d0fc98fa5b7237b48c597a9d6763dfcb6574fe6123b1a8162"
+    "e8611398c552655f90bbc7af3b284df06fadf0ac098c86414715db364a4e32216084c561"
     "acdd79e0860b1fdf7497b159cb13230451200296c902ee000000009f2bc7392102449fb5"
-    "237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce6807011a7918d8d5d"
-    "719f9e5b5ec8f6d312d62069f7e53488d363716cacc13c45f8aa6023a2a014a48bff25f0"
-    "d165e18d10181303777b1528d88b43eb5a53b52342"
+    "237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce6802a01496963b4ca"
+    "0153743e958dff3a09d0d34bfa68c21fc189afb9f6dec802a88200b7b9a7efe917cc8a0c"
+    "d899c25097e900eb3b4d54f1fa3addd55d0f875a4f2321038439233261789dd340bdc145"
+    "0172d9c671b72ee8c0b2736ed2a3a250760897fdac"
 )
 expected_limited_id2 = UInt256.from_hex(
-    "add6745f25ee94be52d0bc0e7d059fc5fa0234b0f10025909573983cae7e1038",
+    "7223b8cc572bdf8f123ee7dd0316962f0367b0be8bce9b6e9465d1f413d95616",
 )
 expected_proofid2 = UInt256.from_hex(
-    "6e58a564c82b26633991fa9225dc781ff5b731455e436a21303c09149f465ea1",
+    "95c9673bc14f3c36e9310297e8df81867b42dd1a7bb7944aeb6c1797fbd2a6d5",
 )
 
 
 class TestAvalancheProof(unittest.TestCase):
+    def setUp(self) -> None:
+        # Print the entire serialized proofs on assertEqual failure
+        self.maxDiff = None
+
     def _test(
         self,
         master_key,
         sequence,
         expiration,
         utxos,
+        payout_script_pubkey,
         expected_proof_hex,
         expected_limited_proofid,
         expected_proofid,
@@ -101,6 +110,7 @@ class TestAvalancheProof(unittest.TestCase):
             sequence=sequence,
             expiration_time=expiration,
             master=master_key,
+            payout_script_pubkey=payout_script_pubkey,
         )
         for utxo in utxos:
             proofbuilder.add_utxo(
@@ -123,20 +133,21 @@ class TestAvalancheProof(unittest.TestCase):
             42,
             1699999999,
             utxos,
+            b"",
             "2a00000000000000fff053650000000021030b4c866585dd868a9d62348a9cd008d6a31"
             "2937048fff31670e7e920cfc7a74401b7fc19792583e9cb39843fc5e22a4e3648ab1cb1"
             "8a70290b341ee8d4f550ae24000000001027000000000000788814004104d0de0aaeaef"
             "ad02b8bdc8a01a1b8b11c696bd3d66a2c5f10780d95b7df42645cd85228a6fb29940e85"
-            "8e7e55842ae2bd115d1ed7cc0e82d934e929c97648cb0a28f28f73b40ba29c2d65c5e26"
-            "5d86667c8f9c9c097684a95d672cbae2e1e3e538bf3bf23d97911baca379efbd55f7eeb"
-            "1110b7b69a62a3e770a5a0a8ead73727",
+            "8e7e55842ae2bd115d1ed7cc0e82d934e929c97648cb0a43fc49f4fb5383ea6f91254f7"
+            "792a0fd33e10b0ddc6cccd102fc26be67518f111efc0ec49718d330e091735ae39e5479"
+            "791f12f5a8c573a817025c82fa5d95ab00",
             # The following proofid and limited id were obtained by passing
             # the previous serialized proof to `bitcoin-cli decodeavalancheproof`
             UInt256.from_hex(
-                "9857a02ac4499b7d0ba81be3318a01a9a2230c22187b24d0038f30fc33bb9961",
+                "e5845c13b93a1c207bd72033c185a2f833eef1748ee62fd49161119ac2c22864",
             ),
             UInt256.from_hex(
-                "cb33d7fac9092089f0d473c13befa012e6ee4d19abf9a42248f731d5e59e74a2",
+                "74c91491e5d6730ea1701817ed6c34e9627904fc3117647cc7d4bce73f56e45a",
             ),
         )
 
@@ -146,6 +157,7 @@ class TestAvalancheProof(unittest.TestCase):
             sequence2,
             expiration2,
             utxos2,
+            bytes.fromhex(payout_script_pubkey_hex),
             expected_proof2,
             expected_limited_id2,
             expected_proofid2,
@@ -157,6 +169,7 @@ class TestAvalancheProof(unittest.TestCase):
             sequence2,
             expiration2,
             utxos2[::-1],
+            bytes.fromhex(payout_script_pubkey_hex),
             expected_proof2,
             expected_limited_id2,
             expected_proofid2,

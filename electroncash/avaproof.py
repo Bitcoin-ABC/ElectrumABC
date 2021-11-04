@@ -155,17 +155,27 @@ class Stake:
 
 
 def compute_limited_proof_id(
-    sequence: int, expiration_time: int, stakes: List[Stake]
+    sequence: int,
+    expiration_time: int,
+    stakes: List[Stake],
+    payout_script_pubkey: bytes,
 ) -> UInt256:
     ss = struct.pack("<Qq", sequence, expiration_time)
+    ss += serialize_blob(payout_script_pubkey)
     ss += serialize_sequence(stakes)
     return UInt256(sha256d(ss))
 
 
 def compute_proof_id(
-    sequence: int, expiration_time: int, stakes: List[Stake], master: PublicKey
+    sequence: int,
+    expiration_time: int,
+    stakes: List[Stake],
+    master: PublicKey,
+    payout_script_pubkey: bytes,
 ) -> Tuple[UInt256, UInt256]:
-    ltd_id = compute_limited_proof_id(sequence, expiration_time, stakes)
+    ltd_id = compute_limited_proof_id(
+        sequence, expiration_time, stakes, payout_script_pubkey
+    )
     ss = ltd_id.serialize()
     ss += master.serialize()
     proofid = sha256d(ss)
@@ -200,6 +210,7 @@ class Proof:
         expiration_time: int,
         master: PublicKey,
         signed_stakes: List[SignedStake],
+        payout_script_pubkey: bytes,
     ):
         self.sequence = sequence
         """uint64"""
@@ -208,26 +219,32 @@ class Proof:
         self.master: PublicKey = master
         """Master public key"""
         self.stakes: List[SignedStake] = signed_stakes
+        self.payout_script_pubkey: bytes = payout_script_pubkey
 
         self.limitedid, self.proofid = compute_proof_id(
-            sequence, expiration_time, [ss.stake for ss in signed_stakes], master
+            sequence,
+            expiration_time,
+            [ss.stake for ss in signed_stakes],
+            master,
+            self.payout_script_pubkey,
         )
 
     def serialize(self) -> bytes:
         p = struct.pack("<Qq", self.sequence, self.expiration_time)
         p += self.master.serialize()
         p += serialize_sequence(self.stakes)
+        p += serialize_blob(self.payout_script_pubkey)
         return p
 
 
 class ProofBuilder:
-    def __init__(self, sequence: int, expiration_time: int, master: Key):
-        """
-
-        :param sequence:
-        :param expiration_time:
-        :param master: hex string
-        """
+    def __init__(
+        self,
+        sequence: int,
+        expiration_time: int,
+        master: Key,
+        payout_script_pubkey: bytes = b"",
+    ):
         self.sequence = sequence
         """uint64"""
         self.expiration_time = expiration_time
@@ -235,6 +252,7 @@ class ProofBuilder:
         self.master: Key = master
         """Master public key"""
         self.master_pub = master.get_pubkey()
+        self.payout_script_pubkey = payout_script_pubkey
 
         self.stake_signers: List[StakeSigner] = []
 
@@ -266,8 +284,13 @@ class ProofBuilder:
             self.expiration_time,
             [signer.stake for signer in self.stake_signers],
             self.master_pub,
+            self.payout_script_pubkey,
         )
         signed_stakes = [signer.sign(proofid) for signer in self.stake_signers]
         return Proof(
-            self.sequence, self.expiration_time, self.master_pub, signed_stakes
+            self.sequence,
+            self.expiration_time,
+            self.master_pub,
+            signed_stakes,
+            self.payout_script_pubkey,
         )
