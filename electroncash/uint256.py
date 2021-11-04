@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import struct
 from typing import Optional
 
 
@@ -82,3 +83,21 @@ class BaseBlob:
 
 class UInt256(BaseBlob):
     BITS = 256
+
+    # int helpers to deal with data from the Bitcoin Test Framework, which handles
+    # uint256 objects as python bignum
+    def set_int(self, i: int):
+        # This is ser_uint256 from the bitcoin test framework
+        rs = b""
+        for _ in range(8):
+            rs += struct.pack("<I", i & 0xFFFFFFFF)
+            i >>= 32
+        self.data = rs
+
+    def get_int(self) -> int:
+        # This is uint256_from_str from the bitcoin test framework
+        r = 0
+        t = struct.unpack("<IIIIIIII", self.data[:32])
+        for i in range(8):
+            r += t[i] << (i * 32)
+        return r
