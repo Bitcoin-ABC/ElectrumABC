@@ -148,10 +148,10 @@ class Stake:
             + self.pubkey.serialize()
         )
 
-    def get_hash(self, proofid: UInt256) -> bytes:
+    def get_hash(self, commitment: bytes) -> bytes:
         """Return the bitcoin hash of the concatenation of proofid
         and the serialized stake."""
-        return sha256d(proofid.serialize() + self.serialize())
+        return sha256d(commitment + self.serialize())
 
 
 def compute_limited_proof_id(
@@ -197,9 +197,9 @@ class StakeSigner:
         self.stake: Stake = stake
         self.key: Key = key
 
-    def sign(self, proofid: UInt256) -> SignedStake:
+    def sign(self, commitment: bytes) -> SignedStake:
         return SignedStake(
-            self.stake, self.key.sign_schnorr(self.stake.get_hash(proofid))
+            self.stake, self.key.sign_schnorr(self.stake.get_hash(commitment))
         )
 
 
@@ -291,7 +291,13 @@ class ProofBuilder:
             self.payout_script_pubkey,
         )
         signature = self.master.sign_schnorr(ltd_id.serialize())
-        signed_stakes = [signer.sign(proofid) for signer in self.stake_signers]
+
+        stake_commitment_data = (
+            struct.pack("<q", self.expiration_time) + self.master_pub.serialize()
+        )
+        stake_commitment = sha256d(stake_commitment_data)
+        signed_stakes = [signer.sign(stake_commitment) for signer in self.stake_signers]
+
         return Proof(
             self.sequence,
             self.expiration_time,
