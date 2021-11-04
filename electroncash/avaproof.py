@@ -118,6 +118,9 @@ class Stake:
         """Public key"""
         self.is_coinbase: bool = is_coinbase
 
+        self.stake_id = UInt256(sha256d(self.serialize()))
+        """Stake id used for sorting stakes in a proof"""
+
     def serialize(self) -> bytes:
         is_coinbase = int(self.is_coinbase)
         height_ser = self.height << 1 | is_coinbase
@@ -245,6 +248,8 @@ class ProofBuilder:
         stake = Stake(utxo, amount, height, privkey.get_pubkey(), is_coinbase)
 
         self.stake_signers.append(StakeSigner(stake, privkey))
+        # Enforce a unique sorting for stakes in a proof
+        self.stake_signers.sort(key=lambda ss: ss.stake.stake_id)
 
     def build(self):
         _ltd_id, proofid = compute_proof_id(
