@@ -30,7 +30,7 @@ the hash of the stakes to prove ownership of the UTXO.
 """
 
 import struct
-from typing import List, Tuple
+from typing import Any, List, Sequence, Tuple
 
 from . import schnorr
 from .bitcoin import Hash as sha256d
@@ -57,12 +57,29 @@ def write_compact_size(nsize: int) -> bytes:
     return struct.pack("<BQ", 255, nsize)
 
 
+def serialize_sequence(seq: Sequence[Any]) -> bytes:
+    """Serialize a variable length sequence (list...) of serializable constant size
+    objects. The length of the sequence is encoded as a VarInt.
+    """
+    b = write_compact_size(len(seq))
+    for obj in seq:
+        b += obj.serialize()
+    return b
+
+
+def serialize_blob(blob: bytes) -> bytes:
+    """Serialize a variable length bytestring. The length of the sequence is encoded as
+    a VarInt.
+    """
+    return write_compact_size(len(blob)) + blob
+
+
 class PublicKey:
     def __init__(self, keydata):
         self.keydata: bytes = keydata
 
     def serialize(self) -> bytes:
-        return write_compact_size(len(self.keydata)) + self.keydata
+        return serialize_blob(self.keydata)
 
 
 class Key:
@@ -141,9 +158,7 @@ def compute_limited_proof_id(
     sequence: int, expiration_time: int, stakes: List[Stake]
 ) -> UInt256:
     ss = struct.pack("<Qq", sequence, expiration_time)
-    ss += write_compact_size(len(stakes))
-    for s in stakes:
-        ss += s.serialize()
+    ss += serialize_sequence(stakes)
     return UInt256(sha256d(ss))
 
 
@@ -192,7 +207,6 @@ class Proof:
         """int64"""
         self.master: PublicKey = master
         """Master public key"""
-
         self.stakes: List[SignedStake] = signed_stakes
 
         self.limitedid, self.proofid = compute_proof_id(
@@ -202,13 +216,7 @@ class Proof:
     def serialize(self) -> bytes:
         p = struct.pack("<Qq", self.sequence, self.expiration_time)
         p += self.master.serialize()
-
-        # The following serialization for the length of the SignedStake vector
-        # only works for low number of stakes (presumably < 253).
-        p += write_compact_size(len(self.stakes))
-
-        for signed_stake in self.stakes:
-            p += signed_stake.serialize()
+        p += serialize_sequence(self.stakes)
         return p
 
 
