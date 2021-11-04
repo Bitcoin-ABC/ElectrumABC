@@ -104,7 +104,7 @@ class COutPoint:
         """vout index (uint32)"""
 
     def serialize(self) -> bytes:
-        return self.txid.serialize() + struct.pack("<i", self.n)
+        return self.txid.serialize() + struct.pack("<I", self.n)
 
 
 class Stake:
