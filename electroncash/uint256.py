@@ -67,18 +67,19 @@ class BaseBlob:
     def to_string(self) -> str:
         return self.get_hex()
 
-    def set_hex(self, hex_str: str):
+    @classmethod
+    def from_hex(cls, hex_str: str) -> UInt256:
         hex_str = hex_str.strip()
         if hex_str.startswith("0x"):
             hex_str = hex_str[2:]
 
-        if len(hex_str) // 2 != self.WIDTH:
+        if len(hex_str) // 2 != (cls.BITS // 8):
             raise TypeError(
-                f"Wrong data size, expected {self.WIDTH} bytes but received "
+                f"Wrong data size, expected {cls.BITS // 8} bytes but received "
                 f"{len(hex_str) // 2}"
             )
 
-        self.data = bytes.fromhex(hex_str)[::-1]
+        return UInt256(bytes.fromhex(hex_str)[::-1])
 
 
 class UInt256(BaseBlob):
@@ -86,13 +87,14 @@ class UInt256(BaseBlob):
 
     # int helpers to deal with data from the Bitcoin Test Framework, which handles
     # uint256 objects as python bignum
-    def set_int(self, i: int):
+    @classmethod
+    def from_int(cls, i: int) -> UInt256:
         # This is ser_uint256 from the bitcoin test framework
         rs = b""
         for _ in range(8):
             rs += struct.pack("<I", i & 0xFFFFFFFF)
             i >>= 32
-        self.data = rs
+        return UInt256(rs)
 
     def get_int(self) -> int:
         # This is uint256_from_str from the bitcoin test framework

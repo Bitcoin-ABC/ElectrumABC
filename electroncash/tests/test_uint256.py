@@ -57,11 +57,11 @@ class TestBaseBlob(unittest.TestCase):
         self.assertEqual(bbu, TestBlob(b"\x00\x01\x03"))
 
     def test_hex(self):
-        bb = TestBlob(b"\x00\x01\x03")
-        self.assertEqual(bb.get_hex(), "030100")
+        bb1 = TestBlob(b"\x00\x01\x03")
+        self.assertEqual(bb1.get_hex(), "030100")
 
-        bb.set_hex("dead00")
-        self.assertEqual(bb.serialize(), b"\x00\xad\xde")
+        bb2 = TestBlob.from_hex("dead00")
+        self.assertEqual(bb2.serialize(), b"\x00\xad\xde")
 
 
 class TestUInt256(unittest.TestCase):
@@ -86,7 +86,7 @@ class TestUInt256(unittest.TestCase):
         a.set_null()
         self.assertEqual(a.serialize(), b"\x00" * 32)
 
-        a.set_hex("aa" + "00" * 30 + "bb")
+        a = UInt256.from_hex("aa" + "00" * 30 + "bb")
         self.assertEqual(a.serialize(), b"\xbb" + b"\x00" * 30 + b"\xaa")
 
     def test_data(self):
@@ -95,16 +95,15 @@ class TestUInt256(unittest.TestCase):
             b"\x9c\x52\x4a\xdb\xcf\x56\x11\x12\x2b\x29\x12\x5e\x5d\x35\xd2\xd2"
             b"\x22\x81\xaa\xb5\x33\xf0\x08\x32\xd5\x56\xb1\xf9\xea\xe5\x1d\x7d"
         )
-        R1 = UInt256(r1_array)
+        r1 = UInt256(r1_array)
         self.assertEqual(
-            R1.to_string(),
+            r1.to_string(),
             "7d1de5eaf9b156d53208f033b5aa8122d2d2355d5e12292b121156cfdb4a529c",
         )
 
         # This data is a proofid from abc_rpc_avalancheproof
         i = 7061004220418965960018117146429748847216692815585651866361688349258190725869
-        o = UInt256()
-        o.set_int(i)
+        o = UInt256.from_int(i)
         self.assertEqual(
             o.get_hex(),
             "0f9c6302d8158a92e640a403bf5af6e82cef40e29890f1af334e62f35020a2ed",
