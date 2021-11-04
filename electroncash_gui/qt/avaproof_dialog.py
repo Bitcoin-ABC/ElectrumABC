@@ -169,7 +169,7 @@ class AvaProofWidget(QtWidgets.QWidget):
                 txid=UInt256.from_hex(utxo['prevout_hash']),
                 vout=utxo['prevout_n'],
                 # we need the value in "bitcoins"
-                value=utxo['value'] * 10**-8,
+                amount=utxo['value'],
                 height=utxo['height'],
                 wif_privkey=priv_key,
                 is_coinbase=utxo['coinbase'],

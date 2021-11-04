@@ -16,7 +16,7 @@ utxos = [
             "24ae50f5d4e81e340b29708ab11cab48364e2ae2c53f8439cbe983257919fcb7",
         ),
         "vout": 0,
-        "amount": 0.0001,
+        "amount": 10000,
         "height": 672828,
         "privatekey": "5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ",
         "iscoinbase": False,
@@ -39,7 +39,7 @@ utxos2 = [
             "37424bda9a405b59e7d4f61a4c154cea5ee34e445f3daa6033b64c70355f1e0b"
         ),
         "vout": 2322162807,
-        "amount": 32.91110545,
+        "amount": 3291110545,
         "height": 426611719,
         "iscoinbase": True,
         "privatekey": "KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM",
@@ -49,7 +49,7 @@ utxos2 = [
             "300cbba81ef40a6d269be1e931ccb58c074ace4a9b06cc0f2a2c9bf1e176ede4"
         ),
         "vout": 2507977928,
-        "amount": 28.66370216,
+        "amount": 2866370216,
         "height": 1298955966,
         "iscoinbase": True,
         "privatekey": "KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM",
@@ -59,7 +59,7 @@ utxos2 = [
             "2313cb59b19774df1f0b86e079ddac61c5846021324e4a36db154741868c09ac"
         ),
         "vout": 35672324,
-        "amount": 39.93160086,
+        "amount": 3993160086,
         "height": 484677071,
         "iscoinbase": True,
         "privatekey": "KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM",
@@ -118,7 +118,7 @@ class TestAvalancheProof(unittest.TestCase):
             proofbuilder.add_utxo(
                 txid=utxo["txid"],
                 vout=utxo["vout"],
-                value=utxo["amount"],
+                amount=utxo["amount"],
                 height=utxo["height"],
                 wif_privkey=utxo["privatekey"],
                 is_coinbase=utxo["iscoinbase"],

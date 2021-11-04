@@ -260,12 +260,12 @@ class ProofBuilder:
 
         self.stake_signers: List[StakeSigner] = []
 
-    def add_utxo(self, txid: UInt256, vout, value, height, wif_privkey, is_coinbase):
+    def add_utxo(self, txid: UInt256, vout, amount, height, wif_privkey, is_coinbase):
         """
 
         :param str txid: Transaction hash (hex str)
         :param int vout: Output index for this utxo in the transaction.
-        :param float value: Amount in bitcoins
+        :param float amount: Amount in satoshis
         :param int height: Block height containing this transaction
         :param str wif_privkey: Private key unlocking this UTXO (in WIF format)
         :param bool is_coinbase: Is the coin UTXO a coinbase UTXO
@@ -275,7 +275,6 @@ class ProofBuilder:
         privkey = Key(deser_privkey, compressed)
 
         utxo = COutPoint(txid, vout)
-        amount = int(10 ** 8 * value)
         stake = Stake(utxo, amount, height, privkey.get_pubkey(), is_coinbase)
 
         self.stake_signers.append(StakeSigner(stake, privkey))
