@@ -155,6 +155,47 @@ class TestAvalancheProof(unittest.TestCase):
             ),
         )
 
+        # A test similar to Bitcoin ABC's  "Properly signed 1 UTXO proof, P2PKH payout
+        # script" (proof_tests.cpp), except that I rebuild it with the node's
+        # buildavalancheproof RPC to get the same signatures, as the test proof was
+        # generated with a random nonce.
+        # RPC command used (Bitcoin ABC commit bdee6e2):
+        #  src/bitcoin-cli buildavalancheproof 6296457553413371353 -4129334692075929194 "L4J6gEE4wL9ji2EQbzS5dPMTTsw8LRvcMst1Utij4e3X5ccUSdqW"  '[{"txid":"915d9cc742b46b77c52f69eb6be16739e5ff1cd82ad4fa4ac6581d3ef29fa769","vout":567214302,"amount":4446386380000.00,"height":1370779804,"iscoinbase":false,"privatekey":"KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM"}]'  "ecash:qrupwtz3a7lngsf6xz9qxr75k9jvt07d3uexmwmpqy"
+        # Proof ID and limited ID verified with node RPC decodeavalancheproof.
+        self._test(
+            master2,
+            6296457553413371353,
+            -4129334692075929194,
+            [
+                {
+                    "txid": UInt256.from_hex(
+                        "915d9cc742b46b77c52f69eb6be16739e5ff1cd82ad4fa4ac6581d3ef29fa769"
+                    ),
+                    "vout": 567214302,
+                    "amount": 444638638000000,
+                    "height": 1370779804,
+                    "iscoinbase": False,
+                    "privatekey": "KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM",
+                },
+            ],
+            bytes.fromhex("76a914f8172c51efbf34413a308a030fd4b164c5bfcd8f88ac"),
+            "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
+            "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
+            "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
+            "5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680e6569b4412"
+            "fbb651e44282419f62e9b3face655d3a96e286f70dd616592d6837ccf55cadd71eb53"
+            "50a4c46f23ca69230c27f6c0a7c1ed15aee38ab4cbc6f8d031976a914f8172c51efbf"
+            "34413a308a030fd4b164c5bfcd8f88ac2fe2dbc2d5d28ed70f4bf9e3e7e76db091570"
+            "8100f048a17f6347d95e1135d6403241db4f4b42aa170919bd0847d158d087d9b0d9b"
+            "92ad41114cf03a3d44ec84",
+            UInt256.from_hex(
+                "199bd28f711413cf2cf04a2520f3ccadbff296d9be231c00cb6308528a0b51ca",
+            ),
+            UInt256.from_hex(
+                "8a2fcc5700a89f37a3726cdf3202353bf61f280815a9df744e3c9de6215a745a",
+            ),
+        )
+
     def test_3_stakes(self):
         self._test(
             master2,
