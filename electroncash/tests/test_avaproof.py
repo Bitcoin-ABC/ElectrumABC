@@ -80,7 +80,9 @@ expected_proof2 = (
     "237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce6802a01496963b4ca"
     "0153743e958dff3a09d0d34bfa68c21fc189afb9f6dec802a88200b7b9a7efe917cc8a0c"
     "d899c25097e900eb3b4d54f1fa3addd55d0f875a4f2321038439233261789dd340bdc145"
-    "0172d9c671b72ee8c0b2736ed2a3a250760897fdac"
+    "0172d9c671b72ee8c0b2736ed2a3a250760897fdacd6bf9c0c881001dc5749966a2f6562"
+    "f291339521b3894326c0740de880565549fc6838933c95fbee05ff547ae89bad63e92f55"
+    "2ca3ea4cc01ac3e4869d0dc61b"
 )
 expected_limited_id2 = UInt256.from_hex(
     "7223b8cc572bdf8f123ee7dd0316962f0367b0be8bce9b6e9465d1f413d95616",
@@ -140,7 +142,9 @@ class TestAvalancheProof(unittest.TestCase):
             "ad02b8bdc8a01a1b8b11c696bd3d66a2c5f10780d95b7df42645cd85228a6fb29940e85"
             "8e7e55842ae2bd115d1ed7cc0e82d934e929c97648cb0a43fc49f4fb5383ea6f91254f7"
             "792a0fd33e10b0ddc6cccd102fc26be67518f111efc0ec49718d330e091735ae39e5479"
-            "791f12f5a8c573a817025c82fa5d95ab00",
+            "791f12f5a8c573a817025c82fa5d95ab00788bac77505ca17d6d0dcc946ced3990c2857"
+            "c73743cd74d881fcbcbc8eaaa8d72812ebb9a556610687ca592fe907a4af024390e0a92"
+            "60c4f5ea59e7ac426cc5",
             # The following proofid and limited id were obtained by passing
             # the previous serialized proof to `bitcoin-cli decodeavalancheproof`
             UInt256.from_hex(

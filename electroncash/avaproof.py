@@ -211,6 +211,7 @@ class Proof:
         master: PublicKey,
         signed_stakes: List[SignedStake],
         payout_script_pubkey: bytes,
+        signature: bytes,
     ):
         self.sequence = sequence
         """uint64"""
@@ -220,6 +221,8 @@ class Proof:
         """Master public key"""
         self.stakes: List[SignedStake] = signed_stakes
         self.payout_script_pubkey: bytes = payout_script_pubkey
+        self.signature: bytes = signature
+        """Schnorr signature of some of the proof's data by the master key."""
 
         self.limitedid, self.proofid = compute_proof_id(
             sequence,
@@ -234,6 +237,7 @@ class Proof:
         p += self.master.serialize()
         p += serialize_sequence(self.stakes)
         p += serialize_blob(self.payout_script_pubkey)
+        p += self.signature
         return p
 
 
@@ -279,13 +283,14 @@ class ProofBuilder:
         self.stake_signers.sort(key=lambda ss: ss.stake.stake_id)
 
     def build(self):
-        _ltd_id, proofid = compute_proof_id(
+        ltd_id, proofid = compute_proof_id(
             self.sequence,
             self.expiration_time,
             [signer.stake for signer in self.stake_signers],
             self.master_pub,
             self.payout_script_pubkey,
         )
+        signature = self.master.sign_schnorr(ltd_id.serialize())
         signed_stakes = [signer.sign(proofid) for signer in self.stake_signers]
         return Proof(
             self.sequence,
@@ -293,4 +298,5 @@ class ProofBuilder:
             self.master_pub,
             signed_stakes,
             self.payout_script_pubkey,
+            signature,
         )
