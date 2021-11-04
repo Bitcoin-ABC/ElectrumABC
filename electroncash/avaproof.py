@@ -208,7 +208,7 @@ class Proof:
         self,
         sequence: int,
         expiration_time: int,
-        master: PublicKey,
+        master_pub: PublicKey,
         signed_stakes: List[SignedStake],
         payout_script_pubkey: bytes,
         signature: bytes,
@@ -217,7 +217,7 @@ class Proof:
         """uint64"""
         self.expiration_time = expiration_time
         """int64"""
-        self.master: PublicKey = master
+        self.master_pub: PublicKey = master_pub
         """Master public key"""
         self.stakes: List[SignedStake] = signed_stakes
         self.payout_script_pubkey: bytes = payout_script_pubkey
@@ -228,13 +228,13 @@ class Proof:
             sequence,
             expiration_time,
             [ss.stake for ss in signed_stakes],
-            master,
+            master_pub,
             self.payout_script_pubkey,
         )
 
     def serialize(self) -> bytes:
         p = struct.pack("<Qq", self.sequence, self.expiration_time)
-        p += self.master.serialize()
+        p += self.master_pub.serialize()
         p += serialize_sequence(self.stakes)
         p += serialize_blob(self.payout_script_pubkey)
         p += self.signature
