@@ -160,12 +160,18 @@ class AvaProofWidget(QtWidgets.QWidget):
 
         master = self.master_key_edit.text()
         if not is_private_key(master):
+            QtWidgets.QMessageBox.critical(
+                self, "Invalid private key", "Could not parse private key."
+            )
             return
         txin_type, privkey, compressed = deserialize_privkey(master)
 
         try:
             payout_address = Address.from_string(self.payout_addr_edit.text())
-        except AddressError:
+        except AddressError as e:
+            QtWidgets.QMessageBox.critical(
+                self, "Invalid payout address", str(e)
+            )
             return
         payout_script = payout_address.to_script()
 

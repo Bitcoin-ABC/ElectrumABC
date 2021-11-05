@@ -423,8 +423,9 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
                     break
             if len(errors) >= len(whitelisted_prefixes):
                 raise AddressError(
-                    f"Unable to decode CashAddr with supported prefixes."
-                    "\n".join([f"{err}" for err in errors]))
+                    f"Unable to decode CashAddr with supported prefixes.\n"
+                    "\n".join([f"{err}" for err in errors]) + "\n"
+                )
 
         if kind == cashaddr.PUBKEY_TYPE:
             return cls(addr_hash, cls.ADDR_P2PKH)
