@@ -25,6 +25,7 @@ class TestAvalancheProof(unittest.TestCase):
                 value=utxo["amount"],
                 height=utxo["height"],
                 wif_privkey=utxo["privatekey"],
+                is_coinbase=utxo["iscoinbase"],
             )
         proof = proofbuilder.build()
         self.assertEqual(proof.serialize().hex(), expected_proof_hex)
@@ -46,6 +47,7 @@ class TestAvalancheProof(unittest.TestCase):
                     "amount": 0.0001,
                     "height": 672828,
                     "privatekey": "5HueCGU8rMjxEXxiPuD5BDku4MkFqeZyd4dZ1jvhTVqvbTLvyTJ",
+                    "iscoinbase": False,
                 }
             ],
             "2a00000000000000fff053650000000021030b4c866585dd868a9d62348a9cd008d6a31"

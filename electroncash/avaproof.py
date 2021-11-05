@@ -108,7 +108,7 @@ class COutPoint:
 
 
 class Stake:
-    def __init__(self, utxo, amount, height, pubkey):
+    def __init__(self, utxo, amount, height, pubkey, is_coinbase):
         self.utxo: COutPoint = utxo
         self.amount: int = amount
         """Amount in satoshis (int64)"""
@@ -116,9 +116,10 @@ class Stake:
         """Block height containing this utxo (uint32)"""
         self.pubkey: PublicKey = pubkey
         """Public key"""
+        self.is_coinbase: bool = is_coinbase
 
     def serialize(self) -> bytes:
-        is_coinbase = 0
+        is_coinbase = int(self.is_coinbase)
         height_ser = self.height << 1 | is_coinbase
 
         return (
@@ -225,7 +226,7 @@ class ProofBuilder:
 
         self.stake_signers: List[StakeSigner] = []
 
-    def add_utxo(self, txid: UInt256, vout, value, height, wif_privkey):
+    def add_utxo(self, txid: UInt256, vout, value, height, wif_privkey, is_coinbase):
         """
 
         :param str txid: Transaction hash (hex str)
@@ -233,6 +234,7 @@ class ProofBuilder:
         :param float value: Amount in bitcoins
         :param int height: Block height containing this transaction
         :param str wif_privkey: Private key unlocking this UTXO (in WIF format)
+        :param bool is_coinbase: Is the coin UTXO a coinbase UTXO
         :return:
         """
         _txin_type, deser_privkey, compressed = deserialize_privkey(wif_privkey)
@@ -240,7 +242,7 @@ class ProofBuilder:
 
         utxo = COutPoint(txid, vout)
         amount = int(10 ** 8 * value)
-        stake = Stake(utxo, amount, height, privkey.get_pubkey())
+        stake = Stake(utxo, amount, height, privkey.get_pubkey(), is_coinbase)
 
         self.stake_signers.append(StakeSigner(stake, privkey))
 

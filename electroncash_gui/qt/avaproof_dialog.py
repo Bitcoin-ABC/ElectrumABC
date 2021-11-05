@@ -177,7 +177,9 @@ class AvaProofWidget(QtWidgets.QWidget):
                 # we need the value in "bitcoins"
                 value=utxo['value'] * 10**-8,
                 height=utxo['height'],
-                wif_privkey=priv_key)
+                wif_privkey=priv_key,
+                is_coinbase=utxo['coinbase'],
+            )
         proof = proofbuilder.build()
         return proof.serialize().hex()
 
