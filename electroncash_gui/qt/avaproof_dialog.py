@@ -5,7 +5,7 @@ from typing import List, Optional
 from PyQt5 import QtWidgets
 from PyQt5 import QtCore
 
-from electroncash.address import Address
+from electroncash.address import Address, AddressError
 from electroncash.avaproof import Key, ProofBuilder
 from electroncash.bitcoin import is_private_key, deserialize_privkey
 
@@ -73,6 +73,15 @@ class AvaProofWidget(QtWidgets.QWidget):
             "delegation or signs the avalanche votes."
         )
         layout.addWidget(self.master_key_edit)
+        layout.addSpacing(10)
+
+        layout.addWidget(
+            QtWidgets.QLabel("Payout address"))
+        self.payout_addr_edit = QtWidgets.QLineEdit()
+        self.payout_addr_edit.setToolTip(
+            "Address to which staking rewards could be sent, in the future"
+        )
+        layout.addWidget(self.payout_addr_edit)
         layout.addSpacing(10)
 
         self.utxos_wigdet = QtWidgets.QTableWidget(len(utxos), 3)
@@ -152,13 +161,20 @@ class AvaProofWidget(QtWidgets.QWidget):
         master = self.master_key_edit.text()
         if not is_private_key(master):
             return
-
         txin_type, privkey, compressed = deserialize_privkey(master)
+
+        try:
+            payout_address = Address.from_string(self.payout_addr_edit.text())
+        except AddressError:
+            return
+        payout_script = payout_address.to_script()
 
         proofbuilder = ProofBuilder(
             sequence=self.sequence_sb.value(),
             expiration_time=self.calendar.dateTime().toSecsSinceEpoch(),
-            master=Key(privkey, compressed))
+            master=Key(privkey, compressed),
+            payout_script_pubkey=payout_script,
+        )
         for utxo in self.utxos:
             address = utxo['address']
             if not isinstance(utxo['address'], Address):
