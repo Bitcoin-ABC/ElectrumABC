@@ -593,12 +593,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         filename, __ = QtWidgets.QFileDialog.getOpenFileName(self, "Select your wallet file", wallet_folder)
         if not filename:
             return
-        if filename.lower().endswith('.txn'):
-            # they did File -> Open on a .txn, just do that.
-            self.do_process_from_file(fileName=filename)
-            return
         self.gui_object.new_window(filename)
-
 
     def backup_wallet(self):
         self.wallet.storage.write()  # make sure file is committed to disk
@@ -669,7 +664,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         file_menu = menubar.addMenu(_("&File"))
         self.recently_visited_menu = file_menu.addMenu(_("Open &Recent"))
-        file_menu.addAction(_("&Open") + "...", self.open_wallet).setShortcut(QKeySequence.Open)
+        file_menu.addAction(_("&Open wallet") + "...", self.open_wallet).setShortcut(QKeySequence.Open)
         file_menu.addAction(_("&New/Restore") + "...", self.new_wallet).setShortcut(QKeySequence.New)
         file_menu.addAction(_("&Save Copy As") + "...", self.backup_wallet).setShortcut(QKeySequence.SaveAs)
         file_menu.addAction(_("&Delete") + "...", self.remove_wallet)
@@ -3519,8 +3514,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self._qr_dialog = None
             self.show_error(str(e))
 
-    def read_tx_from_file(self, *, fileName = None):
-        fileName = fileName or self.getOpenFileName(_("Select your transaction file"), "*.txn")
+
+    def read_tx_from_file(self) -> Optional[Transaction]:
+        fileName = self.getOpenFileName(_("Select your transaction file"), "*.txn")
         if not fileName:
             return
         try:
@@ -3552,10 +3548,10 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                   f"transaction:") +
                 "\n" + str(e))
 
-    def do_process_from_file(self, *, fileName = None):
+    def do_process_from_file(self):
         from electroncash.transaction import SerializationError
         try:
-            tx = self.read_tx_from_file(fileName=fileName)
+            tx = self.read_tx_from_file()
             if tx:
                 self.show_transaction(tx)
         except SerializationError as e:
