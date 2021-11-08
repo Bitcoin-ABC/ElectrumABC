@@ -767,7 +767,8 @@ def bip44_derivation_btc(account_id: int) -> str:
 
 def bip44_derivation_bch(account_id: int) -> str:
     """Return the BCH derivation path."""
-    return _bip44_derivation(145, account_id)
+    coin = 1 if networks.net.TESTNET else 145
+    return _bip44_derivation(coin, account_id)
 
 
 def bip44_derivation_bch_tokens(account_id: int) -> str:
@@ -777,7 +778,8 @@ def bip44_derivation_bch_tokens(account_id: int) -> str:
 
 def bip44_derivation_xec(account_id: int) -> str:
     """Return the XEC BIP44 derivation path for an account id."""
-    return _bip44_derivation(899, account_id)
+    coin = 1 if networks.net.TESTNET else 899
+    return _bip44_derivation(coin, account_id)
 
 
 def bip44_derivation_xec_tokens(account_id: int) -> str:
