@@ -3548,7 +3548,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
            "Generate proof" button
         """
         fileName = self.getOpenFileName(
-            "Select the file containing the data for coins to be used as stakes", "*.json")
+            "Select the file containing the data for coins to be used as stakes",
+            "JSON (*.json);;All files (*)"
+        )
         if not fileName:
             return
         with open(fileName, "r", encoding='utf-8') as f:
