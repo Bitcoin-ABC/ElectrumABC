@@ -2,6 +2,7 @@ import unittest
 
 from .test_address import TestAddressFromString
 from .test_asert import Test_ASERTDaa
+from .test_bip44_derivation_path import TestBip44Derivations
 from .test_bitcoin import suite as test_bitcoin_suite
 from .test_blockchain import TestBlockchain
 from .test_cashacct import TestCashAccounts
@@ -28,6 +29,7 @@ def suite():
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite.addTest(loadTests(TestAddressFromString))
     test_suite.addTest(loadTests(Test_ASERTDaa))
+    test_suite.addTest(loadTests(TestBip44Derivations))
     test_suite.addTest(test_bitcoin_suite())
     test_suite.addTest(loadTests(TestBlockchain))
     test_suite.addTest(loadTests(TestCashAccounts))
