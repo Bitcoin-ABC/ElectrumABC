@@ -78,8 +78,8 @@ class MainNet(AbstractNet):
     #    network.synchronous_get(("blockchain.block.header", [height, height]))
     #
     # Consult the ElectrumX documentation for more details.
-    VERIFICATION_BLOCK_MERKLE_ROOT = "d0d925862df595918416020caf5467b7ae67ae8f807daf60626c36755b62f9a2"
-    VERIFICATION_BLOCK_HEIGHT = 661648
+    VERIFICATION_BLOCK_MERKLE_ROOT = "33dc6713c2fc5613a4524f1b0039c755e32169e8cec177b41389ebf0b4c07b04"
+    VERIFICATION_BLOCK_HEIGHT = 713661
     asert_daa = ASERTDaa(is_testnet=False)
     # Note: We *must* specify the anchor if the checkpoint is after the anchor, due to the way
     # blockchain.py skips headers after the checkpoint.  So all instances that have a checkpoint
@@ -120,8 +120,8 @@ class TestNet(AbstractNet):
     BITCOIN_CASH_FORK_BLOCK_HEIGHT = 1155876
     BITCOIN_CASH_FORK_BLOCK_HASH = "00000000000e38fef93ed9582a7df43815d5c2ba9fd37ef70c9a0ea4a285b8f5"
 
-    VERIFICATION_BLOCK_MERKLE_ROOT = "05389f1534c30b86268c5ea87ad9b121ed90db814267e63f5f0c6bd9c089d362"
-    VERIFICATION_BLOCK_HEIGHT = 1400000
+    VERIFICATION_BLOCK_MERKLE_ROOT = "3f8ec0f193d3213a23812e688309a8547da64b48d424dd122bd930c5f061148b"
+    VERIFICATION_BLOCK_HEIGHT = 1477500
 
     # Version numbers for BIP32 extended keys
     # standard: tprv, tpub
