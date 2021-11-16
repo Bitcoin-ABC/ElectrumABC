@@ -154,3 +154,7 @@ Windows
 
 See `contrib/build-wine/ <contrib/build-wine>`_.
 
+Verifying Release Binaries
+==========================
+
+See `pubkeys/README.md <https://github.com/Bitcoin-ABC/ElectrumABC/blob/master/pubkeys/README.md>`_
