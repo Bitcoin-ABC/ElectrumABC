@@ -89,8 +89,6 @@ python='appdir_python'
 
 info "Installing pip"
 "$python" -m ensurepip
-# we need a pip newer than 21.0, because of https://github.com/takluyver/flit/issues/451#issuecomment-941075197
-"$python" -m pip install pip==21.3.1
 
 
 info "Preparing electrum-locale"
@@ -112,6 +110,7 @@ info "Preparing electrum-locale"
 
 info "Installing the application and its dependencies"
 mkdir -p "$CACHEDIR/pip_cache"
+"$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-pip.txt"
 "$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements.txt"
 "$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --only-binary pyqt5 --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-binaries.txt"
 "$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-hw.txt"
