@@ -5,11 +5,11 @@ Download the SHA256SUMS files that is available on the
 Open it with a text viewer.
 
 Generate a SHA256 hash of the file you downloaded. For example, if
-you downloaded the Linux AppImage file for the 4.3.1 release, open a
+you downloaded the Linux AppImage file for the 5.0.3 release, open a
 terminal window, `cd` to the download directory and type:
 
-    $ sha256sum ElectrumABC-4.3.1-x86_64.AppImage
-    16b4dd5cad9868d827627ba256eb23bba4f052a51c20345633f7362285ef0af3  ElectrumABC-4.3.1-x86_64.AppImage
+    $ sha256sum ElectrumABC-5.0.3-x86_64.AppImage
+    3b1c5922682da424f2a1d6a6236bf92162777a6b9d1964d46eb85f6596a8bb40  ElectrumABC-5.0.3-x86_64.AppImage
 
 Now compare the hash that your machine calculated with the corresponding
 hash in the SHA256SUMS file.
@@ -68,7 +68,7 @@ release page can also modify the SHA256SUMS file.
 
 7. Now you can verify the signature of the file you downloaded
 
-        gpg --verify ElectrumABC-4.3.1-x86_64.AppImage
+        gpg --verify sha256_checksums-5.0.3.txt.sig sha256_checksums-5.0.3.txt
 
     A successful output should end with the following line:
 
