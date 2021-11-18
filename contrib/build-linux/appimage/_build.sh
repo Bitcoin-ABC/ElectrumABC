@@ -89,6 +89,8 @@ python='appdir_python'
 
 info "Installing pip"
 "$python" -m ensurepip
+# we need a pip newer than 21.0, because of https://github.com/takluyver/flit/issues/451#issuecomment-941075197
+"$python" -m pip install pip==21.3.1
 
 
 info "Preparing electrum-locale"
