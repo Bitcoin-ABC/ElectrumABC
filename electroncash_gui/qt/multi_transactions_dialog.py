@@ -8,9 +8,10 @@ from electroncash import transaction
 from electroncash.bitcoin import sha256
 from electroncash.constants import XEC
 from electroncash.wallet import Abstract_Wallet
+from electroncash_gui.qt.util import MessageBoxMixin
 
 
-class MultiTransactionsWidget(QtWidgets.QWidget):
+class MultiTransactionsWidget(QtWidgets.QWidget, MessageBoxMixin):
     """Display multiple transactions, with statistics and tools (sign, broadcast...)"""
 
     def __init__(self, wallet, main_window, parent=None):
