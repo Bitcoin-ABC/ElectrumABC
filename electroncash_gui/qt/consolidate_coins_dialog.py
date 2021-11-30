@@ -171,6 +171,20 @@ class ConsolidateCoinsWizard(QtWidgets.QWizard):
         self.tx_page.set_unsigned_transactions(self.transactions)
 
 
+class AmountSpinBox(QtWidgets.QDoubleSpinBox):
+    def __init__(self):
+        super().__init__()
+        self.setToolTip(f"Amount in {XEC}")
+        self.setEnabled(False)
+        # 0.01 XEC is 1 satoshi
+        self.setDecimals(2)
+        self.setStepType(QtWidgets.QAbstractSpinBox.AdaptiveDecimalStepType)
+        self.setMaximum(21_000_000_000_000)
+        self.setGroupSeparatorShown(True)
+        # Enough width to display "21 000 000 000,00":
+        self.setMinimumWidth(170)
+
+
 class CoinSelectionPage(QtWidgets.QWizardPage):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -204,16 +218,8 @@ class CoinSelectionPage(QtWidgets.QWizardPage):
         self.filter_by_min_value_cb.setChecked(False)
         min_value_sublayout.addWidget(self.filter_by_min_value_cb)
 
-        self.minimum_amount_sb = QtWidgets.QDoubleSpinBox()
-        self.minimum_amount_sb.setEnabled(False)
-        # 0.01 XEC is 1 satoshi
-        self.minimum_amount_sb.setDecimals(2)
-        self.minimum_amount_sb.setStepType(
-            QtWidgets.QAbstractSpinBox.AdaptiveDecimalStepType
-        )
-        self.minimum_amount_sb.setMaximum(21_000_000_000_000)
+        self.minimum_amount_sb = AmountSpinBox()
         self.minimum_amount_sb.setValue(5.46)
-        self.minimum_amount_sb.setToolTip(f"{XEC}")
         self.filter_by_min_value_cb.toggled.connect(self.minimum_amount_sb.setEnabled)
         min_value_sublayout.addWidget(self.minimum_amount_sb)
 
@@ -225,15 +231,8 @@ class CoinSelectionPage(QtWidgets.QWizardPage):
         self.filter_by_max_value_cb.setChecked(False)
         max_value_sublayout.addWidget(self.filter_by_max_value_cb)
 
-        self.maximum_amount_sb = QtWidgets.QDoubleSpinBox()
-        self.maximum_amount_sb.setEnabled(False)
-        self.maximum_amount_sb.setDecimals(2)
-        self.maximum_amount_sb.setStepType(
-            QtWidgets.QAbstractSpinBox.AdaptiveDecimalStepType
-        )
-        self.maximum_amount_sb.setMaximum(21_000_000_000_000)
+        self.maximum_amount_sb = AmountSpinBox()
         self.maximum_amount_sb.setValue(21_000_000_000_000)
-        self.maximum_amount_sb.setToolTip(f"{XEC}")
         self.maximum_amount_sb.valueChanged.connect(self.on_maximum_amount_changed)
         self.filter_by_max_value_cb.toggled.connect(self.maximum_amount_sb.setEnabled)
         max_value_sublayout.addWidget(self.maximum_amount_sb)
