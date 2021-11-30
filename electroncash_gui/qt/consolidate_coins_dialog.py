@@ -175,7 +175,6 @@ class AmountSpinBox(QtWidgets.QDoubleSpinBox):
     def __init__(self):
         super().__init__()
         self.setToolTip(f"Amount in {XEC}")
-        self.setEnabled(False)
         # 0.01 XEC is 1 satoshi
         self.setDecimals(2)
         self.setStepType(QtWidgets.QAbstractSpinBox.AdaptiveDecimalStepType)
@@ -210,32 +209,38 @@ class CoinSelectionPage(QtWidgets.QWizardPage):
         self.include_slp_cb.toggled.connect(self.warn_burn_tokens)
         layout.addWidget(self.include_slp_cb)
 
-        min_value_sublayout = QtWidgets.QHBoxLayout()
-        layout.addLayout(min_value_sublayout)
-        self.filter_by_min_value_cb = QtWidgets.QCheckBox(
-            "Define a minimum value for coins to select"
-        )
-        self.filter_by_min_value_cb.setChecked(False)
-        min_value_sublayout.addWidget(self.filter_by_min_value_cb)
-
         self.minimum_amount_sb = AmountSpinBox()
         self.minimum_amount_sb.setValue(5.46)
-        self.filter_by_min_value_cb.toggled.connect(self.minimum_amount_sb.setEnabled)
-        min_value_sublayout.addWidget(self.minimum_amount_sb)
-
-        max_value_sublayout = QtWidgets.QHBoxLayout()
-        layout.addLayout(max_value_sublayout)
-        self.filter_by_max_value_cb = QtWidgets.QCheckBox(
-            "Define a maximum value for coins to select"
+        self.filter_by_min_value_cb = self.add_filter_by_value_line(
+            "Define a minimum value for coins to select",
+            self.minimum_amount_sb,
         )
-        self.filter_by_max_value_cb.setChecked(False)
-        max_value_sublayout.addWidget(self.filter_by_max_value_cb)
 
         self.maximum_amount_sb = AmountSpinBox()
         self.maximum_amount_sb.setValue(21_000_000_000_000)
         self.maximum_amount_sb.valueChanged.connect(self.on_maximum_amount_changed)
-        self.filter_by_max_value_cb.toggled.connect(self.maximum_amount_sb.setEnabled)
-        max_value_sublayout.addWidget(self.maximum_amount_sb)
+        self.filter_by_max_value_cb = self.add_filter_by_value_line(
+            "Define a maximum value for coins to select",
+            self.maximum_amount_sb,
+        )
+
+    def add_filter_by_value_line(
+        self, label_text: str, value_widget: QtWidgets.QWidget
+    ) -> QtWidgets.QCheckBox:
+        """Add a line with a checkbox and a widget to specify a value.
+        The value widget is enabled when the checkbox is checked.
+        Return the created QCheckBox instance."""
+        sublayout = QtWidgets.QHBoxLayout()
+        self.layout().addLayout(sublayout)
+        checkbox = QtWidgets.QCheckBox(label_text)
+        sublayout.addWidget(checkbox)
+        checkbox.setChecked(False)
+
+        value_widget.setEnabled(False)
+        checkbox.toggled.connect(value_widget.setEnabled)
+        sublayout.addWidget(value_widget)
+
+        return checkbox
 
     def warn_burn_tokens(self, include_slp_is_checked: bool):
         if include_slp_is_checked:
