@@ -206,6 +206,8 @@ class CoinSelectionPage(QtWidgets.QWizardPage):
 
         self.minimum_value_sb = QtWidgets.QDoubleSpinBox()
         self.minimum_value_sb.setEnabled(False)
+        # 0.01 XEC is 1 satoshi
+        self.minimum_value_sb.setDecimals(2)
         self.minimum_value_sb.setStepType(
             QtWidgets.QAbstractSpinBox.AdaptiveDecimalStepType
         )
@@ -225,6 +227,7 @@ class CoinSelectionPage(QtWidgets.QWizardPage):
 
         self.maximum_value_sb = QtWidgets.QDoubleSpinBox()
         self.maximum_value_sb.setEnabled(False)
+        self.maximum_value_sb.setDecimals(2)
         self.maximum_value_sb.setStepType(
             QtWidgets.QAbstractSpinBox.AdaptiveDecimalStepType
         )
