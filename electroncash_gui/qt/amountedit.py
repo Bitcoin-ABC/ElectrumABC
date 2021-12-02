@@ -4,10 +4,11 @@ from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QPainter
 from PyQt5 import QtWidgets
 
-from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
+from decimal import Decimal
 from electroncash.util import format_satoshis_plain
 from electroncash.constants import BASE_UNITS_BY_DECIMALS
 from .util import ColorScheme
+
 
 class MyLineEdit(QtWidgets.QLineEdit):
     frozen = pyqtSignal()
@@ -16,6 +17,7 @@ class MyLineEdit(QtWidgets.QLineEdit):
         self.setReadOnly(b)
         self.setFrame(not b)
         self.frozen.emit()
+
 
 class AmountEdit(MyLineEdit):
     shortcut = pyqtSignal()
@@ -58,12 +60,12 @@ class AmountEdit(MyLineEdit):
             textRect = self.style().subElementRect(QtWidgets.QStyle.SE_LineEditContents, panel, self)
             textRect.adjust(2, 0, -10, 0)
             painter = QPainter(self)
-            painter.setPen(ColorScheme.GRAY.as_color())  # NB: we hard-code gray here. It works ok for dark and light. FIXME: figure out why palette broke on Mojave dark mode see #1262
+            painter.setPen(ColorScheme.GRAY.as_color())
             painter.drawText(textRect, Qt.AlignRight | Qt.AlignVCenter, self.base_unit)
 
     def get_amount(self):
         try:
-            return (int if self.is_int else PyDecimal)(str(self.text()))
+            return (int if self.is_int else Decimal)(str(self.text()))
         except:
             return None
 
@@ -79,7 +81,7 @@ class BTCAmountEdit(AmountEdit):
 
     def get_amount(self):
         try:
-            x = PyDecimal(str(self.text()))
+            x = Decimal(self.text())
         except:
             return None
         p = pow(10, self.decimal_point)
@@ -87,7 +89,8 @@ class BTCAmountEdit(AmountEdit):
 
     def setAmount(self, amount):
         if amount is None:
-            self.setText(" ") # Space forces repaint in case units changed
+            # Space forces repaint in case units changed
+            self.setText(" ")
         else:
             self.setText(format_satoshis_plain(amount, self.decimal_point))
 
@@ -105,13 +108,14 @@ class BTCSatsByteEdit(BTCAmountEdit):
 
     def get_amount(self):
         try:
-            x = float(PyDecimal(str(self.text())))
+            x = float(Decimal(self.text()))
         except:
             return None
         return x if x > 0.0 else None
 
     def setAmount(self, amount):
         if amount is None:
-            self.setText(" ") # Space forces repaint in case units changed
+            # Space forces repaint in case units changed
+            self.setText(" ")
         else:
-            self.setText(str(round(amount*100.0)/100.0))
+            self.setText(str(round(amount * 100.0) / 100.0))
