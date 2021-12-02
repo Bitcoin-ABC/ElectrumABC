@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from decimal import Decimal
+from typing import Optional, Union
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, pyqtSignal
@@ -15,7 +16,7 @@ from .util import ColorScheme
 class MyLineEdit(QtWidgets.QLineEdit):
     frozen = pyqtSignal()
 
-    def setFrozen(self, b):
+    def setFrozen(self, b: bool):
         self.setReadOnly(b)
         self.setFrame(not b)
         self.frozen.emit()
@@ -24,7 +25,12 @@ class MyLineEdit(QtWidgets.QLineEdit):
 class AmountEdit(MyLineEdit):
     shortcut = pyqtSignal()
 
-    def __init__(self, base_unit: str, is_int=False, parent=None):
+    def __init__(
+        self,
+        base_unit: str,
+        is_int: bool = False,
+        parent: Optional[QtWidgets.QWidget] = None,
+    ):
         QtWidgets.QLineEdit.__init__(self, parent)
         # This seems sufficient for 10,000 MXEC amounts with two decimals
         self.setFixedWidth(160)
@@ -67,7 +73,7 @@ class AmountEdit(MyLineEdit):
             painter.setPen(ColorScheme.GRAY.as_color())
             painter.drawText(textRect, Qt.AlignRight | Qt.AlignVCenter, self.base_unit)
 
-    def get_amount(self):
+    def get_amount(self) -> Optional[Union[int, Decimal]]:
         try:
             return (int if self.is_int else Decimal)(self.text())
         except (ValueError, ArithmeticError):
@@ -82,7 +88,8 @@ class XECAmountEdit(AmountEdit):
         AmountEdit.__init__(self, self._base_unit, is_int, parent)
         self.decimal_point = decimal_point
 
-    def get_amount(self):
+    def get_amount(self) -> Optional[int]:
+        """Return amount in satoshis"""
         try:
             x = Decimal(self.text())
         except ArithmeticError:
@@ -90,7 +97,7 @@ class XECAmountEdit(AmountEdit):
         p = pow(10, self.decimal_point)
         return int(p * x)
 
-    def setAmount(self, amount):
+    def setAmount(self, amount: Optional[Union[float, int]]):
         if amount is None:
             # Space forces repaint in case units changed
             self.setText(" ")
@@ -103,14 +110,14 @@ class XECSatsByteEdit(XECAmountEdit):
         XECAmountEdit.__init__(self, decimal_point=2, is_int=False, parent=parent)
         self._base_unit = "sats/B"
 
-    def get_amount(self):
+    def get_amount(self) -> Optional[float]:
         try:
             x = float(Decimal(self.text()))
         except (ValueError, ArithmeticError):
             return None
         return x if x > 0.0 else None
 
-    def setAmount(self, amount):
+    def setAmount(self, amount: Optional[Union[float, int]]):
         if amount is None:
             # Space forces repaint in case units changed
             self.setText(" ")
