@@ -1273,7 +1273,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         grid.addWidget(self.receive_amount_e, 4, 1)
         self.receive_amount_e.textChanged.connect(self.update_receive_qr)
 
-        self.fiat_receive_e = AmountEdit(self.fx.get_currency if self.fx else '')
+        self.fiat_receive_e = AmountEdit(self.fx.get_currency() if self.fx else '')
         if not self.fx or not self.fx.is_enabled():
             self.fiat_receive_e.setVisible(False)
         grid.addWidget(self.fiat_receive_e, 4, 2, Qt.AlignLeft)
@@ -1697,7 +1697,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         grid.addWidget(amount_label, 5, 0)
         grid.addWidget(self.amount_e, 5, 1)
 
-        self.fiat_send_e = AmountEdit(self.fx.get_currency if self.fx else '')
+        self.fiat_send_e = AmountEdit(self.fx.get_currency() if self.fx else '')
         if not self.fx or not self.fx.is_enabled():
             self.fiat_send_e.setVisible(False)
         grid.addWidget(self.fiat_send_e, 5, 2)

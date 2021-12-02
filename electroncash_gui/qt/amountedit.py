@@ -20,11 +20,11 @@ class MyLineEdit(QtWidgets.QLineEdit):
 class AmountEdit(MyLineEdit):
     shortcut = pyqtSignal()
 
-    def __init__(self, base_unit, is_int = False, parent=None):
+    def __init__(self, base_unit: str, is_int=False, parent=None):
         QtWidgets.QLineEdit.__init__(self, parent)
         # This seems sufficient for 10,000 MXEC amounts with two decimals
         self.setFixedWidth(160)
-        self.base_unit = base_unit
+        self.base_unit: str = base_unit
         self.textChanged.connect(self.numbify)
         self.is_int = is_int
         self.is_shortcut = False
@@ -61,7 +61,7 @@ class AmountEdit(MyLineEdit):
             textRect.adjust(2, 0, -10, 0)
             painter = QPainter(self)
             painter.setPen(ColorScheme.GRAY.as_color())  # NB: we hard-code gray here. It works ok for dark and light. FIXME: figure out why palette broke on Mojave dark mode see #1262
-            painter.drawText(textRect, Qt.AlignRight | Qt.AlignVCenter, self.base_unit())
+            painter.drawText(textRect, Qt.AlignRight | Qt.AlignVCenter, self.base_unit)
 
     def get_amount(self):
         try:
@@ -72,15 +72,12 @@ class AmountEdit(MyLineEdit):
 
 class BTCAmountEdit(AmountEdit):
 
-    def __init__(self, decimal_point, is_int = False, parent=None):
+    def __init__(self, decimal_point, is_int=False, parent=None):
+        if decimal_point() not in BASE_UNITS_BY_DECIMALS:
+            raise Exception('Unknown base unit')
+        self._base_unit: str = BASE_UNITS_BY_DECIMALS[decimal_point()]
         AmountEdit.__init__(self, self._base_unit, is_int, parent)
         self.decimal_point = decimal_point
-
-    def _base_unit(self):
-        p = self.decimal_point()
-        if p in BASE_UNITS_BY_DECIMALS:
-            return BASE_UNITS_BY_DECIMALS[p]
-        raise Exception('Unknown base unit')
 
     def get_amount(self):
         try:
@@ -96,21 +93,25 @@ class BTCAmountEdit(AmountEdit):
         else:
             self.setText(format_satoshis_plain(amount, self.decimal_point()))
 
+
 class BTCkBEdit(BTCAmountEdit):
-    def _base_unit(self):
-        return BTCAmountEdit._base_unit(self) + '/kB'
+    def __init__(self, decimal_point, is_int=False, parent=None):
+        super().__init__(decimal_point, is_int, parent)
+        self._base_unit += '/kB'
+
 
 class BTCSatsByteEdit(BTCAmountEdit):
     def __init__(self, parent=None):
-        BTCAmountEdit.__init__(self, decimal_point = lambda: 2, is_int = False, parent = parent)
-    def _base_unit(self):
-        return 'sats' + '/B'
+        BTCAmountEdit.__init__(self, decimal_point=lambda: 2, is_int=False, parent=parent)
+        self._base_unit = 'sats/B'
+
     def get_amount(self):
         try:
             x = float(PyDecimal(str(self.text())))
         except:
             return None
         return x if x > 0.0 else None
+
     def setAmount(self, amount):
         if amount is None:
             self.setText(" ") # Space forces repaint in case units changed
