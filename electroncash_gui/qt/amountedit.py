@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtGui import QPainter
-from PyQt5 import QtWidgets
-
 from decimal import Decimal
-from electroncash.util import format_satoshis_plain
+
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QPainter
+
 from electroncash.constants import BASE_UNITS_BY_DECIMALS
+from electroncash.util import format_satoshis_plain
+
 from .util import ColorScheme
 
 
@@ -34,18 +36,18 @@ class AmountEdit(MyLineEdit):
 
     def numbify(self):
         text = self.text().strip()
-        if text == '!':
+        if text == "!":
             self.shortcut.emit()
             return
         pos = self.cursorPosition()
-        chars = '0123456789'
-        if not self.is_int: chars +='.'
-        s = ''.join([i for i in text if i in chars])
+        chars = "0123456789"
         if not self.is_int:
-            if '.' in s:
-                p = s.find('.')
-                s = s.replace('.', '')
-                s = s[:p] + '.' + s[p:p + self.decimal_point]
+            chars += "."
+        s = "".join([i for i in text if i in chars])
+        if not self.is_int and "." in s:
+            p = s.find(".")
+            s = s.replace(".", "")
+            s = s[:p] + "." + s[p : p + self.decimal_point]
         self.setText(s)
         # setText sets Modified to False.  Instead we want to remember
         # if updates were because of user modification.
@@ -57,7 +59,9 @@ class AmountEdit(MyLineEdit):
         if self.base_unit:
             panel = QtWidgets.QStyleOptionFrame()
             self.initStyleOption(panel)
-            textRect = self.style().subElementRect(QtWidgets.QStyle.SE_LineEditContents, panel, self)
+            textRect = self.style().subElementRect(
+                QtWidgets.QStyle.SE_LineEditContents, panel, self
+            )
             textRect.adjust(2, 0, -10, 0)
             painter = QPainter(self)
             painter.setPen(ColorScheme.GRAY.as_color())
@@ -71,10 +75,9 @@ class AmountEdit(MyLineEdit):
 
 
 class XECAmountEdit(AmountEdit):
-
     def __init__(self, decimal_point: int, is_int=False, parent=None):
         if decimal_point not in BASE_UNITS_BY_DECIMALS:
-            raise Exception('Unknown base unit')
+            raise Exception("Unknown base unit")
         self._base_unit: str = BASE_UNITS_BY_DECIMALS[decimal_point]
         AmountEdit.__init__(self, self._base_unit, is_int, parent)
         self.decimal_point = decimal_point
@@ -98,7 +101,7 @@ class XECAmountEdit(AmountEdit):
 class XECSatsByteEdit(XECAmountEdit):
     def __init__(self, parent=None):
         XECAmountEdit.__init__(self, decimal_point=2, is_int=False, parent=parent)
-        self._base_unit = 'sats/B'
+        self._base_unit = "sats/B"
 
     def get_amount(self):
         try:
