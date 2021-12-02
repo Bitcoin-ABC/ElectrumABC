@@ -1266,7 +1266,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.receive_opreturn_label,
         ]
 
-        self.receive_amount_e = BTCAmountEdit(self.get_decimal_point)
+        self.receive_amount_e = BTCAmountEdit(self.get_decimal_point())
         label = QtWidgets.QLabel(_('Requested &amount'))
         label.setBuddy(self.receive_amount_e)
         grid.addWidget(label, 4, 0)
@@ -1614,7 +1614,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         grid.setColumnStretch(3, 1)
 
         from .paytoedit import PayToEdit
-        self.amount_e = BTCAmountEdit(self.get_decimal_point)
+        self.amount_e = BTCAmountEdit(self.get_decimal_point())
         self.payto_e = PayToEdit(self)
         # NB: the translators hopefully will not have too tough a time with this
         # *fingers crossed* :)
@@ -1742,7 +1742,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         self.fee_slider_mogrifier()
 
-        self.fee_e = BTCAmountEdit(self.get_decimal_point)
+        self.fee_e = BTCAmountEdit(self.get_decimal_point())
         if not self.config.get('show_fee', False):
             self.fee_e.setVisible(False)
         self.fee_e.textEdited.connect(self.update_fee)
@@ -5070,7 +5070,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         output_amount = QtWidgets.QLabel('')
         grid.addWidget(QtWidgets.QLabel(_('Output amount') + ':'), 2, 0)
         grid.addWidget(output_amount, 2, 1)
-        fee_e = BTCAmountEdit(self.get_decimal_point)
+        fee_e = BTCAmountEdit(self.get_decimal_point())
         def f(x):
             a = max_fee - fee_e.get_amount()
             output_amount.setText((self.format_amount(a) + ' ' + self.base_unit()) if a else '')

@@ -25,12 +25,10 @@ class AmountEdit(MyLineEdit):
         # This seems sufficient for 10,000 MXEC amounts with two decimals
         self.setFixedWidth(160)
         self.base_unit: str = base_unit
+        self.decimal_point: int = 2
         self.textChanged.connect(self.numbify)
         self.is_int = is_int
         self.is_shortcut = False
-
-    def decimal_point(self):
-        return 8
 
     def numbify(self):
         text = self.text().strip()
@@ -44,8 +42,8 @@ class AmountEdit(MyLineEdit):
         if not self.is_int:
             if '.' in s:
                 p = s.find('.')
-                s = s.replace('.','')
-                s = s[:p] + '.' + s[p:p+self.decimal_point()]
+                s = s.replace('.', '')
+                s = s[:p] + '.' + s[p:p + self.decimal_point]
         self.setText(s)
         # setText sets Modified to False.  Instead we want to remember
         # if updates were because of user modification.
@@ -72,10 +70,10 @@ class AmountEdit(MyLineEdit):
 
 class BTCAmountEdit(AmountEdit):
 
-    def __init__(self, decimal_point, is_int=False, parent=None):
-        if decimal_point() not in BASE_UNITS_BY_DECIMALS:
+    def __init__(self, decimal_point: int, is_int=False, parent=None):
+        if decimal_point not in BASE_UNITS_BY_DECIMALS:
             raise Exception('Unknown base unit')
-        self._base_unit: str = BASE_UNITS_BY_DECIMALS[decimal_point()]
+        self._base_unit: str = BASE_UNITS_BY_DECIMALS[decimal_point]
         AmountEdit.__init__(self, self._base_unit, is_int, parent)
         self.decimal_point = decimal_point
 
@@ -84,14 +82,14 @@ class BTCAmountEdit(AmountEdit):
             x = PyDecimal(str(self.text()))
         except:
             return None
-        p = pow(10, self.decimal_point())
-        return int( p * x )
+        p = pow(10, self.decimal_point)
+        return int(p * x)
 
     def setAmount(self, amount):
         if amount is None:
             self.setText(" ") # Space forces repaint in case units changed
         else:
-            self.setText(format_satoshis_plain(amount, self.decimal_point()))
+            self.setText(format_satoshis_plain(amount, self.decimal_point))
 
 
 class BTCkBEdit(BTCAmountEdit):
@@ -102,7 +100,7 @@ class BTCkBEdit(BTCAmountEdit):
 
 class BTCSatsByteEdit(BTCAmountEdit):
     def __init__(self, parent=None):
-        BTCAmountEdit.__init__(self, decimal_point=lambda: 2, is_int=False, parent=parent)
+        BTCAmountEdit.__init__(self, decimal_point=2, is_int=False, parent=parent)
         self._base_unit = 'sats/B'
 
     def get_amount(self):

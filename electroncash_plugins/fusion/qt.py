@@ -1277,7 +1277,7 @@ class WalletSettingsDialog(WindowModalDialog):
         self.radio_select_fraction.clicked.connect(self.edited_fraction)
         self.radio_select_count.clicked.connect(self.edited_count)
 
-        self.amt_selector_size = BTCAmountEdit(main_window.get_decimal_point)
+        self.amt_selector_size = BTCAmountEdit(main_window.get_decimal_point())
         grid.addWidget(self.amt_selector_size, 0, 1)
         self.sb_selector_fraction = QtWidgets.QDoubleSpinBox()
         self.sb_selector_fraction.setRange(0.1, 100.)
