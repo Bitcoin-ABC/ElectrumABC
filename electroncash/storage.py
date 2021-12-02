@@ -176,9 +176,6 @@ class WalletStorage(JsonDB):
     def load_data(self, s):
         try:
             self.data = json.loads(s)
-
-            # Sanity check: wallet should be a quack like a dict. This throws if not.
-            self.data.get("dummy")
         except:
             try:
                 d = ast.literal_eval(s)
@@ -194,6 +191,9 @@ class WalletStorage(JsonDB):
                     self.print_error('Failed to convert label to json format', key)
                     continue
                 self.data[key] = value
+
+        if not isinstance(self.data, dict):
+            raise WalletFileException("Malformed wallet file (not dict)")
 
         # check here if I need to load a plugin
         t = self.get('wallet_type')
