@@ -79,7 +79,7 @@ from electroncash.util import (format_time, format_satoshis, PrintError,
 from electroncash.wallet import Multisig_Wallet, sweep_preparations
 
 
-from .amountedit import AmountEdit, BTCAmountEdit, MyLineEdit, BTCSatsByteEdit
+from .amountedit import AmountEdit, XECAmountEdit, MyLineEdit, XECSatsByteEdit
 from .qrcodewidget import QRCodeWidget, QRDialog
 from .qrtextedit import ShowQRTextEdit, ScanQRTextEdit
 from .transaction_dialog import show_transaction
@@ -1266,7 +1266,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.receive_opreturn_label,
         ]
 
-        self.receive_amount_e = BTCAmountEdit(self.get_decimal_point())
+        self.receive_amount_e = XECAmountEdit(self.get_decimal_point())
         label = QtWidgets.QLabel(_('Requested &amount'))
         label.setBuddy(self.receive_amount_e)
         grid.addWidget(label, 4, 0)
@@ -1614,7 +1614,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         grid.setColumnStretch(3, 1)
 
         from .paytoedit import PayToEdit
-        self.amount_e = BTCAmountEdit(self.get_decimal_point())
+        self.amount_e = XECAmountEdit(self.get_decimal_point())
         self.payto_e = PayToEdit(self)
         # NB: the translators hopefully will not have too tough a time with this
         # *fingers crossed* :)
@@ -1742,7 +1742,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         self.fee_slider_mogrifier()
 
-        self.fee_e = BTCAmountEdit(self.get_decimal_point())
+        self.fee_e = XECAmountEdit(self.get_decimal_point())
         if not self.config.get('show_fee', False):
             self.fee_e.setVisible(False)
         self.fee_e.textEdited.connect(self.update_fee)
@@ -4241,7 +4241,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         fee_gb = QtWidgets.QGroupBox(_('Fees'))
         fee_lo = QtWidgets.QGridLayout(fee_gb)
 
-        customfee_e = BTCSatsByteEdit()
+        customfee_e = XECSatsByteEdit()
         customfee_e.setAmount(self.config.custom_fee_rate() / 1000.0 if self.config.has_custom_fee_rate() else None)
         customfee_e.textChanged.connect(on_customfee)
         customfee_label = HelpLabel(_('Custom fee rate:'), _('Custom Fee Rate in Satoshis per byte'))
@@ -5070,7 +5070,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         output_amount = QtWidgets.QLabel('')
         grid.addWidget(QtWidgets.QLabel(_('Output amount') + ':'), 2, 0)
         grid.addWidget(output_amount, 2, 1)
-        fee_e = BTCAmountEdit(self.get_decimal_point())
+        fee_e = XECAmountEdit(self.get_decimal_point())
         def f(x):
             a = max_fee - fee_e.get_amount()
             output_amount.setText((self.format_amount(a) + ' ' + self.base_unit()) if a else '')

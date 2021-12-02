@@ -70,7 +70,7 @@ class AmountEdit(MyLineEdit):
             return None
 
 
-class BTCAmountEdit(AmountEdit):
+class XECAmountEdit(AmountEdit):
 
     def __init__(self, decimal_point: int, is_int=False, parent=None):
         if decimal_point not in BASE_UNITS_BY_DECIMALS:
@@ -95,15 +95,9 @@ class BTCAmountEdit(AmountEdit):
             self.setText(format_satoshis_plain(amount, self.decimal_point))
 
 
-class BTCkBEdit(BTCAmountEdit):
-    def __init__(self, decimal_point, is_int=False, parent=None):
-        super().__init__(decimal_point, is_int, parent)
-        self._base_unit += '/kB'
-
-
-class BTCSatsByteEdit(BTCAmountEdit):
+class XECSatsByteEdit(XECAmountEdit):
     def __init__(self, parent=None):
-        BTCAmountEdit.__init__(self, decimal_point=2, is_int=False, parent=parent)
+        XECAmountEdit.__init__(self, decimal_point=2, is_int=False, parent=parent)
         self._base_unit = 'sats/B'
 
     def get_amount(self):

@@ -42,7 +42,7 @@ from electroncash.util import (
     do_in_main_thread, finalization_print_error, format_satoshis_plain, InvalidPassword, inv_dict, print_error,
     PrintError, profiler)
 from electroncash.wallet import Abstract_Wallet
-from electroncash_gui.qt.amountedit import BTCAmountEdit
+from electroncash_gui.qt.amountedit import XECAmountEdit
 from electroncash_gui.qt.main_window import ElectrumWindow, StatusBarButton
 from electroncash_gui.qt.popup_widget import ShowPopupLabel, KillPopupLabel
 from electroncash_gui.qt.util import (
@@ -1277,7 +1277,7 @@ class WalletSettingsDialog(WindowModalDialog):
         self.radio_select_fraction.clicked.connect(self.edited_fraction)
         self.radio_select_count.clicked.connect(self.edited_count)
 
-        self.amt_selector_size = BTCAmountEdit(main_window.get_decimal_point())
+        self.amt_selector_size = XECAmountEdit(main_window.get_decimal_point())
         grid.addWidget(self.amt_selector_size, 0, 1)
         self.sb_selector_fraction = QtWidgets.QDoubleSpinBox()
         self.sb_selector_fraction.setRange(0.1, 100.)
