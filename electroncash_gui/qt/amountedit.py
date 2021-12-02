@@ -65,8 +65,8 @@ class AmountEdit(MyLineEdit):
 
     def get_amount(self):
         try:
-            return (int if self.is_int else Decimal)(str(self.text()))
-        except:
+            return (int if self.is_int else Decimal)(self.text())
+        except (ValueError, ArithmeticError):
             return None
 
 
@@ -82,7 +82,7 @@ class XECAmountEdit(AmountEdit):
     def get_amount(self):
         try:
             x = Decimal(self.text())
-        except:
+        except ArithmeticError:
             return None
         p = pow(10, self.decimal_point)
         return int(p * x)
@@ -103,7 +103,7 @@ class XECSatsByteEdit(XECAmountEdit):
     def get_amount(self):
         try:
             x = float(Decimal(self.text()))
-        except:
+        except (ValueError, ArithmeticError):
             return None
         return x if x > 0.0 else None
 
