@@ -104,6 +104,10 @@ class MyEncoder(json.JSONEncoder):
         from .transaction import Transaction
         if isinstance(obj, Transaction):
             return obj.as_dict()
+        if isinstance(obj, datetime):
+            return obj.isoformat(' ')[:-3]
+        if isinstance(obj, set):
+            return list(obj)
         return super(MyEncoder, self).default(obj)
 
 class PrintError:
