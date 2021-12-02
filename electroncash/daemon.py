@@ -274,8 +274,6 @@ class Daemon(DaemonThread):
             storage.decrypt(password)
         if storage.requires_split():
             return
-        if storage.requires_upgrade():
-            return
         if storage.get_action():
             return
         wallet = Wallet(storage)

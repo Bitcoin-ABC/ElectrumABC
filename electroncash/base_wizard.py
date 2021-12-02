@@ -28,6 +28,7 @@
 import os
 import sys
 import traceback
+from functools import partial
 from typing import Callable
 
 from . import bitcoin
@@ -40,7 +41,7 @@ from .storage import (
     get_derivation_used_for_hw_device_encryption
 )
 from .wallet import (ImportedAddressWallet, ImportedPrivkeyWallet,
-                     Standard_Wallet, Multisig_Wallet, wallet_types)
+                     Standard_Wallet, Multisig_Wallet, Wallet, wallet_types)
 from .i18n import _
 from .constants import PROJECT_NAME, REPOSITORY_URL, CURRENCY
 
@@ -100,6 +101,12 @@ class BaseWizard(util.PrintError):
         ]
         choices = [pair for pair in wallet_kinds if pair[0] in wallet_types]
         self.choice_dialog(title=title, message=message, choices=choices, run_next=self.on_wallet_type)
+
+    def upgrade_storage(self):
+        def on_finished():
+            self.wallet = Wallet(self.storage)
+            self.terminate()
+        self.waiting_dialog(partial(self.storage.upgrade), _('Upgrading wallet format...'), on_finished=on_finished)
 
     def on_wallet_type(self, choice):
         self.wallet_type = choice
