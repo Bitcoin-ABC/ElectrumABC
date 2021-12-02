@@ -346,7 +346,8 @@ assert len(__b43chars) == 43
 def base_encode(v, base):
     """ encode v, which is a string of bytes, to base58."""
     assert_bytes(v)
-    assert base in (58, 43)
+    if base not in (58, 43):
+        raise ValueError(f'not supported base: {base}')
     chars = __b58chars
     if base == 43:
         chars = __b43chars
@@ -380,7 +381,8 @@ def base_decode(v, length, base):
     in string."""
     # assert_bytes(v)
     v = to_bytes(v, 'ascii')
-    assert base in (58, 43)
+    if base not in (58, 43):
+        raise ValueError(f'not supported base: {base}')
     chars = __b58chars
     if base == 43:
         chars = __b43chars
@@ -944,7 +946,8 @@ def xpub_from_pubkey(xtype, cK, *, net=None):
 
 
 def bip32_derivation(s):
-    assert s.startswith('m/')
+    if not s.startswith('m/'):
+        raise ValueError('invalid bip32 derivation path: {}'.format(s))
     s = s[2:]
     for n in s.split('/'):
         if n == '': continue
@@ -960,7 +963,9 @@ def is_bip32_derivation(x):
 
 def bip32_private_derivation(xprv, branch, sequence, *, net=None):
     if net is None: net = networks.net
-    assert sequence.startswith(branch)
+    if not sequence.startswith(branch):
+        raise ValueError('incompatible branch ({}) and sequence ({})'
+                         .format(branch, sequence))
     if branch == sequence:
         return xprv, xpub_from_xprv(xprv, net=net)
     xtype, depth, fingerprint, child_number, c, k = deserialize_xprv(xprv, net=net)

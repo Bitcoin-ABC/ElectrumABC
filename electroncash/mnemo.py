@@ -399,7 +399,8 @@ class Mnemonic_Electrum(MnemonicBase):
             nonce += 1
             i = custom_entropy * (my_entropy + nonce)
             seed = self.mnemonic_encode(i)
-            assert i == self.mnemonic_decode(seed)
+            if i != self.mnemonic_decode(seed):
+                raise Exception('Cannot extract same entropy from mnemonic!')
             # avoid ambiguity between old-style seeds and new-style, as well as avoid clashes with BIP39 seeds
             if autodetect_seed_type(seed, self.lang, prefix=prefix) == {SeedType.Electrum}:
                 break
