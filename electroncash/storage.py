@@ -158,7 +158,6 @@ class JsonDB(PrintError):
             assert not os.path.exists(self.path)
         os.replace(temp_path, self.path)
         os.chmod(self.path, mode)
-        self.raw = s
         self._file_exists = True
         self.print_error("saved", self.path)
         self.modified = False
