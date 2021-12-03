@@ -61,7 +61,7 @@ class BaseWizard(util.PrintError):
         self.config = config
         self.storage = storage
         self.wallet = None
-        self.stack: List[WizardStackItem] = []
+        self._stack: List[WizardStackItem] = []
         self.plugin = None
         self.keystores = []
         self.is_kivy = config.get('gui') == 'kivy'
@@ -70,7 +70,7 @@ class BaseWizard(util.PrintError):
     def run(self, *args):
         action = args[0]
         args = args[1:]
-        self.stack.append(WizardStackItem(action, args, self.storage.get_all_data()))
+        self._stack.append(WizardStackItem(action, args, self.storage.get_all_data()))
         if not action:
             return
         if type(action) is tuple:
@@ -85,20 +85,23 @@ class BaseWizard(util.PrintError):
             raise BaseException("unknown action", action)
 
     def can_go_back(self):
-        return len(self.stack)>1
+        return len(self._stack)>1
 
     def go_back(self):
         if not self.can_go_back():
             return
         # pop 'current' frame
-        self.stack.pop()
+        self._stack.pop()
         # pop 'previous' frame
-        stack_item = self.stack.pop()
+        stack_item = self._stack.pop()
         # try to undo side effects since we last entered 'previous' frame
         # FIXME only self.storage is properly restored
         self.storage.overwrite_all_data(stack_item.storage_data)
         # rerun 'previous' frame
         self.run(stack_item.action, *stack_item.args)
+
+    def reset_stack(self):
+        self._stack = []
 
     def new(self):
         name = os.path.basename(self.storage.path)
@@ -211,7 +214,7 @@ class BaseWizard(util.PrintError):
                                                 None)
             self.keystores = w.get_keystores()
             self.wallet_type = "imported_privkey"
-            self.stack = []  # 'Back' button wasn't working anyway at this point, so we just force it to read 'Cancel' and this proceeds with no password set.
+            self.reset_stack()  # 'Back' button wasn't working anyway at this point, so we just force it to read 'Cancel' and this proceeds with no password set.
         else:
             return self.terminate()
         return self.run('create_wallet')
@@ -471,7 +474,7 @@ class BaseWizard(util.PrintError):
             self.keystores.append(k)
             if len(self.keystores) == 1:
                 xpub = k.get_master_public_key()
-                self.stack = []
+                self.reset_stack()
                 self.run('show_xpub_and_add_cosigners', xpub)
             elif len(self.keystores) < self.n:
                 self.run('choose_keystore')

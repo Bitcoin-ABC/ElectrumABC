@@ -245,10 +245,10 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
 
         while True:
             password = None
-            if self.storage.file_exists() and not self.storage.is_encrypted():
-                break
             if self.loop.exec_() != 2:  # 2 = next
                 return
+            if self.storage.file_exists() and not self.storage.is_encrypted():
+                break
             if not self.storage.file_exists():
                 break
             if self.storage.file_exists() and self.storage.is_encrypted():
@@ -274,7 +274,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
                             None, _('Error'),
                             _('Failed to decrypt using this hardware device.') + '\n' +
                             _('If you use a passphrase, make sure it is correct.'))
-                        self.stack = []
+                        self.reset_stack()
                         return self.run_and_get_wallet()
                     except BaseException as e:
                         traceback.print_exc(file=sys.stdout)
