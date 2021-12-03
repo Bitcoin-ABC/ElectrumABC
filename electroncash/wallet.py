@@ -2135,17 +2135,17 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             self.set_up_to_date(False)
             while not self.is_up_to_date():
                 if callback:
-                    msg = "%s\n%s %d"%(
+                    msg = "{}\n{} {}".format(
                         _("Please wait..."),
                         _("Addresses generated:"),
-                        len(self.addresses(True)))
+                        len(self.get_addresses()))
                     callback(msg)
                 time.sleep(0.1)
                 check_timed_out()
         def wait_for_network():
             while not self.network.is_connected():
                 if callback:
-                    msg = "%s \n" % (_("Connecting..."))
+                    msg = "{} \n".format(_("Connecting..."))
                     callback(msg)
                 time.sleep(0.1)
                 check_timed_out()

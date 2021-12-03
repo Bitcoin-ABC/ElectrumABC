@@ -114,7 +114,6 @@ def wizard_dialog(func):
 class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
 
     accept_signal = pyqtSignal()
-    synchronized_signal = pyqtSignal(str)
 
     def __init__(self, config, app, plugins, storage):
         BaseWizard.__init__(self, config, storage)
