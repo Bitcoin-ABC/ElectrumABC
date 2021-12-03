@@ -28,7 +28,6 @@
 import os
 import sys
 import traceback
-from functools import partial
 from typing import Any, Callable, List, NamedTuple
 
 from . import bitcoin
@@ -116,10 +115,20 @@ class BaseWizard(util.PrintError):
         self.choice_dialog(title=title, message=message, choices=choices, run_next=self.on_wallet_type)
 
     def upgrade_storage(self):
+        exc = None
         def on_finished():
-            self.wallet = Wallet(self.storage)
-            self.terminate()
-        self.waiting_dialog(partial(self.storage.upgrade), _('Upgrading wallet format...'), on_finished=on_finished)
+            if exc is None:
+                self.wallet = Wallet(self.storage)
+                self.terminate()
+            else:
+                raise exc
+        def do_upgrade():
+            nonlocal exc
+            try:
+                self.storage.upgrade()
+            except Exception as e:
+                exc = e
+        self.waiting_dialog(do_upgrade, _('Upgrading wallet format...'), on_finished=on_finished)
 
     def on_wallet_type(self, choice):
         self.wallet_type = choice

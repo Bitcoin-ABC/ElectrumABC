@@ -47,7 +47,7 @@ from .i18n import ngettext
 from .util import (NotEnoughFunds, ExcessiveFee, PrintError,
                    UserCancelled, InvalidPassword, profiler,
                    format_satoshis, format_time, finalization_print_error,
-                   to_string, bh2u, TimeoutException)
+                   to_string, bh2u, TimeoutException, WalletFileException)
 
 from .address import Address, Script, ScriptOutput, PublicKey
 from .version import PACKAGE_VERSION
@@ -3267,9 +3267,6 @@ wallet_constructors = {
 def register_constructor(wallet_type, constructor):
     wallet_constructors[wallet_type] = constructor
 
-class UnknownWalletType(RuntimeError):
-    ''' Raised if encountering an unknown wallet type '''
-    pass
 
 # former WalletFactory
 class Wallet:
@@ -3297,7 +3294,7 @@ class Wallet:
             return Multisig_Wallet
         if wallet_type in wallet_constructors:
             return wallet_constructors[wallet_type]
-        raise UnknownWalletType("Unknown wallet type: " + str(wallet_type))
+        raise WalletFileException("Unknown wallet type: " + str(wallet_type))
 
 
 def create_new_wallet(*, path, passphrase=None, password=None,
