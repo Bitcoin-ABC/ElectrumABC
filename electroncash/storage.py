@@ -67,6 +67,7 @@ def get_derivation_used_for_hw_device_encryption():
             "/4541509'"      # ascii 'ELE'  as decimal ("BIP43 purpose")
             "/1112098098'")  # ascii 'BIE2' as decimal
 
+
 # storage encryption version
 STO_EV_PLAINTEXT, STO_EV_USER_PW, STO_EV_XPUB_PW = range(0, 3)
 
@@ -79,6 +80,7 @@ class JsonDB(PrintError):
         self._file_exists = self.path and os.path.exists(self.path)
         self.data = {}
         self.modified = False
+        self.output_pretty_json: bool = True
 
     def get(self, key, default=None):
         with self.db_lock:
@@ -116,7 +118,12 @@ class JsonDB(PrintError):
             return
         if not self.modified:
             return
-        s = json.dumps(self.data, indent=4, sort_keys=True, cls=util.MyEncoder)
+        s = json.dumps(
+            self.data,
+            indent=4 if self.output_pretty_json else None,
+            sort_keys=self.output_pretty_json,
+            cls=util.MyEncoder
+        )
         s = self.encrypt_before_writing(s)
 
         temp_path = self.path + TMP_SUFFIX
@@ -147,6 +154,9 @@ class JsonDB(PrintError):
 
     def file_exists(self):
         return self._file_exists
+
+    def set_output_pretty_json(self, flag: bool):
+        self.output_pretty_json = flag
 
 
 class WalletStorage(JsonDB):
@@ -301,9 +311,13 @@ class WalletStorage(JsonDB):
             ec_key = self.get_key(password)
             self.pubkey = ec_key.get_public_key()
             self._encryption_version = enc_version
+            # Encrypted wallets are not human readable, so we can gain some performance
+            # by writing compact JSON.
+            self.set_output_pretty_json(False)
         else:
             self.pubkey = None
             self._encryption_version = STO_EV_PLAINTEXT
+            self.set_output_pretty_json(True)
         # make sure next storage.write() saves changes
         with self.db_lock:
             self.modified = True
