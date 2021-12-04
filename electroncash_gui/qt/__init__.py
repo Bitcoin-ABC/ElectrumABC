@@ -575,7 +575,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
             if isinstance(window, ElectrumWindow):
                 self._last_active_window = Weak.ref(window)
 
-    def start_new_window(self, path, uri):
+    def start_new_window(self, path, uri, app_is_starting=False):
         '''Raises the window for the wallet if it is open. Otherwise
         opens the wallet and creates a new window for it.
 
@@ -608,17 +608,16 @@ class ElectrumGui(QtCore.QObject, PrintError):
         try:
             wallet = self.daemon.load_wallet(path, None)
         except BaseException as e:
-            self.print_error(repr(e))
-            if self.windows:
-                # *Not* starting up. Propagate exception out to present
-                # error message box to user.
-                raise e
-            # We're just starting up, so we are tolerant of bad wallets
-            # and just want to proceed to the InstallWizard so the user
-            # can either specify a different wallet or create a new one.
-            # (See issue #1189 where before they would get stuck)
-            path = self.get_new_wallet_path()  # give up on this unknown wallet and try a new name.. note if things get really bad this will raise FileNotFoundError and the app aborts here.
-            wallet = None  # fall thru to wizard
+            traceback.print_exc(file=sys.stdout)
+            d = QtWidgets.QMessageBox(
+                QtWidgets.QMessageBox.Warning, _('Error'),
+                _('Cannot load wallet') + ' (1):\n' + str(e))
+            d.exec_()
+            if app_is_starting:
+                # do not return so that the wizard can appear
+                wallet = None
+            else:
+                return
 
         if not wallet:
             storage = WalletStorage(path, manual_upgrades=True)
@@ -976,7 +975,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         self.timer.start()
         self.config.open_last_wallet()
         path = self.config.get_wallet_path()
-        if not self.start_new_window(path, self.config.get('url')):
+        if not self.start_new_window(path, self.config.get('url'), app_is_starting=True):
             return
         signal.signal(signal.SIGINT, lambda signum, frame: self.shutdown_signal.emit())
 
