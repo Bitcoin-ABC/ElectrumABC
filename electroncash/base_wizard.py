@@ -346,7 +346,15 @@ class BaseWizard(util.PrintError):
             derivation = get_derivation_used_for_hw_device_encryption()
             xpub = self.plugin.get_xpub(device_info.device.id_, derivation, 'standard', self)
             password = keystore.Xpub.get_pubkey_from_xpub(xpub, ())
-            self.storage.decrypt(password)
+            try:
+                self.storage.decrypt(password)
+            except util.InvalidPassword:
+                # try to clear session so that user can type another passphrase
+                devmgr = self.plugins.device_manager
+                client = devmgr.client_by_id(device_info.device.id_)
+                if hasattr(client, 'clear_session'):  # FIXME not all hw wallet plugins have this
+                    client.clear_session()
+                raise
         else:
             raise Exception('unknown purpose: %s' % purpose)
 
