@@ -7,8 +7,9 @@ import unittest
 from io import StringIO
 
 from ..address import Address
+from ..json_db import FINAL_SEED_VERSION
 from ..simple_config import SimpleConfig
-from ..storage import FINAL_SEED_VERSION, WalletStorage
+from ..storage import WalletStorage
 from ..wallet import (
     Abstract_Wallet,
     Standard_Wallet,

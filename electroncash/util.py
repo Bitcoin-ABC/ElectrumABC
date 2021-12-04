@@ -29,6 +29,7 @@ import itertools
 import json
 import locale
 import os
+import re
 import stat
 import subprocess
 import sys
@@ -1058,3 +1059,15 @@ class Weak:
 # may wonder 'Why Weak.finaliztion_print_error'?. The fact that this relies on
 # weak refs is an implementation detail, really.
 finalization_print_error = Weak.finalization_print_error
+
+
+def multisig_type(wallet_type):
+    '''If wallet_type is mofn multi-sig, return [m, n],
+    otherwise return None.'''
+    if not wallet_type:
+        return None
+    match = re.match(r'(\d+)of(\d+)', wallet_type)
+    if match:
+        match = [int(x) for x in match.group(1, 2)]
+    return match
+

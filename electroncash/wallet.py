@@ -45,7 +45,7 @@ from typing import Set, Tuple, Union
 from .constants import DUST_THRESHOLD
 from .i18n import ngettext
 from .util import (NotEnoughFunds, ExcessiveFee, PrintError,
-                   UserCancelled, InvalidPassword, profiler,
+                   UserCancelled, InvalidPassword, multisig_type, profiler,
                    format_satoshis, format_time, finalization_print_error,
                    to_string, bh2u, TimeoutException, WalletFileException)
 
@@ -55,7 +55,6 @@ from .keystore import load_keystore, Hardware_KeyStore, Imported_KeyStore, BIP32
 from . import mnemo
 from . import keystore
 from .storage import (
-    multisig_type,
     WalletStorage,
     STO_EV_PLAINTEXT,
     STO_EV_USER_PW,
