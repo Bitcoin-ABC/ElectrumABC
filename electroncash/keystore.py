@@ -833,7 +833,7 @@ class InvalidSeed(Exception):
 def from_private_key_list(text):
     keystore = Imported_KeyStore({})
     for x in get_private_keys(text):
-        keystore.import_key(x, None)
+        keystore.import_privkey(x, None)
     return keystore
 
 

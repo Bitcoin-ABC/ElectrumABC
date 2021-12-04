@@ -107,20 +107,6 @@ class JsonDB(PrintError):
                 self.modified = True
                 self.data.pop(key)
 
-    def get_all_data(self) -> dict:
-        with self.db_lock:
-            return copy.deepcopy(self.data)
-
-    def overwrite_all_data(self, data: dict) -> None:
-        try:
-            json.dumps(data, cls=util.MyEncoder)
-        except:
-            self.print_error(f"json error: cannot save {repr(data)}")
-            return
-        with self.db_lock:
-            self.modified = True
-            self.data = copy.deepcopy(data)
-
     @profiler
     def write(self):
         with self.db_lock:
@@ -174,14 +160,14 @@ class JsonDB(PrintError):
 
 class WalletStorage(JsonDB):
 
-    def __init__(self, path, manual_upgrades=False, *, in_memory_only=False):
+    def __init__(self, path, *, manual_upgrades=False, in_memory_only=False):
         self.print_error("wallet path", path)
         JsonDB.__init__(self, path)
         self.manual_upgrades = manual_upgrades
         self._file_exists = in_memory_only or self._file_exists
         self.pubkey = None
         self.raw = None
-        self._in_memory_only=in_memory_only
+        self._in_memory_only = in_memory_only
         if self.file_exists() and not self._in_memory_only:
             try:
                 with open(self.path, "r", encoding='utf-8') as f:
@@ -204,7 +190,7 @@ class WalletStorage(JsonDB):
                 d = ast.literal_eval(s)
                 labels = d.get('labels', {})
             except Exception as e:
-                raise IOError("Cannot read wallet file '%s': %s" % (self.path, e))
+                raise IOError("Cannot read wallet file")
             self.data = {}
             for key, value in d.items():
                 try:
@@ -671,7 +657,6 @@ class WalletStorage(JsonDB):
 
     def raise_unsupported_version(self, seed_version):
         msg = "Your wallet has an unsupported seed version."
-        msg += '\n\nWallet file: %s' % os.path.abspath(self.path)
         if seed_version in [5, 7, 8, 9, 10, 14]:
             msg += "\n\nTo open this wallet, try 'git checkout seed_v%d'"%seed_version
         if seed_version == 6:

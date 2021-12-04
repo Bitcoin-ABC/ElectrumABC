@@ -681,8 +681,8 @@ class SatochipPlugin(HW_PluginBase):
 
             hex_authentikey= authentikey.get_public_key_hex(compressed=True)
             self.print_error("setup_device(): authentikey=", hex_authentikey)#debugSatochip
-            wizard.storage.put('authentikey', hex_authentikey)
-            self.print_error("setup_device(): authentikey from storage=", wizard.storage.get('authentikey'))#debugSatochip
+            wizard.data['authentikey'] = hex_authentikey
+            self.print_error("setup_device(): authentikey from storage=", wizard.data['authentikey'])#debugSatochip
             break
 
     def get_xpub(self, device_id, derivation, xtype, wizard):
