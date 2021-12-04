@@ -620,10 +620,10 @@ class ElectrumGui(QtCore.QObject, PrintError):
                 return
 
         if not wallet:
-            storage = WalletStorage(path, manual_upgrades=True)
-            wizard = InstallWizard(self.config, self.app, self.plugins, storage)
+            wizard = InstallWizard(self.config, self.app, self.plugins, None)
             try:
-                wallet, password = wizard.run_and_get_wallet(self.daemon.get_wallet) or (None, None)
+                if wizard.select_storage(path, self.daemon.get_wallet):
+                    wallet = wizard.run_and_get_wallet()
             except UserCancelled:
                 pass
             except GoBack as e:

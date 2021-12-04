@@ -161,7 +161,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         # Track object lifecycle
         finalization_print_error(self)
 
-    def run_and_get_wallet(self, get_wallet_from_daemon):
+    def select_storage(self, path, get_wallet_from_daemon):
         vbox = QtWidgets.QVBoxLayout()
         hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(QtWidgets.QLabel(_('Wallet') + ':'))
@@ -184,6 +184,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         vbox.addLayout(hbox2)
         self.set_layout(vbox, title=_(f'{PROJECT_NAME} wallet'))
 
+        self.storage = WalletStorage(path, manual_upgrades=True)
         wallet_folder = os.path.dirname(self.storage.path)
 
         def on_choose():
@@ -242,7 +243,6 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         self.name_e.setText(n)
 
         while True:
-            password = None
             if self.loop.exec_() != 2:  # 2 = next
                 return
             if self.storage.file_exists() and not self.storage.is_encrypted():
@@ -274,7 +274,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
                             _('Failed to decrypt using this hardware device.') + '\n' +
                             _('If you use a passphrase, make sure it is correct.'))
                         self.reset_stack()
-                        return self.run_and_get_wallet(get_wallet_from_daemon)
+                        return self.select_storage(path, get_wallet_from_daemon)
                     except BaseException as e:
                         traceback.print_exc(file=sys.stdout)
                         QtWidgets.QMessageBox.information(None, _('Error'), str(e))
@@ -285,7 +285,9 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
                         return
                 else:
                     raise Exception('Unexpected encryption version')
+        return True
 
+    def run_and_get_wallet(self):
         path = self.storage.path
         if self.storage.requires_split():
             self.hide()
@@ -314,10 +316,10 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         if action:
             # self.wallet is set in run
             self.run(action)
-            return self.wallet, password
+            return self.wallet
 
         self.wallet = Wallet(self.storage)
-        return self.wallet, password
+        return self.wallet
 
     def finished(self):
         """Called in hardware client wrapper, in order to close popups."""
