@@ -604,66 +604,59 @@ class ElectrumGui(QtCore.QObject, PrintError):
         # we'll end up picking self.windows[0]
 
         path = path and standardize_path(path) # just make sure some plugin didn't give us a symlink
-        for w in self.windows:
-            if not path or w.wallet.storage.path == path:
-                path = w.wallet.storage.path  # remember path in case it was None
-                w.bring_to_top()
-                break
-        else:
+
+        try:
+            wallet = self.daemon.load_wallet(path, None)
+        except BaseException as e:
+            self.print_error(repr(e))
+            if self.windows:
+                # *Not* starting up. Propagate exception out to present
+                # error message box to user.
+                raise e
+            # We're just starting up, so we are tolerant of bad wallets
+            # and just want to proceed to the InstallWizard so the user
+            # can either specify a different wallet or create a new one.
+            # (See issue #1189 where before they would get stuck)
+            path = self.get_new_wallet_path()  # give up on this unknown wallet and try a new name.. note if things get really bad this will raise FileNotFoundError and the app aborts here.
+            wallet = None  # fall thru to wizard
+
+        if not wallet:
+            storage = WalletStorage(path, manual_upgrades=True)
+            wizard = InstallWizard(self.config, self.app, self.plugins, storage)
             try:
+                wallet, password = wizard.run_and_get_wallet(self.daemon.get_wallet) or (None, None)
+            except UserCancelled:
+                pass
+            except GoBack as e:
+                print_error('[start_new_window] Exception caught (GoBack)', e)
+            wizard.terminate()
 
-                if not self.windows:
-                    self.warn_if_no_secp()
-
-                try:
-                    wallet = self.daemon.load_wallet(path, None)
-                except BaseException as e:
-                    self.print_error(repr(e))
-                    if self.windows:
-                        # *Not* starting up. Propagate exception out to present
-                        # error message box to user.
-                        raise e
-                    # We're just starting up, so we are tolerant of bad wallets
-                    # and just want to proceed to the InstallWizard so the user
-                    # can either specify a different wallet or create a new one.
-                    # (See issue #1189 where before they would get stuck)
-                    path = self.get_new_wallet_path()  # give up on this unknown wallet and try a new name.. note if things get really bad this will raise FileNotFoundError and the app aborts here.
-                    wallet = None  # fall thru to wizard
-                if not wallet:
-                    storage = WalletStorage(path, manual_upgrades=True)
-                    wizard = InstallWizard(self.config, self.app, self.plugins, storage)
-                    try:
-                        wallet, password = wizard.run_and_get_wallet() or (None, None)
-                    except UserCancelled:
-                        pass
-                    except GoBack as e:
-                        self.print_error('[start_new_window] Exception caught (GoBack)', e)
-                    except (WalletFileException, BitcoinException) as e:
-                        traceback.print_exc(file=sys.stderr)
-                        d = QtWidgets.QMessageBox(
-                            QtWidgets.QMessageBox.Warning,
-                            _('Error'),
-                            _('Cannot load wallet') + ' (2):\n' + str(e))
-                        d.exec_()
-                        return
-                    finally:
-                        wizard.terminate()
-                        del wizard
-                        gc.collect() # wizard sticks around in memory sometimes, otherwise :/
-                    if not wallet:
-                        return
-                    wallet.start_threads(self.daemon.network)
-                    self.daemon.add_wallet(wallet)
-                    self._cache_password(wallet, password)
-            except BaseException as e:
-                traceback.print_exc(file=sys.stdout)
-                self.warning(
-                    title=_('Error'),
-                    message = 'Cannot load wallet (1):\n' + str(e),
-                    icon=QtWidgets.QMessageBox.Critical
-                )
+            if not wallet:
                 return
+
+            if not self.daemon.get_wallet(wallet.storage.path):
+                # wallet was not in memory
+                wallet.start_threads(self.daemon.network)
+                self.daemon.add_wallet(wallet)
+
+        try:
+            if not self.windows:
+                self.warn_if_no_secp()
+
+            for w in self.windows:
+                if w.wallet.storage.path == wallet.storage.path:
+                    w.bring_to_top()
+                    return
             w = self.create_window_for_wallet(wallet)
+        except BaseException as e:
+            traceback.print_exc(file=sys.stdout)
+            d = QtWidgets.QMessageBox(
+                QtWidgets.QMessageBox.Warning, _('Error'),
+                _('Cannot create window for wallet:') + '\n' + str(e)
+            )
+            d.exec_()
+            return
+
         if uri:
             w.pay_to_URI(uri)
         w.bring_to_top()
