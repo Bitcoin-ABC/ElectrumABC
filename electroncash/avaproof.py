@@ -173,6 +173,12 @@ def compute_proof_id(
     master: PublicKey,
     payout_script_pubkey: bytes,
 ) -> Tuple[UInt256, UInt256]:
+    """
+    Return a 2-tuple with the limited proof ID and the proof ID.
+
+    Note that it is the caller's responsibility to sort the list of stakes by
+    their stake ID (this is done in ProofBuilder.add_utxo).
+    """
     ltd_id = compute_limited_proof_id(
         sequence, expiration_time, stakes, payout_script_pubkey
     )
@@ -220,6 +226,7 @@ class Proof:
         self.master_pub: PublicKey = master_pub
         """Master public key"""
         self.stakes: List[SignedStake] = signed_stakes
+        """List of signed stakes sorted by their stake ID."""
         self.payout_script_pubkey: bytes = payout_script_pubkey
         self.signature: bytes = signature
         """Schnorr signature of some of the proof's data by the master key."""
@@ -259,6 +266,9 @@ class ProofBuilder:
         self.payout_script_pubkey = payout_script_pubkey
 
         self.stake_signers: List[StakeSigner] = []
+        """List of stake signers sorted by stake ID.
+        Adding stakes through :meth:`add_utxo` takes care of the sorting.
+        """
 
     def add_utxo(self, txid: UInt256, vout, amount, height, wif_privkey, is_coinbase):
         """
@@ -278,7 +288,9 @@ class ProofBuilder:
         stake = Stake(utxo, amount, height, privkey.get_pubkey(), is_coinbase)
 
         self.stake_signers.append(StakeSigner(stake, privkey))
-        # Enforce a unique sorting for stakes in a proof
+
+        # Enforce a unique sorting for stakes in a proof. The sorting key is a UInt256.
+        # See UInt256.compare for the specifics about sorting these objects.
         self.stake_signers.sort(key=lambda ss: ss.stake.stake_id)
 
     def build(self):
