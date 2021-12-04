@@ -30,7 +30,7 @@ import threading
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtGui import QIcon
 from PyQt5 import QtWidgets
-from electroncash_gui.qt.password_dialog import PasswordDialog, PW_PASSPHRASE
+from electroncash_gui.qt.password_dialog import PasswordLayout, PW_PASSPHRASE
 from electroncash_gui.qt.util import (
     Buttons,
     CancelButton,
@@ -128,11 +128,16 @@ class QtHandlerBase(QObject, PrintError):
     def passphrase_dialog(self, msg, confirm):
         # If confirm is true, require the user to enter the passphrase twice
         parent = self.top_level_window()
+        d = WindowModalDialog(parent, _("Enter Passphrase"))
         if confirm:
-            d = PasswordDialog(parent, None, msg, PW_PASSPHRASE)
-            confirmed, p, passphrase = d.run()
+            OK_button = OkButton(d)
+            playout = PasswordLayout(msg=msg, kind=PW_PASSPHRASE, OK_button=OK_button)
+            vbox = QtWidgets.QVBoxLayout()
+            vbox.addLayout(playout.layout())
+            vbox.addLayout(Buttons(CancelButton(d), OK_button))
+            d.setLayout(vbox)
+            passphrase = playout.new_password() if d.exec_() else None
         else:
-            d = WindowModalDialog(parent, _("Enter Passphrase"))
             pw = QtWidgets.QLineEdit()
             pw.setEchoMode(2)
             pw.setMinimumWidth(200)
