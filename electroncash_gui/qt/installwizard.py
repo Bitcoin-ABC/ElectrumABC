@@ -300,17 +300,6 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
                 self.show_warning(_('The file was removed'))
             return
 
-        if self.storage.requires_upgrade():
-            self.hide()
-            msg = _(f"The format of your wallet {path} must be upgraded for "
-                    f"{PROJECT_NAME}. This change will not be backward "
-                    f"compatible")
-            if not self.question(msg):
-                return
-            self.storage.upgrade()
-            self.wallet = Wallet(self.storage)
-            return self.wallet, password
-
         action = self.storage.get_action()
         if action and action not in ('new', 'upgrade_storage'):
             self.hide()
