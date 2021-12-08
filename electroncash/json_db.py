@@ -74,6 +74,13 @@ class JsonDB(PrintError):
                 return func(self, *args, **kwargs)
         return wrapper
 
+    def locked(func):
+        def wrapper(self, *args, **kwargs):
+            with self.lock:
+                return func(self, *args, **kwargs)
+        return wrapper
+
+    @locked
     def get(self, key, default=None):
         v = self.data.get(key)
         if v is None:
@@ -102,6 +109,7 @@ class JsonDB(PrintError):
     def commit(self):
         pass
 
+    @locked
     def dump(self):
         return json.dumps(
             self.data,
@@ -440,6 +448,7 @@ class JsonDB(PrintError):
         else:
             return True
 
+    @locked
     def get_seed_version(self):
         seed_version = self.get('seed_version')
         if not seed_version:
