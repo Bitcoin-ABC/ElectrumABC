@@ -496,6 +496,8 @@ class Satochip_KeyStore(Hardware_KeyStore):
 
 
 class SatochipPlugin(HW_PluginBase):
+    SUPPORTS_XEC_BIP44_DERIVATION = True
+
     libraries_available = LIBS_AVAILABLE
     minimum_library = (0, 0, 0)
     keystore_class= Satochip_KeyStore

@@ -278,6 +278,7 @@ class BaseWizard(util.PrintError):
 
     def on_device(self, name, device_info, *, purpose):
         self.plugin = self.plugins.find_plugin(name, force_load=True)
+        print("-------  " + name + "--------------")
         try:
             self.plugin.setup_device(device_info, self, purpose)
         except OSError as e:
@@ -301,9 +302,9 @@ class BaseWizard(util.PrintError):
                 # There is no general standard for HD multisig.
                 # This is partially compatible with BIP45; assumes index=0
                 default_derivation = "m/45'/0"
+            elif self.plugin.supports_xec_bip44_derivation():
+                default_derivation = keystore.bip44_derivation_xec(0)
             else:
-                # Use the BCH derivation path for now, until hardware wallets
-                # start supporting BCHA
                 default_derivation = keystore.bip44_derivation_bch(0)
             self.derivation_dialog(
                 lambda x: self.run('on_hw_derivation', name, device_info, str(x)),
@@ -334,11 +335,11 @@ class BaseWizard(util.PrintError):
               f"{bip44_bch}"),
             _(f"If you want the wallet to use {CURRENCY} addresses use "
               f"{bip44_xec}")]
-        if is_hw_wallet:
-            lines.append("\nAt this time, it is recommended to use the "
-                         "Bitcoin Cash derivation path for hardware wallets,"
-                         " unless you know that your device already supports"
-                         " the new eCash derivation path.")
+        if is_hw_wallet and default_derivation == bip44_bch:
+            lines.append(
+                "\nAt this time, it is recommended to use the Bitcoin Cash derivation "
+                "path for hardware wallets, unless you know for sure that your "
+                "device's firmware already supports the eCash derivation path.")
         message = '\n'.join(lines)
         scannable = self.wallet_type == "standard" and bool(seed)
         self.derivation_path_dialog(run_next=run_next, title=_(f'Derivation for {self.wallet_type} wallet'),

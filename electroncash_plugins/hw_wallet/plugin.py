@@ -39,6 +39,10 @@ class HW_PluginBase(BasePlugin):
     #     libraries_available, libraries_URL, minimum_firmware,
     #     wallet_class, ckd_public, types, HidTransport
 
+    # For now, Ledger and Trezor don't support the 899' derivation path.
+    # SatochipPlugin overrides this class attribute.
+    SUPPORTS_XEC_BIP44_DERIVATION: bool = False
+
     def __init__(self, parent, config, name):
         BasePlugin.__init__(self, parent, config, name)
         self.device = self.keystore_class.device
@@ -82,6 +86,10 @@ class HW_PluginBase(BasePlugin):
         if type(keystore) != self.keystore_class:
             return False
         return True
+
+    def supports_xec_bip44_derivation(self) -> bool:
+        return self.SUPPORTS_XEC_BIP44_DERIVATION
+
 
 def is_any_tx_output_on_change_branch(tx: Transaction) -> bool:
     if not tx.output_info:
