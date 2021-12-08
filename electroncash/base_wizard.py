@@ -28,7 +28,7 @@
 import copy
 import sys
 import traceback
-from typing import Any, Callable, List, NamedTuple
+from typing import Any, Callable, Dict, List, NamedTuple, Optional
 
 from .address import Address
 from . import bitcoin
@@ -50,9 +50,14 @@ from .constants import PROJECT_NAME, REPOSITORY_URL, CURRENCY
 HWD_SETUP_NEW_WALLET, HWD_SETUP_DECRYPT_WALLET = range(0, 2)
 
 
+class GoBack(Exception):
+    pass
+
+
 class WizardStackItem(NamedTuple):
     action: Any
     args: Any
+    kwargs: Dict[str, Any]
     storage_data: dict
 
 
@@ -69,21 +74,21 @@ class BaseWizard(util.PrintError):
         self.is_kivy = config.get('gui') == 'kivy'
         self.seed_type = None
 
-    def run(self, *args):
+    def run(self, *args, **kwargs):
         action = args[0]
         args = args[1:]
         storage_data = copy.deepcopy(self.data)
-        self._stack.append(WizardStackItem(action, args, storage_data))
+        self._stack.append(WizardStackItem(action, args, kwargs, storage_data))
         if not action:
             return
         if type(action) is tuple:
             self.plugin, action = action
         if self.plugin and hasattr(self.plugin, action):
             f = getattr(self.plugin, action)
-            f(self, *args)
+            f(self, *args, **kwargs)
         elif hasattr(self, action):
             f = getattr(self, action)
-            f(*args)
+            f(*args, **kwargs)
         else:
             raise BaseException("unknown action", action)
 
@@ -101,7 +106,7 @@ class BaseWizard(util.PrintError):
         # FIXME only self.storage is properly restored
         self.data = copy.deepcopy(stack_item.storage_data)
         # rerun 'previous' frame
-        self.run(stack_item.action, *stack_item.args)
+        self.run(stack_item.action, *stack_item.args, **stack_item.kwargs)
 
     def reset_stack(self):
         self._stack = []
@@ -123,7 +128,7 @@ class BaseWizard(util.PrintError):
         exc = None
         def on_finished():
             if exc is None:
-                self.terminate()
+                self.terminate(storage=storage)
             else:
                 raise exc
         def do_upgrade():
@@ -253,7 +258,9 @@ class BaseWizard(util.PrintError):
                 _('No hardware wallet support found on your system.'),
                 _('Please install the relevant libraries (eg python-trezor for Trezor).'),
             ])
-            self.confirm_dialog(title=title, message=msg, run_next= lambda x: self.choose_hw_device(purpose))
+            self.confirm_dialog(title=title, message=msg,
+                                run_next=lambda x: self.choose_hw_device(
+                                    purpose, storage=storage))
             return
         # scan devices
         devices = []
@@ -292,7 +299,10 @@ class BaseWizard(util.PrintError):
                         + f"\n\n     {REPOSITORY_URL}/issues")
 
             msg = ''.join(msgs)
-            self.confirm_dialog(title=title, message=msg, run_next= lambda x: self.choose_hw_device(purpose), extra_button=extra_button)
+            self.confirm_dialog(title=title, message=msg,
+                                run_next=lambda x: self.choose_hw_device(
+                                    purpose, storage=storage),
+                                extra_button=extra_button)
             return
         # select device
         self.devices = devices
@@ -326,14 +336,13 @@ class BaseWizard(util.PrintError):
                             + _('Please try again.'))
             devmgr = self.plugins.device_manager
             devmgr.unpair_id(device_info.device.id_)
-            self.choose_hw_device(purpose)
+            self.choose_hw_device(purpose, storage=storage)
+            return
+        except (GoBack, util.UserCancelled):
+            self.choose_hw_device(purpose, storage=storage)
             return
         except BaseException as e:
-            if str(e).strip():
-                # This prevents showing an empty "UserCancelled" message
-                self.print_error(traceback.format_exc())
-                self.show_error(str(e))
-            self.choose_hw_device(purpose)
+            self.choose_hw_device(purpose, storage=storage)
             return
         if purpose == HWD_SETUP_NEW_WALLET:
             if self.wallet_type == 'multisig':
@@ -566,6 +575,10 @@ class BaseWizard(util.PrintError):
             storage.set_password(password, enc_version=storage_enc_version)
         storage.write()
         return storage
+
+    def terminate(self, *, storage: Optional[WalletStorage] = None):
+        # implemented by subclasses
+        raise NotImplementedError()
 
     def show_xpub_and_add_cosigners(self, xpub):
         self.show_xpub_dialog(xpub=xpub, run_next=lambda x: self.run('choose_keystore'))

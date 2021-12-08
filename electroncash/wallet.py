@@ -166,7 +166,10 @@ class Abstract_Wallet(PrintError, SPVDelegate):
 
     max_change_outputs = 3
 
-    def __init__(self, storage):
+    def __init__(self, storage: WalletStorage):
+        if storage.requires_upgrade():
+            raise Exception("storage must be upgraded before constructing wallet")
+
         self.electrum_version = PACKAGE_VERSION
         self.storage = storage
         self.thread = None  # this is used by the qt main_window to store a QThread. We just make sure it's always defined as an attribute here.

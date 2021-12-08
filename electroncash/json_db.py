@@ -26,6 +26,7 @@
 import ast
 import json
 import copy
+import threading
 
 from .address import Address
 from . import bitcoin
@@ -46,7 +47,9 @@ FINAL_SEED_VERSION = 17     # electrum >= 2.7 will set this to prevent
 class JsonDB(PrintError):
 
     def __init__(self, raw, *, manual_upgrades):
+        self.lock = threading.RLock()
         self.data = {}
+        self._modified = False
         self.manual_upgrades = manual_upgrades
         if raw:
             self.load_data(raw)
@@ -58,6 +61,20 @@ class JsonDB(PrintError):
     def set_output_pretty_json(self, flag: bool):
         self.output_pretty_json = flag
 
+    def set_modified(self, b):
+        with self.lock:
+            self._modified = b
+
+    def modified(self):
+        return self._modified
+
+    def modifier(func):
+        def wrapper(self, *args, **kwargs):
+            with self.lock:
+                self._modified = True
+                return func(self, *args, **kwargs)
+        return wrapper
+
     def get(self, key, default=None):
         v = self.data.get(key)
         if v is None:
@@ -66,6 +83,7 @@ class JsonDB(PrintError):
             v = copy.deepcopy(v)
         return v
 
+    @modifier
     def put(self, key, value) -> bool:
         try:
             json.dumps(key, cls=util.MyEncoder)

@@ -31,7 +31,7 @@ import shutil
 import signal
 import sys
 import traceback
-from typing import Callable
+from typing import Callable, Optional
 
 try:
     import PyQt5
@@ -63,18 +63,20 @@ from electroncash.i18n import _
 from electroncash import i18n
 from electroncash.plugins import run_hook
 from electroncash.util import (
+    BitcoinException,
     Handlers,
     UserCancelled,
+    WalletFileException,
     Weak,
     get_new_wallet_name,
     standardize_path,
 )
 from electroncash import version
-from electroncash.wallet import Wallet
+from electroncash.wallet import Wallet, Abstract_Wallet
 from electroncash.address import Address
 from electroncash.constants import PROJECT_NAME
 
-from .installwizard import InstallWizard, GoBack
+from .installwizard import InstallWizard, GoBack, WalletAlreadyOpenInMemory
 
 from . import icons # This needs to be imported once app-wide then the :icons/ namespace becomes available for Qt icon filenames.
 from .main_window import ElectrumWindow, windows_qt_use_freetype
@@ -542,7 +544,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         self.nd.show()
         if jumpto: self.nd.jumpto(jumpto)
 
-    def create_window_for_wallet(self, wallet):
+    def _create_window_for_wallet(self, wallet):
         w = ElectrumWindow(self, wallet)
         self.windows.append(w)
         finalization_print_error(w, "[{}] finalized".format(w.diagnostic_name()))
@@ -573,13 +575,13 @@ class ElectrumGui(QtCore.QObject, PrintError):
             if isinstance(window, ElectrumWindow):
                 self._last_active_window = Weak.ref(window)
 
-    def start_new_window(self, path, uri, app_is_starting=False):
+    def start_new_window(self, path, uri, *, app_is_starting=False):
         '''Raises the window for the wallet if it is open. Otherwise
         opens the wallet and creates a new window for it.
 
         `path=None` is a special usage which will raise the last activated
         window or open the 'last wallet' if no windows are open.'''
-
+        wallet = None
         if not path:
             if not self.windows:
                 # This branch is taken if nothing is currently open but
@@ -611,38 +613,24 @@ class ElectrumGui(QtCore.QObject, PrintError):
                 QtWidgets.QMessageBox.Warning, _('Error'),
                 _('Cannot load wallet') + ' (1):\n' + str(e))
             d.exec_()
-            if app_is_starting:
-                # do not return so that the wizard can appear
-                wallet = None
-            else:
+            # if app is starting, still let wizard to appear
+            if not app_is_starting:
                 return
 
         if not wallet:
-            wizard = InstallWizard(self.config, self.app, self.plugins)
-            storage = None
             try:
-                path, storage = wizard.select_storage(path, self.daemon.get_wallet)
-                # storage is None if file does not exist
-                if storage is None:
-                    wizard.path = path # needed by trustedcoin plugin
-                    wizard.run('new')
-                    storage = wizard.create_storage(path)
-                else:
-                    wizard.run_upgrades(storage)
-            except UserCancelled:
-                return
-            except GoBack as e:
-                print_error('[start_new_window] Exception caught (GoBack)', e)
-            wizard.terminate()
-            # return if wallet creation is not complete
-            if storage is None or storage.get_action():
-                return
-            wallet = Wallet(storage)
-            if not self.daemon.get_wallet(wallet.storage.path):
-                # wallet was not in memory
-                wallet.start_threads(self.daemon.network)
-                self.daemon.add_wallet(wallet)
+                wallet = self._start_wizard_to_select_or_create_wallet(path)
+            except (WalletFileException, BitcoinException) as e:
+                traceback.print_exc(file=sys.stderr)
+                QtWidgets.QMessageBox.warning(
+                    None,
+                    _('Error'),
+                    _('Cannot load wallet') + ' (2):\n' + str(e)
+                )
 
+        if not wallet:
+            return
+        # create or raise window
         try:
             if not self.windows:
                 self.warn_if_no_secp()
@@ -651,7 +639,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
                 if w.wallet.storage.path == wallet.storage.path:
                     w.bring_to_top()
                     return
-            w = self.create_window_for_wallet(wallet)
+            w = self._create_window_for_wallet(wallet)
         except BaseException as e:
             traceback.print_exc(file=sys.stdout)
             d = QtWidgets.QMessageBox(
@@ -669,6 +657,31 @@ class ElectrumGui(QtCore.QObject, PrintError):
         # this will activate the window
         w.activateWindow()
         return w
+
+    def _start_wizard_to_select_or_create_wallet(self, path) -> Optional[Abstract_Wallet]:
+        wizard = InstallWizard(self.config, self.app, self.plugins)
+        try:
+            path, storage = wizard.select_storage(path, self.daemon.get_wallet)
+            # storage is None if file does not exist
+            if storage is None:
+                wizard.path = path  # needed by trustedcoin plugin
+                wizard.run('new')
+                storage = wizard.create_storage(path)
+            else:
+                wizard.run_upgrades(storage)
+        except (UserCancelled, GoBack):
+            return
+        except WalletAlreadyOpenInMemory as e:
+            return e.wallet
+        finally:
+            wizard.terminate()
+        # return if wallet creation is not complete
+        if storage is None or storage.get_action():
+            return
+        wallet = Wallet(storage)
+        wallet.start_threads(self.daemon.network)
+        self.daemon.add_wallet(wallet)
+        return wallet
 
     def close_window(self, window):
         self.windows.remove(window)

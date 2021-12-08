@@ -52,10 +52,9 @@ STO_EV_PLAINTEXT, STO_EV_USER_PW, STO_EV_XPUB_PW = range(0, 3)
 class WalletStorage(PrintError):
 
     def __init__(self, path, *, manual_upgrades=False, in_memory_only=False):
-        self.db_lock = threading.RLock()
+        self.lock = threading.RLock()
         self.path = standardize_path(path)
         self._file_exists = in_memory_only or (self.path and os.path.exists(self.path))
-        self.modified = False
 
         DB_Class = JsonDB
         self.print_error("wallet path", path)
@@ -74,25 +73,23 @@ class WalletStorage(PrintError):
             self.db = DB_Class('', manual_upgrades=False)
 
     def put(self, key, value):
-        with self.db_lock:
-            self.modified |= self.db.put(key, value)
+        self.db.put(key, value)
 
     def get(self, key, default=None):
-        with self.db_lock:
-            return self.db.get(key, default)
+        return self.db.get(key, default)
 
     @profiler
     def write(self):
         if self._in_memory_only:
             return
-        with self.db_lock:
+        with self.lock:
             self._write()
 
     def _write(self):
         if threading.currentThread().isDaemon():
             self.print_error('warning: daemon thread cannot write wallet')
             return
-        if not self.modified:
+        if not self.db.modified():
             return
         self.db.commit()
         s = self.encrypt_before_writing(self.db.dump())
@@ -117,7 +114,7 @@ class WalletStorage(PrintError):
         os.chmod(self.path, mode)
         self._file_exists = True
         self.print_error("saved", self.path)
-        self.modified = False
+        self.db.set_modified(False)
 
     def file_exists(self):
         return self._file_exists
@@ -129,7 +126,10 @@ class WalletStorage(PrintError):
             if encryption is disabled completely (self.is_encrypted() == False),
             or if encryption is enabled but the contents have already been decrypted.
         """
-        return bool(self.data) # FIXME
+        try:
+            return bool(self.db.data)
+        except AttributeError:
+            return False
 
     def is_encrypted(self):
         """Return if storage encryption is currently enabled."""
@@ -225,10 +225,11 @@ class WalletStorage(PrintError):
             self._encryption_version = STO_EV_PLAINTEXT
             self.db.set_output_pretty_json(True)
         # make sure next storage.write() saves changes
-        with self.db_lock:
-            self.modified = True
+        self.db.set_modified(True)
 
     def requires_upgrade(self):
+        if not self.is_past_initial_decryption():
+            raise Exception("storage not yet decrypted!")
         self.db.requires_upgrade()
 
     def upgrade(self):
@@ -246,18 +247,10 @@ class WalletStorage(PrintError):
             storage = WalletStorage(path)
             storage.db.data = data
             storage.db.upgrade()
-            storage.modified = True
             storage.write()
             out.append(path)
         return out
 
     def get_action(self):
         action = run_hook('get_action', self)
-        if self.file_exists() and self.requires_upgrade():
-            if action:
-                raise WalletFileException('Incomplete wallet files cannot be upgraded.')
-            return 'upgrade_storage'
-        if action:
-            return action
-        if not self.file_exists():
-            return 'new'
+        return action
