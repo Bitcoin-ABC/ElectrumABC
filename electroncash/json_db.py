@@ -31,7 +31,6 @@ import threading
 from .address import Address
 from . import bitcoin
 from .keystore import bip44_derivation_btc
-from .plugins import plugin_loaders
 from . import util
 from .util import PrintError, WalletFileException, multisig_type, profiler
 
@@ -132,11 +131,6 @@ class JsonDB(PrintError):
 
         if not isinstance(self.data, dict):
             raise WalletFileException("Malformed wallet file (not dict)")
-
-        # check here if I need to load a plugin
-        t = self.get('wallet_type')
-        l = plugin_loaders.get(t)
-        if l: l()
 
         if not self.manual_upgrades:
             if self.requires_split():

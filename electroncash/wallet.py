@@ -62,7 +62,7 @@ from .storage import (
 )
 
 from .transaction import Transaction, InputValueMissing
-from .plugins import run_hook
+from .plugins import run_hook, plugin_loaders
 from . import bitcoin
 from . import coinchooser
 from .synchronizer import Synchronizer
@@ -3278,6 +3278,9 @@ class Wallet:
 
     def __new__(self, storage):
         wallet_type = storage.get('wallet_type')
+        # check here if I need to load a plugin
+        if wallet_type in plugin_loaders:
+            plugin_loaders[wallet_type]()
         WalletClass = Wallet.wallet_class(wallet_type)
         wallet = WalletClass(storage)
         # Convert hardware wallets restored with older versions of
