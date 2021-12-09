@@ -74,7 +74,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
     throttled_update_sig = pyqtSignal()  # connected to self.throttled_update -- emit from thread to do update in main thread
     dl_done_sig = pyqtSignal()  # connected to an inner function to get a callback in main thread upon dl completion
 
-    BROADCAST_COOLDOWN_SECS = 5.0
+    BROADCAST_COOLDOWN_SECS: int = 5
 
     class FreezeOp(Enum):
         Freeze = auto()
@@ -272,12 +272,17 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
 
     def do_broadcast(self):
         def broadcast_done(success):
-            if success:
-                # 5 second cooldown period on broadcast_button after successful
-                # broadcast
-                self.last_broadcast_time = time.time()
-                self.update()  # disables the broadcast button if last_broadcast_time is < BROADCAST_COOLDOWN_SECS seconds ago
-                QTimer.singleShot(self.BROADCAST_COOLDOWN_SECS*1e3+100, self.update)  # broadcast button will re-enable if we got nothing from server and >= BROADCAST_COOLDOWN_SECS elapsed
+            if not success:
+                return
+            # 5 second cooldown period on broadcast_button after successful
+            # broadcast
+            self.last_broadcast_time = time.time()
+            # disables the broadcast button if last_broadcast_time is
+            # < BROADCAST_COOLDOWN_SECS seconds ago
+            self.update()
+            # broadcast button will re-enable if we got nothing from server and
+            # >= BROADCAST_COOLDOWN_SECS elapsed
+            QTimer.singleShot(self.BROADCAST_COOLDOWN_SECS * 1000 + 100, self.update)
         self.main_window.push_top_level_window(self)
         try:
             self.main_window.broadcast_transaction(self.tx, self.desc, callback=broadcast_done)
