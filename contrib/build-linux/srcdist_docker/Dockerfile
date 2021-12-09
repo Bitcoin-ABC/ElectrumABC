@@ -1,11 +1,11 @@
-FROM ubuntu:18.04@sha256:5f4bdc3467537cbbe563e80db2c3ec95d548a9145d64453b06939c4592d67b6d
+FROM ubuntu:20.04@sha256:5747316366b8cc9e3021cd7286f42b2d6d81e3d743e2ab571f55bcd5df788cc8
 
 ENV LC_ALL=C.UTF-8 LANG=C.UTF-8
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -q && \
     apt-get install -qy \
         git \
-        wget \
         make \
         autotools-dev \
         autoconf \
@@ -14,7 +14,7 @@ RUN apt-get update -q && \
         xz-utils \
         libssl-dev \
         zlib1g-dev \
-        libffi6 \
+        libffi7 \
         libffi-dev \
         libncurses5-dev \
         libsqlite3-dev \
@@ -22,12 +22,13 @@ RUN apt-get update -q && \
         libudev-dev \
         gettext \
         libzbar0 \
-        faketime \
         python3 \
         python3-pip \
+        python3-setuptools \
         python3-venv \
         pkg-config \
         libjpeg-dev \
+        faketime \
         && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get autoremove -y && \
