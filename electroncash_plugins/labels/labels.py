@@ -3,13 +3,12 @@ import requests
 import threading
 import json
 import sys
-import traceback
 
 import base64
 
 from electroncash.bitcoin import aes_decrypt_with_iv, aes_encrypt_with_iv
 from electroncash.plugins import BasePlugin, hook
-from electroncash.i18n import _
+
 
 class LabelsPlugin(BasePlugin):
 
@@ -58,8 +57,8 @@ class LabelsPlugin(BasePlugin):
                       "walletNonce": nonce,
                       "externalId": self.encode(wallet, item),
                       "encryptedLabel": self.encode(wallet, label if label else '')}
-            t = threading.Thread(target=self.do_request,
-                                 args=["POST", "/label", False, bundle, True])
+            t = threading.Thread(target=self.do_request_safe,
+                                 args=["POST", "/label", bundle, True])
             t.setDaemon(True)
             # Caller will write the wallet
             self.set_nonce(wallet, nonce + 1)
@@ -71,53 +70,64 @@ class LabelsPlugin(BasePlugin):
                 return wallet
         return None
 
-    def do_request(self, method, url = "/labels", is_batch=False, data=None, noexc = False):
-        if self.closing: return
-        wallet_id = data.get("walletId", None) if data else None
+    def do_request(self, method, url="/labels", data=None):
+        url = 'https://' + self.target_host + url
+        kwargs = {'headers': {}}
+        if method == 'GET' and data:
+            kwargs['params'] = data
+        elif method == 'POST' and data:
+            kwargs['data'] = json.dumps(data)
+            kwargs['headers']['Content-Type'] = 'application/json'
+
+        # will raise requests.exceptions.Timeout on timeout
+        response = requests.request(method, url, **kwargs, timeout=5.0)
+
+        if response.status_code == 400:
+            if "serverNonce is larger then walletNonce" in response.text:
+                wallet_id = data.get("walletId", None) if data else None
+                wallet = self.find_wallet_by_id(wallet_id)
+                if wallet:
+                    self.on_wallet_not_synched(wallet)
+                return
+        if response.status_code != 200:
+            raise BaseException(response.status_code, response.text)
+        response = response.json()
+        if "error" in response:
+            raise BaseException(response["error"])
+        return response
+
+    def do_request_safe(self, method, url="/labels", data=None, noexc=False):
+        if self.closing:
+            return
         try:
             self._curthr_push()
-            url = 'https://' + self.target_host + url
-            #self.print_error("do_request",method,url,is_batch,data,"...")
-            kwargs = {'headers': {}}
-            if method == 'GET' and data:
-                kwargs['params'] = data
-            elif method == 'POST' and data:
-                kwargs['data'] = json.dumps(data)
-                kwargs['headers']['Content-Type'] = 'application/json'
-
-            response = requests.request(method, url, **kwargs, timeout=5.0) # will raise requests.exceptions.Timeout on timeout
-
-            if response.status_code == 400:
-                if "serverNonce is larger then walletNonce" in response.text:
-                    wallet = self.find_wallet_by_id(wallet_id)
-                    if wallet: self.on_wallet_not_synched(wallet)
-                    return
-            if response.status_code != 200:
-                raise BaseException(response.status_code, response.text)
-            response = response.json()
-            if "error" in response:
-                raise BaseException(response["error"])
-            return response
+            response = self.do_request(method, url, data)
         except BaseException as e:
             if noexc:
+                wallet_id = data.get("walletId", None) if data else None
                 wallet = self.find_wallet_by_id(wallet_id)
-                if wallet: self.on_request_exception(wallet, sys.exc_info())
+                if wallet:
+                    self.on_request_exception(wallet, sys.exc_info())
                 return
             raise e
         finally:
             self._curthr_pop()
+        return response
 
     def _curthr_push(self): # misnomer. it's not a stack.
         t = threading.current_thread()
         if t is not threading.main_thread():
             self.threads.append(t)
+
     def _curthr_pop(self): # misnomer. it's not a stack.
         try:
             self.threads.remove(threading.current_thread())
         except ValueError: pass # we silently ignore unbalanced _curthr_push/pop for now...
 
     def push_thread(self, wallet):
-        if wallet not in self.wallets or self.closing: return # still has race conditions here
+        if wallet not in self.wallets or self.closing:
+            # still has race conditions here
+            return
         try:
             self._curthr_push()
             #self.print_error("push_thread", wallet.basename(),"...")
@@ -137,57 +147,63 @@ class LabelsPlugin(BasePlugin):
                 bundle["labels"].append({'encryptedLabel': encoded_value,
                                          'externalId': encoded_key})
 
-            self.do_request("POST", "/labels", True, bundle)
+            self.do_request_safe("POST", "/labels", bundle)
         finally:
             self._curthr_pop()
 
     def pull_thread(self, wallet, force):
-        if wallet not in self.wallets or self.closing: return # still has race conditions here
+        if wallet not in self.wallets or self.closing:
+            # still has race conditions here
+            return
+        self._curthr_push()
+        wallet_id = self.wallets[wallet][2]
+        nonce = 1 if force else self.get_nonce(wallet) - 1
+        if nonce < 1:
+            nonce = 1
+        self.print_error("asking for labels since nonce", nonce)
+
+        response = self.do_request_safe(
+            "GET", ("/labels/since/%d/for/%s" % (nonce, wallet_id)))
+        if not response["labels"]:
+            self.print_error('no new labels')
+            return
+        result = {}
+        for label in response["labels"]:
+            try:
+                key = self.decode(wallet, label["externalId"])
+                value = self.decode(wallet, label["encryptedLabel"])
+            except:
+                continue
+            try:
+                json.dumps(key)
+                json.dumps(value)
+            except:
+                self.print_error('error: no json', key)
+                continue
+            result[key] = value
+
+        with wallet.lock:
+            for key, value in result.items():
+                if force or not wallet.labels.get(key):
+                    wallet.labels[key] = value
+
+            self.print_error("received %d labels" % len(response.get('labels', 0)))
+            # do not write to disk because we're in a daemon thread
+            wallet.storage.put('labels', wallet.labels)
+            # only override our nonce if the response nonce makes sense.
+            if response.get("nonce", 0):
+                self.set_nonce(wallet, response["nonce"] + 1)
+        self.on_pulled(wallet)
+
+    def pull_thread_safe(self, wallet, force):
         try:
             self._curthr_push()
-            #self.print_error("pull_thread", wallet.basename(),"...")
-            wallet_id = self.wallets[wallet][2]
-            nonce = 1 if force else self.get_nonce(wallet) - 1
-            if nonce < 1: nonce = 1
-            self.print_error("asking for labels since nonce", nonce)
-            try:
-                response = self.do_request("GET", ("/labels/since/%d/for/%s" % (nonce, wallet_id) ))
-                #self.print_error(nonce, wallet_id, response)
-
-                if not response["labels"]:
-                    self.print_error('no new labels')
-                    return
-                result = {}
-                for label in response["labels"]:
-                    try:
-                        key = self.decode(wallet, label["externalId"])
-                        value = self.decode(wallet, label["encryptedLabel"])
-                    except:
-                        continue
-                    try:
-                        json.dumps(key)
-                        json.dumps(value)
-                    except:
-                        self.print_error('error: no json', key)
-                        continue
-                    result[key] = value
-
-                with wallet.lock:
-                    for key, value in result.items():
-                        if force or not wallet.labels.get(key):
-                            wallet.labels[key] = value
-
-                    self.print_error("received %d labels" % len(response.get('labels', 0)))
-                    # do not write to disk because we're in a daemon thread
-                    wallet.storage.put('labels', wallet.labels)
-                    if response.get("nonce", 0): # only override our nonce if the response nonce makes sense.
-                        self.set_nonce(wallet, response["nonce"] + 1)
-                self.on_pulled(wallet)
-
-            except Exception as e:
-                #traceback.print_exc(file=sys.stderr)
-                self.print_error("could not retrieve labels:",str(e))
-                if force: raise e # force download means we were in "settings" mode.. notify gui of failure.
+            self.pull_thread(wallet, force)
+        except BaseException as e:
+            self.print_error('could not retrieve labels')
+            # force download means we were in "settings" mode.. notify gui of failure.
+            if force:
+                raise e
         finally:
             self._curthr_pop()
 
@@ -222,7 +238,7 @@ class LabelsPlugin(BasePlugin):
         wallet_id = hashlib.sha256(mpk).hexdigest()
         self.wallets[wallet] = (password, iv, wallet_id)
         # If there is an auth token we can try to actually start syncing
-        t = threading.Thread(target=self.pull_thread, args=(wallet, False))
+        t = threading.Thread(target=self.pull_thread_safe, args=(wallet, False))
         t.setDaemon(True)
         t.start()
         self.print_error("Wallet", basename, "added.")
