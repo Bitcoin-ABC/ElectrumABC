@@ -145,12 +145,7 @@ def migrate_data_from_ec(ec_user_dir: str = get_ec_user_dir(),
             config["fee_per_kb"] = SimpleConfig.default_fee_rate()
 
         # Disable plugins that cannot be selected in the Electrum ABC menu.
-        config["use_labels"] = False
         config["use_cosigner_pool"] = False
-
-        # Disable by default other plugins that depend on servers that
-        # do not exist yet for BCHA.
-        config["use_fusion"] = False
 
         # adjust all paths to point to the new user dir
         replace_src_dest_in_config(ec_user_dir, user_dir, config)

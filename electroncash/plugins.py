@@ -138,7 +138,7 @@ class Plugins(DaemonThread):
             if name in ['plot', 'exchange_rate']:
                 continue
             # do not load plugins that rely on untrusted servers, for now
-            if name in ["labels", "cosigner_pool"]:
+            if name in ["cosigner_pool"]:
                 continue
             m = loader.find_module(name).load_module(name)
             d = m.__dict__
