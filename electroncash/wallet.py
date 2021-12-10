@@ -1860,7 +1860,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             _type, data, value = o
             if value == '!':
                 if i_max is not None:
-                    raise BaseException("More than one output set to spend max")
+                    raise Exception("More than one output set to spend max")
                 i_max = i
 
         # Avoid index-out-of-range with inputs[0] below
@@ -1868,7 +1868,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             raise NotEnoughFunds()
 
         if fixed_fee is None and config.fee_per_kb() is None:
-            raise BaseException('Dynamic fee estimates not available')
+            raise Exception('Dynamic fee estimates not available')
 
         for item in inputs:
             self.add_input_info(item)

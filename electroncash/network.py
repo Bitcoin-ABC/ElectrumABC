@@ -1698,7 +1698,7 @@ class Network(util.DaemonThread):
                     self.switch_to_interface(i.server, self.SWITCH_FOLLOW_CHAIN)
                     break
         else:
-            raise BaseException('blockchain not found', index)
+            raise Exception('blockchain not found', index)
 
         with self.interface_lock:
             if self.interface:

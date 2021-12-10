@@ -825,7 +825,7 @@ class DeviceMgr(ThreadJob):
     def client_for_keystore(self, plugin, handler, keystore, force_pair):
         self.print_error("getting client for keystore")
         if handler is None:
-            raise BaseException(_("Handler not found for") + ' ' + plugin.name + '\n' + _("A library is probably missing."))
+            raise Exception(_("Handler not found for") + ' ' + plugin.name + '\n' + _("A library is probably missing."))
         handler.update_status(False)
         devices = self.scan_devices()
         xpub = keystore.xpub

@@ -595,7 +595,7 @@ def main():
     for i, arg in enumerate(sys.argv):
         if arg == "-":
             if sys.stdin.isatty():
-                raise BaseException("Cannot get argument from stdin")
+                raise Exception("Cannot get argument from stdin")
             sys.argv[i] = sys.stdin.read()
             break
         if arg == "?":

@@ -172,7 +172,7 @@ class SimpleConfig(PrintError):
         if cur_version > max_version:
             return False
         elif cur_version < min_version:
-            raise BaseException(
+            raise Exception(
                 ('config upgrade: unexpected version %d (should be %d-%d)'
                  % (cur_version, min_version, max_version)))
         else:

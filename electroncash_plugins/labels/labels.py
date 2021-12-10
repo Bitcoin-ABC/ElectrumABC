@@ -90,10 +90,10 @@ class LabelsPlugin(BasePlugin):
                     self.on_wallet_not_synched(wallet)
                 return
         if response.status_code != 200:
-            raise BaseException(response.status_code, response.text)
+            raise Exception(response.status_code, response.text)
         response = response.json()
         if "error" in response:
-            raise BaseException(response["error"])
+            raise Exception(response["error"])
         return response
 
     def do_request_safe(self, method, url="/labels", data=None, noexc=False):

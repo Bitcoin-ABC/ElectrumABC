@@ -100,9 +100,9 @@ def command(s):
             network = args[0].network
             password = kwargs.get('password')
             if c.requires_network and network is None:
-                raise BaseException("Daemon offline")  # Same wording as in daemon.py.
+                raise Exception("Daemon offline")  # Same wording as in daemon.py.
             if c.requires_wallet and wallet is None:
-                raise BaseException(f"Wallet not loaded. Use '{SCRIPT_NAME}"
+                raise Exception(f"Wallet not loaded. Use '{SCRIPT_NAME}"
                                     f" daemon load_wallet'")
             if c.requires_password and password is None and wallet.has_password() \
                and not kwargs.get("unsigned"):
@@ -483,7 +483,7 @@ class Commands:
             return None
         out = self.wallet.contacts.resolve(x)
         if out.get('type') == 'openalias' and self.nocheck is False and out.get('validated') is False:
-            raise BaseException('cannot verify alias', x)
+            raise Exception('cannot verify alias', x)
         return out['address']
 
     @command('n')
@@ -681,7 +681,7 @@ class Commands:
             if raw:
                 tx = Transaction(raw)
             else:
-                raise BaseException("Unknown transaction")
+                raise Exception("Unknown transaction")
         return tx.as_dict()
 
     @command('')
@@ -727,7 +727,7 @@ class Commands:
         """Return a payment request"""
         r = self.wallet.get_payment_request(Address.from_string(key), self.config)
         if not r:
-            raise BaseException("Request not found")
+            raise Exception("Request not found")
         return self._format_request(r)
 
     #@command('w')

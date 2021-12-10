@@ -75,7 +75,7 @@ class BaseWizard(util.PrintError):
             f = getattr(self, action)
             f(*args)
         else:
-            raise BaseException("unknown action", action)
+            raise Exception("unknown action", action)
 
     def can_go_back(self):
         return len(self.stack)>1
@@ -394,7 +394,7 @@ class BaseWizard(util.PrintError):
         elif self.seed_type == 'old':
             self.run('create_keystore', seed, '')
         else:
-            raise BaseException('Unknown seed type', self.seed_type)
+            raise Exception('Unknown seed type', self.seed_type)
 
     def on_restore_bip39(self, seed, passphrase):
         f = lambda x: self.run('on_bip44', seed, passphrase, str(x))
