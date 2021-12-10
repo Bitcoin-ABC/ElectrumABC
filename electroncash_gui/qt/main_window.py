@@ -1090,7 +1090,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.update_tabs()
 
     @rate_limited(1.0, classlevel=True, ts_after=True) # Limit tab updates to no more than 1 per second, app-wide. Multiple calls across instances will be collated into 1 deferred series of calls (1 call per extant instance)
-    def update_tabs(self):
+    def update_tabs(self, wallet=None):
+        if wallet is None:
+            wallet = self.wallet
+        if wallet != self.wallet:
+            return
         if self.cleaned_up: return
         self.history_list.update()
         self.request_list.update()

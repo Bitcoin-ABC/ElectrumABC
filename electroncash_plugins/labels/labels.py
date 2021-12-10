@@ -1,36 +1,54 @@
+import asyncio
 import hashlib
-import requests
-import threading
 import json
-import sys
+import logging
+from typing import Union, TYPE_CHECKING
 
 import base64
 
-from electroncash.bitcoin import aes_decrypt_with_iv, aes_encrypt_with_iv
 from electroncash.plugins import BasePlugin, hook
+from electroncash.bitcoin import aes_encrypt_with_iv, aes_decrypt_with_iv
+from electroncash.i18n import _
+from electroncash.util import log_exceptions, ignore_exceptions, make_aiohttp_session
+from electroncash.network import Network
+
+if TYPE_CHECKING:
+    from electroncash.wallet import Abstract_Wallet
+
+_logger = logging.getLogger(__name__)
+
+
+class ErrorConnectingServer(Exception):
+    def __init__(self, reason: Union[str, Exception] = None):
+        self.reason = reason
+
+    def __str__(self):
+        header = _("Error connecting to {} server").format('Labels')
+        reason = self.reason
+        if isinstance(reason, BaseException):
+            reason = repr(reason)
+        return f"{header}: {reason}" if reason else header
 
 
 class LabelsPlugin(BasePlugin):
 
     def __init__(self, parent, config, name):
         BasePlugin.__init__(self, parent, config, name)
-        self.target_host = 'sync.imaginary.cash:8082'
+        self.target_host = 'labels.electrum.org'
         self.wallets = {}
-        self.threads = []
-        self.closing = False
 
-    def encode(self, wallet, msg):
+    def encode(self, wallet: 'Abstract_Wallet', msg: str) -> str:
         password, iv, wallet_id = self.wallets[wallet]
         encrypted = aes_encrypt_with_iv(password, iv, msg.encode('utf8'))
         return base64.b64encode(encrypted).decode()
 
-    def decode(self, wallet, message):
+    def decode(self, wallet: 'Abstract_Wallet', message: str) -> str:
         password, iv, wallet_id = self.wallets[wallet]
         decoded = base64.b64decode(message)
         decrypted = aes_decrypt_with_iv(password, iv, decoded)
         return decrypted.decode('utf8')
 
-    def get_nonce(self, wallet):
+    def get_nonce(self, wallet: 'Abstract_Wallet'):
         with wallet.lock:
             # nonce is the nonce to be used with the next change
             nonce = wallet.storage.get('wallet_nonce')
@@ -39,133 +57,87 @@ class LabelsPlugin(BasePlugin):
                 self.set_nonce(wallet, nonce)
             return nonce
 
-    def set_nonce(self, wallet, nonce):
+    def set_nonce(self, wallet: 'Abstract_Wallet', nonce):
         with wallet.lock:
             self.print_error("set", wallet.basename(), "nonce to", nonce)
             wallet.storage.put("wallet_nonce", nonce)
 
     @hook
-    def set_label(self, wallet, item, label):
-        if wallet not in self.wallets or self.closing:
+    def set_label(self, wallet: 'Abstract_Wallet', item, label):
+        if wallet not in self.wallets:
             return
         if not item:
             return
-        with wallet.lock: # need to hold the lock from get nonce to set nonce in order to prevent races.
-            nonce = self.get_nonce(wallet)
-            wallet_id = self.wallets[wallet][2]
-            bundle = {"walletId": wallet_id,
-                      "walletNonce": nonce,
-                      "externalId": self.encode(wallet, item),
-                      "encryptedLabel": self.encode(wallet, label if label else '')}
-            t = threading.Thread(target=self.do_request_safe,
-                                 args=["POST", "/label", bundle, True])
-            t.setDaemon(True)
-            # Caller will write the wallet
-            self.set_nonce(wallet, nonce + 1)
-        t.start()
-
-    def find_wallet_by_id(self, wallet_id):
-        for wallet, tup in self.wallets.copy().items():
-            if wallet_id == tup[2]:
-                return wallet
-        return None
-
-    def do_request(self, method, url="/labels", data=None):
-        url = 'https://' + self.target_host + url
-        kwargs = {'headers': {}}
-        if method == 'GET' and data:
-            kwargs['params'] = data
-        elif method == 'POST' and data:
-            kwargs['data'] = json.dumps(data)
-            kwargs['headers']['Content-Type'] = 'application/json'
-
-        # will raise requests.exceptions.Timeout on timeout
-        response = requests.request(method, url, **kwargs, timeout=5.0)
-
-        if response.status_code == 400:
-            if "serverNonce is larger then walletNonce" in response.text:
-                wallet_id = data.get("walletId", None) if data else None
-                wallet = self.find_wallet_by_id(wallet_id)
-                if wallet:
-                    self.on_wallet_not_synched(wallet)
-                return
-        if response.status_code != 200:
-            raise Exception(response.status_code, response.text)
-        response = response.json()
-        if "error" in response:
-            raise Exception(response["error"])
-        return response
-
-    def do_request_safe(self, method, url="/labels", data=None, noexc=False):
-        if self.closing:
-            return
-        try:
-            self._curthr_push()
-            response = self.do_request(method, url, data)
-        except BaseException as e:
-            if noexc:
-                wallet_id = data.get("walletId", None) if data else None
-                wallet = self.find_wallet_by_id(wallet_id)
-                if wallet:
-                    self.on_request_exception(wallet, sys.exc_info())
-                return
-            raise e
-        finally:
-            self._curthr_pop()
-        return response
-
-    def _curthr_push(self): # misnomer. it's not a stack.
-        t = threading.current_thread()
-        if t is not threading.main_thread():
-            self.threads.append(t)
-
-    def _curthr_pop(self): # misnomer. it's not a stack.
-        try:
-            self.threads.remove(threading.current_thread())
-        except ValueError: pass # we silently ignore unbalanced _curthr_push/pop for now...
-
-    def push_thread(self, wallet):
-        if wallet not in self.wallets or self.closing:
-            # still has race conditions here
-            return
-        try:
-            self._curthr_push()
-            #self.print_error("push_thread", wallet.basename(),"...")
-            wallet_id = self.wallets[wallet][2]
-            bundle = {"labels": [],
-                      "walletId": wallet_id,
-                      "walletNonce": self.get_nonce(wallet)}
-            with wallet.lock:
-                labels = wallet.labels.copy()
-            for key, value in labels.items():
-                try:
-                    encoded_key = self.encode(wallet, key)
-                    encoded_value = self.encode(wallet, value)
-                except:
-                    self.print_error('cannot encode', repr(key), repr(value))
-                    continue
-                bundle["labels"].append({'encryptedLabel': encoded_value,
-                                         'externalId': encoded_key})
-
-            self.do_request_safe("POST", "/labels", bundle)
-        finally:
-            self._curthr_pop()
-
-    def pull_thread(self, wallet, force):
-        if wallet not in self.wallets or self.closing:
-            # still has race conditions here
-            return
-        self._curthr_push()
+        nonce = self.get_nonce(wallet)
         wallet_id = self.wallets[wallet][2]
-        nonce = 1 if force else self.get_nonce(wallet) - 1
-        if nonce < 1:
-            nonce = 1
-        self.print_error("asking for labels since nonce", nonce)
+        bundle = {"walletId": wallet_id,
+                  "walletNonce": nonce,
+                  "externalId": self.encode(wallet, item),
+                  "encryptedLabel": self.encode(wallet, label)}
+        asyncio.run_coroutine_threadsafe(
+            self.do_post_safe("/label", bundle), wallet.network.asyncio_loop
+        )
+        # Caller will write the wallet
+        self.set_nonce(wallet, nonce + 1)
 
-        response = self.do_request_safe(
-            "GET", ("/labels/since/%d/for/%s" % (nonce, wallet_id)))
-        if not response["labels"]:
-            self.print_error('no new labels')
+    @ignore_exceptions
+    @log_exceptions
+    async def do_post_safe(self, *args):
+        await self.do_post(*args)
+
+    async def do_get(self, url="/labels"):
+        url = 'https://' + self.target_host + url
+        network = Network.get_instance()
+        proxy = network.proxy if network else None
+        async with make_aiohttp_session(proxy) as session:
+            async with session.get(url) as result:
+                return await result.json()
+
+    async def do_post(self, url="/labels", data=None):
+        url = 'https://' + self.target_host + url
+        network = Network.get_instance()
+        proxy = network.proxy if network else None
+        async with make_aiohttp_session(proxy) as session:
+            async with session.post(url, json=data) as result:
+                try:
+                    return await result.json()
+                except Exception as e:
+                    raise Exception('Could not decode: ' + await result.text()) from e
+
+    async def push_thread(self, wallet: 'Abstract_Wallet'):
+        wallet_data = self.wallets.get(wallet, None)
+        if not wallet_data:
+            raise Exception('Wallet {} not loaded'.format(wallet))
+        wallet_id = wallet_data[2]
+        bundle = {"labels": [],
+                  "walletId": wallet_id,
+                  "walletNonce": self.get_nonce(wallet)}
+        with wallet.lock:
+            labels = wallet.labels.copy()
+        for key, value in labels.items():
+            try:
+                encoded_key = self.encode(wallet, key)
+                encoded_value = self.encode(wallet, value)
+            except:
+                _logger.info(f'cannot encode {repr(key)} {repr(value)}')
+                continue
+            bundle["labels"].append({'encryptedLabel': encoded_value,
+                                     'externalId': encoded_key})
+        await self.do_post("/labels", bundle)
+
+    async def pull_thread(self, wallet: 'Abstract_Wallet', force: bool):
+        wallet_data = self.wallets.get(wallet, None)
+        if not wallet_data:
+            raise Exception('Wallet {} not loaded'.format(wallet))
+        wallet_id = wallet_data[2]
+        nonce = 1 if force else self.get_nonce(wallet) - 1
+        _logger.info(f"asking for labels since nonce {nonce}")
+        try:
+            response = await self.do_get("/labels/since/%d/for/%s" % (nonce, wallet_id))
+        except Exception as e:
+            raise ErrorConnectingServer(e) from e
+        if response["labels"] is None:
+            _logger.info('no new labels')
             return
         result = {}
         for label in response["labels"]:
@@ -178,7 +150,7 @@ class LabelsPlugin(BasePlugin):
                 json.dumps(key)
                 json.dumps(value)
             except:
-                self.print_error('error: no json', key)
+                _logger.info(f'error: no json {key}')
                 continue
             result[key] = value
 
@@ -187,87 +159,53 @@ class LabelsPlugin(BasePlugin):
                 if force or not wallet.labels.get(key):
                     wallet.labels[key] = value
 
-            self.print_error("received %d labels" % len(response.get('labels', 0)))
-            # do not write to disk because we're in a daemon thread
-            wallet.storage.put('labels', wallet.labels)
-            # only override our nonce if the response nonce makes sense.
-            if response.get("nonce", 0):
-                self.set_nonce(wallet, response["nonce"] + 1)
+        _logger.info(f"received {len(response)} labels")
+        self.set_nonce(wallet, response["nonce"] + 1)
         self.on_pulled(wallet)
 
-    def pull_thread_safe(self, wallet, force):
+    def on_pulled(self, wallet: 'Abstract_Wallet') -> None:
+        raise NotImplementedError()
+
+    @ignore_exceptions
+    @log_exceptions
+    async def pull_safe_thread(self, wallet: 'Abstract_Wallet', force: bool):
         try:
-            self._curthr_push()
-            self.pull_thread(wallet, force)
-        except BaseException as e:
-            self.print_error('could not retrieve labels')
-            # force download means we were in "settings" mode.. notify gui of failure.
-            if force:
-                raise e
-        finally:
-            self._curthr_pop()
+            await self.pull_thread(wallet, force)
+        except ErrorConnectingServer as e:
+            _logger.info(repr(e))
 
-    def on_pulled(self, wallet):
-        self.print_error("Wallet", wallet.basename(), "pulled.")
-
-    def on_wallet_not_synched(self, wallet):
-        pass
-
-    def on_request_exception(self, wallet, exc_info):
-        pass
-
-    def start_wallet(self, wallet):
-        basename = wallet.basename()
-        if wallet in self.wallets:
-            self.print_error("Wallet", basename, "already in wallets list, aborting early.")
-            return
+    def pull(self, wallet: 'Abstract_Wallet', force: bool):
         if not wallet.network:
-            # offline mode
-            self.print_error("Wallet", basename, "is in offline mode, aborting early.")
+            raise Exception(_('You are offline.'))
+        return asyncio.run_coroutine_threadsafe(
+            self.pull_thread(wallet, force), wallet.network.asyncio_loop
+        ).result()
+
+    def push(self, wallet: 'Abstract_Wallet'):
+        if not wallet.network:
+            raise Exception(_('You are offline.'))
+        return asyncio.run_coroutine_threadsafe(
+            self.push_thread(wallet), wallet.network.asyncio_loop
+        ).result()
+
+    def start_wallet(self, wallet: 'Abstract_Wallet'):
+        if not wallet.network:
+            # 'offline' mode
             return
         mpk = wallet.get_fingerprint()
         if not mpk:
-            # We base the password off the mpk so.. if no mpk we can't do anything as it's then insecure to "make up a password'.
-            self.print_error("Wallet", basename, "is incompatible (no master public key), aborting early.")
             return
-        nonce = self.get_nonce(wallet)
-        self.print_error("Wallet", basename, "nonce is", nonce)
         mpk = mpk.encode('ascii')
         password = hashlib.sha1(mpk).hexdigest()[:32].encode('ascii')
         iv = hashlib.sha256(password).digest()[:16]
         wallet_id = hashlib.sha256(mpk).hexdigest()
         self.wallets[wallet] = (password, iv, wallet_id)
+        nonce = self.get_nonce(wallet)
+        _logger.info(f"wallet {wallet.basename()} nonce is {nonce}")
         # If there is an auth token we can try to actually start syncing
-        t = threading.Thread(target=self.pull_thread_safe, args=(wallet, False))
-        t.setDaemon(True)
-        t.start()
-        self.print_error("Wallet", basename, "added.")
-        return True
+        asyncio.run_coroutine_threadsafe(
+            self.pull_safe_thread(wallet, False), wallet.network.asyncio_loop
+        )
 
     def stop_wallet(self, wallet):
-        w = self.wallets.pop(wallet, None)
-        if w:
-            self.print_error(wallet.basename(),"removed from wallets.")
-        return bool(w)
-
-    def on_close(self):
-        self.closing = True # this is to minimize chance of race conditions but the way this class is written they can theoretically still happen. c'est la vie.
-        ct = 0
-        for w in self.wallets.copy():
-            ct += int(bool(self.stop_wallet(w)))
-        stopped = 0
-        thrds, uniq_thrds = self.threads.copy(), []
-        for t in thrds:
-            if t in uniq_thrds: continue
-            uniq_thrds.append(t)
-            if t.is_alive():
-                t.join() # wait for it to complete
-                stopped += 1
-        self.print_error("Plugin closed, stopped {} extant wallets, joined {} extant threads.".format(ct, stopped))
-        assert 0 == len(self.threads), "Labels Plugin: Threads were left alive on close!" # due to very very unlikely race conditions this is in fact a possibility.
-
-    def on_init(self):
-        ''' Here for symmetry with on_close. In reality plugins get unloaded
-        from memory after on_close so this method is not very useful. '''
-        self.print_error("Initializing...")
-        self.closing = False
+        self.wallets.pop(wallet, None)

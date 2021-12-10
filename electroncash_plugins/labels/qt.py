@@ -1,234 +1,99 @@
 from functools import partial
+import logging
+from typing import TYPE_CHECKING
 
-from PyQt5.QtCore import QObject, Qt, pyqtSignal
-from PyQt5 import QtWidgets
+from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QVBoxLayout)
 
-from electroncash.constants import PROJECT_NAME
 from electroncash.plugins import hook
 from electroncash.i18n import _
-from electroncash_gui.qt.main_window import ElectrumWindow
-from electroncash_gui.qt.util import EnterButton, ThreadedButton, Buttons
-from electroncash_gui.qt.util import WindowModalDialog, OkButton, WaitingDialog
-from electroncash.util import Weak
+from electroncash_gui.qt.util import ThreadedButton, Buttons, EnterButton, WindowModalDialog, OkButton
 
 from .labels import LabelsPlugin
 
+if TYPE_CHECKING:
+    from electroncash_gui.qt import ElectrumGui
+    from electroncash_gui.qt.main_window import ElectrumWindow
+    from electroncash.wallet import Abstract_Wallet
 
-class LabelsSignalObject(QObject):
-    ''' Signals need to be members of a QObject, hence why this class exists. '''
+
+_logger = logging.getLogger(__name__)
+
+
+class QLabelsSignalObject(QObject):
     labels_changed_signal = pyqtSignal(object)
-    wallet_not_synched_signal = pyqtSignal(object)
-    request_exception_signal = pyqtSignal(object, object)
 
-
-def window_parent(w):
-    # this is needed because WindowModalDialog overrides window.parent
-    if callable(w.parent): return w.parent()
-    return w.parent
 
 class Plugin(LabelsPlugin):
 
     def __init__(self, *args):
         LabelsPlugin.__init__(self, *args)
-        self.obj = LabelsSignalObject()
-        self.wallet_windows = {}
-        self.initted = False
+        self.obj = QLabelsSignalObject()
+        self._init_qt_received = False
 
     def requires_settings(self):
         return True
 
-    def settings_widget(self, window):
-        while window and window_parent(window) and not isinstance(window_parent(window), ElectrumWindow):
-            # MacOS fixup -- find window.parent() because we can end up with window.parent() not an ElectrumWindow
-            window = window_parent(window)
-        windowRef = Weak.ref(window)
+    def settings_widget(self, window: WindowModalDialog):
         return EnterButton(_('Settings'),
-                           partial(self.settings_dialog, windowRef))
+                           partial(self.settings_dialog, window))
 
-    def settings_dialog(self, windowRef):
-        window = windowRef() # NB: window is the internal plugins dialog and not the wallet window
-        if not window or not isinstance(window_parent(window), ElectrumWindow): return
-        wallet = window_parent(window).wallet
-        d = WindowModalDialog(window.top_level_window(), _("Label Settings"))
-        d.ok_button = OkButton(d)
-        dlgRef = Weak.ref(d)
-        if wallet in self.wallets:
-            class MySigs(QObject):
-                ok_button_disable_sig = pyqtSignal(bool)
-            d.sigs = MySigs(d)
-            d.sigs.ok_button_disable_sig.connect(d.ok_button.setDisabled) # disable ok button while the TaskThread runs ..
-            hbox = QtWidgets.QHBoxLayout()
-            hbox.addWidget(QtWidgets.QLabel(_("LabelSync options:")))
-            upload = ThreadedButton(_("Force upload"),
-                                    partial(Weak(self.do_force_upload), wallet, dlgRef),
-                                    partial(Weak(self.done_processing), dlgRef),
-                                    partial(Weak(self.error_processing), dlgRef))
-            download = ThreadedButton(_("Force download"),
-                                      partial(Weak(self.do_force_download), wallet, dlgRef),
-                                      partial(Weak(self.done_processing), dlgRef),
-                                      partial(Weak(self.error_processing), dlgRef))
-            d.thread_buts = (upload, download)
-            d.finished.connect(partial(Weak(self.on_dlg_finished), dlgRef))
-            vbox = QtWidgets.QVBoxLayout()
-            vbox.addWidget(upload)
-            vbox.addWidget(download)
-            hbox.addLayout(vbox)
-            vbox = QtWidgets.QVBoxLayout(d)
-            vbox.addLayout(hbox)
-        else:
-            vbox = QtWidgets.QVBoxLayout(d)
-            if wallet.network:
-                # has network, so the fact that the wallet isn't in the list means it's incompatible
-                l = QtWidgets.QLabel('<b>' + _("LabelSync not supported for this wallet type") + '</b>')
-                l.setAlignment(Qt.AlignCenter)
-                vbox.addWidget(l)
-                l = QtWidgets.QLabel(_("(Only deterministic wallets are supported)"))
-                l.setAlignment(Qt.AlignCenter)
-                vbox.addWidget(l)
-            else:
-                # Does not have network, so we won't speak of incompatibility, but instead remind user offline mode means OFFLINE! ;)
-                l = QtWidgets.QLabel(_(f"You are using {PROJECT_NAME} in offline mode;"
-                             f" restart Electron Cash if you want to get "
-                             f"connected"))
-                l.setWordWrap(True)
-                vbox.addWidget(l)
+    def settings_dialog(self, window: WindowModalDialog):
+        wallet = window.parent().wallet
+        if not wallet.get_fingerprint():
+            window.show_error(_("{} plugin does not support this type of wallet.")
+                              .format("Label Sync"))
+            return
+        d = WindowModalDialog(window, _("Label Settings"))
+        hbox = QHBoxLayout()
+        hbox.addWidget(QLabel("Label sync options:"))
+        upload = ThreadedButton("Force upload",
+                                partial(self.push, wallet),
+                                partial(self.done_processing_success, d),
+                                partial(self.done_processing_error, d))
+        download = ThreadedButton("Force download",
+                                  partial(self.pull, wallet, True),
+                                  partial(self.done_processing_success, d),
+                                  partial(self.done_processing_error, d))
+        vbox = QVBoxLayout()
+        vbox.addWidget(upload)
+        vbox.addWidget(download)
+        hbox.addLayout(vbox)
+        vbox = QVBoxLayout(d)
+        vbox.addLayout(hbox)
         vbox.addSpacing(20)
-        vbox.addLayout(Buttons(d.ok_button))
+        vbox.addLayout(Buttons(OkButton(d)))
         return bool(d.exec_())
 
-    def on_dlg_finished(self, dlgRef, result_code):
-        ''' Wait for any threaded buttons that may be still extant so we don't get a crash '''
-        #self.print_error("Dialog finished with code", result_code)
-        dlg = dlgRef()
-        if dlg:
-            upload, download = dlg.thread_buts
-            if upload.thread and upload.thread.isRunning():
-                upload.thread.stop(); upload.thread.wait()
-            if download.thread and download.thread.isRunning():
-                download.thread.stop(); download.thread.wait()
-
-    def do_force_upload(self, wallet, dlgRef):
-        # this runs in a NON-GUI thread
-        dlg = dlgRef()
-        if dlg: dlg.sigs.ok_button_disable_sig.emit(True) # block window closing prematurely which can cause a temporary hang until thread completes
-        self.push_thread(wallet)
-
-    def do_force_download(self, wallet, dlgRef):
-        # this runs in a NON-GUI thread
-        dlg = dlgRef()
-        if dlg: dlg.sigs.ok_button_disable_sig.emit(True) # block window closing prematurely which can cause a temporary hang until thread completes
-        self.pull_thread(wallet, True)
-
-    def done_processing(self, dlgRef, result):
-        # this runs in the GUI thread
-        dlg = dlgRef()
-        if dlg:
-            dlg.ok_button.setEnabled(True)
-            self._ok_synched(dlg)
-
-    def _ok_synched(self, window):
-        if window.isVisible():
-            window.show_message(_("Your labels have been synchronised."))
-
-    def error_processing(self, dlgRef, exc_info):
-        dlg = dlgRef()
-        if dlg:
-            dlg.ok_button.setEnabled(True)
-            self._notok_synch(dlg, exc_info)
-
-    _warn_dlg_flg = Weak.KeyDictionary()
-    def _notok_synch(self, window, exc_info):
-        # Runs in main thread
-        cls = __class__
-        if window.isVisible() and not cls._warn_dlg_flg.get(window, False):
-            # Guard against duplicate error dialogs (without this we may get error window spam when importing labels)
-            cls._warn_dlg_flg[window] = True
-            window.show_warning(_("LabelSync error:") + "\n\n" + str(exc_info[1]), rich_text=False)
-            cls._warn_dlg_flg.pop(window, None)
-
-    def on_request_exception(self, wallet, exc_info):
-        # not main thread
-        self.obj.request_exception_signal.emit(wallet, exc_info)
-
-    def request_exception_slot(self, wallet, exc_info):
-        # main thread
-        window = self.wallet_windows.get(wallet, None)
-        if window: self._notok_synch(window, exc_info)
-
-    def start_wallet(self, wallet, window=None):
-        ret = super().start_wallet(wallet)
-        if ret and window:
-            self.wallet_windows[wallet] = window
-        return ret
-
-    def stop_wallet(self, wallet):
-        ret = super().stop_wallet(wallet)
-        window = self.wallet_windows.pop(wallet, None)
-        return ret
-
     def on_pulled(self, wallet):
-        # not main thread
-        super().on_pulled(wallet) # super just logs to print_error
         self.obj.labels_changed_signal.emit(wallet)
 
-    def on_labels_changed(self, wallet):
-        # main thread
-        window = self.wallet_windows.get(wallet, None)
-        if window:
-            #self.print_error("On labels changed", wallet.basename())
-            window.update_labels()
+    def done_processing_success(self, dialog, result):
+        dialog.show_message(_("Your labels have been synchronised."))
 
-    def on_wallet_not_synched(self, wallet):
-        # not main thread
-        self.obj.wallet_not_synched_signal.emit(wallet)
-
-    def wallet_not_synched_slot(self, wallet):
-        # main thread
-        window = self.wallet_windows.get(wallet, None)
-        if window:
-            if window.question(_("LabelSync detected that this wallet is not synched with the label server.")
-                               + "\n\n" + _("Synchronize now?")):
-                WaitingDialog(window, _("Synchronizing..."),
-                              partial(self.pull_thread, wallet, True),
-                              lambda *args: self._ok_synched(window),
-                              lambda exc: self._notok_synch(window, exc))
-
-    def on_close(self):
-        if not self.initted:
-            return
-        try: self.obj.labels_changed_signal.disconnect(self.on_labels_changed)
-        except TypeError: pass # not connected
-        try: self.obj.wallet_not_synched_signal.disconnect(self.wallet_not_synched_slot)
-        except TypeError: pass # not connected
-        try: self.obj.request_exception_signal.disconnect(self.request_exception_slot)
-        except TypeError: pass # not connected
-        super().on_close()
-        assert 0==len(self.wallet_windows), "LabelSync still had extant wallet_windows!"
-        self.initted = False
+    def done_processing_error(self, dialog, exc_info):
+        _logger.error("Error synchronising labels", exc_info=exc_info)
+        dialog.show_error(_("Error synchronising labels") + f':\n{repr(exc_info[1])}')
 
     @hook
-    def on_new_window(self, window):
-        return self.start_wallet(window.wallet, window)
+    def init_qt(self, gui: 'ElectrumGui'):
+        if self._init_qt_received:  # only need/want the first signal
+            return
+        self._init_qt_received = True
+        # If the user just enabled the plugin, the 'load_wallet' hook would not
+        # get called for already loaded wallets, hence we call it manually for those:
+        for window in gui.windows:
+            self.load_wallet(window.wallet, window)
+
+    @hook
+    def load_wallet(self, wallet: 'Abstract_Wallet', window: 'ElectrumWindow'):
+        self.obj.labels_changed_signal.connect(window.update_tabs)
+        self.start_wallet(wallet)
 
     @hook
     def on_close_window(self, window):
-        return self.stop_wallet(window.wallet)
-
-    @hook
-    def init_qt(self, gui):
-        if self.initted:
-            return
-        self.on_init()
-        # connect signals. this needs to happen first as below on_new_window depends on these being active
-        self.obj.labels_changed_signal.connect(self.on_labels_changed)
-        self.obj.wallet_not_synched_signal.connect(self.wallet_not_synched_slot)
-        self.obj.request_exception_signal.connect(self.request_exception_slot)
-
-        ct, ct2 = 0, 0
-        for window in gui.windows:
-            if self.on_new_window(window):
-                ct2 += 1
-            ct += 1
-
-        self.initted = True
-        self.print_error("Initialized (had {} extant windows, added {}).".format(ct,ct2))
+        try:
+            self.obj.labels_changed_signal.disconnect(window.update_tabs)
+        except TypeError:
+            pass  # 'method' object is not connected
+        self.stop_wallet(window.wallet)

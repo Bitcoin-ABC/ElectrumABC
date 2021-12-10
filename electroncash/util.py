@@ -22,12 +22,15 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import asyncio
 import binascii
 import hmac
 import inspect
 import itertools
+import functools
 import json
 import locale
+import logging
 import os
 import stat
 import subprocess
@@ -40,10 +43,15 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from datetime import datetime
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
-from functools import lru_cache
 from traceback import format_exception
 
+import aiohttp
+from aiohttp_socks import SocksConnector, SocksVer
+
 from .constants import POSIX_DATA_DIR, PROJECT_NAME_NO_SPACES
+from .version import PACKAGE_VERSION
+
+_logger = logging.getLogger(__name__)
 
 
 def inv_dict(d):
@@ -1046,3 +1054,61 @@ class Weak:
 # may wonder 'Why Weak.finaliztion_print_error'?. The fact that this relies on
 # weak refs is an implementation detail, really.
 finalization_print_error = Weak.finalization_print_error
+
+
+def make_aiohttp_session(proxy) -> aiohttp.ClientSession:
+    if proxy:
+        connector = SocksConnector(
+            socks_ver=SocksVer.SOCKS5 if proxy["mode"] == "socks5" else SocksVer.SOCKS4,
+            host=proxy["host"],
+            port=int(proxy["port"]),
+            username=proxy.get("user", None),
+            password=proxy.get("password", None),
+            rdns=True
+        )
+        return aiohttp.ClientSession(
+            headers={"User-Agent": f"Electrum ABC {PACKAGE_VERSION}"},
+            timeout=aiohttp.ClientTimeout(total=10),
+            connector=connector
+        )
+    else:
+        return aiohttp.ClientSession(
+            headers={"User-Agent": f"Electrum ABC {PACKAGE_VERSION}"},
+            timeout=aiohttp.ClientTimeout(total=10)
+        )
+
+
+def log_exceptions(func):
+    """Decorator to log AND re-raise exceptions."""
+    assert asyncio.iscoroutinefunction(func), 'func needs to be a coroutine'
+
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        self = args[0] if len(args) > 0 else None
+        try:
+            return await func(*args, **kwargs)
+        except asyncio.CancelledError as e:
+            raise
+        except BaseException as e:
+            try:
+                _logger.exception(f"Exception in {func.__name__}: {repr(e)}")
+            except BaseException as e2:
+                print(f"logging exception raised: {repr(e2)}... orig exc: {repr(e)} in {func.__name__}")
+            raise
+    return wrapper
+
+
+def ignore_exceptions(func):
+    """Decorator to silently swallow all exceptions."""
+    assert asyncio.iscoroutinefunction(func), 'func needs to be a coroutine'
+
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        try:
+            return await func(*args, **kwargs)
+        except asyncio.CancelledError:
+            # note: with python 3.8, CancelledError no longer inherits Exception, so this catch is redundant
+            raise
+        except Exception as e:
+            pass
+    return wrapper

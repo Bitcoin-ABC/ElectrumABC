@@ -23,6 +23,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import asyncio
 import time
 import queue
 import os
@@ -240,6 +241,10 @@ class Network(util.DaemonThread):
         if config is None:
             config = {}  # Do not use mutables as default values!
         util.DaemonThread.__init__(self)
+
+        self.asyncio_loop = self.create_and_start_asyncio_loop()
+        assert self.asyncio_loop.is_running(), "event loop not running"
+
         self.config = SimpleConfig(config) if isinstance(config, dict) else config
         self.num_server = 10 if not self.config.get('oneserver') else 0
         self.blockchains = blockchain.read_blockchains(self.config)
@@ -657,6 +662,12 @@ class Network(util.DaemonThread):
             self.connecting = set()
             # Get a new queue - no old pending connections thanks!
             self.socket_queue = queue.Queue()
+
+            # stop event loop
+            self.asyncio_loop.call_soon_threadsafe(
+                self._stop_asyncio_loop.set_result, 1
+            )
+            self._asyncio_loop_thread.join(timeout=1)
 
     def set_parameters(self, host, port, protocol, proxy, auto_connect):
         with self.interface_lock:
@@ -2029,3 +2040,24 @@ class Network(util.DaemonThread):
                 for s in self.interfaces.copy():
                     if s not in self.whitelisted_servers:
                         self.connection_down(s)
+
+    def create_and_start_asyncio_loop(self):
+        def on_exception(loop, context):
+            """Suppress spurious messages it appears we cannot control."""
+            SUPPRESS_MESSAGE_REGEX = re.compile('SSL handshake|Fatal read error on|'
+                                                'SSL error in data received')
+            message = context.get('message')
+            if message and SUPPRESS_MESSAGE_REGEX.match(message):
+                return
+            loop.default_exception_handler(context)
+
+        asyncio_loop = asyncio.get_event_loop()
+        asyncio_loop.set_exception_handler(on_exception)
+        self._stop_asyncio_loop = asyncio.Future()
+        self._asyncio_loop_thread = threading.Thread(
+            target=asyncio_loop.run_until_complete,
+            args=(self._stop_asyncio_loop,),
+            name='EventLoop'
+        )
+        self._asyncio_loop_thread.start()
+        return asyncio_loop
