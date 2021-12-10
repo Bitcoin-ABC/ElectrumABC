@@ -8,4 +8,4 @@ description = [
     _("Labels, transactions IDs and addresses are encrypted before they"
       " are sent to the remote server.")
 ]
-available_for = ['qt']
+available_for = ['qt', 'cmdline']

@@ -42,6 +42,7 @@ from .storage import WalletStorage
 from .commands import known_commands, Commands
 from .simple_config import SimpleConfig
 from .exchange_rate import FxThread
+from .plugins import run_hook
 
 
 def get_lockfile(config):
@@ -208,8 +209,10 @@ class Daemon(DaemonThread):
         elif sub == 'load_wallet':
             path = config.get_wallet_path()
             wallet = self.load_wallet(path, config.get('password'))
-            self.cmd_runner.wallet = wallet
-            response = True
+            if wallet is not None:
+                self.cmd_runner.wallet = wallet
+                run_hook('load_wallet', wallet, None)
+            response = wallet is not None
         elif sub == 'close_wallet':
             path = config.get_wallet_path()
             if path in self.wallets:
