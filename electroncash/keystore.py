@@ -34,6 +34,7 @@ from mnemonic import Mnemonic
 
 from . import bitcoin, mnemo, networks
 from .address import Address, PublicKey
+from .bitcoin import SignatureType
 from .plugins import run_hook
 from .util import InvalidPassword, PrintError, bh2u, print_error
 
@@ -99,10 +100,10 @@ class Software_KeyStore(KeyStore):
     def may_have_password(self):
         return not self.is_watching_only()
 
-    def sign_message(self, sequence, message, password):
+    def sign_message(self, sequence, message, password, sigtype=SignatureType.ECASH):
         privkey, compressed = self.get_private_key(sequence, password)
         key = bitcoin.regenerate_key(privkey)
-        return key.sign_message(message, compressed)
+        return key.sign_message(message, compressed, sigtype)
 
     def decrypt_message(self, sequence, message, password):
         privkey, compressed = self.get_private_key(sequence, password)

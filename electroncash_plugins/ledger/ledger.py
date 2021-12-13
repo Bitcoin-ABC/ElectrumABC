@@ -6,7 +6,7 @@ import inspect
 
 from electroncash import bitcoin
 from electroncash.address import Address, OpCodes
-from electroncash.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, int_to_hex, var_int
+from electroncash.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, int_to_hex, var_int, SignatureType
 from electroncash.i18n import _
 from electroncash.plugins import BasePlugin
 from electroncash.keystore import Hardware_KeyStore
@@ -300,7 +300,11 @@ class Ledger_KeyStore(Hardware_KeyStore):
 
     @test_pin_unlocked
     @set_and_unset_signing
-    def sign_message(self, sequence, message, password):
+    def sign_message(self, sequence, message, password, sigtype=SignatureType.BITCOIN):
+        if sigtype == SignatureType.ECASH:
+            raise RuntimeError(
+                _('eCash message signing is not available for {}').format(self.device)
+            )
         message = message.encode('utf8')
         message_hash = hashlib.sha256(message).hexdigest().upper()
         # prompt for the PIN before displaying the dialog if necessary

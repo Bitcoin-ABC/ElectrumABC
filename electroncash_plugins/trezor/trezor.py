@@ -5,7 +5,7 @@ import sys
 
 from electroncash.util import bfh, bh2u, versiontuple, UserCancelled
 from electroncash.bitcoin import (b58_address_to_hash160, xpub_from_pubkey, deserialize_xpub,
-                                  TYPE_ADDRESS, TYPE_SCRIPT)
+                                  TYPE_ADDRESS, TYPE_SCRIPT, SignatureType)
 from electroncash.i18n import _
 from electroncash.networks import NetworkConstants
 from electroncash.plugins import BasePlugin, Device
@@ -62,7 +62,11 @@ class TrezorKeyStore(Hardware_KeyStore):
     def decrypt_message(self, sequence, message, password):
         raise RuntimeError(_('Encryption and decryption are not implemented by {}').format(self.device))
 
-    def sign_message(self, sequence, message, password):
+    def sign_message(self, sequence, message, password, sigtype=SignatureType.BITCOIN):
+        if sigtype == SignatureType.ECASH:
+            raise RuntimeError(
+                _('eCash message signing is not available for {}').format(self.device)
+            )
         client = self.get_client()
         address_path = self.get_derivation() + "/%d/%d"%sequence
         msg_sig = client.sign_message(address_path, message)

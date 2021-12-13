@@ -27,6 +27,7 @@
 
 import hashlib
 import base64
+from enum import Enum
 import hmac
 import os
 
@@ -532,24 +533,29 @@ from ecdsa.ellipticcurve import Point
 from ecdsa.util import string_to_number, number_to_string
 
 
-MSG_MAGIC = b"eCash Signed Message:\n"
-# The legacy scheme can be dropped a few releases after 5.0.1
-# It is supported only for the UpdateChecker.
-LEGACY_MSG_MAGIC = b"Bitcoin Signed Message:\n"
+class SignatureType(Enum):
+    ECASH = 1
+    BITCOIN = 2
 
 
-def msg_magic(message: bytes, legacy: bool = False) -> bytes:
+ECASH_MSG_MAGIC = b"eCash Signed Message:\n"
+BITCOIN_MSG_MAGIC = b"Bitcoin Signed Message:\n"
+
+
+def msg_magic(
+    message: bytes, sigtype: SignatureType = SignatureType.ECASH
+) -> bytes:
     """Prepare the preimage of the message before signing it or verifying
     its signature."""
-    msg_magic_ = MSG_MAGIC if not legacy else LEGACY_MSG_MAGIC
+    magic = ECASH_MSG_MAGIC if sigtype == SignatureType.ECASH else BITCOIN_MSG_MAGIC
     length = bytes.fromhex(var_int(len(message)))
-    magic_length = bytes.fromhex(var_int(len(msg_magic_)))
-    return magic_length + msg_magic_ + length + message
+    magic_length = bytes.fromhex(var_int(len(magic)))
+    return magic_length + magic + length + message
 
 
-def verify_message(address: Union[str, "Address"], sig: bytes, message:bytes, *,
+def verify_message(address: Union[str, "Address"], sig: bytes, message: bytes, *,
                    net: Optional[networks.AbstractNet] = None,
-                   legacy: bool = False) -> bool:
+                   sigtype: SignatureType = SignatureType.ECASH) -> bool:
     if net is None: net = networks.net
     assert_bytes(sig, message)
     # Fixme: circular import address -> bitcoin -> address
@@ -557,7 +563,7 @@ def verify_message(address: Union[str, "Address"], sig: bytes, message:bytes, *,
     if not isinstance(address, Address):
         address = Address.from_string(address, net=net)
 
-    h = Hash(msg_magic(message, legacy))
+    h = Hash(msg_magic(message, sigtype))
     public_key, compressed = pubkey_from_signature(sig, h)
     # check public key using the right address
     pubkey = point_to_ser(public_key.pubkey.point, compressed)
@@ -694,22 +700,22 @@ class EC_KEY(object):
         assert public_key.verify_digest(signature, msg_hash, sigdecode = ecdsa.util.sigdecode_string)
         return signature
 
-    def sign_message(self, message, is_compressed):
+    def sign_message(self, message, is_compressed, sigtype=SignatureType.ECASH):
         message = to_bytes(message, 'utf8')
-        signature = self.sign(Hash(msg_magic(message)))
+        signature = self.sign(Hash(msg_magic(message, sigtype)))
         for i in range(4):
             sig = bytes([27 + i + (4 if is_compressed else 0)]) + signature
             try:
-                self.verify_message(sig, message)
+                self.verify_message(sig, message, sigtype)
                 return sig
             except Exception as e:
                 continue
         else:
             raise Exception("error: cannot sign message")
 
-    def verify_message(self, sig, message):
+    def verify_message(self, sig, message, sigtype=SignatureType.ECASH):
         assert_bytes(message)
-        h = Hash(msg_magic(message))
+        h = Hash(msg_magic(message, sigtype))
         public_key, compressed = pubkey_from_signature(sig, h)
         # check public key
         if point_to_ser(public_key.pubkey.point, compressed) != point_to_ser(self.pubkey.point, compressed):

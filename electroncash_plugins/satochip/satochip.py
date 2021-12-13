@@ -16,7 +16,7 @@ from electroncash.keystore import Hardware_KeyStore
 from electroncash.transaction import Transaction
 from electroncash.wallet import Standard_Wallet
 from electroncash.util import print_error, bfh, bh2u, PrintError, is_verbose
-from electroncash.bitcoin import hash_160, Hash
+from electroncash.bitcoin import hash_160, Hash, SignatureType
 from electroncash.mnemo import (
     Mnemonic_Electrum, seed_type_name, is_seed, bip39_mnemonic_to_seed)
 from electroncash.bitcoin import serialize_xpub
@@ -301,8 +301,7 @@ class Satochip_KeyStore(Hardware_KeyStore):
     def decrypt_message(self, pubkey, message, password):
         raise RuntimeError(_('Encryption and decryption are currently not supported for {}').format(self.device))
 
-    def sign_message(self, sequence, message, password):
-
+    def sign_message(self, sequence, message, password, sigtype=SignatureType.ECASH):
         message_byte = message.encode('utf8')
         message_hash = hashlib.sha256(message_byte).hexdigest().upper()
         client = self.get_client()
@@ -356,7 +355,10 @@ class Satochip_KeyStore(Hardware_KeyStore):
                 # self.handler.show_error(_("Wrong signature!\nThe 2FA device may have rejected the action."))
             # else:
                 # compsig=client.parser.parse_message_signature(response2, message_byte, pubkey)
-            (response2, sw1, sw2, compsig) = client.cc.card_sign_message(keynbr, pubkey, message_byte, hmac, altcoin="eCash")
+            altcoin = "eCash" if sigtype == SignatureType.ECASH else None
+            (response2, sw1, sw2, compsig) = client.cc.card_sign_message(
+                keynbr, pubkey, message_byte, hmac, altcoin=altcoin
+            )
             if (compsig==b''):
                 self.handler.show_error(_("Wrong signature!\nThe 2FA device may have rejected the action."))
 

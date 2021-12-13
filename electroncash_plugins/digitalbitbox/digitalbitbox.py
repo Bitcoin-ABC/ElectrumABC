@@ -5,7 +5,7 @@
 
 try:
     from electroncash.bitcoin import TYPE_ADDRESS, push_script, var_int, msg_magic, Hash, verify_message, pubkey_from_signature, point_to_ser, public_key_to_p2pkh, EncodeAES_base64, MyVerifyingKey, int_to_hex, hmac_oneshot, EncodeAES_bytes, DecodeAES_bytes
-    from electroncash.bitcoin import serialize_xpub, deserialize_xpub
+    from electroncash.bitcoin import serialize_xpub, deserialize_xpub, SignatureType
     from electroncash.transaction import Transaction
     from electroncash.i18n import _
     from electroncash.keystore import Hardware_KeyStore
@@ -451,7 +451,11 @@ class DigitalBitbox_KeyStore(Hardware_KeyStore):
         raise RuntimeError(_('Encryption and decryption are currently not supported for {}').format(self.device))
 
 
-    def sign_message(self, sequence, message, password):
+    def sign_message(self, sequence, message, password, sigtype=SignatureType.BITCOIN):
+        if sigtype == SignatureType.ECASH:
+            raise RuntimeError(
+                _('eCash message signing is not available for {}').format(self.device)
+            )
         sig = None
         try:
             message = message.encode('utf8')

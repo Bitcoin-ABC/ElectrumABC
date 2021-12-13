@@ -1,7 +1,7 @@
 from binascii import hexlify, unhexlify
 
 from electroncash.util import bfh, bh2u, UserCancelled
-from electroncash.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, deserialize_xpub
+from electroncash.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, SignatureType, deserialize_xpub
 from electroncash import networks
 from electroncash.i18n import _
 from electroncash.transaction import deserialize, Transaction
@@ -33,7 +33,11 @@ class KeepKey_KeyStore(Hardware_KeyStore):
     def decrypt_message(self, sequence, message, password):
         raise RuntimeError(_('Encryption and decryption are not implemented by {}').format(self.device))
 
-    def sign_message(self, sequence, message, password):
+    def sign_message(self, sequence, message, password, sigtype=SignatureType.BITCOIN):
+        if sigtype == SignatureType.ECASH:
+            raise RuntimeError(
+                _('eCash message signing is not available for {}').format(self.device)
+            )
         client = self.get_client()
         address_path = self.get_derivation() + "/%d/%d"%sequence
         address_n = client.expand_path(address_path)

@@ -20,8 +20,8 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from electroncash import bitcoin
 from electroncash.address import Address
+from electroncash.bitcoin import SignatureType, verify_message
 from electroncash.constants import CURRENCY, PROJECT_NAME
 from electroncash.i18n import _
 
@@ -191,7 +191,9 @@ class SignVerifyDialog(QDialog, MessageBoxMixin):
         if not self.wallet.is_mine(addr):
             self.show_message(_("Address not in wallet."))
             return
-        task = partial(self.wallet.sign_message, addr, message, password)
+        task = partial(
+            self.wallet.sign_message, addr, message, password, self.get_sigtype()
+        )
 
         def show_signed_message(sig):
             self.signature_e.setText(base64.b64encode(sig).decode("ascii"))
@@ -208,7 +210,7 @@ class SignVerifyDialog(QDialog, MessageBoxMixin):
         try:
             # This can throw on invalid base64
             sig = base64.b64decode(self.signature_e.toPlainText())
-            verified = bitcoin.verify_message(address, sig, message)
+            verified = verify_message(address, sig, message, sigtype=self.get_sigtype())
         except Exception:
             verified = False
 
@@ -216,3 +218,10 @@ class SignVerifyDialog(QDialog, MessageBoxMixin):
             self.show_message(_("Signature verified"))
         else:
             self.show_error(_("Wrong signature"))
+
+    def get_sigtype(self) -> SignatureType:
+        return (
+            SignatureType.ECASH
+            if self.ecash_magic_rb.isChecked()
+            else SignatureType.BITCOIN
+        )

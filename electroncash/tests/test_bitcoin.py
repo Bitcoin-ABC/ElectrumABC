@@ -9,6 +9,7 @@ from ..bitcoin import (
     EC_KEY,
     Bip38Key,
     Hash,
+    SignatureType,
     address_from_private_key,
     bip32_private_derivation,
     bip32_public_derivation,
@@ -146,21 +147,32 @@ class Test_bitcoin(unittest.TestCase):
         self.assertFalse(verify_message(addr1, sig2, msg1))
         self.assertFalse(verify_message(addr2, sig1, msg2))
 
-    def test_legacy_msg_verification(self):
-        """Test that we can still check messages signed using the legacy
-        "Bitcoin Signed Message:\n" message magic, for the sake of a smooth
-        transition with UpdateChecker
-        """
-        for sig_ in (
+    def test_legacy_msg_signing(self):
+        """Test that we can use the legacy "Bitcoin Signed Message:\n" message magic."""
+        msg = b"Chancellor on brink of second bailout for banks"
+        addr = "15hETetDmcXm1mM4sEf7U2KXC9hDHFMSzz"
+
+        txin_type, privkey, compressed = deserialize_privkey(
+            "L1TnU2zbNaAqMoVh65Cyvmcjzbrj41Gs9iTLcWbpJCMynXuap6UN"
+        )
+        key = regenerate_key(privkey)
+        sig = key.sign_message(msg, compressed, sigtype=SignatureType.BITCOIN)
+
+        accepted_signatures = {
+            # Older core libsecp/python ecdsa nonce produces this deterministic signature
             b"H/9jMOnj4MFbH3d7t4yCQ9i7DgZU/VZ278w3+ySv2F4yIsdqjsc5ng3kmN8OZAThgyfCZOQxZCWza9V5XzlVY0Y=",
+            # New Bitoin ABC libsecp nonce produces this deterministic signature
             b"IA+oq/uGz4kKA2bNgxPcM+T216abyUiBhofMg1J8fC5BLAbbIpF2toCHaO7/LQAxhQBtu5D6ROq1JjXiRwPAASg=",
-        ):
+        }
+        self.assertTrue(base64.b64encode(sig) in accepted_signatures)
+
+        for sig_ in accepted_signatures:
             self.assertTrue(
                 verify_message(
-                    address="15hETetDmcXm1mM4sEf7U2KXC9hDHFMSzz",
+                    address=addr,
                     sig=base64.b64decode(sig_),
-                    message=b"Chancellor on brink of second bailout for banks",
-                    legacy=True,
+                    message=msg,
+                    sigtype=SignatureType.BITCOIN,
                 )
             )
 

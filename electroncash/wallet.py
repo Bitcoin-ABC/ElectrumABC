@@ -2623,9 +2623,11 @@ class Abstract_Wallet(PrintError, SPVDelegate):
 
         self.storage.write()
 
-    def sign_message(self, address, message, password):
+    def sign_message(
+        self, address, message, password, sigtype=bitcoin.SignatureType.ECASH
+    ):
         index = self.get_address_index(address)
-        return self.keystore.sign_message(index, message, password)
+        return self.keystore.sign_message(index, message, password, sigtype)
 
     def decrypt_message(self, pubkey, message, password):
         addr = self.pubkeys_to_address(pubkey)
