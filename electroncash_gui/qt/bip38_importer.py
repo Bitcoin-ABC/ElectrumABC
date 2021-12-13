@@ -189,7 +189,7 @@ class Bip38Importer(WindowModalDialog, util.PrintError):
         self.wif_lbl.setText((is_ok and self.decoded_wif) or bad_txt)
         # set adr_lbl font
         f = self.adr_lbl.font(); f.setFamily(MONOSPACE_FONT if is_ok else QFont().family()); f.setItalic(not is_ok); self.adr_lbl.setFont(f)
-        self.adr_lbl.setText((is_ok and self.decoded_address.to_full_ui_string()) or bad_txt)
+        self.adr_lbl.setText((is_ok and self.decoded_address.to_ui_string()) or bad_txt)
 
         self.ok.setEnabled(isinstance(self.decoded_address, address.Address))
         self.ok.setText(_('OK') if cur+1 == num else _("Next"))

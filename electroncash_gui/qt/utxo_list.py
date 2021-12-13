@@ -140,7 +140,7 @@ class UTXOList(MyTreeWidget):
             self.utxos = self.wallet.get_utxos(exclude_slp=False)
         for x in self.utxos:
             address = x['address']
-            address_text = address.to_full_ui_string()
+            address_text = address.to_ui_string()
             ca_info = None
             ca_list = ca_by_addr.get(address)
             tool_tip0 = None
@@ -255,7 +255,7 @@ class UTXOList(MyTreeWidget):
                     copy_text = item.data(0, self.DataRoles.name)
                 elif col == self.Col.address:
                     # Determine the "alt copy text" "Legacy Address" or "Cash Address"
-                    copy_text = addr.to_full_ui_string()
+                    copy_text = addr.to_ui_string()
                     if Address.FMT_UI == Address.FMT_LEGACY:
                         alt_copy_text, alt_column_title = addr.to_full_string(Address.FMT_CASHADDR), _('Cash Address')
                     else:

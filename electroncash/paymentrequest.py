@@ -261,7 +261,7 @@ class PaymentRequest:
     def get_address(self):
         o = self.outputs[0]
         assert o[0] == TYPE_ADDRESS
-        return o[1].to_full_ui_string()
+        return o[1].to_ui_string()
 
     def get_requestor(self):
         return self.requestor if self.requestor else self.get_address()
@@ -860,7 +860,7 @@ class PaymentRequest_BitPay20(PaymentRequest, PrintError):
                 else:
                     # TODO: Fixme -- for now this branch will always be taken because we turned off key download in _get_signing_keys() above
                     self.print_error('Warning: Could not verify whether signing public key is valid:', pubkey.hex(), "(PGP verification is currently disabled)")
-                self.requestor = sig_addr.to_full_ui_string()
+                self.requestor = sig_addr.to_ui_string()
                 break
         else:
             self.error = 'failed to verify signature against retrieved keys'

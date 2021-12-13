@@ -800,7 +800,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             desc, address = tup
             if (desc and address and isinstance(desc, str) and isinstance(address, Address)
                     and desc not in d and not desc.lower().startswith(spv_prefix.lower())):
-                d[desc] = address.to_full_ui_string()
+                d[desc] = address.to_ui_string()
         def do_payto(desc):
             addr = d[desc]
             # The message is intentionally untranslated, leave it like that
@@ -1511,7 +1511,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     def update_receive_address_widget(self):
         text = ''
         if self.receive_address:
-            text = self.receive_address.to_full_ui_string()
+            text = self.receive_address.to_ui_string()
         self.receive_address_e.setText(text)
         self.cash_account_e.set_cash_acct()
 
@@ -1596,7 +1596,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         # Special case hack -- see #1473. Omit bitcoincash: prefix from
         # legacy address if no other params present in receive request.
         if Address.FMT_UI == Address.FMT_LEGACY and not kwargs and not amount and not message:
-            uri = self.receive_address.to_ui_string()
+            uri = self.receive_address.to_ui_string_without_prefix()
         else:
             # Otherwise proceed as normal, prepending bitcoincash: to URI
             uri = web.create_URI(self.receive_address, amount, message, **kwargs)
@@ -2701,7 +2701,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     def remove_address(self, addr):
         if self.question(_("Do you want to remove {} from your wallet?"
-                           .format(addr.to_full_ui_string()))):
+                           .format(addr.to_ui_string()))):
             self.wallet.delete_address(addr)
             self.update_tabs()
             self.update_status()
@@ -2793,7 +2793,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 self.contact_list.update() # Displays original
                 return
             info, label = tup
-            address = info.address.to_full_ui_string()
+            address = info.address.to_ui_string()
             contact = Contact(name=label, address=address, type=typ)
         elif not Address.is_valid(address):
             # Bad 'address' code path
@@ -2862,7 +2862,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         grid.addWidget(QtWidgets.QLabel(_("Requestor") + ':'), 0, 0)
         grid.addWidget(QtWidgets.QLabel(pr.get_requestor()), 0, 1)
         grid.addWidget(QtWidgets.QLabel(_("Amount") + ':'), 1, 0)
-        outputs_str = '\n'.join(map(lambda x: self.format_amount(x[2])+ self.base_unit() + ' @ ' + x[1].to_full_ui_string(), pr.get_outputs()))
+        outputs_str = '\n'.join(map(lambda x: self.format_amount(x[2])+ self.base_unit() + ' @ ' + x[1].to_ui_string(), pr.get_outputs()))
         grid.addWidget(QtWidgets.QLabel(outputs_str), 1, 1)
         expires = pr.get_expiration_date()
         grid.addWidget(QtWidgets.QLabel(_("Memo") + ':'), 2, 0)
@@ -3351,7 +3351,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         layout.setRowStretch(2,3)
 
         address_e = QtWidgets.QLineEdit()
-        address_e.setText(address.to_full_ui_string() if address else '')
+        address_e.setText(address.to_ui_string() if address else '')
         layout.addWidget(QtWidgets.QLabel(_('Address')), 2, 0)
         layout.addWidget(address_e, 2, 1)
 
@@ -3715,7 +3715,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 except InvalidPassword:
                     # See #921 -- possibly a corrupted wallet or other strangeness
                     privkey = 'INVALID_PASSWORD'
-                private_keys[addr.to_full_ui_string()] = privkey
+                private_keys[addr.to_ui_string()] = privkey
                 strong_d = weak_d()
                 try:
                     if strong_d and not stop:
@@ -5226,7 +5226,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             le.addWidget(help_but)
             name = line_dialog(self.top_level_window(),
                                _("Register A New Cash Account"),
-                               (_("You are registering a new <a href='ca'>Cash Account</a> for your address <a href='addr'><b><pre>{address}</pre></b></a>").format(address=addr.to_full_ui_string())
+                               (_("You are registering a new <a href='ca'>Cash Account</a> for your address <a href='addr'><b><pre>{address}</pre></b></a>").format(address=addr.to_ui_string())
                                 + _("The current block height is <b><i>{block_height}</i></b>, so the new cash account will likely look like: <b><u><i>AccountName<i>#{number}</u></b>.")
                                 .format(block_height=lh or '???', number=max(cashacct.bh2num(lh or 0)+1, 0) or '???')
                                 + "<br><br><br>" + _("Specify the <b>account name</b> below (limited to 99 characters):") ),
@@ -5268,7 +5268,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         # Set a default description -- this we allow them to edit
         self.message_e.setText(
             _("Cash Accounts Registration: '{name}' -> {address}").format(
-                name=name, address=addr.to_full_ui_string()
+                name=name, address=addr.to_ui_string()
             )
         )
 

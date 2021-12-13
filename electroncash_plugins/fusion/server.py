@@ -324,7 +324,7 @@ class FusionServer(GenericServer):
 
         donation_address = ''
         if isinstance(self.donation_address, Address):
-            donation_address = self.donation_address.to_full_ui_string()
+            donation_address = self.donation_address.to_ui_string()
 
         client.send(pb.ServerHello( num_components = Params.num_components,
                                     component_feerate = Params.component_feerate,

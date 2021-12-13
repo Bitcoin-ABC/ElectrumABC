@@ -157,7 +157,7 @@ class AddressDialog(PrintError, WindowModalDialog):
             self.update_cash_accounts()
 
     def update_addr(self):
-        self.addr_e.setText(self.address.to_full_ui_string())
+        self.addr_e.setText(self.address.to_ui_string())
 
     def update_cash_accounts(self, ca_infos=None):
         gb = self.cashacct_gb
@@ -184,7 +184,7 @@ class AddressDialog(PrintError, WindowModalDialog):
         return [self.address]
 
     def show_qr(self):
-        text = self.address.to_full_ui_string()
+        text = self.address.to_ui_string()
         try:
             self.parent.show_qrcode(text, 'Address', parent=self)
         except Exception as e:

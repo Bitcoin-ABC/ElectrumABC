@@ -110,9 +110,7 @@ class ConsolidateCoinsWizard(QtWidgets.QWizard, MessageBoxMixin):
         parent: Optional[QtWidgets.QWidget] = None,
     ):
         super().__init__(parent)
-        self.setWindowTitle(
-            f"Consolidate coins for address {address.to_full_ui_string()}"
-        )
+        self.setWindowTitle(f"Consolidate coins for address {address.to_ui_string()}")
 
         self.tx_thread: Optional[QtCore.QThread] = None
 

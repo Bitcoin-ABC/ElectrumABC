@@ -110,7 +110,7 @@ class LedgerAuthDialog(QtWidgets.QDialog):
 
                 # We also show the UI address if it is different
                 if networks.net.TESTNET or not Address.FMT_UI == Address.FMT_LEGACY:
-                    addressstr = address.to_full_ui_string() + '\n' + addressstr
+                    addressstr = address.to_ui_string() + '\n' + addressstr
 
                 self.addrtext.setHtml(str(addressstr))
             else:

@@ -63,7 +63,7 @@ class RequestList(MyTreeWidget):
         opr_is_raw = bool(req.get('op_return_raw'))
         message = self.wallet.labels.get(addr.to_storage_string(), '')
         self.parent.receive_address = addr
-        self.parent.receive_address_e.setText(addr.to_full_ui_string())
+        self.parent.receive_address_e.setText(addr.to_ui_string())
         self.parent.receive_message_e.setText(message)
         self.parent.receive_amount_e.setAmount(amount)
         self.parent.expires_combo.hide()
@@ -129,7 +129,7 @@ class RequestList(MyTreeWidget):
             signature = req.get('sig')
             requestor = req.get('name', '')
             amount_str = self.parent.format_amount(amount) if amount else ""
-            item = QtWidgets.QTreeWidgetItem([date, address.to_full_ui_string(), '', message,
+            item = QtWidgets.QTreeWidgetItem([date, address.to_ui_string(), '', message,
                                     amount_str, _(pr_tooltips.get(status,''))])
             item.setData(0, Qt.UserRole, address)
             if signature is not None:

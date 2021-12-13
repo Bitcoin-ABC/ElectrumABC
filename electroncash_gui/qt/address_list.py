@@ -238,7 +238,7 @@ class AddressList(MyTreeWidget):
                 else:
                     is_hidden = self.wallet.is_used(address)
                 balance = sum(self.wallet.get_addr_balance(address))
-                address_text = address.to_full_ui_string()
+                address_text = address.to_ui_string()
                 # Cash Accounts
                 ca_info, ca_list = None, ca_by_addr.get(address)
                 if ca_list:
@@ -345,7 +345,7 @@ class AddressList(MyTreeWidget):
 
             alt_copy_text, alt_column_title = None, None
             if col == 0:
-                copy_text = addr.to_full_ui_string()
+                copy_text = addr.to_ui_string()
                 if Address.FMT_UI == Address.FMT_LEGACY:
                     alt_copy_text, alt_column_title = addr.to_full_string(
                         Address.FMT_CASHADDR
@@ -414,7 +414,7 @@ class AddressList(MyTreeWidget):
             # multi-select
             texts, alt_copy, alt_copy_text = None, None, None
             if col == 0:  # address column
-                texts = [a.to_full_ui_string() for a in addrs]
+                texts = [a.to_ui_string() for a in addrs]
                 # Add additional copy option: "Address, Balance (n)"
                 alt_copy = (
                     _("Copy {}").format(_("Address") + ", " + _("Balance"))
@@ -422,7 +422,7 @@ class AddressList(MyTreeWidget):
                 )
                 alt_copy_text = "\n".join(
                     [
-                        a.to_full_ui_string()
+                        a.to_ui_string()
                         + ", "
                         + self.parent.format_amount(
                             sum(self.wallet.get_addr_balance(a))
@@ -518,7 +518,7 @@ class AddressList(MyTreeWidget):
         if event.matches(QKeySequence.Copy) and self.currentColumn() == 0:
             addrs = [i.data(0, self.DataRoles.address) for i in self.selectedItems()]
             if addrs and isinstance(addrs[0], Address):
-                text = addrs[0].to_full_ui_string()
+                text = addrs[0].to_ui_string()
                 self.parent.app.clipboard().setText(text)
         else:
             super().keyPressEvent(event)
@@ -566,7 +566,7 @@ class AddressList(MyTreeWidget):
             return
         items = (
             self.findItems(
-                ca_info.address.to_full_ui_string(),
+                ca_info.address.to_ui_string(),
                 Qt.MatchContains | Qt.MatchWrap | Qt.MatchRecursive,
                 0,
             )

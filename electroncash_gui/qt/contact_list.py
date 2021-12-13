@@ -354,7 +354,7 @@ class ContactList(PrintError, MyTreeWidget):
                 continue
             wallet_cashaccts.append(Contact(
                 name = name,
-                address = ca_info.address.to_full_ui_string(),
+                address = ca_info.address.to_ui_string(),
                 type = 'cashacct_W'
             ))
         # Add the [Pend] pseudo-contacts
@@ -367,7 +367,7 @@ class ContactList(PrintError, MyTreeWidget):
             name, address = tup
             wallet_cashaccts.append(Contact(
                 name = name,
-                address = address.to_full_ui_string(),
+                address = address.to_ui_string(),
                 type = 'cashacct_T'
             ))
         return wallet_cashaccts
@@ -412,7 +412,7 @@ class ContactList(PrintError, MyTreeWidget):
                 try:
                     # try and re-parse and re-display the address based on current UI string settings
                     addy = Address.from_string(address)
-                    address = addy.to_full_ui_string()
+                    address = addy.to_ui_string()
                     label_key = addy.to_storage_string()
                     del addy
                 except:
@@ -476,7 +476,7 @@ class ContactList(PrintError, MyTreeWidget):
         )
         if items:
             info, min_chash, name = items[0]
-            self.parent.set_contact(name, info.address.to_full_ui_string(), typ='cashacct')
+            self.parent.set_contact(name, info.address.to_ui_string(), typ='cashacct')
             run_hook('update_contacts_tab', self)
 
     def ca_update_potentially_unconfirmed_registrations(self, d : Dict[str, Tuple[str, Address]]):

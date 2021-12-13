@@ -516,7 +516,7 @@ class ChoicesLayout(object):
 
 def address_combo(addresses):
     addr_combo = QtWidgets.QComboBox()
-    addr_combo.addItems(addr.to_full_ui_string() for addr in addresses)
+    addr_combo.addItems(addr.to_ui_string() for addr in addresses)
     addr_combo.setCurrentIndex(0)
 
     hbox = QtWidgets.QHBoxLayout()

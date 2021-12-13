@@ -428,9 +428,6 @@ class ScriptOutput(namedtuple("ScriptAddressTuple", "script")):
                 parts.append(lookup(op))
         return ', '.join(parts)
 
-    def to_full_ui_string(self):
-        return self.to_ui_string()
-
     def to_script(self):
         return self.script
 
@@ -690,7 +687,8 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
         )
         return verbyte in legacy_formats
 
-    def to_cashaddr(self, *, net=None):
+    def to_cashaddr(self, *, net=None) -> str:
+        """Return address string in CashAddr format (without prefix)"""
         if net is None: net = networks.net
         if self.kind == self.ADDR_P2PKH:
             kind  = cashaddr.PUBKEY_TYPE
@@ -698,7 +696,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
             kind  = cashaddr.SCRIPT_TYPE
         return cashaddr.encode(net.CASHADDR_PREFIX, kind, self.hash160)
 
-    def to_cashaddr_bch(self, *, net=None):
+    def to_cashaddr_bch(self, *, net=None) -> str:
         if net is None: net = networks.net
         if self.kind == self.ADDR_P2PKH:
             kind  = cashaddr.PUBKEY_TYPE
@@ -706,8 +704,11 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
             kind  = cashaddr.SCRIPT_TYPE
         return cashaddr.encode(net.CASHADDR_PREFIX_BCH, kind, self.hash160)
 
-    def to_string(self, fmt, *, net=None):
-        '''Converts to a string of the given format.'''
+    def to_string(self, fmt, *, net=None) -> str:
+        """Converts to a string of the given format.
+        CashAddr formats are produced without prefix.
+        """
+
         if net is None: net = networks.net
         if net is networks.net:
             try:
@@ -747,7 +748,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
             if cached is not None and net is networks.net:
                 self._addr2str_cache[fmt] = cached
 
-    def to_full_string(self, fmt, *, net=None):
+    def to_full_string(self, fmt, *, net=None) -> str:
         '''Convert to text, with a URI prefix for cashaddr format.'''
         if net is None: net = networks.net
         text = self.to_string(fmt, net=net)
@@ -757,13 +758,14 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
             text = ':'.join([net.CASHADDR_PREFIX_BCH, text])
         return text
 
-    def to_ui_string(self, *, net=None):
-        '''Convert to text in the current UI format choice.'''
+    def to_ui_string_without_prefix(self, *, net=None) -> str:
+        """Convert to text in the current UI format choice.
+        If the format is CashAddr, it is produced without the prefix."""
         if net is None: net = networks.net
         return self.to_string(self.FMT_UI, net=net)
 
-    def to_full_ui_string(self, *, net=None):
-        '''Convert to text, with a URI prefix if cashaddr.'''
+    def to_ui_string(self, *, net=None) -> str:
+        """Convert to text, with a URI prefix if cashaddr."""
         if net is None: net = networks.net
         return self.to_full_string(self.FMT_UI, net=net)
 
@@ -777,7 +779,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
             # keep producing bitcoincash: URIs when requested by users
             # until the ecosystem widely supports the new prefix
             scheme = net.CASHADDR_PREFIX_BCH
-        path = self.to_ui_string(net=net)
+        path = self.to_string(self.FMT_UI, net=net)
         return scheme, path
 
     def to_storage_string(self, *, net=None):

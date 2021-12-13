@@ -159,9 +159,7 @@ class Imported_KeyStore(Software_KeyStore):
     def get_addresses(self):
         if not self._sorted:
             addresses = [pubkey.address for pubkey in self.keypairs]
-            self._sorted = sorted(
-                addresses, key=lambda address: address.to_full_ui_string()
-            )
+            self._sorted = sorted(addresses, key=lambda address: address.to_ui_string())
         return self._sorted
 
     def address_to_pubkey(self, address):

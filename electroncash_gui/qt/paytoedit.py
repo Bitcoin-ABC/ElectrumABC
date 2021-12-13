@@ -356,7 +356,7 @@ class PayToEdit(PrintError, ScanQRTextEdit):
         if isinstance(address, str):
             address_str = address
         elif isinstance(address, Address):
-            address_str = address.to_full_ui_string()
+            address_str = address.to_ui_string()
         else:
             raise RuntimeError('unknown address type')
 
@@ -410,7 +410,7 @@ class PayToEdit(PrintError, ScanQRTextEdit):
                 parts = [ca_string]  # strip down to JUST ca_string
             ca_info = wallet.cashacct.get_verified(ca_string)
             if ca_info:
-                resolved = wallet.cashacct.fmt_info(ca_info) + " " + ca_info.emoji + " <" + ca_info.address.to_full_ui_string() + ">"
+                resolved = wallet.cashacct.fmt_info(ca_info) + " " + ca_info.emoji + " <" + ca_info.address.to_ui_string() + ">"
                 lines[n] = line = resolved + " ".join(parts[1:])  # rewrite line, putting the resolved cash account + <address> at the beginning, amount at the end (if any)
             else:
                 lines[n] = line = " ".join(parts)  # rewrite line, possibly stripping <> address here

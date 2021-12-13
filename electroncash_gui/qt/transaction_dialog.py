@@ -637,12 +637,12 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
                 if self.wallet.is_change(addr):
                     chg_ct += 1
                     chg2 = QTextCharFormat(chg)
-                    chg2.setAnchorHref(addr.to_full_ui_string())
+                    chg2.setAnchorHref(addr.to_ui_string())
                     return chg2
                 else:
                     rec_ct += 1
                     rec2 = QTextCharFormat(rec)
-                    rec2.setAnchorHref(addr.to_full_ui_string())
+                    rec2.setAnchorHref(addr.to_ui_string())
                     return rec2
             return ext
 
@@ -673,7 +673,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
                 if addr is None:
                     addr_text = _('unknown')
                 else:
-                    addr_text = addr.to_full_ui_string()
+                    addr_text = addr.to_ui_string()
                 cursor.insertText(addr_text, text_format(addr))
                 if x.get('value'):
                     cursor.insertText(format_amount(x['value']), ext)
@@ -719,7 +719,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
             # Format Cash Accounts address *in* script to be highlighted with
             # our preferred yellow/green for change/receiving and also
             # linkify it.
-            addrstr = addr.to_full_ui_string()
+            addrstr = addr.to_ui_string()
             my_addr_in_script_str = my_addr_in_script and my_addr_in_script.to_ui_string()
             idx = my_addr_in_script_str and addrstr.find(my_addr_in_script_str)
             if idx is not None and idx > -1:
@@ -846,8 +846,8 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         menu.exec_(global_pos)
 
     def _add_addr_to_io_menu_lists_for_widget(self, addr, show_list, copy_list, widget):
-        if hasattr(addr, 'to_full_ui_string'):
-            addr_text = addr.to_full_ui_string()
+        if hasattr(addr, 'to_ui_string'):
+            addr_text = addr.to_ui_string()
             if isinstance(addr, Address) and self.wallet.is_mine(addr):
                 show_list += [ ( _("Address Details"), lambda: self._open_internal_link(addr_text) ) ]
                 addr_URL = web.BE_URL(self.main_window.config, web.ExplorerUrlParts.ADDR, addr)
@@ -889,7 +889,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
                 value_fmtd = self.main_window.format_amount(value)
                 copy_list += [ ( _("Copy Amount"), lambda: self._copy_to_clipboard(value_fmtd, o_text) ) ]
             if ca_script:
-                copy_list += [ ( _("Copy Address (Embedded)"), lambda: self._copy_to_clipboard(ca_script.address.to_full_ui_string(), o_text) ) ]
+                copy_list += [ ( _("Copy Address (Embedded)"), lambda: self._copy_to_clipboard(ca_script.address.to_ui_string(), o_text) ) ]
                 if ca_script.is_complete() and self.tx_hash:
                     text_getter = lambda: self.wallet.cashacct.fmt_info(cashacct.Info.from_script(ca_script, self.tx_hash), emoji=True)
                     text_getter()  # go out to network to cache the shortest encoding for cash account name ahead of time...

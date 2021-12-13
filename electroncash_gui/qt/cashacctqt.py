@@ -474,12 +474,12 @@ class InfoGroupBox(PrintError, QtWidgets.QGroupBox):
                 addr_lbl = ButtonAssociatedLabel('', button=rb)
                 if is_valid:
                     if is_mine:
-                        addr_lbl.setText(f'<a href="{info.address.to_full_ui_string()}"><pre>{info.address.to_full_ui_string()}</pre></a>')
+                        addr_lbl.setText(f'<a href="{info.address.to_ui_string()}"><pre>{info.address.to_ui_string()}</pre></a>')
                         addr_lbl.linkActivated.connect(view_addr_link_activated)
                         addr_lbl.setToolTip(_('Wallet') + ' - ' + (_('Change Address') if is_change else _('Receiving Address')))
                         addr_lbl.setButton(None)  # disable click to select
                     else:
-                        addr_lbl.setText(f'<pre>{info.address.to_full_ui_string()}</pre>')
+                        addr_lbl.setText(f'<pre>{info.address.to_ui_string()}</pre>')
                 else:
                     addr_lbl.setText('<i>' + _('Unsupported Account Type') + '</i>')
                     addr_lbl.setToolTip(rb.toolTip())
@@ -867,7 +867,7 @@ def cash_account_detail_dialog(parent : MessageBoxMixin,  # Should be an Electru
                                     parent.copy_to_clipboard(text=ca_string_em, tooltip=_('Cash Account copied to clipboard'), widget=copy_but) )
     grid.addWidget(copy_name_but, 0, 2, 1, 1)
     # address label
-    addr_lbl = QtWidgets.QLabel(f'<span style="white-space:nowrap; font-size:15pt;"><a href="{info.address.to_full_ui_string()}"><pre>{info.address.to_full_ui_string()}</pre></a></span>')
+    addr_lbl = QtWidgets.QLabel(f'<span style="white-space:nowrap; font-size:15pt;"><a href="{info.address.to_ui_string()}"><pre>{info.address.to_ui_string()}</pre></a></span>')
     addr_lbl.linkActivated.connect(open_link)
     grid.addWidget(addr_lbl, 1, 1, 1, 1)
     # copy address label
@@ -875,7 +875,7 @@ def cash_account_detail_dialog(parent : MessageBoxMixin,  # Should be an Electru
     copy_addr_but.setIcon(QIcon(":icons/copy.png"))
     button_make_naked(copy_addr_but)
     copy_addr_but.setToolTip(_("Copy {}").format(_("Address")))
-    copy_addr_but.clicked.connect(lambda ignored=None, text=info.address.to_full_ui_string(), copy_but=copy_addr_but:
+    copy_addr_but.clicked.connect(lambda ignored=None, text=info.address.to_ui_string(), copy_but=copy_addr_but:
                                     parent.copy_to_clipboard(text=text, tooltip=_('Address copied to clipboard'), widget=copy_but) )
     grid.addWidget(copy_addr_but, 1, 2, 1, 1)
 
@@ -895,7 +895,7 @@ def cash_account_detail_dialog(parent : MessageBoxMixin,  # Should be an Electru
 
     # QR
     tabs = QtWidgets.QTabWidget()
-    full_addr_str = info.address.to_full_ui_string()
+    full_addr_str = info.address.to_ui_string()
     qr_address = QRCodeWidget(full_addr_str, fixedSize=True)
     qr_address.setToolTip(full_addr_str)
     tabs.addTab(qr_address, _("Address"))

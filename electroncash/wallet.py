@@ -678,7 +678,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         if txs:
             self._addr_bal_cache = {}  # this is probably not necessary -- as the receive_history_callback will invalidate bad cache items -- but just to be paranoid we clear the whole balance cache on reorg anyway as a safety measure
         for tx_hash in txs:
-            self._update_request_statuses_touched_by_tx(tx_hash)    
+            self._update_request_statuses_touched_by_tx(tx_hash)
         return txs
 
     def get_local_height(self):
@@ -1683,9 +1683,9 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                     if x['type'] == 'coinbase': continue
                     addr = x.get('address')
                     if addr == None: continue
-                    input_addresses.append(addr.to_full_ui_string())
+                    input_addresses.append(addr.to_ui_string())
                 for _type, addr, v in tx.outputs():
-                    output_addresses.append(addr.to_full_ui_string())
+                    output_addresses.append(addr.to_ui_string())
                 item['input_addresses'] = input_addresses
                 item['output_addresses'] = output_addresses
             if fx is not None:
@@ -2354,7 +2354,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         if not r:
             return
         out = copy.copy(r)
-        addr_text = addr.to_full_ui_string()
+        addr_text = addr.to_ui_string()
         amount_text = format_satoshis(r['amount'])  # fixme: this should not be localized
         out['URI'] = '{}?amount={}'.format(addr_text, amount_text)
         status, conf = self.get_request_status(addr)
@@ -2490,7 +2490,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                 f.write(pr.SerializeToString())
             # reload
             req = self.get_payment_request(addr, config)
-            req['address'] = req['address'].to_full_ui_string()
+            req['address'] = req['address'].to_ui_string()
             with open(os.path.join(path, key + '.json'), 'w', encoding='utf-8') as f:
                 f.write(json.dumps(req))
 
@@ -2878,7 +2878,7 @@ class ImportedAddressWallet(ImportedWalletBase):
     def get_addresses(self):
         if not self._sorted:
             self._sorted = sorted(self.addresses,
-                                  key=lambda addr: addr.to_full_ui_string())
+                                  key=lambda addr: addr.to_ui_string())
         return self._sorted
 
     def import_address(self, address):
@@ -2969,7 +2969,7 @@ class ImportedPrivkeyWallet(ImportedWalletBase):
         self.cashacct.save()
         self.save_addresses()
         self.storage.write()  # no-op if above already wrote
-        return pubkey.address.to_full_ui_string()
+        return pubkey.address.to_ui_string()
 
     def export_private_key(self, address, password):
         '''Returned in WIF format.'''
