@@ -294,7 +294,7 @@ class BaseWizard(util.PrintError):
                 # This prevents showing an empty "UserCancelled" message
                 self.print_error(traceback.format_exc())
                 self.show_error(str(e))
-            self.choose_hw_device()
+            self.choose_hw_device(purpose)
             return
         if purpose == HWD_SETUP_NEW_WALLET:
             if self.wallet_type == 'multisig':
