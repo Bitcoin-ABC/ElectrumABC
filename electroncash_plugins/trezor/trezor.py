@@ -520,7 +520,7 @@ class TrezorPlugin(HW_PluginBase):
 
     # This function is called from the TREZOR libraries (via tx_api)
     def get_tx(self, tx_hash):
-        # for electron-cash previous tx is never needed, since it uses
+        # for electrum-abc previous tx is never needed, since it uses
         # bip-143 signatures.
         return None
 

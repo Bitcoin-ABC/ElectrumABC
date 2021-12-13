@@ -839,12 +839,12 @@ class FusionPlugin(BasePlugin):
     @daemon_command
     def fusion_server_start(self, daemon, config):
         # Usage:
-        #   ./electron-cash daemon fusion_server_start <bindhost>(,<announcehost>) <port>
-        #   ./electron-cash daemon fusion_server_start <bindhost>(,<announcehost>) <port> upnp
-        #   ./electron-cash daemon fusion_server_start <bindhost>(,<announcehost>) <port> <donation_addr>
-        #   ./electron-cash daemon fusion_server_start <bindhost>(,<announcehost>) <port> upnp <donation_addr>
+        #   ./electrum-abc daemon fusion_server_start <bindhost>(,<announcehost>) <port>
+        #   ./electrum-abc daemon fusion_server_start <bindhost>(,<announcehost>) <port> upnp
+        #   ./electrum-abc daemon fusion_server_start <bindhost>(,<announcehost>) <port> <donation_addr>
+        #   ./electrum-abc daemon fusion_server_start <bindhost>(,<announcehost>) <port> upnp <donation_addr>
         # e.g.:
-        #   ./electron-cash daemon fusion_server_start 0.0.0.0,myfusionserver.com 8787 upnp bitcoincash:qpxiweuqoiweweqeweqw
+        #   ./electrum-abc daemon fusion_server_start 0.0.0.0,myfusionserver.com 8787 upnp bitcoincash:qpxiweuqoiweweqeweqw
         #
         # The main server port will be bound on <bindhost>:<port>.
         # Covert submissions will be bound on <bindhost>:<ephemeral_port> (the port is chosen by the OS)

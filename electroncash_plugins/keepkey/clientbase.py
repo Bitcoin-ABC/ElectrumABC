@@ -121,8 +121,8 @@ class KeepKeyClientBase(GuiMixin, PrintError):
 
     def has_usable_connection_with_device(self):
         try:
-            res = self.ping("electron-cash pinging device") # FIXME: Add some randomness
-            assert res == "electron-cash pinging device"
+            res = self.ping("electrum-abc pinging device") # FIXME: Add some randomness
+            assert res == "electrum-abc pinging device"
         except BaseException:
             return False
         return True

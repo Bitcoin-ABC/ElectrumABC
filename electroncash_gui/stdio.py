@@ -7,6 +7,7 @@ from electroncash import WalletStorage, Wallet
 from electroncash.util import format_satoshis, set_verbosity
 from electroncash.address import Address
 from electroncash.bitcoin import CASH, TYPE_ADDRESS
+from electroncash.constants import SCRIPT_NAME
 
 
 _ = lambda x:x
@@ -21,7 +22,7 @@ class ElectrumGui:
         self.network = daemon.network
         storage = WalletStorage(config.get_wallet_path())
         if not storage.file_exists:
-            print("Wallet not found. try 'electron-cash create'")
+            print(f"Wallet not found. try '{SCRIPT_NAME} create'")
             exit()
         if storage.is_encrypted():
             password = getpass.getpass('Password:', stream=None)
@@ -220,12 +221,12 @@ class ElectrumGui:
             print(_('Error'))
 
     def network_dialog(self):
-        print("use 'electron-cash setconfig server/proxy' to change your network settings")
+        print(f"use '{SCRIPT_NAME} setconfig server/proxy' to change your network settings")
         return True
 
 
     def settings_dialog(self):
-        print("use 'electron-cash setconfig' to change your settings")
+        print(f"use '{SCRIPT_NAME} setconfig' to change your settings")
         return True
 
     def password_dialog(self):

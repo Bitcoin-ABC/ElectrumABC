@@ -30,8 +30,7 @@ import os
 import tempfile
 import grp
 
-from PyQt5.QtCore import Qt, QObject
-from PyQt5.QtGui import QFont
+from PyQt5.QtCore import Qt
 from PyQt5 import QtWidgets
 
 from electroncash.util import _, PrintError
@@ -41,13 +40,13 @@ from electroncash.constants import PROJECT_NAME
 
 
 class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
-    UDEV_RULES_FILE='/etc/udev/rules.d/20-electron-cash-hw-wallets.rules'
-    GRAPHICAL_SUDOS=['pkexec','gksudo','kdesudo']
+    UDEV_RULES_FILE = '/etc/udev/rules.d/20-electrum-abc-hw-wallets.rules'
+    GRAPHICAL_SUDOS = ['pkexec', 'gksudo', 'kdesudo']
 
     ADDITIONAL_HARDWARE_IDS = {
-        (0x534c, 0x0001), # TREZOR
-        (0x1209, 0x53c0), # TREZOR V2
-        (0x1209, 0x53c1), # TREZOR V2
+        (0x534c, 0x0001),  # TREZOR
+        (0x1209, 0x53c0),  # TREZOR V2
+        (0x1209, 0x53c1),  # TREZOR V2
     }
 
     def __init__(self, parent: QtWidgets.QWidget, plugins: Plugins):
@@ -167,7 +166,7 @@ class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
     def _runScriptAsRoot(self, script: str) -> bool:
         assert script
 
-        with tempfile.NamedTemporaryFile(mode='w', prefix='electroncash') as tf:
+        with tempfile.NamedTemporaryFile(mode='w', prefix='electrumabc') as tf:
             tf.write(script)
             tf.flush()
 

@@ -261,8 +261,8 @@ build_the_app() {
 
         # build NSIS installer
         info "Running makensis to build setup .exe version ..."
-        # $VERSION could be passed to the electron-cash.nsi script, but this would require some rewriting in the script iself.
-        wine "$WINEPREFIX/drive_c/Program Files (x86)/NSIS/makensis.exe" /DPRODUCT_VERSION=$VERSION electron-cash.nsi || fail "makensis failed"
+        # $VERSION could be passed to the electrum-abc.nsi script, but this would require some rewriting in the script iself.
+        wine "$WINEPREFIX/drive_c/Program Files (x86)/NSIS/makensis.exe" /DPRODUCT_VERSION=$VERSION electrum-abc.nsi || fail "makensis failed"
 
         cd dist
         mv $NAME_ROOT-setup.exe $NAME_ROOT-$VERSION-setup.exe  || fail "Failed to move $NAME_ROOT-$VERSION-setup.exe to the output dist/ directory"

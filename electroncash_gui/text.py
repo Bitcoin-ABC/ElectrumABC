@@ -10,6 +10,7 @@ from decimal import Decimal as PyDecimal
 
 import electroncash
 from electroncash.address import Address
+from electroncash.constants import SCRIPT_NAME
 from electroncash.util import format_satoshis, set_verbosity
 from electroncash.bitcoin import CASH, TYPE_ADDRESS
 from electroncash import Wallet, WalletStorage
@@ -26,7 +27,7 @@ class ElectrumGui:
         self.network = daemon.network
         storage = WalletStorage(config.get_wallet_path())
         if not storage.file_exists():
-            sys.exit("Wallet not found. try 'electron-cash create'")
+            sys.exit(f"Wallet not found. try '{SCRIPT_NAME} create'")
         if storage.is_encrypted():
             password = getpass.getpass('Password:', stream=None)
             storage.decrypt(password)

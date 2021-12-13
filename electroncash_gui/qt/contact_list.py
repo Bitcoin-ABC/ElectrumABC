@@ -30,7 +30,7 @@ from electroncash.address import Address
 from electroncash.contacts import Contact, contact_types
 from electroncash.plugins import run_hook
 from electroncash.util import PrintError
-from electroncash.constants import PROJECT_NAME
+from electroncash.constants import PROJECT_NAME, SCRIPT_NAME
 
 from PyQt5.QtGui import QCursor, QIcon, QFont
 from PyQt5.QtCore import pyqtSignal, Qt
@@ -142,7 +142,11 @@ class ContactList(PrintError, MyTreeWidget):
             self.parent.show_error(_("Your contact list is empty."))
             return
         try:
-            fileName = self.parent.getSaveFileName(_("Select file to save your contacts"), 'electron-cash-contacts.json', "*.json")
+            fileName = self.parent.getSaveFileName(
+                _("Select file to save your contacts"),
+                f'{SCRIPT_NAME}-contacts.json',
+                "*.json",
+            )
             if fileName:
                 num = self.parent.contacts.export_file(fileName)
                 self.parent.show_message(_("{} contacts exported to '{}'").format(num, fileName))

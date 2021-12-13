@@ -61,7 +61,7 @@ from electroncash import paymentrequest
 from electroncash import util, bitcoin, commands, cashacct
 from electroncash.address import Address
 from electroncash.bitcoin import TYPE_ADDRESS
-from electroncash.constants import PROJECT_NAME, REPOSITORY_URL, CURRENCY
+from electroncash.constants import PROJECT_NAME, REPOSITORY_URL, CURRENCY, SCRIPT_NAME
 from electroncash.contacts import Contact
 from electroncash.i18n import _, ngettext, pgettext
 from electroncash.plugins import run_hook
@@ -3685,7 +3685,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         e.setReadOnly(True)
         vbox.addWidget(e)
 
-        defaultname = 'electron-cash-private-keys.csv' if not bip38 else 'electron-cash-bip38-keys.csv'
+        defaultname = f'{SCRIPT_NAME}-private-keys.csv' if not bip38 else f'{SCRIPT_NAME}-bip38-keys.csv'
         select_msg = _('Select file to export your private keys to')
         box, filename_e, csv_button = filename_field(self.config, defaultname, select_msg)
         vbox.addSpacing(12)
@@ -3825,7 +3825,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     def do_export_labels(self):
         labels = self.wallet.labels
         try:
-            fileName = self.getSaveFileName(_("Select file to save your labels"), 'electron-cash_labels.json', "*.json")
+            fileName = self.getSaveFileName(
+                _("Select file to save your labels"),
+                f'{SCRIPT_NAME}_labels.json',
+                "*.json",
+            )
             if fileName:
                 with open(fileName, 'w+', encoding='utf-8') as f:  # always ensure UTF-8. See issue #1453.
                     json.dump(labels, f, indent=4, sort_keys=True)
@@ -3839,7 +3843,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         d = WindowModalDialog(self.top_level_window(), _('Export History'))
         d.setMinimumSize(400, 200)
         vbox = QtWidgets.QVBoxLayout(d)
-        defaultname = os.path.expanduser('~/electron-cash-history.csv')
+        defaultname = os.path.expanduser(f'~/{SCRIPT_NAME}-history.csv')
         select_msg = _('Select file to export your wallet transactions to')
         box, filename_e, csv_button = filename_field(self.config, defaultname, select_msg)
         vbox.addWidget(box)
