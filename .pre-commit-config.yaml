@@ -8,7 +8,8 @@ files: |
         electroncash_gui/qt/amountedit.py|
         electroncash_gui/qt/consolidate_coins_dialog.py|
         electroncash_gui/qt/exception_window.py|
-        electroncash_gui/qt/multi_transactions_dialog.py
+        electroncash_gui/qt/multi_transactions_dialog.py|
+        electroncash_gui/qt/sign_verify_dialog.py
     )$
 repos:
 -   repo: https://github.com/pycqa/isort

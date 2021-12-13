@@ -82,6 +82,7 @@ from electroncash.wallet import Multisig_Wallet, sweep_preparations
 from .amountedit import AmountEdit, XECAmountEdit, MyLineEdit, XECSatsByteEdit
 from .qrcodewidget import QRCodeWidget, QRDialog
 from .qrtextedit import ShowQRTextEdit, ScanQRTextEdit
+from .sign_verify_dialog import SignVerifyDialog
 from .transaction_dialog import show_transaction
 from .fee_slider import FeeSlider
 from .multi_transactions_dialog import MultiTransactionsDialog
@@ -3289,92 +3290,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         d.exec_()
 
-    @protected
-    def do_sign(self, address, message, signature, password):
-        address  = address.text().strip()
-        message = message.toPlainText().strip()
-        try:
-            addr = Address.from_string(address)
-        except:
-            self.show_message(_(f'Invalid {CURRENCY} address.'))
-            return
-        if addr.kind != addr.ADDR_P2PKH:
-            msg_sign = ( _("Signing with an address actually means signing with the corresponding "
-                           "private key, and verifying with the corresponding public key. The "
-                           "address you have entered does not have a unique public key, so these "
-                           "operations cannot be performed.") + '\n\n' +
-                         _(f'The operation is undefined. Not just in '
-                           f'{PROJECT_NAME}, but in general.') )
-            self.show_message(_('Cannot sign messages with this type of address.') + '\n\n' + msg_sign)
-            return
-        if self.wallet.is_watching_only():
-            self.show_message(_('This is a watching-only wallet.'))
-            return
-        if not self.wallet.is_mine(addr):
-            self.show_message(_('Address not in wallet.'))
-            return
-        task = partial(self.wallet.sign_message, addr, message, password)
-
-        def show_signed_message(sig):
-            signature.setText(base64.b64encode(sig).decode('ascii'))
-        self.wallet.thread.add(task, on_success=show_signed_message)
-
-    def do_verify(self, address, message, signature):
-        try:
-            address = Address.from_string(address.text().strip())
-        except:
-            self.show_message(_(f'Invalid {CURRENCY} address.'))
-            return
-        message = message.toPlainText().strip().encode('utf-8')
-        try:
-            # This can throw on invalid base64
-            sig = base64.b64decode(signature.toPlainText())
-            verified = bitcoin.verify_message(address, sig, message)
-        except:
-            verified = False
-
-        if verified:
-            self.show_message(_("Signature verified"))
-        else:
-            self.show_error(_("Wrong signature"))
-
     def sign_verify_message(self, address=None):
-        d = WindowModalDialog(self.top_level_window(), _('Sign/verify Message'))
-        d.setMinimumSize(610, 290)
-
-        layout = QtWidgets.QGridLayout(d)
-
-        message_e = QtWidgets.QTextEdit()
-        message_e.setAcceptRichText(False)
-        layout.addWidget(QtWidgets.QLabel(_('Message')), 1, 0)
-        layout.addWidget(message_e, 1, 1)
-        layout.setRowStretch(2,3)
-
-        address_e = QtWidgets.QLineEdit()
-        address_e.setText(address.to_ui_string() if address else '')
-        layout.addWidget(QtWidgets.QLabel(_('Address')), 2, 0)
-        layout.addWidget(address_e, 2, 1)
-
-        signature_e = QtWidgets.QTextEdit()
-        signature_e.setAcceptRichText(False)
-        layout.addWidget(QtWidgets.QLabel(_('Signature')), 3, 0)
-        layout.addWidget(signature_e, 3, 1)
-        layout.setRowStretch(3,1)
-
-        hbox = QtWidgets.QHBoxLayout()
-
-        b = QtWidgets.QPushButton(_("Sign"))
-        b.clicked.connect(lambda: self.do_sign(address_e, message_e, signature_e))
-        hbox.addWidget(b)
-
-        b = QtWidgets.QPushButton(_("Verify"))
-        b.clicked.connect(lambda: self.do_verify(address_e, message_e, signature_e))
-        hbox.addWidget(b)
-
-        b = QtWidgets.QPushButton(_("Close"))
-        b.clicked.connect(d.accept)
-        hbox.addWidget(b)
-        layout.addLayout(hbox, 4, 1)
+        d = SignVerifyDialog(self.wallet, address, parent=self)
         d.exec_()
 
     @protected

@@ -2719,6 +2719,9 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         # 'ask me per tx', so for now True -> 2.
         self.storage.put('sign_schnorr', 2 if b else 0)
 
+    def is_watching_only(self):
+        raise NotImplementedError()
+
 
 class Simple_Wallet(Abstract_Wallet):
     # wallet with a single keystore

@@ -339,6 +339,7 @@ class PasswordDialog(WindowModalDialog):
             return
         return self.pw.text()
 
+
 class PassphraseDialog(WindowModalDialog):
     ''' Use this window to query the user to input a passphrase eg for
     things like the Bip38 export facility in the GUI. '''
