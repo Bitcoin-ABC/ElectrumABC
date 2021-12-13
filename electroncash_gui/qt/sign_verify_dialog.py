@@ -7,12 +7,17 @@ from typing import TYPE_CHECKING, Optional
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QDialog,
+    QFrame,
     QGridLayout,
     QHBoxLayout,
     QLabel,
     QLineEdit,
     QPushButton,
+    QRadioButton,
+    QSizePolicy,
     QTextEdit,
+    QToolButton,
+    QWidget,
 )
 
 from electroncash import bitcoin
@@ -25,6 +30,51 @@ from .util import MessageBoxMixin
 
 if TYPE_CHECKING:
     from electroncash.wallet import Abstract_Wallet
+
+
+class CollapsibleSection(QWidget):
+    def __init__(self, title: str, content_widget: QWidget, parent: QWidget = None):
+        super().__init__(parent)
+
+        main_layout = QGridLayout(self)
+        main_layout.setVerticalSpacing(0)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(main_layout)
+
+        self.toggleButton = QToolButton(self)
+        self.toggleButton.setStyleSheet("QToolButton {border: none;}")  # noqa: FS003
+        self.toggleButton.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        self.toggleButton.setArrowType(Qt.RightArrow)
+        self.toggleButton.setText(title)
+        self.toggleButton.setCheckable(True)
+        self.toggleButton.setChecked(False)
+
+        self.header_line = QFrame(self)
+        self.header_line.setFrameShape(QFrame.HLine)
+        self.header_line.setFrameShadow(QFrame.Sunken)
+        self.header_line.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
+
+        content_layout = QHBoxLayout()
+        self.contentFrame = QFrame(self)
+        self.contentFrame.setFrameShape(QFrame.Box)
+        self.contentFrame.setFrameShadow(QFrame.Sunken)
+        self.contentFrame.setLayout(content_layout)
+        content_layout.addWidget(content_widget)
+        self.contentFrame.setVisible(False)
+
+        main_layout.addWidget(self.toggleButton, 0, 0, 1, 1, Qt.AlignLeft)
+        main_layout.addWidget(self.header_line, 0, 2, 1, 1)
+        main_layout.addWidget(self.contentFrame, 1, 0, 1, 3)
+
+        self.toggleButton.toggled.connect(self.toggle)
+
+    def toggle(self, collapsed: bool):
+        if collapsed:
+            self.toggleButton.setArrowType(Qt.DownArrow)
+            self.contentFrame.setVisible(True)
+        else:
+            self.toggleButton.setArrowType(Qt.RightArrow)
+            self.contentFrame.setVisible(False)
 
 
 class SignVerifyDialog(QDialog, MessageBoxMixin):
@@ -58,8 +108,29 @@ class SignVerifyDialog(QDialog, MessageBoxMixin):
         layout.addWidget(self.signature_e, 3, 1)
         layout.setRowStretch(3, 1)
 
-        hbox = QHBoxLayout()
+        sigtype_widget = QWidget()
+        sigtype_layout = QHBoxLayout()
+        sigtype_widget.setLayout(sigtype_layout)
+        self.ecash_magic_rb = QRadioButton("eCash signature")
+        self.ecash_magic_rb.setToolTip(
+            "New signature scheme introduced in v5.0.2 (incompatible with signatures\n"
+            "produced with earlier versions). The message is prefixed with 'eCash \n"
+            "Signed Message:\\n' prior to signing."
+        )
+        self.ecash_magic_rb.setChecked(True)
+        self.bicoin_magic_rb = QRadioButton("Bitcoin signature")
+        self.bicoin_magic_rb.setToolTip(
+            "Legacy signature scheme used before v5.0.2. The message is prefixed with\n"
+            "'Bitcoin Signed Message:\\n' prior to signing."
+        )
+        sigtype_layout.addWidget(QLabel("Signature type:"))
+        sigtype_layout.addWidget(self.ecash_magic_rb)
+        sigtype_layout.addWidget(self.bicoin_magic_rb)
 
+        collapsible_section = CollapsibleSection("Advanced settings", sigtype_widget)
+        layout.addWidget(collapsible_section, 4, 1)
+
+        hbox = QHBoxLayout()
         b = QPushButton(_("Sign"))
         b.clicked.connect(lambda: self.do_sign())
         hbox.addWidget(b)
@@ -71,7 +142,7 @@ class SignVerifyDialog(QDialog, MessageBoxMixin):
         b = QPushButton(_("Close"))
         b.clicked.connect(self.accept)
         hbox.addWidget(b)
-        layout.addLayout(hbox, 4, 1)
+        layout.addLayout(hbox, 5, 1)
 
     def _get_password(self) -> Optional[str]:
         password = None
