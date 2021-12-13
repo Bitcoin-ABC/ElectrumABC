@@ -27,6 +27,7 @@
 from collections import namedtuple
 import hashlib
 import struct
+from typing import Tuple
 
 from . import cashaddr, networks
 from enum import IntEnum
@@ -708,7 +709,6 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
         """Converts to a string of the given format.
         CashAddr formats are produced without prefix.
         """
-
         if net is None: net = networks.net
         if net is networks.net:
             try:
@@ -749,7 +749,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
                 self._addr2str_cache[fmt] = cached
 
     def to_full_string(self, fmt, *, net=None) -> str:
-        '''Convert to text, with a URI prefix for cashaddr format.'''
+        """Convert to text, with a URI prefix for cashaddr format."""
         if net is None: net = networks.net
         text = self.to_string(fmt, net=net)
         if fmt == self.FMT_CASHADDR:
@@ -769,16 +769,10 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
         if net is None: net = networks.net
         return self.to_full_string(self.FMT_UI, net=net)
 
-    def to_URI_components(self, *, net=None):
-        '''Returns a (scheme, path) pair for building a URI.'''
+    def to_URI_components(self, *, net=None) -> Tuple[str, str]:
+        """Returns a (scheme, path) pair for building a URI."""
         if net is None: net = networks.net
-
-        if self.FMT_UI != self.FMT_CASHADDR_BCH:
-            scheme = net.CASHADDR_PREFIX
-        else:
-            # keep producing bitcoincash: URIs when requested by users
-            # until the ecosystem widely supports the new prefix
-            scheme = net.CASHADDR_PREFIX_BCH
+        scheme = net.CASHADDR_PREFIX
         path = self.to_string(self.FMT_UI, net=net)
         return scheme, path
 
