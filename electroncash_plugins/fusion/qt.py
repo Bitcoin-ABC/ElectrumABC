@@ -60,7 +60,7 @@ from electroncash_gui.qt.utils import PortValidator, UserPortValidator
 from .conf import Conf, Global
 from .fusion import can_fuse_from, can_fuse_to
 from .server import Params
-from .plugin import FusionPlugin, TOR_PORTS, COIN_FRACTION_FUDGE_FACTOR, select_coins, MAX_LIMIT_FUSE_DEPTH
+from .plugin import FusionPlugin, TOR_PORTS, COIN_FRACTION_FUDGE_FACTOR, select_coins
 from .util import get_coin_name
 
 from pathlib import Path
@@ -1182,7 +1182,7 @@ class WalletSettingsDialog(WindowModalDialog):
         self.chk_fuse_depth = chk = QtWidgets.QCheckBox(_("Fuse coins this many times"))
         hbox.addWidget(chk, 1)
         self.sb_fuse_depth = sb = QtWidgets.QSpinBox()
-        sb.setRange(1, MAX_LIMIT_FUSE_DEPTH)
+        sb.setRange(1, 10)
         sb.setMinimumWidth(75)
         hbox.addWidget(sb)
         chk.toggled.connect(self.edited_fuse_depth)
