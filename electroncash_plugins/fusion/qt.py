@@ -190,28 +190,8 @@ class Plugin(FusionPlugin, QObject):
                 do_it(password)
 
         if coins:
-            menu.addAction(ngettext("Input one coin to CashFusion",
-                                    "Input {count} coins to CashFusion",
-                                    len(coins)).format(count=len(coins)),
+            menu.addAction(ngettext("Input one coin to CashFusion", "Input {count} coins to CashFusion", len(coins)).format(count = len(coins)),
                            start_fusion)
-
-    @staticmethod
-    def get_spend_only_fused_coins_checkbox_attributes(wallet):
-        fuse_depth = Conf(wallet).fuse_depth
-        if fuse_depth > 0:
-            label = ngettext("Spend only fused coins, minimum {min} fusion",
-                             "Spend only fused coins, minimum {min} fusions",
-                             fuse_depth).format(min=fuse_depth)
-            tooltip = ngettext("If checked, only spend coins that have been anonymized by\n"
-                               "CashFusion, after having been fused at least {min} time.",
-                               "If checked, only spend coins that have been anonymized by\n"
-                               "CashFusion, after having been fused at least {min} times.",
-                               fuse_depth).format(min=fuse_depth)
-        else:
-            label = _("Spend only fused coins")
-            tooltip = _("If checked, only spend coins that have been\n"
-                        "anonymized by CashFusion at least once.")
-        return label, tooltip
 
     @hook
     def on_new_window(self, window):
@@ -224,8 +204,7 @@ class Plugin(FusionPlugin, QObject):
             self.server_status_changed_signal.connect(sbbtn.update_server_error)
         else:
             # If we can not fuse we create a dummy fusion button that just displays a message
-            sbmsg = _('This wallet type ({wtype}) cannot be used with CashFusion.\n\n'
-                      'Please use a standard deterministic spending wallet with CashFusion.').format(wtype=wallet.wallet_type)
+            sbmsg = _('This wallet type ({wtype}) cannot be used with CashFusion.\n\nPlease use a standard deterministic spending wallet with CashFusion.').format(wtype=wallet.wallet_type)
             sbbtn = DisabledFusionButton(wallet, sbmsg)
 
         # bit of a dirty hack, to insert our status bar icon (always using index 4, should put us just after the password-changer icon)
@@ -242,10 +221,9 @@ class Plugin(FusionPlugin, QObject):
         # NEW! Set up the send tab "Spend only fused coins" checkbox/control
         if hasattr(window, 'send_tab_extra_plugin_controls_hbox'):
             hbox = window.send_tab_extra_plugin_controls_hbox
-            label, tooltip = self.get_spend_only_fused_coins_checkbox_attributes(wallet)
-            spend_only_fused_chk = QtWidgets.QCheckBox(label)
-            spend_only_fused_chk.setObjectName('spend_only_fused_chk')
-            spend_only_fused_chk.setToolTip(tooltip)
+            spend_only_fused_chk = QtWidgets.QCheckBox(_("Spend only fused coins"))
+            spend_only_fused_chk.setToolTip(_("If checked, coins that have not yet been anonymized "
+                                              "by CashFusion will be unavailable for spending."))
             hbox.insertWidget(0, spend_only_fused_chk)
             spend_only_fused_chk.setChecked(Conf(wallet).spend_only_fused_coins)
             weak_window = weakref.ref(window)
@@ -370,31 +348,30 @@ class Plugin(FusionPlugin, QObject):
         # we can ONLY spend fused coins + ununfused living on a fused coin address
         fuz_adrs_seen = set()
         fuz_coins_seen = set()
-        with wallet.lock:
-            for coin in coins.copy():
-                if coin['address'] in external_coin_addresses:
-                    # completely bypass this filter for external keypair dict
-                    # which is only used for sweep dialog in send tab
-                    continue
-                fuse_depth = Conf(wallet).fuse_depth
-                is_fuz_adr = self.is_fuz_address(wallet, coin['address'], require_depth=fuse_depth-1)
-                if is_fuz_adr:
-                    fuz_adrs_seen.add(coin['address'])
-                # we allow coins sitting on a fused address to be "spent as fused"
-                if not self.is_fuz_coin(wallet, coin, require_depth=fuse_depth-1) and not is_fuz_adr:
-                    coins.remove(coin)
-                else:
-                    fuz_coins_seen.add(get_coin_name(coin))
-            # Force co-spending of other coins sitting on a fuzed address
-            for adr in fuz_adrs_seen:
-                adr_coins = wallet.get_addr_utxo(adr)
-                for name, adr_coin in adr_coins.items():
-                    if (name not in fuz_coins_seen
-                            and not adr_coin['is_frozen_coin']
-                            and adr_coin.get('slp_token') is None
-                            and not adr_coin.get('coinbase')):
-                        coins.append(adr_coin)
-                        fuz_coins_seen.add(name)
+        for coin in coins.copy():
+            if coin['address'] in external_coin_addresses:
+                # completely bypass this filter for external keypair dict
+                # which is only used for sweep dialog in send tab
+                continue
+            fuse_depth = Conf(wallet).fuse_depth
+            is_fuz_adr = self.is_fuz_address(wallet, coin['address'], fuse_depth - 1)
+            if is_fuz_adr:
+                fuz_adrs_seen.add(coin['address'])
+            # we allow coins sitting on a fused address to be "spent as fused"
+            if not self.is_fuz_coin(wallet, coin, fuse_depth - 1) and not is_fuz_adr:
+                coins.remove(coin)
+            else:
+                fuz_coins_seen.add(get_coin_name(coin))
+        # Force co-spending of other coins sitting on a fuzed address
+        for adr in fuz_adrs_seen:
+            adr_coins = wallet.get_addr_utxo(adr)
+            for name, adr_coin in adr_coins.items():
+                if (name not in fuz_coins_seen
+                        and not adr_coin['is_frozen_coin']
+                        and adr_coin.get('slp_token') is None
+                        and not adr_coin.get('coinbase')):
+                    coins.append(adr_coin)
+                    fuz_coins_seen.add(name)
 
     @hook
     def not_enough_funds_extra(self, window) -> Optional[str]:
@@ -402,12 +379,11 @@ class Plugin(FusionPlugin, QObject):
         wallet = window.wallet
         if not self.wallet_can_fuse(wallet):
             return
-        conf = Conf(wallet)
-        if not conf.spend_only_fused_coins:
+        if not Conf(wallet).spend_only_fused_coins:
             return
         needs_fuz = [coin for coin in wallet.get_utxos(exclude_frozen=True, mature=True,
                                                        confirmed_only=bool(window.config.get('confirmed_only', False)))
-                     if not self.is_fuz_coin(wallet, coin, require_depth=conf.fuse_depth-1)]
+                     if not self.is_fuz_coin(wallet, coin)]
         total = sum(c['value'] for c in needs_fuz)
         n_coins = len(needs_fuz)
         if total and needs_fuz:
@@ -1167,29 +1143,24 @@ class WalletSettingsDialog(WindowModalDialog):
 
         main_layout.addLayout(hbox)
 
-        self.gb_fuse_depth = gb = QtWidgets.QGroupBox(_("Fusion Rounds"))
-        gb.setToolTip(_("If checked, CashFusion will fuse each coin this many times.\n"
-                        "If unchecked, Cashfusion will fuse indefinitely until paused."))
-        hbox = QtWidgets.QHBoxLayout(gb)
-        self.chk_fuse_depth = chk = QtWidgets.QCheckBox(_("Fuse coins this many times"))
-        hbox.addWidget(chk, 1)
-        self.sb_fuse_depth = sb = QtWidgets.QSpinBox()
-        sb.setRange(1, 10)
-        sb.setMinimumWidth(75)
-        hbox.addWidget(sb)
-        chk.toggled.connect(self.edited_fuse_depth)
-        sb.valueChanged.connect(self.edited_fuse_depth)
-        main_layout.addWidget(gb)
+        hbox = QtWidgets.QHBoxLayout()
+        hbox.addWidget(QtWidgets.QLabel(_("Minimum fuse depth (0 = infinite fusing)")))
+        self.sb_fuse_depth = QtWidgets.QSpinBox()
+        self.sb_fuse_depth.setRange(0, 10)
+        self.sb_fuse_depth.setMinimumWidth(50)
+        hbox.addWidget(self.sb_fuse_depth)
+        self.sb_fuse_depth.valueChanged.connect(self.edited_fuse_depth)
+        main_layout.addLayout(hbox)
 
         self.gb_coinbase = gb = QtWidgets.QGroupBox(_("Coinbase Coins"))
         vbox = QtWidgets.QVBoxLayout(gb)
         self.cb_coinbase = QtWidgets.QCheckBox(_('Auto-fuse coinbase coins (if mature)'))
         self.cb_coinbase.clicked.connect(self._on_cb_coinbase)
         vbox.addWidget(self.cb_coinbase)
-        # The coinbase-related group box is hidden by default. It becomes
-        # visible permanently when the wallet settings dialog has seen at least
-        # one coinbase coin, indicating a miner's wallet. For most users the
-        # coinbase checkbox is confusing, which is why we prefer to hide it.
+         # The coinbase-related group box is hidden by default. It becomes
+         # visible permanently when the wallet settings dialog has seen at least
+         # one coinbase coin, indicating a miner's wallet. For most users the
+         # coinbase checkbox is confusing, which is why we prefer to hide it.
         gb.setHidden(True)
         main_layout.addWidget(gb)
 
@@ -1388,7 +1359,7 @@ class WalletSettingsDialog(WindowModalDialog):
 
         edit_widgets = [self.amt_selector_size, self.sb_selector_fraction, self.sb_selector_count, self.sb_queued_autofuse,
                         self.cb_autofuse_only_all_confirmed, self.combo_self_fuse, self.stacked_layout, self.mode_cb,
-                        self.cb_coinbase, self.sb_fuse_depth, self.chk_fuse_depth]
+                        self.cb_coinbase]
         try:
             for w in edit_widgets:
                 # Block spurious editingFinished signals and valueChanged signals as
@@ -1416,10 +1387,7 @@ class WalletSettingsDialog(WindowModalDialog):
             self.combo_self_fuse.setCurrentIndex(idx)
             del idx
 
-            if self.conf.fuse_depth > 0:
-                self.sb_fuse_depth.setValue(self.conf.fuse_depth)
-            self.chk_fuse_depth.setChecked(self.conf.fuse_depth > 0)
-            self.sb_fuse_depth.setEnabled(self.conf.fuse_depth > 0)
+            self.sb_fuse_depth.setValue(self.conf.fuse_depth)
 
             if is_custom_page:
                 self.amt_selector_size.setEnabled(select_type == 'size')
@@ -1485,18 +1453,14 @@ class WalletSettingsDialog(WindowModalDialog):
 
     def edited_fuse_depth(self,):
         prevval = self.conf.fuse_depth
-        newval = self.sb_fuse_depth.value() if self.chk_fuse_depth.isChecked() else 0
-        self.conf.fuse_depth = newval
-        if prevval == 0 or (prevval > newval and newval != 0):
+        numstop = self.sb_fuse_depth.value()
+        self.conf.fuse_depth = numstop
+        with self.wallet.lock:
+            self.wallet._cashfusion_address_cache = set()  # The cache is calculated with old depth
+            self.wallet._cashfusion_is_fuz_coin_cache = dict()
+        if prevval == 0 or (prevval > numstop and numstop != 0):
             for f in list(self.wallet._fusions_auto):
                 f.stop('User decreased fuse depth limit', not_if_running = False)
-        # update the send tab label for the "spend only confirmed coins" checkbox
-        label, tooltip = self.plugin.get_spend_only_fused_coins_checkbox_attributes(self.wallet)
-        for w in self.plugin.widgets:
-            if isinstance(w, QtWidgets.QCheckBox) and w.objectName() == 'spend_only_fused_chk':
-                chk: QtWidgets.QCheckBox = w
-                chk.setText(label)
-                chk.setToolTip(tooltip)
         self.refresh()
         # Coins tab may need redisplay if we changed these settings
         if prevval != newval:
