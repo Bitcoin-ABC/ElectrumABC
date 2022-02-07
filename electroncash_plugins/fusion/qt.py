@@ -1499,17 +1499,18 @@ class WalletSettingsDialog(WindowModalDialog):
             for f in list(self.wallet._fusions_auto):
                 f.stop('User decreased fuse depth limit', not_if_running = False)
         # update the send tab label for the "spend only confirmed coins" checkbox
-        main_window = self.wallet.weak_window and self.wallet.weak_window()
-        if main_window:
-            chk = main_window.findChild(QtWidgets.QCheckBox, 'spend_only_fused_chk', Qt.FindChildrenRecursively)
-            if chk:
-                label, tooltip = self.plugin.get_spend_only_fused_coins_checkbox_attributes(self.wallet)
+        label, tooltip = self.plugin.get_spend_only_fused_coins_checkbox_attributes(self.wallet)
+        for w in self.plugin.widgets:
+            if isinstance(w, QtWidgets.QCheckBox) and w.objectName() == 'spend_only_fused_chk':
+                chk: QtWidgets.QCheckBox = w
                 chk.setText(label)
                 chk.setToolTip(tooltip)
-            # Coins tab may need redisplay if we changed these settings
-            if prevval != newval:
-                main_window.utxo_list.update()
         self.refresh()
+        # Coins tab may need redisplay if we changed these settings
+        if prevval != newval:
+            main_window = self.wallet.weak_window()
+            if main_window:
+                main_window.utxo_list.update()
 
     def clicked_confirmed_only(self, checked):
         self.conf.autofuse_confirmed_only = checked
