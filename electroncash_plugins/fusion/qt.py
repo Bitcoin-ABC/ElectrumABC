@@ -1152,8 +1152,6 @@ class SettingsWidget(QtWidgets.QWidget):
 
 
 class WalletSettingsDialog(WindowModalDialog):
-    GUI_DEFAULT_FUSE_DEPTH = 3  # This what the fuse depth spinbox defaults to, if checked (on new installs)
-
     def __init__(self, parent, plugin, wallet):
         super().__init__(parent=parent, title=_("CashFusion - Wallet Settings"))
         self.setWindowIcon(get_icon_fusion_logo())
@@ -1187,9 +1185,6 @@ class WalletSettingsDialog(WindowModalDialog):
         hbox.addWidget(chk, 1)
         self.sb_fuse_depth = sb = QtWidgets.QSpinBox()
         sb.setRange(1, MAX_LIMIT_FUSE_DEPTH)
-        if self.conf.fuse_depth <= 0:
-            # Default it to this if unchecked
-            self.sb_fuse_depth.setValue(self.GUI_DEFAULT_FUSE_DEPTH)
         sb.setMinimumWidth(75)
         hbox.addWidget(sb)
         chk.toggled.connect(self.edited_fuse_depth)
