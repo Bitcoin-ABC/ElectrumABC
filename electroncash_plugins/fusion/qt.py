@@ -330,11 +330,9 @@ class Plugin(FusionPlugin, QObject):
             return
 
         wallet = utxo_list.wallet
-        fuse_depth = Conf(wallet).fuse_depth
         frozenstring = item.data(0, utxo_list.DataRoles.frozen_flags) or ""
         is_slp = 's' in frozenstring
-        is_fused = self.is_fuz_coin(wallet, utxo, require_depth=fuse_depth-1)
-        is_partially_fused = is_fused if fuse_depth <= 1 else self.is_fuz_coin(wallet, utxo)
+        is_fused = self.is_fuz_coin(wallet, utxo)
 
         item.setIcon(col, QIcon())
         if is_slp:
@@ -342,12 +340,6 @@ class Plugin(FusionPlugin, QObject):
         elif is_fused:
             item.setText(col, _("Fused"))
             item.setIcon(col, icon_fusion_logo)
-        elif is_partially_fused:
-            count = self.get_coin_known_fuz_count(wallet, utxo, require_depth=fuse_depth-1)
-            item.setText(col, _("Partial {count}/{total}").format(count=count, total=fuse_depth))
-            item.setIcon(col, icon_fusion_logo_gray)
-        elif self.is_fuz_address(wallet, utxo['address'], require_depth=fuse_depth-1):
-            item.setText(col, _("Fusion Addr"))
         elif utxo['height'] <= 0:
             item.setText(col, _("Unconfirmed"))
         elif utxo['coinbase']:
