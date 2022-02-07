@@ -353,12 +353,11 @@ class Plugin(FusionPlugin, QObject):
                 # completely bypass this filter for external keypair dict
                 # which is only used for sweep dialog in send tab
                 continue
-            fuse_depth = Conf(wallet).fuse_depth
-            is_fuz_adr = self.is_fuz_address(wallet, coin['address'], fuse_depth - 1)
+            is_fuz_adr = self.is_fuz_address(wallet, coin['address'])
             if is_fuz_adr:
                 fuz_adrs_seen.add(coin['address'])
             # we allow coins sitting on a fused address to be "spent as fused"
-            if not self.is_fuz_coin(wallet, coin, fuse_depth - 1) and not is_fuz_adr:
+            if not self.is_fuz_coin(wallet, coin) and not is_fuz_adr:
                 coins.remove(coin)
             else:
                 fuz_coins_seen.add(get_coin_name(coin))
@@ -1143,15 +1142,6 @@ class WalletSettingsDialog(WindowModalDialog):
 
         main_layout.addLayout(hbox)
 
-        hbox = QtWidgets.QHBoxLayout()
-        hbox.addWidget(QtWidgets.QLabel(_("Minimum fuse depth (0 = infinite fusing)")))
-        self.sb_fuse_depth = QtWidgets.QSpinBox()
-        self.sb_fuse_depth.setRange(0, 10)
-        self.sb_fuse_depth.setMinimumWidth(50)
-        hbox.addWidget(self.sb_fuse_depth)
-        self.sb_fuse_depth.valueChanged.connect(self.edited_fuse_depth)
-        main_layout.addLayout(hbox)
-
         self.gb_coinbase = gb = QtWidgets.QGroupBox(_("Coinbase Coins"))
         vbox = QtWidgets.QVBoxLayout(gb)
         self.cb_coinbase = QtWidgets.QCheckBox(_('Auto-fuse coinbase coins (if mature)'))
@@ -1387,8 +1377,6 @@ class WalletSettingsDialog(WindowModalDialog):
             self.combo_self_fuse.setCurrentIndex(idx)
             del idx
 
-            self.sb_fuse_depth.setValue(self.conf.fuse_depth)
-
             if is_custom_page:
                 self.amt_selector_size.setEnabled(select_type == 'size')
                 self.sb_selector_count.setEnabled(select_type == 'count')
@@ -1450,23 +1438,6 @@ class WalletSettingsDialog(WindowModalDialog):
             for f in list(self.wallet._fusions_auto):
                 f.stop('User decreased queued-fuse limit', not_if_running = True)
         self.refresh()
-
-    def edited_fuse_depth(self,):
-        prevval = self.conf.fuse_depth
-        numstop = self.sb_fuse_depth.value()
-        self.conf.fuse_depth = numstop
-        with self.wallet.lock:
-            self.wallet._cashfusion_address_cache = set()  # The cache is calculated with old depth
-            self.wallet._cashfusion_is_fuz_coin_cache = dict()
-        if prevval == 0 or (prevval > numstop and numstop != 0):
-            for f in list(self.wallet._fusions_auto):
-                f.stop('User decreased fuse depth limit', not_if_running = False)
-        self.refresh()
-        # Coins tab may need redisplay if we changed these settings
-        if prevval != newval:
-            main_window = self.wallet.weak_window()
-            if main_window:
-                main_window.utxo_list.update()
 
     def clicked_confirmed_only(self, checked):
         self.conf.autofuse_confirmed_only = checked
