@@ -690,10 +690,7 @@ class FusionPlugin(BasePlugin):
         or False if the coin in question is not from a CashFusion tx. Returns None if the tx for the coin
         is not (yet) known to the wallet (None == inconclusive answer, caller may wish to try again later).
         If require_depth is > 0, check recursively; will return True if all ancestors of the coin
-        up to require_depth are also CashFusion transactions belonging to this wallet.
-
-        Precondition: wallet must be a fusion wallet. """
-
+        up to require_depth are also CashFusion transactions belonging to this wallet. """
         require_depth = min(max(0, require_depth), 900)  # paranoia: clamp to [0, 900]
 
         cache = wallet._cashfusion_is_fuz_txid_cache
@@ -777,15 +774,12 @@ class FusionPlugin(BasePlugin):
         return answer
 
     @classmethod
-    def get_coin_fuz_count(cls, wallet, coin, *, require_depth=0):
+    def get_coin_known_fuz_count(cls, wallet, coin, *, require_depth=0):
         """ Will return a fuz count for a coin. Unfused or unknown coins have count 0, coins
         that appear in a fuz tx have count 1, coins whose wallet parent txs are all fuz are 2, 3, etc
         depending on how far back the fuz perdicate is satisfied.
 
-        This function only checks up to 10 ancestors deep so tha maximum return value is 10.
-
-        Precondition: wallet must be a fusion wallet. """
-
+        This function only checks up to 10 ancestors deep so tha maximum return value is 10. """
         require_depth = min(max(require_depth, 0), MAX_LIMIT_FUSE_DEPTH - 1)
         cached_ct = wallet._cashfusion_is_fuz_txid_cache.get(coin['prevout_hash'])
         if isinstance(cached_ct, int) and cached_ct >= require_depth:
@@ -804,10 +798,7 @@ class FusionPlugin(BasePlugin):
             if any UTXOs for this address are sufficiently fused to the
             specified depth.
 
-            If you want thread safety, caller must hold wallet locks.
-
-            Precondition: wallet must be a fusion wallet. """
-
+            If you want thread safety, caller must hold wallet locks."""
         assert isinstance(address, Address)
         require_depth = max(require_depth, 0)
 
