@@ -1,7 +1,4 @@
 PyQt5>=5.15.2
 pycryptodomex
 psutil
-
-# we need at least cryptography>=2.6 for dnspython[DNSSEC] and
-# pysatochip 0.12.3 specifically requests 3.3.2
-cryptography==3.3.2
+cryptography>=3.3.2
