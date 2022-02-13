@@ -50,7 +50,6 @@ from .transaction import Transaction, multisig_script, OPReturn
 from .util import format_satoshis, json_decode, to_bytes
 from .paymentrequest import PR_PAID, PR_UNCONFIRMED, PR_UNPAID, PR_UNKNOWN, PR_EXPIRED
 from .simple_config import SimpleConfig
-from .plugins import run_hook
 from .version import PACKAGE_VERSION
 
 known_commands = {}
@@ -232,7 +231,6 @@ class Commands:
         wallet = self.daemon.load_wallet(path, self.config.get('password'))
         if wallet is not None:
             self.wallet = wallet
-            run_hook('load_wallet', wallet, None)
         response = wallet is not None
         return response
 
