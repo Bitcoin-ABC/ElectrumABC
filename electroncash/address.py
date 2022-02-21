@@ -346,7 +346,6 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
     FMT_CASHADDR = "CashAddr"
     FMT_CASHADDR_BCH = "CashAddr BCH"
     FMT_LEGACY = "Legacy"
-    FMT_BITPAY = "BitPay"   # Supported temporarily only for compatibility
 
     # Default to CashAddr
     FMT_UI = FMT_CASHADDR
@@ -365,8 +364,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
         ret = super().__new__(cls, hash160, kind)
         ret._addr2str_cache = {cls.FMT_CASHADDR: None,
                                cls.FMT_CASHADDR_BCH: None,
-                               cls.FMT_LEGACY: None,
-                               cls.FMT_BITPAY: None}
+                               cls.FMT_LEGACY: None}
         return ret
 
     @classmethod
@@ -467,11 +465,9 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
             raise AddressError('invalid address: {}'.format(string))
 
         verbyte, hash160 = raw[0], raw[1:]
-        if verbyte in [net.ADDRTYPE_P2PKH,
-                       net.ADDRTYPE_P2PKH_BITPAY]:
+        if verbyte == net.ADDRTYPE_P2PKH:
             kind = cls.ADDR_P2PKH
-        elif verbyte in [net.ADDRTYPE_P2SH,
-                         net.ADDRTYPE_P2SH_BITPAY]:
+        elif verbyte == net.ADDRTYPE_P2SH:
             kind = cls.ADDR_P2SH
         else:
             raise AddressError('unknown version byte: {}'.format(verbyte))
@@ -538,9 +534,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
         verbyte = raw[0]
         legacy_formats = (
             net.ADDRTYPE_P2PKH,
-            net.ADDRTYPE_P2PKH_BITPAY,
-            net.ADDRTYPE_P2SH,
-            net.ADDRTYPE_P2SH_BITPAY,
+            net.ADDRTYPE_P2SH
         )
         return verbyte in legacy_formats
 
@@ -589,11 +583,6 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
                     verbyte = net.ADDRTYPE_P2PKH
                 else:
                     verbyte = net.ADDRTYPE_P2SH
-            elif fmt == self.FMT_BITPAY:
-                if self.kind == self.ADDR_P2PKH:
-                    verbyte = net.ADDRTYPE_P2PKH_BITPAY
-                else:
-                    verbyte = net.ADDRTYPE_P2SH_BITPAY
             else:
                 # This should never be reached due to cache-lookup check above. But leaving it in as it's a harmless sanity check.
                 raise AddressError('unrecognised format')
