@@ -3,7 +3,8 @@ from typing import List, Optional
 from PyQt5 import QtCore, QtWidgets
 
 from electroncash.address import Address, AddressError
-from electroncash.avalanche.proof import Key, ProofBuilder
+from electroncash.avalanche.proof import ProofBuilder
+from electroncash.avalanche.serialize import Key
 from electroncash.bitcoin import deserialize_privkey, is_private_key
 from electroncash.uint256 import UInt256
 

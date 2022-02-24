@@ -30,98 +30,12 @@ the hash of the stakes to prove ownership of the UTXO.
 """
 
 import struct
-from typing import Any, List, Sequence, Tuple
+from typing import List, Tuple
 
-from .. import schnorr
 from ..bitcoin import Hash as sha256d
-from ..bitcoin import deserialize_privkey, public_key_from_private_key
+from ..bitcoin import deserialize_privkey
 from ..uint256 import UInt256
-
-
-def write_compact_size(nsize: int) -> bytes:
-    """Serialize a size. Values lower than 253 are serialized using 1 byte.
-    For larger values, the first byte indicates how many additional bytes to
-    read when decoding (253: 2 bytes, 254: 4 bytes, 255: 8 bytes)
-
-    :param nsize: value to serialize
-    :return:
-    """
-    assert nsize >= 0
-    if nsize < 253:
-        return struct.pack("B", nsize)
-    if nsize < 0x10000:
-        return struct.pack("<BH", 253, nsize)
-    if nsize < 0x100000000:
-        return struct.pack("<BL", 254, nsize)
-    assert nsize < 0x10000000000000000
-    return struct.pack("<BQ", 255, nsize)
-
-
-def serialize_sequence(seq: Sequence[Any]) -> bytes:
-    """Serialize a variable length sequence (list...) of serializable constant size
-    objects. The length of the sequence is encoded as a VarInt.
-    """
-    b = write_compact_size(len(seq))
-    for obj in seq:
-        b += obj.serialize()
-    return b
-
-
-def serialize_blob(blob: bytes) -> bytes:
-    """Serialize a variable length bytestring. The length of the sequence is encoded as
-    a VarInt.
-    """
-    return write_compact_size(len(blob)) + blob
-
-
-class PublicKey:
-    def __init__(self, keydata):
-        self.keydata: bytes = keydata
-
-    def serialize(self) -> bytes:
-        return serialize_blob(self.keydata)
-
-
-class Key:
-    """A private key"""
-
-    def __init__(self, keydata, compressed):
-        self.keydata: bytes = keydata
-        """32 byte raw private key (as you would get from
-        deserialize_privkey, etc)"""
-        self.compressed: bool = compressed
-
-    def sign_schnorr(self, hash: bytes) -> bytes:
-        """
-
-        :param hash: should be the 32 byte sha256d hash of the tx input (or
-            message) you want to sign
-        :return: Returns a 64-long bytes object (the signature)
-        :raise: ValueError on failure.
-            Failure can occur due to an invalid private key.
-        """
-        return schnorr.sign(self.keydata, hash)
-
-    def get_pubkey(self):
-        pubkey = public_key_from_private_key(self.keydata, self.compressed)
-        return PublicKey(bytes.fromhex(pubkey))
-
-
-class COutPoint:
-    """
-    An outpoint - a combination of a transaction hash and an index n into its
-    vout.
-    """
-
-    def __init__(self, txid, n):
-        self.txid: UInt256 = txid
-        """Transaction ID (SHA256 hash)."""
-
-        self.n: int = n
-        """vout index (uint32)"""
-
-    def serialize(self) -> bytes:
-        return self.txid.serialize() + struct.pack("<I", self.n)
+from .serialize import COutPoint, Key, PublicKey, serialize_blob, serialize_sequence
 
 
 class Stake:

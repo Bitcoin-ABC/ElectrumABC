@@ -1,6 +1,7 @@
 import unittest
 
-from ..avalanche.proof import Key, ProofBuilder
+from ..avalanche.proof import ProofBuilder
+from ..avalanche.serialize import Key
 from ..bitcoin import deserialize_privkey
 from ..uint256 import UInt256
 
