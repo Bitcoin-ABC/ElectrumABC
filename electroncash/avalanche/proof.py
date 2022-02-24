@@ -28,14 +28,24 @@
 This requires serializing some keys and UTXO metadata (stakes), and signing
 the hash of the stakes to prove ownership of the UTXO.
 """
+from __future__ import annotations
 
 import struct
+from io import BytesIO
 from typing import List
 
 from ..bitcoin import Hash as sha256d
 from ..bitcoin import deserialize_privkey
 from ..uint256 import UInt256
-from .serialize import COutPoint, Key, PublicKey, serialize_blob, serialize_sequence
+from .serialize import (
+    COutPoint,
+    Key,
+    PublicKey,
+    deserialize_blob,
+    deserialize_sequence,
+    serialize_blob,
+    serialize_sequence,
+)
 
 
 class Stake:
@@ -66,6 +76,14 @@ class Stake:
         """Return the bitcoin hash of the concatenation of proofid
         and the serialized stake."""
         return sha256d(commitment + self.serialize())
+
+    @classmethod
+    def deserialize(cls, stream: BytesIO) -> Stake:
+        utxo = COutPoint.deserialize(stream)
+        amount = struct.unpack("q", stream.read(8))[0]
+        height_ser = struct.unpack("I", stream.read(4))[0]
+        pubkey = PublicKey.deserialize(stream)
+        return Stake(utxo, amount, height_ser >> 1, pubkey, height_ser & 1)
 
 
 class ProofId(UInt256):
@@ -99,6 +117,12 @@ class SignedStake:
 
     def serialize(self) -> bytes:
         return self.stake.serialize() + self.sig
+
+    @classmethod
+    def deserialize(cls, stream: BytesIO) -> SignedStake:
+        stake = Stake.deserialize(stream)
+        sig = stream.read(64)
+        return SignedStake(stake, sig)
 
 
 class StakeSigner:
@@ -149,6 +173,26 @@ class Proof:
         p += serialize_blob(self.payout_script_pubkey)
         p += self.signature
         return p
+
+    @classmethod
+    def deserialize(cls, stream: BytesIO) -> Proof:
+        sequence, expiration_time = struct.unpack("<Qq", stream.read(16))
+        master_pub = PublicKey.deserialize(stream)
+        signed_stakes = deserialize_sequence(stream, SignedStake)
+        payout_pubkey = deserialize_blob(stream)
+        signature = stream.read(64)
+        return Proof(
+            sequence,
+            expiration_time,
+            master_pub,
+            signed_stakes,
+            payout_pubkey,
+            signature,
+        )
+
+    @classmethod
+    def from_hex(cls, hex_str: str) -> Proof:
+        return cls.deserialize(BytesIO(bytes.fromhex(hex_str)))
 
 
 class ProofBuilder:

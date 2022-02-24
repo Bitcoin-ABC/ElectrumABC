@@ -25,10 +25,11 @@
 """This module contains serialization tools for various basic data structures used by
 Avalanche data structures.
 """
-
+from __future__ import annotations
 
 import struct
-from typing import Any, Sequence
+from io import BytesIO
+from typing import Any, Sequence, Type
 
 from .. import schnorr
 from ..bitcoin import public_key_from_private_key
@@ -54,6 +55,17 @@ def write_compact_size(nsize: int) -> bytes:
     return struct.pack("<BQ", 255, nsize)
 
 
+def read_compact_size(stream: BytesIO) -> int:
+    nit = struct.unpack("<B", stream.read(1))[0]
+    if nit == 253:
+        nit = struct.unpack("<H", stream.read(2))[0]
+    elif nit == 254:
+        nit = struct.unpack("<I", stream.read(4))[0]
+    elif nit == 255:
+        nit = struct.unpack("<Q", stream.read(8))[0]
+    return nit
+
+
 def serialize_sequence(seq: Sequence[Any]) -> bytes:
     """Serialize a variable length sequence (list...) of serializable constant size
     objects. The length of the sequence is encoded as a VarInt.
@@ -64,11 +76,29 @@ def serialize_sequence(seq: Sequence[Any]) -> bytes:
     return b
 
 
+def deserialize_sequence(stream: BytesIO, cls: Type[Any]):
+    """Deserialize a list of object of type klass.
+    cls must implement a deserialize classmethod returning an instance of the class.
+    """
+    size = read_compact_size(stream)
+    ret = []
+    for _ in range(size):
+        obj = cls.deserialize(stream)
+        ret.append(obj)
+    return ret
+
+
 def serialize_blob(blob: bytes) -> bytes:
     """Serialize a variable length bytestring. The length of the sequence is encoded as
     a VarInt.
     """
     return write_compact_size(len(blob)) + blob
+
+
+def deserialize_blob(stream: BytesIO) -> bytes:
+    """Deserialize a blob prefixed with a VarInt length"""
+    size = read_compact_size(stream)
+    return stream.read(size)
 
 
 class PublicKey:
@@ -77,6 +107,25 @@ class PublicKey:
 
     def serialize(self) -> bytes:
         return serialize_blob(self.keydata)
+
+    @classmethod
+    def deserialize(cls, stream: BytesIO) -> PublicKey:
+        keydata = deserialize_blob(stream)
+        return PublicKey(keydata)
+
+    def verify_schnorr(self, signature: bytes, message_hash: bytes):
+        return schnorr.verify(self.keydata, signature, message_hash)
+
+    @classmethod
+    def from_hex(cls, hex_str: str) -> PublicKey:
+        data = bytes.fromhex(hex_str)
+        return cls.deserialize(BytesIO(write_compact_size(len(data)) + data))
+
+    def __repr__(self):
+        return f"PublicKey({self.keydata.hex()})"
+
+    def __eq__(self, other):
+        return self.keydata == other.keydata
 
 
 class Key:
@@ -88,7 +137,7 @@ class Key:
         deserialize_privkey, etc)"""
         self.compressed: bool = compressed
 
-    def sign_schnorr(self, hash: bytes) -> bytes:
+    def sign_schnorr(self, message_hash: bytes) -> bytes:
         """
 
         :param hash: should be the 32 byte sha256d hash of the tx input (or
@@ -97,7 +146,7 @@ class Key:
         :raise: ValueError on failure.
             Failure can occur due to an invalid private key.
         """
-        return schnorr.sign(self.keydata, hash)
+        return schnorr.sign(self.keydata, message_hash)
 
     def get_pubkey(self):
         pubkey = public_key_from_private_key(self.keydata, self.compressed)
@@ -119,3 +168,10 @@ class COutPoint:
 
     def serialize(self) -> bytes:
         return self.txid.serialize() + struct.pack("<I", self.n)
+
+    @classmethod
+    def deserialize(cls, stream: BytesIO) -> COutPoint:
+        txid = UInt256()
+        txid.unserialize(stream.read(32))
+        n = struct.unpack("<I", stream.read(4))[0]
+        return COutPoint(txid, n)
