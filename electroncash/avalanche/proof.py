@@ -32,10 +32,10 @@ the hash of the stakes to prove ownership of the UTXO.
 import struct
 from typing import Any, List, Sequence, Tuple
 
-from . import schnorr
-from .bitcoin import Hash as sha256d
-from .bitcoin import deserialize_privkey, public_key_from_private_key
-from .uint256 import UInt256
+from .. import schnorr
+from ..bitcoin import Hash as sha256d
+from ..bitcoin import deserialize_privkey, public_key_from_private_key
+from ..uint256 import UInt256
 
 
 def write_compact_size(nsize: int) -> bytes:
