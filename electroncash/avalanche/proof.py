@@ -30,7 +30,7 @@ the hash of the stakes to prove ownership of the UTXO.
 """
 
 import struct
-from typing import List, Tuple
+from typing import List
 
 from ..bitcoin import Hash as sha256d
 from ..bitcoin import deserialize_privkey
@@ -68,38 +68,27 @@ class Stake:
         return sha256d(commitment + self.serialize())
 
 
-def compute_limited_proof_id(
-    sequence: int,
-    expiration_time: int,
-    stakes: List[Stake],
-    payout_script_pubkey: bytes,
-) -> UInt256:
-    ss = struct.pack("<Qq", sequence, expiration_time)
-    ss += serialize_blob(payout_script_pubkey)
-    ss += serialize_sequence(stakes)
-    return UInt256(sha256d(ss))
+class ProofId(UInt256):
+    pass
 
 
-def compute_proof_id(
-    sequence: int,
-    expiration_time: int,
-    stakes: List[Stake],
-    master: PublicKey,
-    payout_script_pubkey: bytes,
-) -> Tuple[UInt256, UInt256]:
-    """
-    Return a 2-tuple with the limited proof ID and the proof ID.
+class LimitedProofId(UInt256):
+    def __init__(
+        self,
+        sequence: int,
+        expiration_time: int,
+        stakes: List[Stake],
+        payout_script_pubkey: bytes,
+    ):
+        ss = struct.pack("<Qq", sequence, expiration_time)
+        ss += serialize_blob(payout_script_pubkey)
+        ss += serialize_sequence(stakes)
+        super().__init__(sha256d(ss))
 
-    Note that it is the caller's responsibility to sort the list of stakes by
-    their stake ID (this is done in ProofBuilder.add_utxo).
-    """
-    ltd_id = compute_limited_proof_id(
-        sequence, expiration_time, stakes, payout_script_pubkey
-    )
-    ss = ltd_id.serialize()
-    ss += master.serialize()
-    proofid = sha256d(ss)
-    return ltd_id, UInt256(proofid)
+    def compute_proof_id(self, master: PublicKey) -> ProofId:
+        ss = self.serialize()
+        ss += master.serialize()
+        return ProofId(sha256d(ss))
 
 
 class SignedStake:
@@ -145,13 +134,13 @@ class Proof:
         self.signature: bytes = signature
         """Schnorr signature of some of the proof's data by the master key."""
 
-        self.limitedid, self.proofid = compute_proof_id(
+        self.limitedid = LimitedProofId(
             sequence,
             expiration_time,
             [ss.stake for ss in signed_stakes],
-            master_pub,
-            self.payout_script_pubkey,
+            payout_script_pubkey,
         )
+        self.proofid = self.limitedid.compute_proof_id(master_pub)
 
     def serialize(self) -> bytes:
         p = struct.pack("<Qq", self.sequence, self.expiration_time)
@@ -208,13 +197,13 @@ class ProofBuilder:
         self.stake_signers.sort(key=lambda ss: ss.stake.stake_id)
 
     def build(self):
-        ltd_id, proofid = compute_proof_id(
+        ltd_id = LimitedProofId(
             self.sequence,
             self.expiration_time,
             [signer.stake for signer in self.stake_signers],
-            self.master_pub,
             self.payout_script_pubkey,
         )
+
         signature = self.master.sign_schnorr(ltd_id.serialize())
 
         stake_commitment_data = (
