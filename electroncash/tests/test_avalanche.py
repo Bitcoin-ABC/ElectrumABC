@@ -1,6 +1,7 @@
 import base64
 import unittest
 
+from ..avalanche.delegation import Delegation, DelegationId, Level
 from ..avalanche.proof import LimitedProofId, Proof, ProofBuilder, ProofId
 from ..avalanche.serialize import Key, PublicKey
 from ..bitcoin import deserialize_privkey
@@ -322,11 +323,110 @@ class TestAvalancheProofFromHex(unittest.TestCase):
         )
 
 
+class TestAvalancheDelegationFromHex(unittest.TestCase):
+    def setUp(self) -> None:
+        self.proof_master = PublicKey.from_hex(
+            "023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3"
+        )
+        self.ltd_proof_id = LimitedProofId.from_hex(
+            "0d45ca55662c483107b45f5c5699e0d8c7778b245c116cb988abba1afa6a1146"
+        )
+        self.pubkey1 = PublicKey.from_hex(
+            "03e49f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e645ef"
+        )
+        self.pubkey2 = PublicKey.from_hex(
+            "03aac52f4cfca700e7e9824298e0184755112e32f359c832f5f6ad2ef62a2c024a"
+        )
+        self.sig1 = base64.b64decode(
+            "fVEt2+p8iNzzhBK1g3SFakZuFleXppMhwJKKicZFIffi52fJPeZF71El7JAdzVE0d4fKKXced4"
+            "a75ALS1erQ3A==".encode("ascii")
+        )
+        self.sig2 = base64.b64decode(
+            "XN3Q/+hOEuS/SeTAr3yFSOYYok4SSV1ln1unXhFOFSamGKowWx5pv2riCyVXmZ8uP+wl1fInH4"
+            "ud4NBrpzRFUA==".encode("ascii")
+        )
+
+    def test_empty_delegation(self):
+        delegation = Delegation.from_hex(
+            "46116afa1abaab88b96c115c248b77c7d8e099565c5fb40731482c6655ca450d21"
+            "023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3"
+            "00"
+        )
+        self.assertEqual(delegation.proof_master, self.proof_master)
+        self.assertEqual(delegation.limited_proofid, self.ltd_proof_id)
+        self.assertEqual(
+            delegation.dgid,
+            DelegationId.from_hex(
+                "afc74900c1f28b69e466461fb1e0663352da6153be0fcd59280e27f2446391d5"
+            ),
+        )
+        self.assertEqual(delegation.get_delegated_public_key(), delegation.proof_master)
+        self.assertEqual(delegation.levels, [])
+
+        self.assertEqual(delegation.verify(), (True, self.proof_master))
+
+    def test_one_level(self):
+        delegation = Delegation.from_hex(
+            "46116afa1abaab88b96c115c248b77c7d8e099565c5fb40731482c6655ca450d21"
+            "023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3"
+            "012103e49f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e6"
+            "45ef7d512ddbea7c88dcf38412b58374856a466e165797a69321c0928a89c64521"
+            "f7e2e767c93de645ef5125ec901dcd51347787ca29771e7786bbe402d2d5ead0dc"
+        )
+        self.assertEqual(delegation.proof_master, self.proof_master)
+        self.assertEqual(delegation.limited_proofid, self.ltd_proof_id)
+        self.assertEqual(
+            delegation.dgid,
+            DelegationId.from_hex(
+                "ffcd49dc98ebdbc90e731a7b0c89939bfe082f15f3aa82aca657176b83669185"
+            ),
+        )
+        self.assertEqual(delegation.get_delegated_public_key(), self.pubkey1)
+        self.assertEqual(delegation.levels, [Level(self.pubkey1, self.sig1)])
+
+        self.assertEqual(delegation.verify(), (True, self.pubkey1))
+
+    def test_two_levels(self):
+        delegation = Delegation.from_hex(
+            "46116afa1abaab88b96c115c248b77c7d8e099565c5fb40731482c6655ca450d21"
+            "023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3"
+            "022103e49f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e645e"
+            "f7d512ddbea7c88dcf38412b58374856a466e165797a69321c0928a89c64521f7e2e7"
+            "67c93de645ef5125ec901dcd51347787ca29771e7786bbe402d2d5ead0dc2103aac52"
+            "f4cfca700e7e9824298e0184755112e32f359c832f5f6ad2ef62a2c024a5cddd0ffe8"
+            "4e12e4bf49e4c0af7c8548e618a24e12495d659f5ba75e114e1526a618aa305b1e69b"
+            "f6ae20b2557999f2e3fec25d5f2271f8b9de0d06ba7344550"
+        )
+        self.assertEqual(delegation.proof_master, self.proof_master)
+        self.assertEqual(delegation.limited_proofid, self.ltd_proof_id)
+        self.assertEqual(
+            delegation.dgid,
+            DelegationId.from_hex(
+                "a3f98e6b5ec330219493d109e5c11ed8e302315df4604b5462e9fb80cb0fde89"
+            ),
+        )
+        self.assertEqual(delegation.get_delegated_public_key(), self.pubkey2)
+        self.assertEqual(
+            delegation.levels,
+            [
+                Level(self.pubkey1, self.sig1),
+                Level(self.pubkey2, self.sig2),
+            ],
+        )
+
+
+class TestAvalancheDelegationBuilder(unittest.TestCase):
+    def test(self):
+        pass
+
+
 def suite():
     test_suite = unittest.TestSuite()
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite.addTest(loadTests(TestAvalancheProofBuilder))
     test_suite.addTest(loadTests(TestAvalancheProofFromHex))
+    test_suite.addTest(loadTests(TestAvalancheDelegationBuilder))
+    test_suite.addTest(loadTests(TestAvalancheDelegationFromHex))
     return test_suite
 
 
