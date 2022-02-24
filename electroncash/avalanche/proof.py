@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # -*- mode: python3 -*-
 #
-# Electrum ABC - lightweight BCHA client
-# Copyright (C) 2020 The Electrum ABC developers
+# Electrum ABC - lightweight eCash client
+# Copyright (C) 2020-2022 The Electrum ABC developers
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
