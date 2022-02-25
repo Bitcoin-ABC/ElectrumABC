@@ -41,6 +41,7 @@ from .serialize import (
     COutPoint,
     Key,
     PublicKey,
+    SerializableObject,
     deserialize_blob,
     deserialize_sequence,
     serialize_blob,
@@ -48,7 +49,7 @@ from .serialize import (
 )
 
 
-class Stake:
+class Stake(SerializableObject):
     def __init__(self, utxo, amount, height, pubkey, is_coinbase):
         self.utxo: COutPoint = utxo
         self.amount: int = amount
@@ -109,7 +110,7 @@ class LimitedProofId(UInt256):
         return ProofId(sha256d(ss))
 
 
-class SignedStake:
+class SignedStake(SerializableObject):
     def __init__(self, stake, sig):
         self.stake: Stake = stake
         self.sig: bytes = sig
@@ -136,7 +137,7 @@ class StakeSigner:
         )
 
 
-class Proof:
+class Proof(SerializableObject):
     def __init__(
         self,
         sequence: int,
@@ -189,10 +190,6 @@ class Proof:
             payout_pubkey,
             signature,
         )
-
-    @classmethod
-    def from_hex(cls, hex_str: str) -> Proof:
-        return cls.deserialize(BytesIO(bytes.fromhex(hex_str)))
 
 
 class ProofBuilder:

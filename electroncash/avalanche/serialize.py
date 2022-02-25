@@ -28,12 +28,29 @@ Avalanche data structures.
 from __future__ import annotations
 
 import struct
+from abc import ABC, abstractmethod
 from io import BytesIO
-from typing import Any, Sequence, Type
+from typing import Sequence, Type
 
 from .. import schnorr
 from ..bitcoin import public_key_from_private_key
 from ..uint256 import UInt256
+
+
+class SerializableObject(ABC):
+    @abstractmethod
+    def serialize(self) -> bytes:
+        """Return a binary serialization of this object"""
+        pass
+
+    @classmethod
+    @abstractmethod
+    def deserialize(cls, stream: BytesIO) -> SerializableObject:
+        pass
+
+    @classmethod
+    def from_hex(cls, hex_str: str) -> SerializableObject:
+        return cls.deserialize(BytesIO(bytes.fromhex(hex_str)))
 
 
 def write_compact_size(nsize: int) -> bytes:
@@ -66,7 +83,7 @@ def read_compact_size(stream: BytesIO) -> int:
     return nit
 
 
-def serialize_sequence(seq: Sequence[Any]) -> bytes:
+def serialize_sequence(seq: Sequence[SerializableObject]) -> bytes:
     """Serialize a variable length sequence (list...) of serializable constant size
     objects. The length of the sequence is encoded as a VarInt.
     """
@@ -76,7 +93,7 @@ def serialize_sequence(seq: Sequence[Any]) -> bytes:
     return b
 
 
-def deserialize_sequence(stream: BytesIO, cls: Type[Any]):
+def deserialize_sequence(stream: BytesIO, cls: Type[SerializableObject]):
     """Deserialize a list of object of type klass.
     cls must implement a deserialize classmethod returning an instance of the class.
     """
@@ -101,7 +118,7 @@ def deserialize_blob(stream: BytesIO) -> bytes:
     return stream.read(size)
 
 
-class PublicKey:
+class PublicKey(SerializableObject):
     def __init__(self, keydata):
         self.keydata: bytes = keydata
 
@@ -153,7 +170,7 @@ class Key:
         return PublicKey(bytes.fromhex(pubkey))
 
 
-class COutPoint:
+class COutPoint(SerializableObject):
     """
     An outpoint - a combination of a transaction hash and an index n into its
     vout.
@@ -171,7 +188,6 @@ class COutPoint:
 
     @classmethod
     def deserialize(cls, stream: BytesIO) -> COutPoint:
-        txid = UInt256()
-        txid.unserialize(stream.read(32))
+        txid = UInt256.deserialize(stream)
         n = struct.unpack("<I", stream.read(4))[0]
         return COutPoint(txid, n)
