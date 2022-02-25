@@ -1,7 +1,7 @@
 import base64
 import unittest
 
-from ..avalanche.delegation import Delegation, DelegationId, Level
+from ..avalanche.delegation import Delegation, DelegationBuilder, DelegationId, Level
 from ..avalanche.proof import LimitedProofId, Proof, ProofBuilder, ProofId
 from ..avalanche.serialize import Key, PublicKey
 from ..bitcoin import deserialize_privkey
@@ -323,6 +323,38 @@ class TestAvalancheProofFromHex(unittest.TestCase):
         )
 
 
+one_level_dg_hex = (
+    "46116afa1abaab88b96c115c248b77c7d8e099565c5fb40731482c6655ca450d21"
+    "023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3"
+    "012103e49f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e6"
+    "45ef7d512ddbea7c88dcf38412b58374856a466e165797a69321c0928a89c64521"
+    "f7e2e767c93de645ef5125ec901dcd51347787ca29771e7786bbe402d2d5ead0dc"
+)
+
+
+class TestAvalancheDelegationBuilder(unittest.TestCase):
+    def test_from_ltd_id(self):
+        privkey_wif = "L4J6gEE4wL9ji2EQbzS5dPMTTsw8LRvcMst1Utij4e3X5ccUSdqW"
+        _, privkey, compressed = deserialize_privkey(privkey_wif)
+        master = Key(privkey, compressed)
+        dgb = DelegationBuilder(
+            LimitedProofId.from_hex(
+                "0d45ca55662c483107b45f5c5699e0d8c7778b245c116cb988abba1afa6a1146"
+            ),
+            master.get_pubkey(),
+        )
+        dgb.add_level(
+            master,
+            PublicKey.from_hex(
+                "03e49f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e645ef"
+            ),
+        )
+        dg = dgb.build()
+        self.assertEqual(dg.serialize().hex(), one_level_dg_hex)
+
+    # TODO: test DelegationBuilder.from_delegation and .from_proof
+
+
 class TestAvalancheDelegationFromHex(unittest.TestCase):
     def setUp(self) -> None:
         self.proof_master = PublicKey.from_hex(
@@ -366,13 +398,7 @@ class TestAvalancheDelegationFromHex(unittest.TestCase):
         self.assertEqual(delegation.verify(), (True, self.proof_master))
 
     def test_one_level(self):
-        delegation = Delegation.from_hex(
-            "46116afa1abaab88b96c115c248b77c7d8e099565c5fb40731482c6655ca450d21"
-            "023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3"
-            "012103e49f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e6"
-            "45ef7d512ddbea7c88dcf38412b58374856a466e165797a69321c0928a89c64521"
-            "f7e2e767c93de645ef5125ec901dcd51347787ca29771e7786bbe402d2d5ead0dc"
-        )
+        delegation = Delegation.from_hex(one_level_dg_hex)
         self.assertEqual(delegation.proof_master, self.proof_master)
         self.assertEqual(delegation.limited_proofid, self.ltd_proof_id)
         self.assertEqual(
@@ -413,11 +439,6 @@ class TestAvalancheDelegationFromHex(unittest.TestCase):
                 Level(self.pubkey2, self.sig2),
             ],
         )
-
-
-class TestAvalancheDelegationBuilder(unittest.TestCase):
-    def test(self):
-        pass
 
 
 def suite():

@@ -28,12 +28,13 @@ from __future__ import annotations
 
 import base64
 from io import BytesIO
-from typing import Callable, Sequence, Tuple
+from typing import Callable, List, Optional, Sequence, Tuple
 
 from ..bitcoin import Hash as sha256d
 from ..uint256 import UInt256
-from .proof import LimitedProofId, ProofId
+from .proof import LimitedProofId, Proof, ProofId
 from .serialize import (
+    Key,
     PublicKey,
     SerializableObject,
     deserialize_sequence,
@@ -42,7 +43,9 @@ from .serialize import (
 
 
 class DelegationId(UInt256):
-    pass
+    @classmethod
+    def from_proof_id(cls, proof_id: ProofId):
+        return cls(proof_id.data)
 
 
 class Level(SerializableObject):
@@ -98,13 +101,14 @@ class Delegation(SerializableObject):
         limited_proofid: LimitedProofId,
         proof_master: PublicKey,
         levels: Sequence[Level],
+        dgid: Optional[DelegationId] = None,
     ):
         self.limited_proofid = limited_proofid
         self.proof_master = proof_master
         """Master public key of the proof."""
         self.levels = levels
 
-        self.dgid = self.compute_delegation_id()
+        self.dgid = dgid or self.compute_delegation_id()
 
     def get_delegated_public_key(self) -> PublicKey:
         if self.levels:
@@ -156,3 +160,50 @@ class Delegation(SerializableObject):
             f"proof_master={self.proof_master}, "
             f"levels={self.levels})"
         )
+
+
+class DelegationBuilder:
+    def __init__(
+        self,
+        limited_proofid: LimitedProofId,
+        proof_master: PublicKey,
+        delegation_id: Optional[DelegationId] = None,
+    ):
+        self.limited_proofid = limited_proofid
+        self.proof_master = proof_master
+        self.dgid = delegation_id or DelegationId.from_proof_id(
+            limited_proofid.compute_proof_id(proof_master)
+        )
+
+        self.levels: List[Level] = [Level(proof_master, b"")]
+
+    @classmethod
+    def from_proof(cls, p: Proof) -> DelegationBuilder:
+        return cls(p.limitedid, p.master_pub, DelegationId.from_proof_id(p.proofid))
+
+    @classmethod
+    def from_delegation(cls, dg: Delegation) -> DelegationBuilder:
+        dg_builder = cls(dg.limited_proofid, dg.proof_master, dg.dgid)
+        for l in dg.levels:
+            dg_builder.levels[-1].sig = l.sig
+            dg_builder.levels.append(Level(l.pubkey, b""))
+        return dg_builder
+
+    def add_level(self, delegator_key: Key, delegated_pubkey: PublicKey):
+        if self.levels[-1].pubkey != delegator_key.get_pubkey():
+            raise RuntimeError(
+                "Delegator private key does not match most recently added public key."
+            )
+        hash_ = sha256d(self.dgid.serialize() + delegated_pubkey.serialize())
+        self.levels[-1].sig = delegator_key.sign_schnorr(hash_)
+        self.dgid = DelegationId(hash_)
+        self.levels.append(Level(delegated_pubkey, b""))
+
+    def build(self) -> Delegation:
+        dg_levels = []
+        for i in range(1, len(self.levels)):
+            dg_levels.append(Level(self.levels[i].pubkey, self.levels[i - 1].sig))
+
+        dg = Delegation(self.limited_proofid, self.levels[0].pubkey, dg_levels)
+        assert dg.dgid == self.dgid
+        return dg
