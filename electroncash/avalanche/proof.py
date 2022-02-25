@@ -92,17 +92,19 @@ class ProofId(UInt256):
 
 
 class LimitedProofId(UInt256):
-    def __init__(
-        self,
+    @classmethod
+    def build(
+        cls,
         sequence: int,
         expiration_time: int,
         stakes: List[Stake],
         payout_script_pubkey: bytes,
-    ):
+    ) -> LimitedProofId:
+        """Build a limited proofid from the Proof parameters"""
         ss = struct.pack("<Qq", sequence, expiration_time)
         ss += serialize_blob(payout_script_pubkey)
         ss += serialize_sequence(stakes)
-        super().__init__(sha256d(ss))
+        return cls(sha256d(ss))
 
     def compute_proof_id(self, master: PublicKey) -> ProofId:
         ss = self.serialize()
@@ -159,7 +161,7 @@ class Proof(SerializableObject):
         self.signature: bytes = signature
         """Schnorr signature of some of the proof's data by the master key."""
 
-        self.limitedid = LimitedProofId(
+        self.limitedid = LimitedProofId.build(
             sequence,
             expiration_time,
             [ss.stake for ss in signed_stakes],
@@ -238,7 +240,7 @@ class ProofBuilder:
         self.stake_signers.sort(key=lambda ss: ss.stake.stake_id)
 
     def build(self):
-        ltd_id = LimitedProofId(
+        ltd_id = LimitedProofId.build(
             self.sequence,
             self.expiration_time,
             [signer.stake for signer in self.stake_signers],

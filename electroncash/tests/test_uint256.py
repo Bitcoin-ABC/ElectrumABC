@@ -1,4 +1,5 @@
 import unittest
+from io import BytesIO
 
 from ..uint256 import BaseBlob, UInt256
 
@@ -52,9 +53,17 @@ class TestBaseBlob(unittest.TestCase):
         bb = TestBlob(b"\x00\x01\x03")
         self.assertEqual(bb.serialize(), b"\x00\x01\x03")
 
+        # deserialize into existing instance from bytes
         bbu = TestBlob()
         bbu.unserialize(b"\x00\x01\x03")
         self.assertEqual(bbu, TestBlob(b"\x00\x01\x03"))
+
+        # deserialize from a stream
+        stream = BytesIO(b"\x00\x01\x03\xde\xad")
+        bbd = TestBlob.deserialize(stream)
+        self.assertEqual(bbd, bbu)
+        # check the stream still has the 2 extra bytes
+        self.assertEqual(stream.read(), b"\xde\xad")
 
     def test_hex(self):
         bb1 = TestBlob(b"\x00\x01\x03")
@@ -118,6 +127,16 @@ class TestUInt256(unittest.TestCase):
         )
         self.assertEqual(o, o2)
         self.assertEqual(o.get_int(), i)
+
+    def test_deserialize(self):
+        o = UInt256.deserialize(
+            BytesIO(
+                bytes.fromhex(
+                    "24ae50f5d4e81e340b29708ab11cab48364e2ae2c53f8439cbe983257919fcb7"
+                )
+            )
+        )
+        self.assertIsInstance(o, UInt256)
 
 
 def suite():

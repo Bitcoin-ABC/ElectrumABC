@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import struct
+from io import BytesIO
 from typing import Optional
 
 
@@ -54,12 +55,18 @@ class BaseBlob:
         return self.data
 
     def unserialize(self, data: bytes):
+        """Deserialize into an existing instance from bytes"""
         if len(data) != self.WIDTH:
             raise TypeError(
                 f"Wrong data size, expected {self.WIDTH} bytes but received "
                 f"{len(data)}"
             )
         self.data = data
+
+    @classmethod
+    def deserialize(cls, stream: BytesIO) -> BaseBlob:
+        """Deserialize from a bystream and return a new instance."""
+        return cls(stream.read(cls.BITS // 8))
 
     def get_hex(self) -> str:
         return self.data[::-1].hex()
@@ -68,7 +75,7 @@ class BaseBlob:
         return self.get_hex()
 
     @classmethod
-    def from_hex(cls, hex_str: str) -> UInt256:
+    def from_hex(cls, hex_str: str) -> BaseBlob:
         hex_str = hex_str.strip()
         if hex_str.startswith("0x"):
             hex_str = hex_str[2:]
@@ -79,7 +86,7 @@ class BaseBlob:
                 f"{len(hex_str) // 2}"
             )
 
-        return UInt256(bytes.fromhex(hex_str)[::-1])
+        return cls(bytes.fromhex(hex_str)[::-1])
 
     def __repr__(self) -> str:
         return self.to_string()
