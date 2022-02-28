@@ -2,8 +2,9 @@ import base64
 import unittest
 
 from ..avalanche.delegation import Delegation, DelegationBuilder, DelegationId, Level
+from ..avalanche.primitives import Key, PublicKey
 from ..avalanche.proof import LimitedProofId, Proof, ProofBuilder, ProofId
-from ..avalanche.serialize import Key, PublicKey
+from ..avalanche.serialize import DeserializationError
 from ..uint256 import UInt256
 
 master = Key.from_wif("Kwr371tjA9u2rFSMZjTNun2PXXP3WPZu2afRHTcta6KxEUdm1vEw")
@@ -317,6 +318,36 @@ class TestAvalancheProofFromHex(unittest.TestCase):
             proof2.payout_script_pubkey, bytes.fromhex(payout_script_pubkey_hex)
         )
 
+    def test_raises_deserializationerror(self):
+        with self.assertRaises(DeserializationError):
+            Proof.from_hex("not hex")
+        with self.assertRaises(DeserializationError):
+            Proof.from_hex("aabbc")
+
+        # Drop the last hex char to make the string not valid hex
+        with self.assertRaises(DeserializationError):
+            Proof.from_hex(expected_proof1[:-1])
+
+        # Proper hex, but not a proof
+        with self.assertRaises(DeserializationError):
+            Proof.from_hex("aabbcc")
+
+        # Drop the last byte to make the signature incomplete
+        with self.assertRaises(DeserializationError):
+            Proof.from_hex(expected_proof1[:-2])
+
+        # A ProofId must have exactly 32 bytes
+        ProofId.from_hex(32 * "aa")
+
+        with self.assertRaises(DeserializationError):
+            ProofId.from_hex(31 * "aa")
+
+        with self.assertRaises(DeserializationError):
+            ProofId.from_hex(33 * "aa")
+
+        with self.assertRaises(DeserializationError):
+            LimitedProofId.from_hex(32 * "yz")
+
 
 one_level_dg_hex = (
     "46116afa1abaab88b96c115c248b77c7d8e099565c5fb40731482c6655ca450d21"
@@ -512,6 +543,19 @@ class TestAvalancheDelegationFromHex(unittest.TestCase):
                 Level(self.pubkey2, self.sig2),
             ],
         )
+
+    def test_raises_deserializationerror(self):
+        # Drop the last hex char to make the string not valid hex
+        with self.assertRaises(DeserializationError):
+            Delegation.from_hex(one_level_dg_hex[:-1])
+
+        # Proper hex, but not a proof
+        with self.assertRaises(DeserializationError):
+            Delegation.from_hex("aabbcc")
+
+        # Drop the last byte to make the signature
+        with self.assertRaises(DeserializationError):
+            Delegation.from_hex(one_level_dg_hex[:-2])
 
 
 def suite():

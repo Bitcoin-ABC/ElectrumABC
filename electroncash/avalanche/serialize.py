@@ -32,9 +32,9 @@ from abc import ABC, abstractmethod
 from io import BytesIO
 from typing import Sequence, Type
 
-from .. import schnorr
-from ..bitcoin import deserialize_privkey, public_key_from_private_key
-from ..uint256 import UInt256
+
+class DeserializationError(BaseException):
+    pass
 
 
 class SerializableObject(ABC):
@@ -50,7 +50,13 @@ class SerializableObject(ABC):
 
     @classmethod
     def from_hex(cls, hex_str: str) -> SerializableObject:
-        return cls.deserialize(BytesIO(bytes.fromhex(hex_str)))
+        try:
+            return cls.deserialize(BytesIO(bytes.fromhex(hex_str)))
+        except ValueError:
+            # raised by bytes.fromhex for non-hexadecimal values
+            raise DeserializationError("Invalid hexadecimal string")
+        except struct.error:
+            raise DeserializationError("Invalid proof format")
 
     def to_hex(self) -> str:
         return self.serialize().hex()
@@ -119,83 +125,3 @@ def deserialize_blob(stream: BytesIO) -> bytes:
     """Deserialize a blob prefixed with a VarInt length"""
     size = read_compact_size(stream)
     return stream.read(size)
-
-
-class PublicKey(SerializableObject):
-    def __init__(self, keydata):
-        self.keydata: bytes = keydata
-
-    def serialize(self) -> bytes:
-        return serialize_blob(self.keydata)
-
-    @classmethod
-    def deserialize(cls, stream: BytesIO) -> PublicKey:
-        keydata = deserialize_blob(stream)
-        return PublicKey(keydata)
-
-    def verify_schnorr(self, signature: bytes, message_hash: bytes):
-        return schnorr.verify(self.keydata, signature, message_hash)
-
-    @classmethod
-    def from_hex(cls, hex_str: str) -> PublicKey:
-        data = bytes.fromhex(hex_str)
-        return cls.deserialize(BytesIO(write_compact_size(len(data)) + data))
-
-    def __repr__(self):
-        return f"PublicKey({self.keydata.hex()})"
-
-    def __eq__(self, other):
-        return self.keydata == other.keydata
-
-
-class Key:
-    """A private key"""
-
-    def __init__(self, keydata, compressed):
-        self.keydata: bytes = keydata
-        """32 byte raw private key (as you would get from
-        deserialize_privkey, etc)"""
-        self.compressed: bool = compressed
-
-    @classmethod
-    def from_wif(cls, wif: str) -> Key:
-        _, privkey, compressed = deserialize_privkey(wif)
-        return cls(privkey, compressed)
-
-    def sign_schnorr(self, message_hash: bytes) -> bytes:
-        """
-
-        :param message_hash: should be the 32 byte sha256d hash of the tx input (or
-            message) you want to sign
-        :return: Returns a 64-long bytes object (the signature)
-        :raise: ValueError on failure.
-            Failure can occur due to an invalid private key.
-        """
-        return schnorr.sign(self.keydata, message_hash)
-
-    def get_pubkey(self):
-        pubkey = public_key_from_private_key(self.keydata, self.compressed)
-        return PublicKey(bytes.fromhex(pubkey))
-
-
-class COutPoint(SerializableObject):
-    """
-    An outpoint - a combination of a transaction hash and an index n into its
-    vout.
-    """
-
-    def __init__(self, txid, n):
-        self.txid: UInt256 = txid
-        """Transaction ID (SHA256 hash)."""
-
-        self.n: int = n
-        """vout index (uint32)"""
-
-    def serialize(self) -> bytes:
-        return self.txid.serialize() + struct.pack("<I", self.n)
-
-    @classmethod
-    def deserialize(cls, stream: BytesIO) -> COutPoint:
-        txid = UInt256.deserialize(stream)
-        n = struct.unpack("<I", stream.read(4))[0]
-        return COutPoint(txid, n)

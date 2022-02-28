@@ -37,10 +37,9 @@ from typing import List
 from ..bitcoin import Hash as sha256d
 from ..bitcoin import deserialize_privkey
 from ..uint256 import UInt256
+from .primitives import COutPoint, Key, PublicKey
 from .serialize import (
-    COutPoint,
-    Key,
-    PublicKey,
+    DeserializationError,
     SerializableObject,
     deserialize_blob,
     deserialize_sequence,
@@ -184,6 +183,12 @@ class Proof(SerializableObject):
         signed_stakes = deserialize_sequence(stream, SignedStake)
         payout_pubkey = deserialize_blob(stream)
         signature = stream.read(64)
+        if len(signature) != 64:
+            raise DeserializationError(
+                f"Could not deserialize proof data. Not enough data left for a "
+                f"complete Schnorr signature (found {len(signature)} bytes, expected "
+                f"64 bytes)."
+            )
         return Proof(
             sequence,
             expiration_time,

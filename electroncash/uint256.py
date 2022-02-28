@@ -4,6 +4,8 @@ import struct
 from io import BytesIO
 from typing import Optional
 
+from .avalanche.serialize import DeserializationError
+
 
 class BaseBlob:
     """Base class for fixed-size opaque blobs.
@@ -57,7 +59,7 @@ class BaseBlob:
     def unserialize(self, data: bytes):
         """Deserialize into an existing instance from bytes"""
         if len(data) != self.WIDTH:
-            raise TypeError(
+            raise DeserializationError(
                 f"Wrong data size, expected {self.WIDTH} bytes but received "
                 f"{len(data)}"
             )
@@ -81,12 +83,16 @@ class BaseBlob:
             hex_str = hex_str[2:]
 
         if len(hex_str) // 2 != (cls.BITS // 8):
-            raise TypeError(
+            raise DeserializationError(
                 f"Wrong data size, expected {cls.BITS // 8} bytes but received "
                 f"{len(hex_str) // 2}"
             )
 
-        return cls(bytes.fromhex(hex_str)[::-1])
+        try:
+            b = bytes.fromhex(hex_str)
+        except ValueError:
+            raise DeserializationError("Non-hexadecimal data in hex_str.")
+        return cls(b[::-1])
 
     def __repr__(self) -> str:
         return self.to_string()

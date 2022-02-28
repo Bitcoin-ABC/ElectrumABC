@@ -32,10 +32,10 @@ from typing import Callable, List, Optional, Sequence, Tuple
 
 from ..bitcoin import Hash as sha256d
 from ..uint256 import UInt256
+from .primitives import Key, PublicKey
 from .proof import LimitedProofId, Proof, ProofId
 from .serialize import (
-    Key,
-    PublicKey,
+    DeserializationError,
     SerializableObject,
     deserialize_sequence,
     serialize_sequence,
@@ -67,6 +67,13 @@ class Level(SerializableObject):
     def deserialize(cls, stream: BytesIO) -> Level:
         pubkey = PublicKey.deserialize(stream)
         sig = stream.read(64)
+        if len(sig) != 64:
+            raise DeserializationError(
+                f"Could not deserialize delegation Level data. Not enough data left "
+                f"for a complete Schnorr signature (found {len(sig)} bytes, expected "
+                f"64 bytes)."
+            )
+
         return Level(pubkey, sig)
 
     def __repr__(self):

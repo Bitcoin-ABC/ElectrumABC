@@ -4,8 +4,9 @@ from PyQt5 import QtCore, QtWidgets
 
 from electroncash.address import Address, AddressError
 from electroncash.avalanche.delegation import DelegationBuilder
+from electroncash.avalanche.primitives import Key, PublicKey
 from electroncash.avalanche.proof import LimitedProofId, Proof, ProofBuilder
-from electroncash.avalanche.serialize import Key, PublicKey
+from electroncash.avalanche.serialize import DeserializationError
 from electroncash.bitcoin import is_private_key
 from electroncash.uint256 import UInt256
 
@@ -261,7 +262,8 @@ class AvaDelegationWidget(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
 
-        layout.addWidget(QtWidgets.QLabel("Proof"))
+        self.proof_title_label = QtWidgets.QLabel("Proof")
+        layout.addWidget(self.proof_title_label)
         self.proof_edit = QtWidgets.QTextEdit()
         self.proof_edit.setToolTip(
             "Enter a proof in hexadecimal format. Alternatively, you can specify the "
@@ -306,9 +308,15 @@ class AvaDelegationWidget(QtWidgets.QWidget):
         self.master_key_edit.setText(master_wif)
 
     def compute_ltd_id_from_proof(self):
-        proof = Proof.from_hex(self.proof_edit.toPlainText())
-        self.ltd_id_edit.setText(proof.limitedid.get_hex())
-        # TODO: handle proof deserialization error, delete ltd_id if invalid proof fmt
+        proof_hex = self.proof_edit.toPlainText()
+        try:
+            proof = Proof.from_hex(proof_hex)
+        except DeserializationError:
+            self.ltd_id_edit.setText("")
+            self.proof_title_label.setText("Proof ❌")
+        else:
+            self.ltd_id_edit.setText(proof.limitedid.get_hex())
+            self.proof_title_label.setText("Proof ✔")
 
     def on_generate_clicked(self):
         dg_hex = self._build()
@@ -324,9 +332,26 @@ class AvaDelegationWidget(QtWidgets.QWidget):
             return
         master = Key.from_wif(master_wif)
 
-        # fixme: handle wrong input data
-        ltd_id = LimitedProofId.from_hex(self.ltd_id_edit.text())
-        delegated_pubkey = PublicKey.from_hex(self.pubkey_edit.text())
+        try:
+            ltd_id = LimitedProofId.from_hex(self.ltd_id_edit.text())
+        except DeserializationError:
+            QtWidgets.QMessageBox.critical(
+                self,
+                "Invalid limited ID",
+                "Could not parse limited ID. Make sure it is a 32 bytes hexadecimal "
+                "string.",
+            )
+            return
+
+        try:
+            delegated_pubkey = PublicKey.from_hex(self.pubkey_edit.text())
+        except DeserializationError:
+            QtWidgets.QMessageBox.critical(
+                self,
+                "Invalid delegated pubkey",
+                "Could not parse delegated public key.",
+            )
+            return
 
         dgb = DelegationBuilder(ltd_id, master.get_pubkey())
         dgb.add_level(master, delegated_pubkey)
