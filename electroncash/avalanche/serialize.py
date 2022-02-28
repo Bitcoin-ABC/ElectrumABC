@@ -33,7 +33,7 @@ from io import BytesIO
 from typing import Sequence, Type
 
 from .. import schnorr
-from ..bitcoin import public_key_from_private_key
+from ..bitcoin import deserialize_privkey, public_key_from_private_key
 from ..uint256 import UInt256
 
 
@@ -51,6 +51,9 @@ class SerializableObject(ABC):
     @classmethod
     def from_hex(cls, hex_str: str) -> SerializableObject:
         return cls.deserialize(BytesIO(bytes.fromhex(hex_str)))
+
+    def to_hex(self) -> str:
+        return self.serialize().hex()
 
 
 def write_compact_size(nsize: int) -> bytes:
@@ -154,10 +157,15 @@ class Key:
         deserialize_privkey, etc)"""
         self.compressed: bool = compressed
 
+    @classmethod
+    def from_wif(cls, wif: str) -> Key:
+        _, privkey, compressed = deserialize_privkey(wif)
+        return cls(privkey, compressed)
+
     def sign_schnorr(self, message_hash: bytes) -> bytes:
         """
 
-        :param hash: should be the 32 byte sha256d hash of the tx input (or
+        :param message_hash: should be the 32 byte sha256d hash of the tx input (or
             message) you want to sign
         :return: Returns a 64-long bytes object (the signature)
         :raise: ValueError on failure.

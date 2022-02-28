@@ -4,12 +4,9 @@ import unittest
 from ..avalanche.delegation import Delegation, DelegationBuilder, DelegationId, Level
 from ..avalanche.proof import LimitedProofId, Proof, ProofBuilder, ProofId
 from ..avalanche.serialize import Key, PublicKey
-from ..bitcoin import deserialize_privkey
 from ..uint256 import UInt256
 
-privkey_wif = "Kwr371tjA9u2rFSMZjTNun2PXXP3WPZu2afRHTcta6KxEUdm1vEw"
-_, privkey, compressed = deserialize_privkey(privkey_wif)
-master = Key(privkey, compressed)
+master = Key.from_wif("Kwr371tjA9u2rFSMZjTNun2PXXP3WPZu2afRHTcta6KxEUdm1vEw")
 # prove that this is the same key as before
 pubkey_hex = "030b4c866585dd868a9d62348a9cd008d6a312937048fff31670e7e920cfc7a744"
 assert master.get_pubkey().keydata.hex() == pubkey_hex
@@ -45,9 +42,7 @@ expected_proofid1 = "74c91491e5d6730ea1701817ed6c34e9627904fc3117647cc7d4bce73f5
 # data from Bitcoin ABC's proof_tests.cpp
 sequence2 = 5502932407561118921
 expiration2 = 5658701220890886376
-master_wif2 = "L4J6gEE4wL9ji2EQbzS5dPMTTsw8LRvcMst1Utij4e3X5ccUSdqW"
-_, privkey, compressed = deserialize_privkey(master_wif2)
-master2 = Key(privkey, compressed)
+master2 = Key.from_wif("L4J6gEE4wL9ji2EQbzS5dPMTTsw8LRvcMst1Utij4e3X5ccUSdqW")
 # master_pub2 = "023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3"
 payout_script_pubkey_hex = (
     "21038439233261789dd340bdc1450172d9c671b72ee8c0b2736ed2a3a250760897fdac"
@@ -143,7 +138,7 @@ class TestAvalancheProofBuilder(unittest.TestCase):
                 is_coinbase=utxo["iscoinbase"],
             )
         proof = proofbuilder.build()
-        self.assertEqual(proof.serialize().hex(), expected_proof_hex)
+        self.assertEqual(proof.to_hex(), expected_proof_hex)
 
         self.assertEqual(proof.limitedid, expected_limited_proofid)
         self.assertEqual(proof.proofid, expected_proofid)
@@ -333,26 +328,104 @@ one_level_dg_hex = (
 
 
 class TestAvalancheDelegationBuilder(unittest.TestCase):
+    def setUp(self) -> None:
+        self.level1_privkey = Key.from_wif(
+            "KzzLLtiYiyFcTXPWUzywt2yEKk5FxkGbMfKhWgBd4oZdt8t8kk77"
+        )
+        self.level1_pubkey = PublicKey.from_hex(
+            "03e49f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e645ef"
+        )
+        self.level2_pubkey = PublicKey.from_hex(
+            "03aac52f4cfca700e7e9824298e0184755112e32f359c832f5f6ad2ef62a2c024a"
+        )
+
+        self.wrong_proof_master = Key.from_wif(
+            "KwM6hV6hxZt3Kt4NHMtWQGH5T2SwhpyswodUQC2zmSjg6KWFWkQU"
+        )
+
+        self.base_delegation = Delegation.from_hex(
+            "6428c2c29a116191d42fe68e74f1ee33f8a285c13320d77b201c3ab9135c84e521030b4c86"
+            "6585dd868a9d62348a9cd008d6a312937048fff31670e7e920cfc7a744012103e49f9df52d"
+            "e2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e645ef22c1dd0a15c32d251dd9"
+            "93dde979e8f2751a468d622ca7db10bfc11180497d0ff4be928f362fd8fcd5259cef923bb4"
+            "71840c307e9bc4f89e5426b4e67b72d90e"
+        )
+
+        self.two_levels_delegation = Delegation.from_hex(
+            "6428c2c29a116191d42fe68e74f1ee33f8a285c13320d77b201c3ab9135c84e521030b4c86"
+            "6585dd868a9d62348a9cd008d6a312937048fff31670e7e920cfc7a744022103e49f9df52d"
+            "e2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e645ef22c1dd0a15c32d251dd9"
+            "93dde979e8f2751a468d622ca7db10bfc11180497d0ff4be928f362fd8fcd5259cef923bb4"
+            "71840c307e9bc4f89e5426b4e67b72d90e2103aac52f4cfca700e7e9824298e0184755112e"
+            "32f359c832f5f6ad2ef62a2c024a77c153340bb951e56df134c66042426f4fe33b670bb2d4"
+            "85f6d96f9d0d1db525dfa449565b8f424d71615d5f6c9399334b2550d554577ffa2ee8d758"
+            "eb8ded88"
+        )
+
     def test_from_ltd_id(self):
-        privkey_wif = "L4J6gEE4wL9ji2EQbzS5dPMTTsw8LRvcMst1Utij4e3X5ccUSdqW"
-        _, privkey, compressed = deserialize_privkey(privkey_wif)
-        master = Key(privkey, compressed)
+        # This is based on the proof from the Bitcoin ABC test framework's unit test
+        # in messages.py:
+        #     d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8bc67bb
+        #     05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967e16beb692f
+        #     c5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb5237efe8f647d32
+        #     e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce6804534ca1f5e22670be3df5cbd5957d8
+        #     dd83d05c8f17eae391f0e7ffdce4fb3defadb7c079473ebeccf88c1f8ce87c61e451447b89
+        #     c445967335ffd1aadef429982321023beefdde700a6bc02036335b4df141c8bc67bb05a971
+        #     f5ac2745fd683797dde3ac7b0b7865200f63052ff980b93f965f398dda04917d411dd46e3c
+        #     009a5fef35661fac28779b6a22760c00004f5ddf7d9865c7fead7e4a840b94793959026164
+        #     0f
+
+        proof_master = Key.from_wif(
+            "L4J6gEE4wL9ji2EQbzS5dPMTTsw8LRvcMst1Utij4e3X5ccUSdqW"
+        )
         dgb = DelegationBuilder(
             LimitedProofId.from_hex(
-                "0d45ca55662c483107b45f5c5699e0d8c7778b245c116cb988abba1afa6a1146"
+                "c1283084c878408b2a5a11b7a1155b3cccce91526e4da0ba3947bbcf9d9ed402"
             ),
-            master.get_pubkey(),
+            proof_master.get_pubkey(),
         )
-        dgb.add_level(
-            master,
-            PublicKey.from_hex(
-                "03e49f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e645ef"
+        dgb.add_level(proof_master, self.level1_pubkey)
+        self.assertEqual(
+            dgb.build(),
+            Delegation.from_hex(
+                "02d49e9dcfbb4739baa04d6e5291cecc3c5b15a1b7115a2a8b4078c8843028c121023b"
+                "eefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3012103e4"
+                "9f9df52de2dea81cf7838b82521b69f2ea360f1c4eed9e6c89b7d0f9e645effa701924"
+                "fe7367835b3a0fb30bcc706f00624633980f601987400bb24551cf57bd9f2d106f5c58"
+                "4e4e0efa2069a606cf1aa64f776ccb3304f8486eb3d1ce3acf"
             ),
         )
-        dg = dgb.build()
-        self.assertEqual(dg.serialize().hex(), one_level_dg_hex)
 
-    # TODO: test DelegationBuilder.from_delegation and .from_proof
+    def test_from_proof(self):
+        proof_master = Key.from_wif(
+            "Kwr371tjA9u2rFSMZjTNun2PXXP3WPZu2afRHTcta6KxEUdm1vEw"
+        )
+        proof = Proof.from_hex(expected_proof1)
+        self.assertEqual(proof.master_pub, proof_master.get_pubkey())
+
+        dgb = DelegationBuilder.from_proof(proof)
+
+        # Level 1
+        dgb.add_level(proof_master, self.level1_pubkey)
+        self.assertEqual(dgb.build(), self.base_delegation)
+
+        # Level 2
+        dgb.add_level(self.level1_privkey, self.level2_pubkey)
+        self.assertEqual(dgb.build(), self.two_levels_delegation)
+
+    def test_wrong_privkey_raises(self):
+        proof = Proof.from_hex(expected_proof1)
+
+        dgb = DelegationBuilder.from_proof(proof)
+        with self.assertRaises(RuntimeError):
+            dgb.add_level(self.wrong_proof_master, self.level1_pubkey)
+
+    def test_from_delegation(self):
+        dgb = DelegationBuilder.from_delegation(self.base_delegation)
+        self.assertEqual(dgb.build(), self.base_delegation)
+
+        dgb.add_level(self.level1_privkey, self.level2_pubkey)
+        self.assertEqual(dgb.build(), self.two_levels_delegation)
 
 
 class TestAvalancheDelegationFromHex(unittest.TestCase):

@@ -161,6 +161,9 @@ class Delegation(SerializableObject):
             f"levels={self.levels})"
         )
 
+    def __eq__(self, other: Delegation) -> bool:
+        return self.serialize() == other.serialize()
+
 
 class DelegationBuilder:
     def __init__(

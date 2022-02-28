@@ -239,7 +239,7 @@ class ProofBuilder:
         # See UInt256.compare for the specifics about sorting these objects.
         self.stake_signers.sort(key=lambda ss: ss.stake.stake_id)
 
-    def build(self):
+    def build(self) -> Proof:
         ltd_id = LimitedProofId.build(
             self.sequence,
             self.expiration_time,
