@@ -3,12 +3,34 @@ from typing import List, Optional
 from PyQt5 import QtCore, QtWidgets
 
 from electroncash.address import Address, AddressError
-from electroncash.avalanche.proof import ProofBuilder
-from electroncash.avalanche.serialize import Key
-from electroncash.bitcoin import deserialize_privkey, is_private_key
+from electroncash.avalanche.delegation import DelegationBuilder
+from electroncash.avalanche.proof import LimitedProofId, Proof, ProofBuilder
+from electroncash.avalanche.serialize import Key, PublicKey
+from electroncash.bitcoin import is_private_key
 from electroncash.uint256 import UInt256
 
 from .password_dialog import PasswordDialog
+
+
+class Link(QtWidgets.QPushButton):
+    def __init__(self, text="", parent=None):
+        super().__init__(text, parent)
+        stylesheet = """
+            QPushButton {
+                color: blue;
+                border: none;
+                font-weight: bold;
+                font-size: 14px;
+                text-align: center;
+            }
+            QPushButton:disabled {
+                color: gray;
+            }
+            """
+        self.setStyleSheet(stylesheet)
+        size_policy = QtWidgets.QSizePolicy()
+        size_policy.setHorizontalPolicy(QtWidgets.QSizePolicy.Fixed)
+        self.setSizePolicy(size_policy)
 
 
 class AvaProofWidget(QtWidgets.QWidget):
@@ -106,13 +128,19 @@ class AvaProofWidget(QtWidgets.QWidget):
         self.proof_display.setReadOnly(True)
         layout.addWidget(self.proof_display)
 
+        self.generate_dg_button = Link("Generate a delegation for this proof")
+        self.generate_dg_button.setEnabled(False)
+        layout.addWidget(self.generate_dg_button)
+
         # Connect signals
         self.calendar.dateTimeChanged.connect(self.on_datetime_changed)
         self.timestamp_widget.valueChanged.connect(self.on_timestamp_changed)
+        self.generate_dg_button.clicked.connect(self.open_dg_dialog)
 
         # Init widgets
         now = QtCore.QDateTime.currentDateTime()
         self.calendar.setDateTime(now.addYears(1))
+        self.dg_dialog = None
 
     def on_datetime_changed(self, dt: QtCore.QDateTime):
         """Set the timestamp from a QDateTime"""
@@ -131,6 +159,7 @@ class AvaProofWidget(QtWidgets.QWidget):
         proof = self._build()
         if proof is not None:
             self.proof_display.setText(f'<p style="color:black;"><b>{proof}</b></p>')
+        self.generate_dg_button.setEnabled(proof is not None)
 
     def _build(self) -> Optional[str]:
         if self._pwd is None and self.wallet.has_password():
@@ -152,13 +181,13 @@ class AvaProofWidget(QtWidgets.QWidget):
                     continue
             self._pwd = password
 
-        master = self.master_key_edit.text()
-        if not is_private_key(master):
+        master_wif = self.master_key_edit.text()
+        if not is_private_key(master_wif):
             QtWidgets.QMessageBox.critical(
                 self, "Invalid private key", "Could not parse private key."
             )
             return
-        txin_type, privkey, compressed = deserialize_privkey(master)
+        master = Key.from_wif(master_wif)
 
         try:
             payout_address = Address.from_string(self.payout_addr_edit.text())
@@ -170,7 +199,7 @@ class AvaProofWidget(QtWidgets.QWidget):
         proofbuilder = ProofBuilder(
             sequence=self.sequence_sb.value(),
             expiration_time=self.calendar.dateTime().toSecsSinceEpoch(),
-            master=Key(privkey, compressed),
+            master=master,
             payout_script_pubkey=payout_script,
         )
         for utxo in self.utxos:
@@ -188,15 +217,14 @@ class AvaProofWidget(QtWidgets.QWidget):
                 wif_privkey=priv_key,
                 is_coinbase=utxo["coinbase"],
             )
-        proof = proofbuilder.build()
-        return proof.serialize().hex()
+        return proofbuilder.build().to_hex()
 
-    def getProof(self) -> str:
-        """Return proof, as a hexadecimal string.
-
-        An empty string means the proof building failed.
-        """
-        return self.proof_display.toPlainText()
+    def open_dg_dialog(self):
+        if self.dg_dialog is None:
+            self.dg_dialog = AvaDelegationDialog()
+        self.dg_dialog.set_proof(self.proof_display.toPlainText())
+        self.dg_dialog.set_master(self.master_key_edit.text())
+        self.dg_dialog.show()
 
 
 class AvaProofDialog(QtWidgets.QDialog):
@@ -220,3 +248,120 @@ class AvaProofDialog(QtWidgets.QDialog):
 
         self.ok_button.clicked.connect(self.accept)
         self.dismiss_button.clicked.connect(self.reject)
+
+
+class AvaDelegationWidget(QtWidgets.QWidget):
+    def __init__(self, parent: QtWidgets.QWidget = None):
+        super().__init__(parent)
+        self.setMinimumWidth(600)
+        self.setMinimumHeight(580)
+
+        self._pwd = None
+
+        layout = QtWidgets.QVBoxLayout()
+        self.setLayout(layout)
+
+        layout.addWidget(QtWidgets.QLabel("Proof"))
+        self.proof_edit = QtWidgets.QTextEdit()
+        self.proof_edit.setToolTip(
+            "Enter a proof in hexadecimal format. Alternatively, you can specify the "
+            "limited proof ID and proof master private key."
+        )
+        layout.addWidget(self.proof_edit)
+        layout.addSpacing(10)
+
+        layout.addWidget(QtWidgets.QLabel("Limited Proof ID"))
+        self.ltd_id_edit = QtWidgets.QLineEdit()
+        self.ltd_id_edit.setToolTip("Limited proof ID of the proof to be delegated.")
+        layout.addWidget(self.ltd_id_edit)
+        layout.addSpacing(10)
+
+        layout.addWidget(QtWidgets.QLabel("Proof master key (WIF)"))
+        self.master_key_edit = QtWidgets.QLineEdit()
+        self.master_key_edit.setToolTip("Master key of the proof.")
+        layout.addWidget(self.master_key_edit)
+        layout.addSpacing(10)
+
+        layout.addWidget(QtWidgets.QLabel("Delegated public key"))
+        self.pubkey_edit = QtWidgets.QLineEdit()
+        self.pubkey_edit.setToolTip("The public key to delegate the proof to.")
+        layout.addWidget(self.pubkey_edit)
+        layout.addSpacing(10)
+
+        self.generate_button = QtWidgets.QPushButton("Generate delegation")
+        layout.addWidget(self.generate_button)
+
+        self.dg_display = QtWidgets.QTextEdit()
+        self.dg_display.setReadOnly(True)
+        layout.addWidget(self.dg_display)
+
+        # Signals
+        self.proof_edit.textChanged.connect(self.compute_ltd_id_from_proof)
+        self.generate_button.clicked.connect(self.on_generate_clicked)
+
+    def set_proof(self, proof_hex: str):
+        self.proof_edit.setText(proof_hex)
+
+    def set_master(self, master_wif: str):
+        self.master_key_edit.setText(master_wif)
+
+    def compute_ltd_id_from_proof(self):
+        proof = Proof.from_hex(self.proof_edit.toPlainText())
+        self.ltd_id_edit.setText(proof.limitedid.get_hex())
+        # TODO: handle proof deserialization error, delete ltd_id if invalid proof fmt
+
+    def on_generate_clicked(self):
+        dg_hex = self._build()
+        if dg_hex is not None:
+            self.dg_display.setText(f'<p style="color:black;"><b>{dg_hex}</b></p>')
+
+    def _build(self) -> Optional[str]:
+        master_wif = self.master_key_edit.text()
+        if not is_private_key(master_wif):
+            QtWidgets.QMessageBox.critical(
+                self, "Invalid private key", "Could not parse private key."
+            )
+            return
+        master = Key.from_wif(master_wif)
+
+        # fixme: handle wrong input data
+        ltd_id = LimitedProofId.from_hex(self.ltd_id_edit.text())
+        delegated_pubkey = PublicKey.from_hex(self.pubkey_edit.text())
+
+        dgb = DelegationBuilder(ltd_id, master.get_pubkey())
+        dgb.add_level(master, delegated_pubkey)
+        return dgb.build().to_hex()
+
+    def get_delegation(self) -> str:
+        """Return delegation, as a hexadecimal string.
+
+        An empty string means the delegation building failed.
+        """
+        return self.dg_display.toPlainText()
+
+
+class AvaDelegationDialog(QtWidgets.QDialog):
+    def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
+        super().__init__(parent)
+        self.setWindowTitle("Build avalanche delegation")
+
+        layout = QtWidgets.QVBoxLayout()
+        self.setLayout(layout)
+        self.dg_widget = AvaDelegationWidget(self)
+        layout.addWidget(self.dg_widget)
+
+        buttons_layout = QtWidgets.QHBoxLayout()
+        layout.addLayout(buttons_layout)
+        self.ok_button = QtWidgets.QPushButton("OK")
+        buttons_layout.addWidget(self.ok_button)
+        self.dismiss_button = QtWidgets.QPushButton("Dismiss")
+        buttons_layout.addWidget(self.dismiss_button)
+
+        self.ok_button.clicked.connect(self.accept)
+        self.dismiss_button.clicked.connect(self.reject)
+
+    def set_proof(self, proof_hex: str):
+        self.dg_widget.set_proof(proof_hex)
+
+    def set_master(self, master_wif: str):
+        self.dg_widget.set_master(master_wif)

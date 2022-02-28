@@ -29,7 +29,7 @@ import json
 from functools import wraps
 from typing import List
 
-from .avaproof_dialog import AvaProofDialog
+from .avalanche_dialogs import AvaProofDialog
 from .consolidate_coins_dialog import ConsolidateCoinsWizard
 from .util import (
     MONOSPACE_FONT,
