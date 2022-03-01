@@ -42,6 +42,10 @@ from .serialize import (
 )
 
 
+class WrongDelegatorKeyError(BaseException):
+    pass
+
+
 class DelegationId(UInt256):
     @classmethod
     def from_proof_id(cls, proof_id: ProofId):
@@ -201,7 +205,7 @@ class DelegationBuilder:
 
     def add_level(self, delegator_key: Key, delegated_pubkey: PublicKey):
         if self.levels[-1].pubkey != delegator_key.get_pubkey():
-            raise RuntimeError(
+            raise WrongDelegatorKeyError(
                 "Delegator private key does not match most recently added public key."
             )
         hash_ = sha256d(self.dgid.serialize() + delegated_pubkey.serialize())

@@ -3,7 +3,11 @@ from typing import List, Optional
 from PyQt5 import QtCore, QtWidgets
 
 from electroncash.address import Address, AddressError
-from electroncash.avalanche.delegation import Delegation, DelegationBuilder
+from electroncash.avalanche.delegation import (
+    Delegation,
+    DelegationBuilder,
+    WrongDelegatorKeyError,
+)
 from electroncash.avalanche.primitives import Key, PublicKey
 from electroncash.avalanche.proof import LimitedProofId, Proof, ProofBuilder
 from electroncash.avalanche.serialize import DeserializationError
@@ -339,13 +343,13 @@ class AvaDelegationWidget(QtWidgets.QWidget):
             self.dg_display.setText(f'<p style="color:black;"><b>{dg_hex}</b></p>')
 
     def _build(self) -> Optional[str]:
-        master_wif = self.delegator_key_edit.text()
-        if not is_private_key(master_wif):
+        delegator_wif = self.delegator_key_edit.text()
+        if not is_private_key(delegator_wif):
             QtWidgets.QMessageBox.critical(
                 self, "Invalid private key", "Could not parse private key."
             )
             return
-        master = Key.from_wif(master_wif)
+        delegator = Key.from_wif(delegator_wif)
 
         try:
             delegated_pubkey = PublicKey.from_hex(self.pubkey_edit.text())
@@ -368,7 +372,7 @@ class AvaDelegationWidget(QtWidgets.QWidget):
                     "Could not parse limited ID (not a 32 bytes hex string).",
                 )
                 return
-            dgb = DelegationBuilder(ltd_id, master.get_pubkey())
+            dgb = DelegationBuilder(ltd_id, delegator.get_pubkey())
         elif active_tab_widget is self.proof_edit:
             try:
                 proof = Proof.from_hex(self.proof_edit.toPlainText())
@@ -395,7 +399,18 @@ class AvaDelegationWidget(QtWidgets.QWidget):
             # This should never happen, so we want to hear about it. Catch fire.
             raise RuntimeError("Indeterminate active tab.")
 
-        dgb.add_level(master, delegated_pubkey)
+        try:
+            dgb.add_level(delegator, delegated_pubkey)
+        except WrongDelegatorKeyError:
+            QtWidgets.QMessageBox.critical(
+                self,
+                "Wrong delegator key",
+                "The provided delegator key does not match the proof master key or "
+                "the previous delegated public key (if adding a level to an existing "
+                "delegation).",
+            )
+            return
+
         return dgb.build().to_hex()
 
     def get_delegation(self) -> str:

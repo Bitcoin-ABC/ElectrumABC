@@ -1,7 +1,13 @@
 import base64
 import unittest
 
-from ..avalanche.delegation import Delegation, DelegationBuilder, DelegationId, Level
+from ..avalanche.delegation import (
+    Delegation,
+    DelegationBuilder,
+    DelegationId,
+    Level,
+    WrongDelegatorKeyError,
+)
 from ..avalanche.primitives import Key, PublicKey
 from ..avalanche.proof import LimitedProofId, Proof, ProofBuilder, ProofId
 from ..avalanche.serialize import DeserializationError
@@ -448,7 +454,7 @@ class TestAvalancheDelegationBuilder(unittest.TestCase):
         proof = Proof.from_hex(expected_proof1)
 
         dgb = DelegationBuilder.from_proof(proof)
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(WrongDelegatorKeyError):
             dgb.add_level(self.wrong_proof_master, self.level1_pubkey)
 
     def test_from_delegation(self):
