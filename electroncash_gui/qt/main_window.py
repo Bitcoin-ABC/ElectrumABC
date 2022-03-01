@@ -80,7 +80,7 @@ from electroncash.wallet import Multisig_Wallet, sweep_preparations
 
 
 from .amountedit import AmountEdit, XECAmountEdit, MyLineEdit, XECSatsByteEdit
-from .avalanche_dialogs import AvaProofDialog
+from .avalanche_dialogs import AvaDelegationDialog, AvaProofDialog
 from .qrcodewidget import QRCodeWidget, QRDialog
 from .qrtextedit import ShowQRTextEdit, ScanQRTextEdit
 from .sign_verify_dialog import SignVerifyDialog
@@ -755,12 +755,18 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         raw_transaction_menu.addAction(_("From &Multiple files") + "...", self.do_process_from_multiple_files)
         self.raw_transaction_menu = raw_transaction_menu
         tools_menu.addSeparator()
-        avaproof_action = tools_menu.addAction("Build avalanche proof", self.build_avalanche_proof)
+        avaproof_action = tools_menu.addAction(
+            "Build avalanche proof", self.build_avalanche_proof
+        )
+        tools_menu.addAction(
+            "Build avalanche delegation", self.build_avalanche_delegation
+        )
         if self.wallet.is_watching_only() or not self.wallet.is_schnorr_possible():
             avaproof_action.setEnabled(False)
             avaproof_action.setToolTip(
-                    "Cannot build avalanche proof for hardware, multisig or "
-                    "watch-only wallet (Schnorr signature is required).")
+                "Cannot build avalanche proof or delegation for hardware, multisig "
+                "or watch-only wallet (Schnorr signature is required)."
+                )
         tools_menu.addSeparator()
         if ColorScheme.dark_scheme and sys.platform != 'darwin':  # use dark icon in menu except for on macOS where we can't be sure it will look right due to the way menus work on macOS
             icon = QIcon(":icons/cashacct-button-darkmode.png")
@@ -3558,6 +3564,19 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         if utxos is not None:
             dialog = AvaProofDialog(utxos, self.wallet, parent=self)
             dialog.show()
+
+    def build_avalanche_delegation(self):
+        """
+        Open a dialog to build an avalanche delegation.
+        The user first provides a proof, a limited proof id or an existing delegation.
+        Then he provides a delegator private key (must match provided proof or
+        delegation) and a new delegated public key.
+
+        Alternatively, this dialog can be opened from the proof building dialog. It is
+        then prefilled with the correct data (except the delegated public key).
+        """
+        dialog = AvaDelegationDialog(parent=self)
+        dialog.show()
 
     def export_bip38_dialog(self):
         ''' Convenience method. Simply calls self.export_privkeys_dialog(bip38=True) '''

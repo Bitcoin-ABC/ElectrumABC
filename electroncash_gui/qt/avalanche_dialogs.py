@@ -3,7 +3,7 @@ from typing import List, Optional
 from PyQt5 import QtCore, QtWidgets
 
 from electroncash.address import Address, AddressError
-from electroncash.avalanche.delegation import DelegationBuilder
+from electroncash.avalanche.delegation import Delegation, DelegationBuilder
 from electroncash.avalanche.primitives import Key, PublicKey
 from electroncash.avalanche.proof import LimitedProofId, Proof, ProofBuilder
 from electroncash.avalanche.serialize import DeserializationError
@@ -262,26 +262,42 @@ class AvaDelegationWidget(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
 
-        self.proof_title_label = QtWidgets.QLabel("Proof")
-        layout.addWidget(self.proof_title_label)
+        self.tab_widget = QtWidgets.QTabWidget()
+        layout.addWidget(self.tab_widget)
+        layout.addSpacing(10)
+
         self.proof_edit = QtWidgets.QTextEdit()
+        self.proof_edit.setAcceptRichText(False)
         self.proof_edit.setToolTip(
-            "Enter a proof in hexadecimal format. Alternatively, you can specify the "
-            "limited proof ID and proof master private key."
+            "Enter a proof in hexadecimal format. A delegation will be generated for "
+            "this proof. Specify the proof master key as the delegator key below."
         )
-        layout.addWidget(self.proof_edit)
-        layout.addSpacing(10)
+        self.tab_widget.addTab(self.proof_edit, "From a proof")
 
-        layout.addWidget(QtWidgets.QLabel("Limited Proof ID"))
         self.ltd_id_edit = QtWidgets.QLineEdit()
-        self.ltd_id_edit.setToolTip("Limited proof ID of the proof to be delegated.")
-        layout.addWidget(self.ltd_id_edit)
-        layout.addSpacing(10)
+        self.ltd_id_edit.setToolTip(
+            "Enter the proof ID of the proof to be delegated. A delegation will be "
+            "generated for the proof corresponding to this ID. "
+            "You need to provide this proof's master key as the delegator key (below)."
+        )
+        self.tab_widget.addTab(self.ltd_id_edit, "From a Limited Proof ID")
 
-        layout.addWidget(QtWidgets.QLabel("Proof master key (WIF)"))
-        self.master_key_edit = QtWidgets.QLineEdit()
-        self.master_key_edit.setToolTip("Master key of the proof.")
-        layout.addWidget(self.master_key_edit)
+        self.dg_edit = QtWidgets.QTextEdit()
+        self.dg_edit.setAcceptRichText(False)
+        self.dg_edit.setToolTip(
+            "Enter an existing delegation to which you want to add another level. "
+            "Enter the private key corresponding to this existing delegation's "
+            "delegated key as the new delegator key, and specify a new delegated key."
+        )
+        self.tab_widget.addTab(self.dg_edit, "From an existing delegation")
+
+        layout.addWidget(QtWidgets.QLabel("Delegator key (WIF)"))
+        self.delegator_key_edit = QtWidgets.QLineEdit()
+        self.delegator_key_edit.setToolTip(
+            "Master key of the proof, or private key for the last level of an "
+            "existing delegation."
+        )
+        layout.addWidget(self.delegator_key_edit)
         layout.addSpacing(10)
 
         layout.addWidget(QtWidgets.QLabel("Delegated public key"))
@@ -298,14 +314,13 @@ class AvaDelegationWidget(QtWidgets.QWidget):
         layout.addWidget(self.dg_display)
 
         # Signals
-        self.proof_edit.textChanged.connect(self.compute_ltd_id_from_proof)
         self.generate_button.clicked.connect(self.on_generate_clicked)
 
     def set_proof(self, proof_hex: str):
         self.proof_edit.setText(proof_hex)
 
     def set_master(self, master_wif: str):
-        self.master_key_edit.setText(master_wif)
+        self.delegator_key_edit.setText(master_wif)
 
     def compute_ltd_id_from_proof(self):
         proof_hex = self.proof_edit.toPlainText()
@@ -324,24 +339,13 @@ class AvaDelegationWidget(QtWidgets.QWidget):
             self.dg_display.setText(f'<p style="color:black;"><b>{dg_hex}</b></p>')
 
     def _build(self) -> Optional[str]:
-        master_wif = self.master_key_edit.text()
+        master_wif = self.delegator_key_edit.text()
         if not is_private_key(master_wif):
             QtWidgets.QMessageBox.critical(
                 self, "Invalid private key", "Could not parse private key."
             )
             return
         master = Key.from_wif(master_wif)
-
-        try:
-            ltd_id = LimitedProofId.from_hex(self.ltd_id_edit.text())
-        except DeserializationError:
-            QtWidgets.QMessageBox.critical(
-                self,
-                "Invalid limited ID",
-                "Could not parse limited ID. Make sure it is a 32 bytes hexadecimal "
-                "string.",
-            )
-            return
 
         try:
             delegated_pubkey = PublicKey.from_hex(self.pubkey_edit.text())
@@ -353,7 +357,44 @@ class AvaDelegationWidget(QtWidgets.QWidget):
             )
             return
 
-        dgb = DelegationBuilder(ltd_id, master.get_pubkey())
+        active_tab_widget = self.tab_widget.currentWidget()
+        if active_tab_widget is self.ltd_id_edit:
+            try:
+                ltd_id = LimitedProofId.from_hex(self.ltd_id_edit.text())
+            except DeserializationError:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "Invalid limited ID",
+                    "Could not parse limited ID (not a 32 bytes hex string).",
+                )
+                return
+            dgb = DelegationBuilder(ltd_id, master.get_pubkey())
+        elif active_tab_widget is self.proof_edit:
+            try:
+                proof = Proof.from_hex(self.proof_edit.toPlainText())
+            except DeserializationError:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "Invalid proof",
+                    "Could not parse proof. Check the format.",
+                )
+                return
+            dgb = DelegationBuilder.from_proof(proof)
+        elif active_tab_widget is self.dg_edit:
+            try:
+                dg = Delegation.from_hex(self.dg_edit.toPlainText())
+            except DeserializationError:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "Invalid delegation",
+                    "Could not parse delegation. Check the format.",
+                )
+                return
+            dgb = DelegationBuilder.from_delegation(dg)
+        else:
+            # This should never happen, so we want to hear about it. Catch fire.
+            raise RuntimeError("Indeterminate active tab.")
+
         dgb.add_level(master, delegated_pubkey)
         return dgb.build().to_hex()
 
