@@ -2,6 +2,7 @@ import sys
 import traceback
 from binascii import unhexlify
 
+from electrumabc.base_wizard import HWD_SETUP_NEW_WALLET
 from electrumabc.bitcoin import (
     TYPE_ADDRESS,
     TYPE_SCRIPT,
@@ -371,11 +372,11 @@ class TrezorPlugin(HWPluginBase):
                     "download the updated firmware from {}"
                 ).format(self.device, client.label(), self.firmware_URL)
             )
-        creating = not device_info.initialized
-        if creating:
+        if not device_info.initialized:
             self.initialize_device(device_id, wizard, client.handler)
+        is_creating_wallet = purpose == HWD_SETUP_NEW_WALLET
         wizard.run_task_without_blocking_gui(
-            task=lambda: client.get_xpub("m", "standard", creating)
+            task=lambda: client.get_xpub("m", "standard", creating=is_creating_wallet)
         )
         client.used()
         return client
