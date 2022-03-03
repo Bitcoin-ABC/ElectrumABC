@@ -281,8 +281,8 @@ class TrezorClientBase(HardwareClientBase, PrintError):
 
     # ========= UI methods ==========
 
-    def button_request(self, code):
-        message = self.msg or MESSAGES.get(code) or MESSAGES["default"]
+    def button_request(self, br):
+        message = self.msg or MESSAGES.get(br.code) or MESSAGES["default"]
 
         def on_cancel():
             try:

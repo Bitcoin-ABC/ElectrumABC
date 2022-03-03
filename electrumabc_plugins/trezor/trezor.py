@@ -29,7 +29,6 @@ try:
         MultisigRedeemScriptType,
         OutputScriptType,
         RecoveryDeviceType,
-        SignTx,
         TransactionType,
         TxInputType,
         TxOutputBinType,
@@ -129,8 +128,8 @@ class TrezorPlugin(HWPluginBase):
     libraries_URL = "https://pypi.org/project/trezor/"
     minimum_firmware = (1, 5, 2)
     keystore_class = TrezorKeyStore
-    minimum_library = (0, 12, 0)
-    maximum_library = (0, 13)
+    minimum_library = (0, 13, 0)
+    maximum_library = (0, 14)
 
     DEVICE_IDS = (TREZOR_PRODUCT_KEY,)
 
@@ -403,9 +402,13 @@ class TrezorPlugin(HWPluginBase):
         client = self.get_client(keystore)
         inputs = self.tx_inputs(tx, xpub_path, True)
         outputs = self.tx_outputs(keystore.get_derivation(), tx, client)
-        details = SignTx(lock_time=tx.locktime, version=tx.version)
-        signatures, signed_tx = client.sign_tx(
-            self.get_coin_name(), inputs, outputs, details=details, prev_txes=prev_tx
+        signatures, _ = client.sign_tx(
+            self.get_coin_name(),
+            inputs,
+            outputs,
+            lock_time=tx.locktime,
+            prev_txes=prev_tx,
+            version=tx.version,
         )
         signatures = [bh2u(x) for x in signatures]
         tx.update_signatures(signatures)
@@ -435,23 +438,26 @@ class TrezorPlugin(HWPluginBase):
     def tx_inputs(self, tx, xpub_path, for_sig=False):
         inputs = []
         for txin in tx.inputs():
-            txinputtype = TxInputType()
             if txin["type"] == "coinbase":
-                prev_hash = b"\0" * 32
-                prev_index = 0xFFFFFFFF  # signed int -1
+                txinputtype = TxInputType(
+                    prev_hash=b"\x00" * 32,
+                    prev_index=0xFFFFFFFF,  # signed int -1
+                )
             else:
+                txinputtype = TxInputType(
+                    prev_hash=unhexlify(txin["prevout_hash"]),
+                    prev_index=txin["prevout_n"],
+                )
                 if for_sig:
                     x_pubkeys = txin["x_pubkeys"]
                     xpubs = [parse_xpubkey(x) for x in x_pubkeys]
-                    multisig = self._make_multisig(
+                    txinputtype.multisig = self._make_multisig(
                         txin.get("num_sig"), xpubs, txin.get("signatures")
                     )
-                    script_type = self.get_trezor_input_script_type(
-                        multisig is not None
+                    txinputtype.script_type = self.get_trezor_input_script_type(
+                        txinputtype.multisig is not None
                     )
-                    txinputtype = TxInputType(
-                        script_type=script_type, multisig=multisig
-                    )
+
                     # find which key is mine
                     for xpub, deriv in xpubs:
                         if xpub in xpub_path:
@@ -459,16 +465,11 @@ class TrezorPlugin(HWPluginBase):
                             txinputtype.address_n = xpub_n + deriv
                             break
 
-                prev_hash = unhexlify(txin["prevout_hash"])
-                prev_index = txin["prevout_n"]
-
             if "value" in txin:
                 txinputtype.amount = txin["value"]
-            txinputtype.prev_hash = prev_hash
-            txinputtype.prev_index = prev_index
 
             if "scriptSig" in txin:
-                script_sig = bfh(txin["scriptSig"])
+                script_sig = bytes.fromhex(txin["scriptSig"])
                 txinputtype.script_sig = script_sig
 
             txinputtype.sequence = txin.get("sequence", DEFAULT_TXIN_SEQUENCE)
@@ -510,8 +511,6 @@ class TrezorPlugin(HWPluginBase):
             return txoutputtype
 
         def create_output_by_address():
-            txoutputtype = TxOutputType()
-            txoutputtype.amount = amount
             if _type == TYPE_SCRIPT:
                 script = address.to_script()
                 # We only support OP_RETURN with one constant push
@@ -521,13 +520,14 @@ class TrezorPlugin(HWPluginBase):
                     and script[1] == len(script) - 2
                     and script[1] <= 75
                 ):
-                    txoutputtype.script_type = OutputScriptType.PAYTOOPRETURN
-                    txoutputtype.op_return_data = script[2:]
+                    return TxOutputType(
+                        amount=amount,
+                        script_type=OutputScriptType.PAYTOOPRETURN,
+                        op_return_data=script[2:],
+                    )
                 else:
                     raise Exception(_("Unsupported output script."))
             elif _type == TYPE_ADDRESS:
-                txoutputtype.script_type = OutputScriptType.PAYTOADDRESS
-
                 # ecash: addresses are not supported yet by trezor
                 ui_addr_fmt = address.FMT_UI
                 if ui_addr_fmt == address.FMT_CASHADDR:
@@ -542,8 +542,11 @@ class TrezorPlugin(HWPluginBase):
                 else:
                     if client.atleast_version(1, 6, 2):
                         addr_format = ui_addr_fmt
-                txoutputtype.address = address.to_full_string(addr_format)
-            return txoutputtype
+                return TxOutputType(
+                    amount=amount,
+                    script_type=OutputScriptType.PAYTOADDRESS,
+                    address=address.to_full_string(addr_format),
+                )
 
         outputs = []
         has_change = False
