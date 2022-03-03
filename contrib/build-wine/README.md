@@ -18,10 +18,5 @@ Where BRANCH_OR_TAG above is a git branch or tag you wish to build.
 The `make_clean` command can be omitted for testing purposes, if you want
 local uncommited changes to be included in the built .exe files.
 
-Note: If on a Linux host, the above script may ask you for your password as
-docker requires commands be run via sudo.  Make sure you are in the /etc/sudoers
-file.  On a macOS host, this is not the case and docker can be run as a normal
-user.
-
 The built .exe files will be placed in: `dist/`
 

@@ -29,28 +29,19 @@ set -e
 
 info "Using docker: $docker_version"
 
-# Only set SUDO if its not been set already
-if [ -z ${SUDO+x} ] ; then
-    SUDO=""  # on macOS (and others?) we don't do sudo for the docker commands ...
-    if [ $(uname) = "Linux" ]; then
-        # .. on Linux we do
-        SUDO="sudo"
-    fi
-fi
-
 IMGNAME="electrumabc-srcdist-builder-img"
 MAPPED_DIR=/opt/electrumabc
 CONTAINERNAME="electrumabc-srcdist-builder-cont"
 
 info "Creating docker image ..."
-$SUDO docker build -t $IMGNAME \
+docker build -t $IMGNAME \
     contrib/build-linux/srcdist_docker \
     || fail "Failed to create docker image"
 
 mkdir "${ELECTRUM_ROOT}/contrib/build-linux/home" || fail "Failed to create home directory"
 
 (
-    $SUDO docker run $DOCKER_RUN_TTY \
+    docker run $DOCKER_RUN_TTY \
     -e HOME="$MAPPED_DIR/contrib/build-linux/home" \
     -e BUILD_DEBUG="$BUILD_DEBUG" \
     --name $CONTAINERNAME \

@@ -37,15 +37,6 @@ set -e
 
 info "Using docker: $docker_version"
 
-# Only set SUDO if its not been set already
-if [ -z ${SUDO+x} ] ; then
-    SUDO=""  # on macOS (and others?) we don't do sudo for the docker commands ...
-    if [ $(uname) = "Linux" ]; then
-        # .. on Linux we do
-        SUDO="sudo"
-    fi
-fi
-
 USER_ID=$(id -u $USER)
 GROUP_ID=$(id -g $USER)
 
@@ -55,7 +46,7 @@ GROUP_ID=$(id -g $USER)
 IMGNAME="ec-wine-builder-img_${USER_ID}_${GROUP_ID}"
 
 info "Creating docker image ..."
-$SUDO docker build -t $IMGNAME \
+docker build -t $IMGNAME \
             --build-arg USER_ID=$USER_ID \
             --build-arg GROUP_ID=$GROUP_ID \
             --build-arg UBUNTU_MIRROR=$UBUNTU_MIRROR \
@@ -63,7 +54,7 @@ $SUDO docker build -t $IMGNAME \
     || fail "Failed to create docker image"
 
 (
-    $SUDO docker run $DOCKER_RUN_TTY \
+    docker run $DOCKER_RUN_TTY \
     -u $USER_ID:$GROUP_ID \
     -e HOME=/homedir \
     -e WIN_ARCH="$WIN_ARCH" \

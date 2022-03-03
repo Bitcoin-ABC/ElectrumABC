@@ -29,21 +29,12 @@ set -e
 
 info "Using docker: $docker_version"
 
-# Only set SUDO if its not been set already
-if [ -z ${SUDO+x} ] ; then
-    SUDO=""  # on macOS (and others?) we don't do sudo for the docker commands ...
-    if [ $(uname) = "Linux" ]; then
-        # .. on Linux we do
-        SUDO="sudo"
-    fi
-fi
-
 DOCKER_SUFFIX=ub1804
 IMGNAME="electrumabc-appimage-builder-img-$DOCKER_SUFFIX"
 CONTAINERNAME="electrumabc-appimage-builder-cont-$DOCKER_SUFFIX"
 
 info "Creating docker image ..."
-$SUDO docker build -t $IMGNAME \
+docker build -t $IMGNAME \
     -f contrib/build-linux/appimage/Dockerfile_$DOCKER_SUFFIX \
     --build-arg UBUNTU_MIRROR=$UBUNTU_MIRROR \
     contrib/build-linux/appimage \
@@ -54,7 +45,7 @@ MAPPED_DIR=/opt/electrumabc
 mkdir "${ELECTRUM_ROOT}/contrib/build-linux/appimage/home" || fail "Failed to create home directory"
 
 (
-    $SUDO docker run $DOCKER_RUN_TTY \
+    docker run $DOCKER_RUN_TTY \
     -e HOME="$MAPPED_DIR/contrib/build-linux/appimage/home" \
     -e BUILD_DEBUG="$BUILD_DEBUG" \
     --name $CONTAINERNAME \

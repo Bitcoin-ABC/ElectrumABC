@@ -21,7 +21,7 @@ folder.
 
     ```
     $ git checkout REVISION_TAG_OR_BRANCH_OR_COMMIT_TAG
-    $ sudo contrib/build-linux/appimage/build.sh
+    $ contrib/build-linux/appimage/build.sh
     ```
 
     _Note:_ If you are using a MacOS host, run the above **without** `sudo`.
