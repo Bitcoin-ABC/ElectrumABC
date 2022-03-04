@@ -53,9 +53,7 @@ class Synchronizer(ThreadJob):
     External interface: __init__() and add() member functions.
     """
 
-    def __init__(self, wallet: Abstract_Wallet, network, *, limit_change_subs=0):
-        # Disallow negative values here as they will create problems
-        assert limit_change_subs >= 0
+    def __init__(self, wallet: Abstract_Wallet, network):
         self.wallet = wallet
         self.network = network
         self.cleaned_up = False
@@ -81,9 +79,10 @@ class Synchronizer(ThreadJob):
         """set of all "used", 0 balance change sh's"""
         self.h2addr: Dict[str, Address] = {}
         """mapping of scripthash -> Address"""
-        self.limit_change_subs = limit_change_subs
         self.lock = Lock()
         self._tick_ct = 0
+        # Disallow negatives; they create problems
+        self.limit_change_subs = max(self.wallet.limit_change_addr_subs, 0)
         self.initialize()
 
     def diagnostic_name(self):
