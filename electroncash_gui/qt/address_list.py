@@ -31,7 +31,7 @@ from functools import partial
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QColor, QCursor, QFont, QIcon, QKeySequence
+from PyQt5.QtGui import QCursor, QFont, QIcon, QKeySequence
 
 import electroncash.web as web
 from electroncash import networks
@@ -45,6 +45,7 @@ from . import cashacctqt
 from .consolidate_coins_dialog import ConsolidateCoinsWizard
 from .util import (
     MONOSPACE_FONT,
+    ColorScheme,
     MyTreeWidget,
     SortableTreeWidgetItem,
     rate_limited,
@@ -285,9 +286,18 @@ class AddressList(MyTreeWidget):
                     address_item.setData(0, self.DataRoles.cash_accounts, ca_list)
 
                 if self.wallet.is_frozen(address):
-                    address_item.setBackground(0, QColor("lightblue"))
+                    address_item.setBackground(0, ColorScheme.BLUE.as_color(True))
+                    address_item.setToolTip(
+                        0, _("Address is frozen, right-click to unfreeze")
+                    )
                 if self.wallet.is_beyond_limit(address, is_change):
-                    address_item.setBackground(0, QColor("red"))
+                    address_item.setBackground(0, ColorScheme.RED.as_color(True))
+                if is_change and self.wallet.is_retired_change_addr(address):
+                    address_item.setForeground(0, ColorScheme.GRAY.as_color())
+                    old_tt = address_item.toolTip(0)
+                    if old_tt:
+                        old_tt += "\n"
+                    address_item.setToolTip(0, old_tt + _("Change address is retired"))
                 if is_hidden:
                     if not has_hidden:
                         seq_item.insertChild(0, hidden_item)
