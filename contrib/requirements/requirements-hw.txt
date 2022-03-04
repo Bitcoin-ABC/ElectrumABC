@@ -5,4 +5,4 @@ btchip-python
 hidapi
 pyopenssl>=20.0.0
 pyscard>=2.0.0
-pysatochip==0.14.1
+pysatochip>=0.12.4
