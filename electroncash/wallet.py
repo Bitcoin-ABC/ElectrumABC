@@ -1,5 +1,6 @@
 # Electrum ABC - lightweight eCash client
 # Copyright (C) 2020 The Electrum ABC developers
+# Copyright (C) 2017-2022 The Electron Cash Developers
 # Copyright (C) 2015 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -40,7 +41,7 @@ import threading
 import time
 from collections import defaultdict, namedtuple
 from enum import Enum, auto
-from typing import Set, Tuple, Union
+from typing import Set, Tuple, Union, ValuesView
 
 from .constants import DUST_THRESHOLD
 from .i18n import ngettext
@@ -2725,6 +2726,12 @@ class Abstract_Wallet(PrintError, SPVDelegate):
 
     def is_watching_only(self):
         raise NotImplementedError()
+
+    def get_history_values(self) -> ValuesView[Tuple[str, int]]:
+        """ Returns the an iterable (view) of all the List[tx_hash, height] pairs for
+         each address in the wallet.
+         """
+        return self._history.values()
 
 
 class Simple_Wallet(Abstract_Wallet):
