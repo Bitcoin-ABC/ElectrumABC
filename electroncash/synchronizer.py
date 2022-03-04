@@ -26,14 +26,18 @@
 # SOFTWARE.
 
 from threading import Lock
-from typing import Iterable, Tuple
+from typing import Dict, Iterable, Set, Tuple, TYPE_CHECKING
 import hashlib
 import traceback
 
+from .address import Address
 from .transaction import Transaction
 from .util import ThreadJob, bh2u
 from . import networks
 from .bitcoin import InvalidXKeyFormat
+
+if TYPE_CHECKING:
+    from .wallet import Abstract_Wallet
 
 
 class Synchronizer(ThreadJob):
@@ -48,11 +52,14 @@ class Synchronizer(ThreadJob):
     """
 
     def __init__(self, wallet, network):
-        self.wallet = wallet
+        self.wallet: Abstract_Wallet = wallet
         self.network = network
         self.cleaned_up = False
         self._need_release = False
-        self.new_addresses = set()
+        self.new_addresses: Set[Address] = set()
+        # Basically, an ordered set of Addresses
+        # (this assumes that dictionaries are ordered, so Python > 3.6)
+        self.new_addresses_for_change: Dict[Address, type(None)] = dict()
         # Entries are (tx_hash, tx_height) tuples
         self.requested_tx = {}
         self.requested_histories = {}
@@ -96,15 +103,18 @@ class Synchronizer(ThreadJob):
         Network thread. """
         self._need_release = True
 
-    def add(self, address):
+    def add(self, address, *, for_change=False):
         """This can be called from the proxy or GUI threads."""
         with self.lock:
-            self.new_addresses.add(address)
+            if not for_change:
+                self.new_addresses.add(address)
+            else:
+                self.new_addresses_for_change[address] = None
 
-    def subscribe_to_addresses(self, addresses):
+    def subscribe_to_addresses(self, addresses: Iterable[Address], *, for_change=False):
         hashes = [addr.to_scripthash_hex() for addr in addresses]
         # Keep a hash -> address mapping
-        self.h2addr.update({h:addr for h, addr in zip(hashes, addresses)})
+        self.h2addr.update({hash_: addr for hash_, addr in zip(hashes, addresses)})
         self.network.subscribe_to_scripthashes(hashes, self.on_address_status)
         self.requested_hashes |= set(hashes)
 
@@ -120,7 +130,9 @@ class Synchronizer(ThreadJob):
     def on_address_status(self, response):
         if self.cleaned_up:
             self.print_error("Already cleaned-up, ignoring stale reponse:", response)
-            self._release()  # defensive programming: make doubly sure we aren't registered to receive any callbacks from netwok class and cancel subscriptions again.
+            # defensive programming: make doubly sure we aren't registered to receive
+            # any callbacks from netwok class and cancel subscriptions again.
+            self._release()
             return
         params, result, error = self.parse_response(response)
         if error:
@@ -233,7 +245,8 @@ class Synchronizer(ThreadJob):
 
         if self.requested_tx:
             self.print_error("missing tx", self.requested_tx)
-        self.subscribe_to_addresses(self.wallet.get_addresses())
+        self.subscribe_to_addresses(self.wallet.get_receiving_addresses())
+        self.subscribe_to_addresses(self.wallet.get_change_addresses(), for_change=True)
 
     def run(self):
         """Called from the network proxy thread main loop."""
@@ -254,8 +267,12 @@ class Synchronizer(ThreadJob):
             with self.lock:
                 addresses = self.new_addresses
                 self.new_addresses = set()
+                addresses_for_change = list(self.new_addresses_for_change.keys())
+                self.new_addresses_for_change = dict()
             if addresses:
                 self.subscribe_to_addresses(addresses)
+            if addresses_for_change:
+                self.subscribe_to_addresses(addresses_for_change, for_change=True)
 
             # 3. Detect if situation has changed
             up_to_date = self.is_up_to_date()
