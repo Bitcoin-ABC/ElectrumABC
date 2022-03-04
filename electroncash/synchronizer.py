@@ -78,15 +78,19 @@ class Synchronizer(ThreadJob):
         """set of all change address scripthashes that we are currently subscribed to"""
         self.change_subs_expiry_candidates: Set[str] = set()
         """set of all "used", 0 balance change sh's"""
-        self.change_scripthashes_that_are_retired = set(self.wallet.storage.get(
-            'synchronizer_retired_change_scripthashes', []))
-        """set of all change address scripthashes that are retired and should be ignored"""
         self.h2addr: Dict[str, Address] = {}
         """mapping of scripthash -> Address"""
         self.lock = Lock()
         self._tick_ct = 0
         # Disallow negatives; they create problems
         self.limit_change_subs = max(self.wallet.limit_change_addr_subs, 0)
+        self.change_scripthashes_that_are_retired = set()
+        """set of all change address scripthashes that are retired and should be ignored
+        """
+        if self.limit_change_subs:
+            self.change_scripthashes_that_are_retired = set(
+                self.wallet.storage.get('synchronizer_retired_change_scripthashes', [])
+            )
         self._initialize()
 
     def clear_retired_change_addrs(self):
