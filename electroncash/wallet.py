@@ -42,7 +42,7 @@ import time
 from abc import abstractmethod
 from collections import defaultdict, namedtuple
 from enum import Enum, auto
-from typing import List, Set, Tuple, Union, ValuesView
+from typing import ItemsView, List, Optional, Set, Tuple, Union, ValuesView
 
 from .constants import DUST_THRESHOLD
 from .i18n import ngettext
@@ -178,8 +178,8 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         self.network = None
         # verifier (SPV) and synchronizer are started in start_threads
         self.synchronizer = None
-        self.verifier = None
-        self.weak_window = None  # Some of the GUI classes, such as the Qt ElectrumWindow, use this to refer back to themselves.  This should always be a weakref.ref (Weak.ref), or None
+        self.verifier: Optional[SPV] = None
+        self.weak_window: Optional[Synchronizer] = None  # Some of the GUI classes, such as the Qt ElectrumWindow, use this to refer back to themselves.  This should always be a weakref.ref (Weak.ref), or None
         # CashAccounts subsystem. Its network-dependent layer is started in
         # start_threads. Note: object instantiation should be lightweight here.
         # self.cashacct.load() is called later in this function to load data.
@@ -1506,7 +1506,9 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                     cur_hist.append((txid, 0))
                     self._history[addr] = cur_hist
 
-    def get_history(self, domain=None, *, reverse=False):
+    TxHistory = namedtuple("TxHistory", "tx_hash, height, conf, timestamp, amount, balance")
+
+    def get_history(self, domain=None, *, reverse=False) -> List[TxHistory]:
         # get domain
         if domain is None:
             domain = self.get_addresses()
@@ -1535,7 +1537,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         balance = c + u + x
         h2 = []
         for tx_hash, height, conf, timestamp, delta in history:
-            h2.append((tx_hash, height, conf, timestamp, delta, balance))
+            h2.append(self.TxHistory(tx_hash, height, conf, timestamp, delta, balance))
             if balance is None or delta is None:
                 balance = None
             else:
@@ -2743,6 +2745,9 @@ class Abstract_Wallet(PrintError, SPVDelegate):
          each address in the wallet.
          """
         return self._history.values()
+
+    def get_history_items(self) -> ItemsView[Address, List[Tuple[str, int]]]:
+        return self._history.items()
 
 
 class Simple_Wallet(Abstract_Wallet):

@@ -43,6 +43,7 @@ from datetime import datetime
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
 from functools import lru_cache
 from traceback import format_exception
+from typing import Optional
 
 from .constants import POSIX_DATA_DIR, PROJECT_NAME_NO_SPACES
 
@@ -294,18 +295,21 @@ class cachedproperty:
         setattr(obj, self.f.__name__, value)
         return value
 
+
 class Monotonic:
-    ''' Returns a monotonically increasing int each time an instance is called
-    as a function. Optionally thread-safe.'''
-    __slots__ = ('__call__',)
+    """Returns a monotonically increasing int each time an instance is called
+    as a function. Optionally thread-safe."""
+
     def __init__(self, locking=False):
-        counter = itertools.count()
-        self.__call__ = incr = lambda: next(counter)
-        if locking:
-            lock = threading.Lock()
-            def incr_with_lock():
-                with lock: return incr()
-            self.__call__ = incr_with_lock
+        self._counter = itertools.count()
+        self._lock = threading.Lock() if locking else None
+
+    def __call__(self):
+        if self._lock is not None:
+            with self._lock:
+                return next(self._counter)
+        return next(self._counter)
+
 
 _human_readable_thread_ids = defaultdict(Monotonic(locking=False))  # locking not needed on Monotonic instance as we lock the dict anyway
 _human_readable_thread_ids_lock = threading.Lock()
