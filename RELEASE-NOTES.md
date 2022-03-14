@@ -25,6 +25,23 @@ transactions as expected.
 
 # Release notes
 
+## Release 5.1.0
+
+- Add tools to build avalanche proofs and avalanche proof delegations (#88).
+- Fix scanning QR code with a webcam, broken in release 5.0.4 (#179).
+- Fix Trezor hardware wallet support, broken in the MacOS release for 5.0.4 (#187).
+- Improve the instructions on the first page of the wallet creation wizard.
+- Electron Cash backport:
+  - Stop monitoring unused change addresses to speed up wallets with a large
+    transaction history, such as wallets using CashFusion. The default setting
+    is to retire addresses with index < 1000 from the latest index, if they
+    have a trivial history of 2 transactions (1 in, 1 out). This can be disabled
+    or adjusted in the Transactions settings.
+- Electrum backport:
+  - Fix display issues on high dpi screens by making the width of some input
+    widgets depend on the size of a text character.
+
+
 ## Release 5.0.4
 
 - Improve documentation on how to check gpg signatures for release files (#156, #157).
