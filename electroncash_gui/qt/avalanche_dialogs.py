@@ -58,9 +58,9 @@ class AvaProofWidget(QtWidgets.QWidget):
         """
         super().__init__(parent)
         # This is enough width to show a whole compressed pubkey.
-        self.setMinimumWidth(600)
+        self.setMinimumWidth(750)
         # Enough height to show the entire proof without scrolling.
-        self.setMinimumHeight(580)
+        self.setMinimumHeight(680)
 
         self.utxos = utxos
         self.wallet = wallet
@@ -114,6 +114,14 @@ class AvaProofWidget(QtWidgets.QWidget):
         layout.addWidget(self.master_key_edit)
         layout.addSpacing(10)
 
+        layout.addWidget(
+            QtWidgets.QLabel("Master public key (computed from master private key)")
+        )
+        self.master_pubkey_view = QtWidgets.QLineEdit()
+        self.master_pubkey_view.setReadOnly(True)
+        layout.addWidget(self.master_pubkey_view)
+        layout.addSpacing(10)
+
         layout.addWidget(QtWidgets.QLabel("Payout address"))
         self.payout_addr_edit = QtWidgets.QLineEdit()
         self.payout_addr_edit.setToolTip(
@@ -155,12 +163,14 @@ class AvaProofWidget(QtWidgets.QWidget):
         # Connect signals
         self.calendar.dateTimeChanged.connect(self.on_datetime_changed)
         self.timestamp_widget.valueChanged.connect(self.on_timestamp_changed)
+        self.master_key_edit.textChanged.connect(self.update_master_pubkey)
         self.generate_dg_button.clicked.connect(self.open_dg_dialog)
 
         # Init widgets
         now = QtCore.QDateTime.currentDateTime()
         self.calendar.setDateTime(now.addYears(1))
         self.dg_dialog = None
+        self.update_master_pubkey(self.master_key_edit.text())
 
     def _get_privkey_suggestion(self) -> str:
         """Get a private key to pre-fill the master key field.
@@ -194,6 +204,12 @@ class AvaProofWidget(QtWidgets.QWidget):
         was_blocked = self.blockSignals(True)
         self.calendar.setDateTime(QtCore.QDateTime.fromSecsSinceEpoch(timestamp))
         self.blockSignals(was_blocked)
+
+    def update_master_pubkey(self, master_wif: str):
+        if is_private_key(master_wif):
+            master_pub = Key.from_wif(master_wif).get_pubkey()
+            pubkey_str = master_pub.to_hex()
+            self.master_pubkey_view.setText(pubkey_str)
 
     def _prompt_password(self) -> bool:
         """Open a dialog to ask for the wallet password, and set self._pwd
