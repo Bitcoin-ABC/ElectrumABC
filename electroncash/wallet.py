@@ -624,25 +624,19 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             self._change_address_set_cached = frozenset(ca)
         return address in self._change_address_set_cached
 
-    def get_address_index(self, address):
+    def get_address_index(self, address: Address) -> Tuple[int]:
+        """Return last two elements of the bip 44 path (change, address_index)
+        for an address in the wallet."""
         try:
-            return False, self.receiving_addresses.index(address)
+            return 0, self.receiving_addresses.index(address)
         except ValueError:
             pass
         try:
-            return True, self.change_addresses.index(address)
+            return 1, self.change_addresses.index(address)
         except ValueError:
             pass
         assert not isinstance(address, str)
         raise Exception("Address {} not found".format(address))
-
-    def export_private_key(self, address, password):
-        """ extended WIF format """
-        if self.is_watching_only():
-            return []
-        index = self.get_address_index(address)
-        pk, compressed = self.keystore.get_private_key(index, password)
-        return bitcoin.serialize_privkey(pk, compressed, self.txin_type)
 
     def get_public_keys(self, address):
         sequence = self.get_address_index(address)
@@ -3188,6 +3182,20 @@ class Deterministic_Wallet(Abstract_Wallet):
     def get_txin_type(self, address):
         return self.txin_type
 
+    def export_private_key(self, address: Address, password) -> str:
+        """Export extended WIF format for a given address in this wallet."""
+        if self.is_watching_only():
+            return []
+        index = self.get_address_index(address)
+        return self.export_private_key_for_index(index, password)
+
+    def export_private_key_for_index(self, index, password) -> str:
+        """Export a wif private key for a given bip 44  index.
+        Index is the last two elements of the bip 44 path (change, address_index).
+        """
+        pk, compressed = self.keystore.get_private_key(index, password)
+        return bitcoin.serialize_privkey(pk, compressed, self.txin_type)
+
 
 class Simple_Deterministic_Wallet(Simple_Wallet, Deterministic_Wallet):
 
@@ -3227,10 +3235,6 @@ class Simple_Deterministic_Wallet(Simple_Wallet, Deterministic_Wallet):
 
     def derive_pubkeys(self, c, i):
         return self.keystore.derive_pubkey(c, i)
-
-
-
-
 
 
 class Standard_Wallet(Simple_Deterministic_Wallet):

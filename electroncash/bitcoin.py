@@ -979,7 +979,7 @@ def CKD_priv(k, c, n):
 def _CKD_priv(k, c, s, is_prime):
     order = generator_secp256k1.order()
     keypair = EC_KEY(k)
-    cK = GetPubKey(keypair.pubkey,True)
+    cK = GetPubKey(keypair.pubkey, True)
     data = bytes([0]) + k + s if is_prime else cK + s
     I = hmac.new(c, data, hashlib.sha512).digest()
     k_n = number_to_string( (string_to_number(I[0:32]) + string_to_number(k)) % order , order )

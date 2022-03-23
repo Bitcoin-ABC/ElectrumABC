@@ -26,7 +26,8 @@
 # SOFTWARE.
 
 import hashlib
-from typing import Union
+from abc import abstractmethod
+from typing import Tuple, Union
 
 import ecdsa
 from ecdsa.curves import SECP256k1
@@ -270,6 +271,15 @@ class Deterministic_KeyStore(Software_KeyStore):
 
     def get_passphrase(self, password):
         return bitcoin.pw_decode(self.passphrase, password) if self.passphrase else ""
+
+    @abstractmethod
+    def get_private_key(self, sequence, password) -> Tuple[bytes, bool]:
+        """Get private key for a given bip 44  index.
+        Index is the last two elements of the bip 44 path (change, address_index).
+
+        Returns (pk, is_compressed)
+        """
+        pass
 
 
 class Xpub:

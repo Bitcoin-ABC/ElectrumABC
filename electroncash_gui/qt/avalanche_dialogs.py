@@ -19,7 +19,7 @@ from electroncash.uint256 import UInt256
 from .password_dialog import PasswordDialog
 
 if TYPE_CHECKING:
-    from electroncash.wallet import Abstract_Wallet
+    from electroncash.wallet import Deterministic_Wallet
 
 
 class Link(QtWidgets.QPushButton):
@@ -47,7 +47,7 @@ class AvaProofWidget(QtWidgets.QWidget):
     def __init__(
         self,
         utxos: List[dict],
-        wallet: Abstract_Wallet,
+        wallet: Deterministic_Wallet,
         receive_address: Optional[Address] = None,
         parent: QtWidgets.QWidget = None,
     ):
@@ -249,7 +249,7 @@ class AvaProofDialog(QtWidgets.QDialog):
     def __init__(
         self,
         utxos: List[dict],
-        wallet: Abstract_Wallet,
+        wallet: Deterministic_Wallet,
         receive_address: Optional[Address] = None,
         parent: Optional[QtWidgets.QWidget] = None,
     ):
