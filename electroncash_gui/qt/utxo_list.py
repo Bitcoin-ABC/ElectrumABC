@@ -23,11 +23,13 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
+
 from collections import defaultdict
 from enum import IntEnum
 import json
 from functools import wraps
-from typing import List
+from typing import List, TYPE_CHECKING
 
 from .avalanche_dialogs import AvaProofDialog
 from .consolidate_coins_dialog import ConsolidateCoinsWizard
@@ -47,6 +49,10 @@ from electroncash.bitcoin import COINBASE_MATURITY
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QFont
 from PyQt5 import QtWidgets
+
+if TYPE_CHECKING:
+    from .main_window import ElectrumWindow
+
 
 class UTXOList(MyTreeWidget):
     class Col(IntEnum):
@@ -69,16 +75,17 @@ class UTXOList(MyTreeWidget):
     filter_columns = [Col.address, Col.label]
     default_sort = MyTreeWidget.SortSpec(Col.amount, Qt.DescendingOrder)  # sort by amount, descending
 
-    def __init__(self, parent=None):
+    def __init__(self, main_window: ElectrumWindow):
         columns = [ _('Address'), _('Label'), _('Amount'), _('Height'), _('Output point') ]
-        MyTreeWidget.__init__(self, parent, self.create_menu, columns,
+        MyTreeWidget.__init__(self, main_window, self.create_menu, columns,
                               stretch_column = UTXOList.Col.label,
                               deferred_updates = True, save_sort_settings = True)
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.setSortingEnabled(True)
-        self.wallet = self.parent.wallet
-        self.parent.ca_address_default_changed_signal.connect(self._ca_on_address_default_change)
-        self.parent.gui_object.addr_fmt_changed.connect(self.update)
+        self.main_window = main_window
+        self.wallet = main_window.wallet
+        main_window.ca_address_default_changed_signal.connect(self._ca_on_address_default_change)
+        main_window.gui_object.addr_fmt_changed.connect(self.update)
         self.utxos = list()
         # cache some values to avoid constructing Qt objects for every pass through self.on_update (this is important for large wallets)
         self.monospaceFont = QFont(MONOSPACE_FONT)
@@ -93,9 +100,9 @@ class UTXOList(MyTreeWidget):
 
     def clean_up(self):
         self.cleaned_up = True
-        try: self.parent.ca_address_default_changed_signal.disconnect(self._ca_on_address_default_change)
+        try: self.main_window.ca_address_default_changed_signal.disconnect(self._ca_on_address_default_change)
         except TypeError: pass
-        try: self.parent.gui_object.addr_fmt_changed.disconnect(self.update)
+        try: self.main_window.gui_object.addr_fmt_changed.disconnect(self.update)
         except TypeError: pass
 
     def if_not_dead(func):
@@ -155,7 +162,7 @@ class UTXOList(MyTreeWidget):
             name = self.get_name(x)
             name_short = self.get_name_short(x)
             label = self.wallet.get_label(x['prevout_hash'])
-            amount = self.parent.format_amount(x['value'], is_diff=False, whitespaces=True)
+            amount = self.main_window.format_amount(x['value'], is_diff=False, whitespaces=True)
             utxo_item = SortableTreeWidgetItem([address_text, label, amount,
                                                 str(height), name_short])
             if label:
@@ -239,11 +246,11 @@ class UTXOList(MyTreeWidget):
                 return
             spendable_coins = list(filter(lambda x: not selected.get(self.get_name(x), ''), coins))
             # Unconditionally add the "Spend" option but leave it disabled if there are no spendable_coins
-            spend_action = menu.addAction(_("Spend"), lambda: self.parent.spend_coins(spendable_coins))
+            spend_action = menu.addAction(_("Spend"), lambda: self.main_window.spend_coins(spendable_coins))
             spend_action.setEnabled(bool(spendable_coins))
             menu.addAction("Export coin details", lambda: self.dump_utxo(coins))
             avaproof_action = menu.addAction("Build avalanche proof", lambda: self.build_avaproof(coins))
-            if not self.parent.wallet.is_schnorr_possible() or self.parent.wallet.is_watching_only():
+            if not self.wallet.is_schnorr_possible() or self.wallet.is_watching_only():
                 avaproof_action.setEnabled(False)
                 avaproof_action.setToolTip(
                     "Cannot build avalanche proof for hardware, multisig or "
@@ -287,7 +294,7 @@ class UTXOList(MyTreeWidget):
                 tx = self.wallet.transactions.get(txid)
                 if tx:
                     label = self.wallet.get_label(txid) or None
-                    menu.addAction(_("Details"), lambda: self.parent.show_transaction(tx, label))
+                    menu.addAction(_("Details"), lambda: self.main_window.show_transaction(tx, label))
                 act = None
                 needsep = True
                 if 'c' in frozen_flags:
@@ -349,7 +356,7 @@ class UTXOList(MyTreeWidget):
 
     @if_not_dead
     def set_frozen_coins(self, coins, b):
-        self.parent.set_frozen_coin_state(coins, b)
+        self.main_window.set_frozen_coin_state(coins, b)
 
     @if_not_dead
     def set_frozen_addresses_for_coins(self, coins, b):
@@ -359,7 +366,7 @@ class UTXOList(MyTreeWidget):
             if name in coins:
                 addrs.add(utxo['address'])
         if addrs:
-            self.parent.set_frozen_state(list(addrs), b)
+            self.main_window.set_frozen_state(list(addrs), b)
 
     @if_not_dead
     def update_labels(self):
@@ -415,12 +422,17 @@ class UTXOList(MyTreeWidget):
             json.dump(utxos_for_json, outfile)
 
     def _open_consolidate_coins_dialog(self, addr):
-        d = ConsolidateCoinsWizard(addr, self.parent.wallet, self.parent, parent=self)
+        d = ConsolidateCoinsWizard(addr, self.wallet, self.main_window, parent=self)
         d.exec_()
 
     def build_avaproof(self,  utxos: List[dict]):
         """Open a dialog to generate an Avalanche proof using the coins as
         stakes.
         """
-        dialog = AvaProofDialog(utxos, wallet=self.parent.wallet, parent=self)
+        dialog = AvaProofDialog(
+            utxos,
+            wallet=self.wallet,
+            receive_address=self.main_window.receive_address,
+            parent=self
+        )
         dialog.show()

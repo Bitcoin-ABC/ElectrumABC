@@ -1,4 +1,6 @@
-from typing import List, Optional
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, List, Optional
 
 from PyQt5 import QtCore, QtWidgets
 
@@ -15,6 +17,9 @@ from electroncash.bitcoin import is_private_key
 from electroncash.uint256 import UInt256
 
 from .password_dialog import PasswordDialog
+
+if TYPE_CHECKING:
+    from electroncash.wallet import Abstract_Wallet
 
 
 class Link(QtWidgets.QPushButton):
@@ -39,7 +44,13 @@ class Link(QtWidgets.QPushButton):
 
 
 class AvaProofWidget(QtWidgets.QWidget):
-    def __init__(self, utxos: List[dict], wallet, parent: QtWidgets.QWidget = None):
+    def __init__(
+        self,
+        utxos: List[dict],
+        wallet: Abstract_Wallet,
+        receive_address: Optional[Address] = None,
+        parent: QtWidgets.QWidget = None,
+    ):
         """
 
         :param utxos:  List of UTXOs to be used as stakes
@@ -106,6 +117,8 @@ class AvaProofWidget(QtWidgets.QWidget):
         self.payout_addr_edit.setToolTip(
             "Address to which staking rewards could be sent, in the future"
         )
+        if receive_address is not None:
+            self.payout_addr_edit.setText(receive_address.to_ui_string())
         layout.addWidget(self.payout_addr_edit)
         layout.addSpacing(10)
 
@@ -234,14 +247,18 @@ class AvaProofWidget(QtWidgets.QWidget):
 
 class AvaProofDialog(QtWidgets.QDialog):
     def __init__(
-        self, utxos: List[dict], wallet, parent: Optional[QtWidgets.QWidget] = None
+        self,
+        utxos: List[dict],
+        wallet: Abstract_Wallet,
+        receive_address: Optional[Address] = None,
+        parent: Optional[QtWidgets.QWidget] = None,
     ):
         super().__init__(parent)
         self.setWindowTitle("Build avalanche proof")
 
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
-        self.proof_widget = AvaProofWidget(utxos, wallet, self)
+        self.proof_widget = AvaProofWidget(utxos, wallet, receive_address, self)
         layout.addWidget(self.proof_widget)
 
         buttons_layout = QtWidgets.QHBoxLayout()
