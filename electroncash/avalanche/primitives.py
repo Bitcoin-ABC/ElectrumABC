@@ -77,8 +77,11 @@ class PublicKey(SerializableObject):
         # TODO: more validation to ensure this key is a valid point on the curve.
         return cls.deserialize(BytesIO(write_compact_size(len(data)) + data))
 
+    def to_hex(self) -> str:
+        return self.keydata.hex()
+
     def __repr__(self):
-        return f"PublicKey({self.keydata.hex()})"
+        return f"PublicKey({self.to_hex()})"
 
     def __eq__(self, other):
         return self.keydata == other.keydata
