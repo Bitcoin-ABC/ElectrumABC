@@ -53,7 +53,7 @@ from .util import (NotEnoughFunds, ExcessiveFee, PrintError,
 
 from .address import Address, Script, ScriptOutput, PublicKey
 from .version import PACKAGE_VERSION
-from .keystore import load_keystore, Hardware_KeyStore, Imported_KeyStore, BIP32_KeyStore, xpubkey_to_address
+from .keystore import load_keystore, KeyStore, Hardware_KeyStore, Imported_KeyStore, BIP32_KeyStore, xpubkey_to_address
 from . import mnemo
 from . import keystore
 from .storage import (
@@ -165,7 +165,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
     Wallet classes are created to handle various address generation methods.
     Completion states (watching-only, single account, no seed, etc) are handled inside classes.
     """
-
+    wallet_type: str = ''
     max_change_outputs = 3
 
     def __init__(self, storage: WalletStorage):
@@ -174,6 +174,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
 
         self.electrum_version = PACKAGE_VERSION
         self.storage = storage
+        self.keystore: Optional[KeyStore] = None
         self.thread = None  # this is used by the qt main_window to store a QThread. We just make sure it's always defined as an attribute here.
         self.network = None
         # verifier (SPV) and synchronizer are started in start_threads
@@ -307,6 +308,19 @@ class Abstract_Wallet(PrintError, SPVDelegate):
     def get_master_public_key(self):
         return None
 
+    @abstractmethod
+    def load_keystore(self) -> None:
+        """Load a keystore. Set attribute self.keystore"""
+        pass
+
+    @abstractmethod
+    def get_keystores(self) -> List[KeyStore]:
+        pass
+
+    @abstractmethod
+    def save_keystore(self) -> None:
+        pass
+
     def load_keystore_wrapper(self):
         """ Loads the keystore, but also tries to preserve derivation(s). Older
         Electron Cash versions would not save the derivation for all keystore
@@ -324,8 +338,6 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         enough time has passed, this function may be removed and the simple
         self.load_keystore() may be used instead. """
         self.load_keystore()
-        if not hasattr(self, 'get_keystores'):
-            return
         from .keystore import Deterministic_KeyStore, Old_KeyStore
         keystores = self.get_keystores()
         keystore_derivations = self.storage.get('keystore_derivations', [])
@@ -1063,6 +1075,10 @@ class Abstract_Wallet(PrintError, SPVDelegate):
     def get_receiving_addresses(
         self, *, slice_start=None, slice_stop=None
     ) -> List[Address]:
+        pass
+
+    @abstractmethod
+    def has_seed(self) -> bool:
         pass
 
     def dummy_address(self) -> Address:

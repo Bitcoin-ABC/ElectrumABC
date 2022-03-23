@@ -75,7 +75,7 @@ from electroncash.util import (format_time, format_satoshis, PrintError,
                                ExcessiveFee, UserCancelled, InvalidPassword,
                                bh2u, bfh, format_fee_satoshis, Weak,
                                print_error)
-from electroncash.wallet import Multisig_Wallet, sweep_preparations
+from electroncash.wallet import Abstract_Wallet, Multisig_Wallet, sweep_preparations
 
 
 from .amountedit import AmountEdit, XECAmountEdit, MyLineEdit, XECSatsByteEdit
@@ -196,7 +196,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     status_icon_dict = dict()  # app-globel cache of "status_*" -> QIcon instances (for update_status() speedup)
 
-    def __init__(self, gui_object, wallet):
+    def __init__(self, gui_object, wallet: Abstract_Wallet):
         QtWidgets.QMainWindow.__init__(self)
 
         self.gui_object = gui_object

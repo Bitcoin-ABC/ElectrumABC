@@ -542,7 +542,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         self.nd.show()
         if jumpto: self.nd.jumpto(jumpto)
 
-    def _create_window_for_wallet(self, wallet):
+    def _create_window_for_wallet(self, wallet: Abstract_Wallet):
         w = ElectrumWindow(self, wallet)
         self.windows.append(w)
         finalization_print_error(w, "[{}] finalized".format(w.diagnostic_name()))
