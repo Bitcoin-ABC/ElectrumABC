@@ -3185,7 +3185,7 @@ class Deterministic_Wallet(Abstract_Wallet):
     def export_private_key(self, address: Address, password) -> str:
         """Export extended WIF format for a given address in this wallet."""
         if self.is_watching_only():
-            return []
+            raise RuntimeError("Cannot export private key for watching-only wallet")
         index = self.get_address_index(address)
         return self.export_private_key_for_index(index, password)
 
