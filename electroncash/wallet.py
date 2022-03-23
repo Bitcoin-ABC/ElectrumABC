@@ -53,7 +53,15 @@ from .util import (NotEnoughFunds, ExcessiveFee, PrintError,
 
 from .address import Address, Script, ScriptOutput, PublicKey
 from .version import PACKAGE_VERSION
-from .keystore import load_keystore, KeyStore, Hardware_KeyStore, Imported_KeyStore, BIP32_KeyStore, xpubkey_to_address
+from .keystore import (
+    load_keystore,
+    KeyStore,
+    Deterministic_KeyStore,
+    Hardware_KeyStore,
+    Imported_KeyStore,
+    BIP32_KeyStore,
+    xpubkey_to_address,
+)
 from . import mnemo
 from . import keystore
 from .storage import (
@@ -3064,6 +3072,7 @@ class ImportedPrivkeyWallet(ImportedWalletBase):
 class Deterministic_Wallet(Abstract_Wallet):
 
     def __init__(self, storage):
+        self.keystore: Optional[Deterministic_KeyStore] = None
         Abstract_Wallet.__init__(self, storage)
         self.gap_limit = storage.get('gap_limit', 20)
 
@@ -3078,9 +3087,6 @@ class Deterministic_Wallet(Abstract_Wallet):
 
     def get_seed(self, password):
         return self.keystore.get_seed(password)
-
-    def add_seed(self, seed, pw):
-        self.keystore.add_seed(seed, pw)
 
     def change_gap_limit(self, value):
         '''This method is not called in the code, it is kept for console use'''
