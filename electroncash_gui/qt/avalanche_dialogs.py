@@ -109,6 +109,8 @@ class AvaProofWidget(QtWidgets.QWidget):
             "Private key that controls the proof. This is the key that signs the "
             "delegation or signs the avalanche votes."
         )
+        # Suggest a private key to the user. He can change it if he wants.
+        self.master_key_edit.setText(self._get_privkey_suggestion())
         layout.addWidget(self.master_key_edit)
         layout.addSpacing(10)
 
@@ -160,6 +162,26 @@ class AvaProofWidget(QtWidgets.QWidget):
         self.calendar.setDateTime(now.addYears(1))
         self.dg_dialog = None
 
+    def _get_privkey_suggestion(self) -> str:
+        """Get a private key to pre-fill the master key field.
+        Return it in WIF format, or return an empty string on failure (pwd dialog
+        cancelled).
+        """
+        # For now, we always suggest a deterministic key that can be derived from the
+        # seed phrase but is not used for receive addresses or change addresses (use
+        # BIP44 change_index 2, which is not used afaik).
+        #
+        # TODO: implement proof management, don't reuse a key that is already
+        #       used by another registered proof (increment index as needed)
+        privkey_index = (2, 0)
+
+        wif_pk = ""
+        if self.wallet.has_password():
+            self._prompt_password()
+        if not self.wallet.has_password() or self._pwd is not None:
+            wif_pk = self.wallet.export_private_key_for_index(privkey_index, self._pwd)
+        return wif_pk
+
     def on_datetime_changed(self, dt: QtCore.QDateTime):
         """Set the timestamp from a QDateTime"""
         was_blocked = self.blockSignals(True)
@@ -173,6 +195,26 @@ class AvaProofWidget(QtWidgets.QWidget):
         self.calendar.setDateTime(QtCore.QDateTime.fromSecsSinceEpoch(timestamp))
         self.blockSignals(was_blocked)
 
+    def _prompt_password(self) -> bool:
+        """Open a dialog to ask for the wallet password, and set self._pwd
+        accordingly.
+        Keep asking until the user provides the correct pwd or clicks cancel.
+        Return false if the pwd dialog is cancelled (self._pwd then remains None)
+        """
+        assert self._pwd is None and self.wallet.has_password()
+        while self.wallet.has_password():
+            password = PasswordDialog(parent=self).run()
+            if password is None:
+                break
+            try:
+                self.wallet.check_password(password)
+                self._pwd = password
+                break
+            except Exception as e:
+                QtWidgets.QMessageBox.critical(self, "Invalid password", str(e))
+                continue
+        return self._pwd is not None
+
     def _on_generate_clicked(self):
         proof = self._build()
         if proof is not None:
@@ -181,23 +223,12 @@ class AvaProofWidget(QtWidgets.QWidget):
 
     def _build(self) -> Optional[str]:
         if self._pwd is None and self.wallet.has_password():
-            while self.wallet.has_password():
-                password = PasswordDialog(parent=self).run()
-
-                if password is None:
-                    # User cancelled password input
-                    self._pwd = None
-                    self.proof_display.setText(
-                        '<p style="color:red;">Password dialog cancelled!</p>'
-                    )
-                    return
-                try:
-                    self.wallet.check_password(password)
-                    break
-                except Exception as e:
-                    QtWidgets.QMessageBox.critical(self, "Invalid password", str(e))
-                    continue
-            self._pwd = password
+            success = self._prompt_password()
+            if not success:
+                self.proof_display.setText(
+                    '<p style="color:red;">Password dialog cancelled!</p>'
+                )
+                return
 
         master_wif = self.master_key_edit.text()
         if not is_private_key(master_wif):
