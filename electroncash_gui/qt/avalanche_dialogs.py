@@ -235,6 +235,7 @@ class AvaProofWidget(QtWidgets.QWidget):
         proof = self._build()
         if proof is not None:
             self.proof_display.setText(f'<p style="color:black;"><b>{proof}</b></p>')
+
         self.generate_dg_button.setEnabled(proof is not None)
 
     def _build(self) -> Optional[str]:
@@ -276,7 +277,6 @@ class AvaProofWidget(QtWidgets.QWidget):
             proofbuilder.add_utxo(
                 txid=UInt256.from_hex(utxo["prevout_hash"]),
                 vout=utxo["prevout_n"],
-                # we need the value in "bitcoins"
                 amount=utxo["value"],
                 height=utxo["height"],
                 wif_privkey=priv_key,

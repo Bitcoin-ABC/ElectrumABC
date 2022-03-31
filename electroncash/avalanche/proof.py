@@ -49,15 +49,22 @@ from .serialize import (
 
 
 class Stake(SerializableObject):
-    def __init__(self, utxo, amount, height, pubkey, is_coinbase):
-        self.utxo: COutPoint = utxo
-        self.amount: int = amount
+    def __init__(
+        self,
+        utxo: COutPoint,
+        amount: int,
+        height: int,
+        pubkey: PublicKey,
+        is_coinbase: bool,
+    ):
+        self.utxo = utxo
+        self.amount = amount
         """Amount in satoshis (int64)"""
-        self.height: int = height
+        self.height = height
         """Block height containing this utxo (uint32)"""
-        self.pubkey: PublicKey = pubkey
+        self.pubkey = pubkey
         """Public key"""
-        self.is_coinbase: bool = is_coinbase
+        self.is_coinbase = is_coinbase
 
         self.stake_id = UInt256(sha256d(self.serialize()))
         """Stake id used for sorting stakes in a proof"""
