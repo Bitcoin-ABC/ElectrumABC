@@ -435,4 +435,9 @@ class UTXOList(MyTreeWidget):
             receive_address=self.main_window.receive_address,
             parent=self
         )
-        dialog.show()
+        dialog.exec_()
+
+        # Update the coins' frozen state in the GUI in case the dialog updated it in
+        # storage.
+        self.update()
+        self.main_window.update_fee()

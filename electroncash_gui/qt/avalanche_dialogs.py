@@ -235,7 +235,16 @@ class AvaProofWidget(QtWidgets.QWidget):
         proof = self._build()
         if proof is not None:
             self.proof_display.setText(f'<p style="color:black;"><b>{proof}</b></p>')
-
+            reply = QtWidgets.QMessageBox.question(
+                self,
+                "Freeze coins",
+                "Spending coins that are used as stakes in a proof will invalidate "
+                "the proof. Do you want to freeze the corresponding coins to avoid "
+                "accidentally spending them?",
+                defaultButton=QtWidgets.QMessageBox.Yes,
+            )
+            if reply == QtWidgets.QMessageBox.Yes:
+                self.wallet.set_frozen_coin_state(self.utxos, freeze=True)
         self.generate_dg_button.setEnabled(proof is not None)
 
     def _build(self) -> Optional[str]:

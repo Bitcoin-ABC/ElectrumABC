@@ -3560,11 +3560,14 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             return
         with open(fileName, "r", encoding='utf-8') as f:
             utxos = json.load(f)
-        if utxos is not None:
-            dialog = AvaProofDialog(
-                utxos, self.wallet, self.receive_address, parent=self
-            )
-            dialog.show()
+        if utxos is None:
+            return
+        dialog = AvaProofDialog(utxos, self.wallet, self.receive_address, parent=self)
+        dialog.exec_()
+
+        # Update the coins' frozen state.
+        self.utxo_list.update()
+        self.update_fee()
 
     def build_avalanche_delegation(self):
         """
