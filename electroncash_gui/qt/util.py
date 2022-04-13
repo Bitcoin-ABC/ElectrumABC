@@ -133,6 +133,7 @@ class HelpLabel(HelpMixin, QtWidgets.QLabel):
         self.setFont(self.font)
         return QtWidgets.QLabel.leaveEvent(self, event)
 
+
 class HelpButton(HelpMixin, QtWidgets.QPushButton):
     def __init__(self, text, *, button_text='?', fixed_size=True, icon=None,
                  tool_tip=None, custom_parent=None):
@@ -142,7 +143,7 @@ class HelpButton(HelpMixin, QtWidgets.QPushButton):
         self.setCursor(QCursor(Qt.PointingHandCursor))
         self.setFocusPolicy(Qt.NoFocus)
         if fixed_size:
-            self.setFixedWidth(20)
+            self.setFixedWidth(round(2.2 * char_width_in_lineedit()))
         if icon:
             self.setIcon(icon)
         self.clicked.connect(self.show_help)
@@ -1366,6 +1367,13 @@ class TextBrowserKeyboardFocusFilter(QtWidgets.QTextBrowser):
     def keyPressEvent(self, e: QKeyEvent):
         self.setTextInteractionFlags(self.textInteractionFlags() | Qt.TextSelectableByKeyboard)
         super().keyPressEvent(e)
+
+
+def char_width_in_lineedit() -> int:
+    char_width = QFontMetrics(QtWidgets.QLineEdit().font()).averageCharWidth()
+    # 'averageCharWidth' seems to underestimate on Windows, hence 'max()'
+    return max(9, char_width)
+
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])

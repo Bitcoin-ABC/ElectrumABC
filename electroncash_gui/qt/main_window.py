@@ -109,6 +109,7 @@ from .util import (
     WindowModalDialog,
     WWLabel,
     address_combo,
+    char_width_in_lineedit,
     destroyed_print_error,
     expiration_values,
     filename_field,
@@ -1717,7 +1718,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             lambda: self.fiat_send_e.setFrozen(self.amount_e.isReadOnly()))
 
         self.max_button = EnterButton(_("&Max"), self.spend_max)
-        self.max_button.setFixedWidth(140)
+        self.max_button.setFixedWidth(self.amount_e.width())
         self.max_button.setCheckable(True)
         grid.addWidget(self.max_button, 5, 3)
         hbox = self.send_tab_extra_plugin_controls_hbox = QtWidgets.QHBoxLayout()
@@ -1744,13 +1745,13 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         self.fee_slider = FeeSlider(self, self.config, fee_cb)
         self.fee_e_label.setBuddy(self.fee_slider)
-        self.fee_slider.setFixedWidth(140)
+        self.fee_slider.setFixedWidth(self.amount_e.width())
 
         self.fee_custom_lbl = HelpLabel(self.get_custom_fee_text(),
                                         _('This is the fee rate that will be used for this transaction.')
                                         + "\n\n" + _('It is calculated from the Custom Fee Rate in preferences, but can be overridden from the manual fee edit on this form (if enabled).')
                                         + "\n\n" + _('Generally, a fee of 1.0 sats/B is a good minimal rate to ensure your transaction will make it into the next block.'))
-        self.fee_custom_lbl.setFixedWidth(140)
+        self.fee_custom_lbl.setFixedWidth(self.amount_e.width())
 
         self.fee_slider_mogrifier()
 
@@ -3118,9 +3119,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         vbox.addWidget(QtWidgets.QLabel(_('New Contact') + ':'))
         grid = QtWidgets.QGridLayout()
         line1 = QtWidgets.QLineEdit()
-        line1.setFixedWidth(350)
+        line1.setFixedWidth(38 * char_width_in_lineedit())
         line2 = QtWidgets.QLineEdit()
-        line2.setFixedWidth(350)
+        line2.setFixedWidth(38 * char_width_in_lineedit())
         grid.addWidget(QtWidgets.QLabel(_("Name")), 1, 0)
         grid.addWidget(line1, 1, 1)
         grid.addWidget(QtWidgets.QLabel(_("Address")), 2, 0)

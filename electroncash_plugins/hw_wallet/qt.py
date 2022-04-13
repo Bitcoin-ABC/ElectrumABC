@@ -38,6 +38,7 @@ from electroncash_gui.qt.util import (
     TaskThread,
     WindowModalDialog,
     WWLabel,
+    char_width_in_lineedit,
 )
 
 from electroncash.i18n import _
@@ -155,7 +156,7 @@ class QtHandlerBase(QObject, PrintError):
         hbox = QtWidgets.QHBoxLayout(dialog)
         hbox.addWidget(QtWidgets.QLabel(msg))
         text = QtWidgets.QLineEdit()
-        text.setMaximumWidth(100)
+        text.setMaximumWidth(12 * char_width_in_lineedit())
         text.returnPressed.connect(dialog.accept)
         hbox.addWidget(text)
         hbox.addStretch(1)

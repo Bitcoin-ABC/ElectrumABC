@@ -10,7 +10,7 @@ from PyQt5.QtGui import QPainter
 from electroncash.constants import BASE_UNITS_BY_DECIMALS
 from electroncash.util import format_satoshis_plain
 
-from .util import ColorScheme
+from .util import ColorScheme, char_width_in_lineedit
 
 
 class MyLineEdit(QtWidgets.QLineEdit):
@@ -33,7 +33,7 @@ class AmountEdit(MyLineEdit):
     ):
         QtWidgets.QLineEdit.__init__(self, parent)
         # This seems sufficient for 10,000 MXEC amounts with two decimals
-        self.setFixedWidth(160)
+        self.setFixedWidth(18 * char_width_in_lineedit())
         self.base_unit: str = base_unit
         self.decimal_point: int = 2
         self.textChanged.connect(self.numbify)

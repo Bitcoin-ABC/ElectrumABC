@@ -38,6 +38,7 @@ from .util import (
     MessageBoxMixin,
     OkButton,
     WWLabel,
+    char_width_in_lineedit,
     destroyed_print_error,
 )
 
@@ -196,7 +197,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         vbox.addWidget(self.msg_label)
         hbox2 = QtWidgets.QHBoxLayout()
         self.pw_e = QtWidgets.QLineEdit('', self)
-        self.pw_e.setFixedWidth(150)
+        self.pw_e.setFixedWidth(17 * char_width_in_lineedit())
         self.pw_e.setEchoMode(2)
         self.pw_label = QtWidgets.QLabel(_('Password') + ':')
         hbox2.addWidget(self.pw_label)

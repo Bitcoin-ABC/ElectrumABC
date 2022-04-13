@@ -51,6 +51,7 @@ from .util import (
     MessageBoxMixin,
     WindowModalDialog,
     WWLabel,
+    char_width_in_lineedit,
     rate_limited,
 )
 from .utils import UserPortValidator
@@ -422,6 +423,9 @@ class NetworkChoiceLayout(QObject, PrintError):
         tabs.addTab(server_tab, _('Server'))
         tabs.addTab(proxy_tab, _('Proxy'))
 
+        fixed_width_hostname = 24 * char_width_in_lineedit()
+        fixed_width_port = 6 * char_width_in_lineedit()
+
         if wizard:
             tabs.setCurrentIndex(1)
 
@@ -430,9 +434,9 @@ class NetworkChoiceLayout(QObject, PrintError):
         grid.setSpacing(8)
 
         self.server_host = QtWidgets.QLineEdit()
-        self.server_host.setFixedWidth(200)
+        self.server_host.setFixedWidth(fixed_width_hostname)
         self.server_port = QtWidgets.QLineEdit()
-        self.server_port.setFixedWidth(60)
+        self.server_port.setFixedWidth(fixed_width_port)
         self.ssl_cb = QtWidgets.QCheckBox(_('Use SSL'))
         self.autoconnect_cb = QtWidgets.QCheckBox(_('Select server automatically'))
         self.autoconnect_cb.setEnabled(self.config.is_modifiable('auto_connect'))
@@ -520,15 +524,14 @@ class NetworkChoiceLayout(QObject, PrintError):
         self.proxy_mode = QtWidgets.QComboBox()
         self.proxy_mode.addItems(['SOCKS4', 'SOCKS5', 'HTTP'])
         self.proxy_host = QtWidgets.QLineEdit()
-        self.proxy_host.setFixedWidth(200)
+        self.proxy_host.setFixedWidth(fixed_width_hostname)
         self.proxy_port = QtWidgets.QLineEdit()
-        self.proxy_port.setFixedWidth(60)
+        self.proxy_port.setFixedWidth(fixed_width_port)
         self.proxy_user = QtWidgets.QLineEdit()
         self.proxy_user.setPlaceholderText(_("Proxy user"))
         self.proxy_password = QtWidgets.QLineEdit()
         self.proxy_password.setPlaceholderText(_("Password"))
         self.proxy_password.setEchoMode(QtWidgets.QLineEdit.Password)
-        self.proxy_password.setFixedWidth(60)
 
         self.proxy_mode.currentIndexChanged.connect(self.set_proxy)
         self.proxy_host.editingFinished.connect(self.set_proxy)
@@ -565,7 +568,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         self.network.tor_controller.status_changed.append_weak(self.on_tor_status_changed)
 
         self.tor_socks_port = QtWidgets.QLineEdit()
-        self.tor_socks_port.setFixedWidth(60)
+        self.tor_socks_port.setFixedWidth(fixed_width_port)
         self.tor_socks_port.editingFinished.connect(self.set_tor_socks_port)
         self.tor_socks_port.setText(str(self.network.tor_controller.get_socks_port()))
         self.tor_socks_port.setToolTip(custom_port_tooltip)
@@ -597,8 +600,10 @@ class NetworkChoiceLayout(QObject, PrintError):
         grid.addWidget(self.proxy_mode, 6, 1)
         grid.addWidget(self.proxy_host, 6, 2)
         grid.addWidget(self.proxy_port, 6, 3)
-        grid.addWidget(self.proxy_user, 7, 2)
-        grid.addWidget(self.proxy_password, 7, 3)
+        sublayout = QtWidgets.QHBoxLayout()
+        sublayout.addWidget(self.proxy_user)
+        sublayout.addWidget(self.proxy_password)
+        grid.addLayout(sublayout, 7, 2, 1, 2)
         grid.setRowStretch(8, 1)
 
         # Blockchain Tab
