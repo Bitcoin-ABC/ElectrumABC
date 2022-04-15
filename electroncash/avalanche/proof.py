@@ -62,6 +62,8 @@ class Stake(SerializableObject):
         """Amount in satoshis (int64)"""
         self.height = height
         """Block height containing this utxo (uint32)"""
+        # Electrum ABC uses 0 and -1 for unconfirmed coins.
+        assert height > 0
         self.pubkey = pubkey
         """Public key"""
         self.is_coinbase = is_coinbase

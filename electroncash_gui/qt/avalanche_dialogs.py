@@ -15,6 +15,7 @@ from electroncash.avalanche.proof import LimitedProofId, Proof, ProofBuilder
 from electroncash.avalanche.serialize import DeserializationError
 from electroncash.bitcoin import is_private_key
 from electroncash.constants import PROOF_DUST_THRESHOLD
+from electroncash.i18n import _
 from electroncash.uint256 import UInt256
 
 from .password_dialog import PasswordDialog
@@ -64,6 +65,7 @@ class AvaProofWidget(QtWidgets.QWidget):
         self.setMinimumHeight(680)
 
         self.utxos = utxos
+        self.excluded_utxos: List[dict] = []
         self.wallet = wallet
         self._pwd = None
 
@@ -133,8 +135,10 @@ class AvaProofWidget(QtWidgets.QWidget):
         layout.addWidget(self.payout_addr_edit)
         layout.addSpacing(10)
 
-        self.utxos_wigdet = QtWidgets.QTableWidget(len(utxos), 3)
-        self.utxos_wigdet.setHorizontalHeaderLabels(["txid", "vout", "amount (sats)"])
+        self.utxos_wigdet = QtWidgets.QTableWidget(len(utxos), 4)
+        self.utxos_wigdet.setHorizontalHeaderLabels(
+            ["txid", "vout", "amount (sats)", "block height"]
+        )
         self.utxos_wigdet.verticalHeader().setVisible(False)
         self.utxos_wigdet.setSelectionMode(QtWidgets.QTableWidget.NoSelection)
         self.utxos_wigdet.horizontalHeader().setSectionResizeMode(
@@ -151,7 +155,26 @@ class AvaProofWidget(QtWidgets.QWidget):
             amount_item = QtWidgets.QTableWidgetItem(str(utxo["value"]))
             if utxo["value"] < PROOF_DUST_THRESHOLD:
                 amount_item.setForeground(QtGui.QColor("red"))
+                amount_item.setToolTip(
+                    _(
+                        "The minimum threshold for a coin in an avalanche proof is "
+                        "1,000,000 XEC."
+                    )
+                )
             self.utxos_wigdet.setItem(i, 2, amount_item)
+
+            height_item = QtWidgets.QTableWidgetItem(str(utxo["height"]))
+            if utxo["height"] <= 0:
+                # TODO: make the height cell editable, for users to fill the block
+                #       height manually.
+                height_item.setForeground(QtGui.QColor("red"))
+                height_item.setToolTip(
+                    _(
+                        "Unconfirmed coins will not be included because the height of the"
+                        "block for each coin is required to generate the proof."
+                    )
+                )
+            self.utxos_wigdet.setItem(i, 3, height_item)
 
         self.generate_button = QtWidgets.QPushButton("Generate proof")
         layout.addWidget(self.generate_button)
@@ -248,8 +271,9 @@ class AvaProofWidget(QtWidgets.QWidget):
                 "accidentally spending them?",
                 defaultButton=QtWidgets.QMessageBox.Yes,
             )
+            utxos_to_freeze = [u for u in self.utxos if u not in self.excluded_utxos]
             if reply == QtWidgets.QMessageBox.Yes:
-                self.wallet.set_frozen_coin_state(self.utxos, freeze=True)
+                self.wallet.set_frozen_coin_state(utxos_to_freeze, freeze=True)
         self.generate_dg_button.setEnabled(proof is not None)
 
     def _build(self) -> Optional[str]:
@@ -282,7 +306,13 @@ class AvaProofWidget(QtWidgets.QWidget):
             master=master,
             payout_script_pubkey=payout_script,
         )
+
+        self.excluded_utxos = []
         for utxo in self.utxos:
+            if utxo["height"] <= 0:
+                # ignore unconfirmed coins
+                self.excluded_utxos.append(utxo)
+                continue
             address = utxo["address"]
             if not isinstance(utxo["address"], Address):
                 # utxo loaded from JSON file (serialized)
@@ -296,6 +326,27 @@ class AvaProofWidget(QtWidgets.QWidget):
                 wif_privkey=priv_key,
                 is_coinbase=utxo["coinbase"],
             )
+
+        num_utxos_in_proof = len(self.utxos) - len(self.excluded_utxos)
+        if num_utxos_in_proof <= 0:
+            QtWidgets.QMessageBox.critical(
+                self,
+                _("No valid stake"),
+                _("No valid stake left after excluding unconfirmed coins."),
+            )
+            return
+        if len(self.excluded_utxos) >= 0:
+            QtWidgets.QMessageBox.warning(
+                self,
+                _("Excluded stakes"),
+                f"{len(self.excluded_utxos)}"
+                + " "
+                + _(
+                    "coins have been excluded from the proof because they are "
+                    "unconfirmed or do not have a block height specified."
+                ),
+            )
+
         return proofbuilder.build().to_hex()
 
     def open_dg_dialog(self):

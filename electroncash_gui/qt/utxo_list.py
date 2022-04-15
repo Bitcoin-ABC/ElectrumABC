@@ -256,6 +256,12 @@ class UTXOList(MyTreeWidget):
                 avaproof_action.setToolTip(
                     _("Cannot build avalanche proof for hardware, multisig or "
                       "watch-only wallet (Schnorr signature is required)."))
+            elif any(c["height"] <= 0 for c in coins):
+                # A block height is required when serializing a stake.
+                avaproof_action.setEnabled(False)
+                avaproof_action.setToolTip(
+                    _("Cannot build avalanche proof with unconfirmed coins"))
+
             if len(selected) == 1:
                 # "Copy ..."
                 item = self.itemAt(position)
