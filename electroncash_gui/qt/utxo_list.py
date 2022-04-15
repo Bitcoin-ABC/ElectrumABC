@@ -41,10 +41,11 @@ from .util import (
     rate_limited,
 )
 
-from electroncash.i18n import _
-from electroncash.plugins import run_hook
 from electroncash.address import Address
 from electroncash.bitcoin import COINBASE_MATURITY
+from electroncash.constants import PROOF_DUST_THRESHOLD
+from electroncash.i18n import _
+from electroncash.plugins import run_hook
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QFont
@@ -248,13 +249,13 @@ class UTXOList(MyTreeWidget):
             # Unconditionally add the "Spend" option but leave it disabled if there are no spendable_coins
             spend_action = menu.addAction(_("Spend"), lambda: self.main_window.spend_coins(spendable_coins))
             spend_action.setEnabled(bool(spendable_coins))
-            menu.addAction("Export coin details", lambda: self.dump_utxo(coins))
-            avaproof_action = menu.addAction("Build avalanche proof", lambda: self.build_avaproof(coins))
+            menu.addAction(_("Export coin details"), lambda: self.dump_utxo(coins))
+            avaproof_action = menu.addAction(_("Build avalanche proof"), lambda: self.build_avaproof(coins))
             if not self.wallet.is_schnorr_possible() or self.wallet.is_watching_only():
                 avaproof_action.setEnabled(False)
                 avaproof_action.setToolTip(
-                    "Cannot build avalanche proof for hardware, multisig or "
-                    "watch-only wallet (Schnorr signature is required).")
+                    _("Cannot build avalanche proof for hardware, multisig or "
+                      "watch-only wallet (Schnorr signature is required)."))
             if len(selected) == 1:
                 # "Copy ..."
                 item = self.itemAt(position)
@@ -429,6 +430,12 @@ class UTXOList(MyTreeWidget):
         """Open a dialog to generate an Avalanche proof using the coins as
         stakes.
         """
+        if any(u["value"] < PROOF_DUST_THRESHOLD for u in utxos):
+            warning_dialog = StakeDustThresholdMessageBox(self)
+            warning_dialog.exec_()
+            if warning_dialog.has_cancelled():
+                return
+
         dialog = AvaProofDialog(
             utxos,
             wallet=self.wallet,
@@ -441,3 +448,28 @@ class UTXOList(MyTreeWidget):
         # storage.
         self.update()
         self.main_window.update_fee()
+
+
+class StakeDustThresholdMessageBox(QtWidgets.QMessageBox):
+    """QMessageBox question dialog with custom buttons."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setIcon(QtWidgets.QMessageBox.Warning)
+        self.setWindowTitle(_("Coins below the stake dust threshold"))
+        self.setText(
+            _("The value of one or more coins is below the 1,000,000 XEC stake "
+              "minimum threshold. The generated proof will be invalid.")
+        )
+
+        self.setStandardButtons(
+            QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel
+        )
+        ok_button = self.button(QtWidgets.QMessageBox.Ok)
+        ok_button.setText(_("Continue, I'm just testing"))
+
+        self.cancel_button = self.button(QtWidgets.QMessageBox.Cancel)
+        self.setEscapeButton(self.cancel_button)
+
+    def has_cancelled(self) -> bool:
+        return self.clickedButton() == self.cancel_button

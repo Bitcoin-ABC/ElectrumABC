@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, List, Optional
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from electroncash.address import Address, AddressError
 from electroncash.avalanche.delegation import (
@@ -14,6 +14,7 @@ from electroncash.avalanche.primitives import Key, PublicKey
 from electroncash.avalanche.proof import LimitedProofId, Proof, ProofBuilder
 from electroncash.avalanche.serialize import DeserializationError
 from electroncash.bitcoin import is_private_key
+from electroncash.constants import PROOF_DUST_THRESHOLD
 from electroncash.uint256 import UInt256
 
 from .password_dialog import PasswordDialog
@@ -133,7 +134,7 @@ class AvaProofWidget(QtWidgets.QWidget):
         layout.addSpacing(10)
 
         self.utxos_wigdet = QtWidgets.QTableWidget(len(utxos), 3)
-        self.utxos_wigdet.setHorizontalHeaderLabels(["txid", "vout", "amount"])
+        self.utxos_wigdet.setHorizontalHeaderLabels(["txid", "vout", "amount (sats)"])
         self.utxos_wigdet.verticalHeader().setVisible(False)
         self.utxos_wigdet.setSelectionMode(QtWidgets.QTableWidget.NoSelection)
         self.utxos_wigdet.horizontalHeader().setSectionResizeMode(
@@ -143,9 +144,13 @@ class AvaProofWidget(QtWidgets.QWidget):
         for i, utxo in enumerate(utxos):
             txid_item = QtWidgets.QTableWidgetItem(utxo["prevout_hash"])
             self.utxos_wigdet.setItem(i, 0, txid_item)
+
             vout_item = QtWidgets.QTableWidgetItem(str(utxo["prevout_n"]))
             self.utxos_wigdet.setItem(i, 1, vout_item)
+
             amount_item = QtWidgets.QTableWidgetItem(str(utxo["value"]))
+            if utxo["value"] < PROOF_DUST_THRESHOLD:
+                amount_item.setForeground(QtGui.QColor("red"))
             self.utxos_wigdet.setItem(i, 2, amount_item)
 
         self.generate_button = QtWidgets.QPushButton("Generate proof")

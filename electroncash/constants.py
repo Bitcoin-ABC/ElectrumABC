@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import List, Mapping, Sequence
 
 PROJECT_NAME: str = "Electrum ABC"
@@ -41,6 +42,9 @@ class Unit:
     def __str__(self):
         return self.ticker
 
+    def unit_to_satoshis(self, amount: Decimal) -> int:
+        return int((amount * 10 ** self.decimals).quantize(Decimal("1")))
+
 
 SAT = Unit("sats", 0)
 XEC = Unit("XEC", 2, "bits")
@@ -73,3 +77,6 @@ DUST_THRESHOLD: int = 546
 Change < dust threshold is added to the tx fee.
 The unit is satoshis.
 """
+
+PROOF_DUST_THRESHOLD: int = XEC.unit_to_satoshis(Decimal("1_000_000.00"))
+"""Lowest amount in satoshis that can be used as stake in a proof."""
