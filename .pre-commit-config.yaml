@@ -1,18 +1,18 @@
 files: |
     (?x)^(
-        electroncash/tests/.*py|
-        electroncash/avalanche/.*py|
-        electroncash/consolidate.py|
-        electroncash/constants.py|
-        electroncash/keystore.py|
-        electroncash/uint256.py|
-        electroncash_gui/qt/address_list.py|
-        electroncash_gui/qt/amountedit.py|
-        electroncash_gui/qt/avalanche_dialogs.py|
-        electroncash_gui/qt/consolidate_coins_dialog.py|
-        electroncash_gui/qt/exception_window.py|
-        electroncash_gui/qt/multi_transactions_dialog.py|
-        electroncash_gui/qt/sign_verify_dialog.py
+        electrumabc/tests/.*py|
+        electrumabc/avalanche/.*py|
+        electrumabc/consolidate.py|
+        electrumabc/constants.py|
+        electrumabc/keystore.py|
+        electrumabc/uint256.py|
+        electrumabc_gui/qt/address_list.py|
+        electrumabc_gui/qt/amountedit.py|
+        electrumabc_gui/qt/avalanche_dialogs.py|
+        electrumabc_gui/qt/consolidate_coins_dialog.py|
+        electrumabc_gui/qt/exception_window.py|
+        electrumabc_gui/qt/multi_transactions_dialog.py|
+        electrumabc_gui/qt/sign_verify_dialog.py
     )$
 repos:
 -   repo: https://github.com/pycqa/isort

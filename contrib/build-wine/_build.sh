@@ -179,9 +179,9 @@ EOF
 
         # libsecp256k1, libzbar & libusb
         mkdir -p $WINEPREFIX/drive_c/tmp
-        cp "$here"/../../electroncash/*.dll $WINEPREFIX/drive_c/tmp/ || fail "Could not copy libraries to their destination"
+        cp "$here"/../../electrumabc/*.dll $WINEPREFIX/drive_c/tmp/ || fail "Could not copy libraries to their destination"
         cp libusb/libusb/.libs/libusb-1.0.dll $WINEPREFIX/drive_c/tmp/ || fail "Could not copy libusb to its destination"
-        cp "$here"/../../electroncash/tor/bin/tor.exe $WINEPREFIX/drive_c/tmp/ || fail "Could not copy tor.exe to its destination"
+        cp "$here"/../../electrumabc/tor/bin/tor.exe $WINEPREFIX/drive_c/tmp/ || fail "Could not copy tor.exe to its destination"
 
         popd  # out of homedir/tmp
         popd  # out of $here
@@ -226,7 +226,7 @@ build_the_app() {
         find -exec touch -d '2000-11-11T11:11:11+00:00' {} +
         popd  # go back to $here
 
-        cp -rv "$here"/../electrum-locale/locale $WINEPREFIX/drive_c/electrumabc/electroncash/
+        cp -rv "$here"/../electrum-locale/locale $WINEPREFIX/drive_c/electrumabc/electrumabc/
 
         # Install frozen dependencies
         info "Installing frozen dependencies ..."

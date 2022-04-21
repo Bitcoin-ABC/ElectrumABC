@@ -49,13 +49,13 @@ binaries += [b for b in collect_dynamic_libs('PyQt5') if 'qwindowsvista' in b[0]
 binaries += [('C:/python*/Lib/site-packages/smartcard/scard/_scard.cp*-win32.pyd', '.')]  # Satochip
 
 datas = [
-    (home+'electroncash/currencies.json', 'electroncash'),
-    (home+'electroncash/servers.json', 'electroncash'),
-    (home+'electroncash/servers_testnet.json', 'electroncash'),
-    (home+'electroncash/wordlist/english.txt', 'electroncash/wordlist'),
-    (home+'electroncash/locale', 'electroncash/locale'),
-    (home+'electroncash_gui/qt/data/ecsupplemental_win.ttf', 'electroncash_gui/qt/data'),
-    (home+'electroncash_plugins', 'electroncash_plugins'),
+    (home+'electrumabc/currencies.json', 'electrumabc'),
+    (home+'electrumabc/servers.json', 'electrumabc'),
+    (home+'electrumabc/servers_testnet.json', 'electrumabc'),
+    (home+'electrumabc/wordlist/english.txt', 'electrumabc/wordlist'),
+    (home+'electrumabc/locale', 'electrumabc/locale'),
+    (home+'electrumabc_gui/qt/data/ecsupplemental_win.ttf', 'electrumabc_gui/qt/data'),
+    (home+'electrumabc_plugins', 'electrumabc_plugins'),
 ]
 datas += collect_data_files('trezorlib')
 datas += collect_data_files('btchip')
@@ -64,26 +64,26 @@ datas += collect_data_files('mnemonic')  # wordlists used by keepkeylib from lib
 
 # We don't put these files in to actually include them in the script but to make the Analysis method scan them for imports
 a = Analysis([home+'electrum-abc',
-              home+'electroncash_gui/qt/main_window.py',
-              home+'electroncash_gui/qt/qrreader/camera_dialog.py',
-              home+'electroncash_gui/text.py',
-              home+'electroncash/util.py',
-              home+'electroncash/wallet.py',
-              home+'electroncash/simple_config.py',
-              home+'electroncash/bitcoin.py',
-              home+'electroncash/dnssec.py',
-              home+'electroncash/commands.py',
-              home+'electroncash/tor/controller.py',
-              home+'electroncash_plugins/cosigner_pool/qt.py',
-              home+'electroncash_plugins/email_requests/qt.py',
-              home+'electroncash_plugins/trezor/clientbase.py',
-              home+'electroncash_plugins/trezor/trezor.py',
-              home+'electroncash_plugins/trezor/qt.py',
-              home+'electroncash_plugins/keepkey/qt.py',
-              home+'electroncash_plugins/ledger/qt.py',
-              home+'electroncash_plugins/satochip/qt.py',  # Satochip
-              home+'electroncash_plugins/fusion/fusion.py', # CashFusion
-              home+'electroncash_plugins/fusion/qt.py', # CashFusion
+              home+'electrumabc_gui/qt/main_window.py',
+              home+'electrumabc_gui/qt/qrreader/camera_dialog.py',
+              home+'electrumabc_gui/text.py',
+              home+'electrumabc/util.py',
+              home+'electrumabc/wallet.py',
+              home+'electrumabc/simple_config.py',
+              home+'electrumabc/bitcoin.py',
+              home+'electrumabc/dnssec.py',
+              home+'electrumabc/commands.py',
+              home+'electrumabc/tor/controller.py',
+              home+'electrumabc_plugins/cosigner_pool/qt.py',
+              home+'electrumabc_plugins/email_requests/qt.py',
+              home+'electrumabc_plugins/trezor/clientbase.py',
+              home+'electrumabc_plugins/trezor/trezor.py',
+              home+'electrumabc_plugins/trezor/qt.py',
+              home+'electrumabc_plugins/keepkey/qt.py',
+              home+'electrumabc_plugins/ledger/qt.py',
+              home+'electrumabc_plugins/satochip/qt.py',  # Satochip
+              home+'electrumabc_plugins/fusion/fusion.py', # CashFusion
+              home+'electrumabc_plugins/fusion/qt.py', # CashFusion
               ],
              binaries=binaries,
              datas=datas,
@@ -136,7 +136,7 @@ exe_standalone = EXE(
     a.scripts,
     a.binaries,
     a.datas,
-    name=os.path.join('build\\pyi.win32\\electroncash', cmdline_name + ".exe"),
+    name=os.path.join('build\\pyi.win32\\electrumabc', cmdline_name + ".exe"),
     debug=False,
     strip=None,
     upx=False,
@@ -149,7 +149,7 @@ exe_portable = EXE(
     a.scripts,
     a.binaries,
     a.datas + [ ('is_portable', 'README.md', 'DATA' ) ],
-    name=os.path.join('build\\pyi.win32\\electroncash', cmdline_name + "-portable.exe"),
+    name=os.path.join('build\\pyi.win32\\electrumabc', cmdline_name + "-portable.exe"),
     debug=False,
     strip=None,
     upx=False,
@@ -164,7 +164,7 @@ exe_dependent = EXE(
     pyz,
     a.scripts,
     exclude_binaries=True,
-    name=os.path.join('build\\pyi.win32\\electroncash', cmdline_name),
+    name=os.path.join('build\\pyi.win32\\electrumabc', cmdline_name),
     debug=False,
     strip=None,
     upx=False,
@@ -182,4 +182,4 @@ coll = COLLECT(
     debug=False,
     icon=home+'icons/electrumABC.ico',
     console=False,
-    name=os.path.join('dist', 'electroncash'))
+    name=os.path.join('dist', 'electrumabc'))

@@ -18,7 +18,7 @@ class SequentialTestCase(unittest.TestCase):
         self.test_lock.release()
 
 
-class ElectronCashTestCase(SequentialTestCase):
+class ElectrumABCTestCase(SequentialTestCase):
     """Base class for our unit tests."""
 
     def setUp(self):

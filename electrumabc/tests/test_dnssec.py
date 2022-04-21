@@ -3,10 +3,10 @@ import unittest
 import dns
 from dns.dnssec import ValidationFailure
 
-from . import ElectronCashTestCase
+from . import ElectrumABCTestCase
 
 
-class TestDnsSec(ElectronCashTestCase):
+class TestDnsSec(ElectrumABCTestCase):
     def test_validate_rrsig_ecdsa(self):
         rrset = dns.rrset.from_text(
             "getmonero.org.",

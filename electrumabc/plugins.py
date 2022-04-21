@@ -262,9 +262,9 @@ class Plugins(DaemonThread):
             self.print_error("unable to load zip plugin '%s' package '%s'" % (plugin_file_path, name), str(e))
             return
 
-        sys.modules['electroncash_external_plugins.'+ name] = module
+        sys.modules['electrumabc_external_plugins.'+ name] = module
 
-        full_name = 'electroncash_external_plugins.' + name + '.' + self.gui_name
+        full_name = 'electrumabc_external_plugins.' + name + '.' + self.gui_name
         loader = pkgutil.find_loader(full_name)
         if not loader:
             raise RuntimeError("%s implementation for %s plugin not found"
@@ -436,8 +436,8 @@ class Plugins(DaemonThread):
 
     def uninstall_external_plugin(self, name):
         self.disable_external_plugin(name)
-        if 'electroncash_external_plugins.'+ name in sys.modules:
-            del sys.modules['electroncash_external_plugins.'+ name]
+        if 'electrumabc_external_plugins.'+ name in sys.modules:
+            del sys.modules['electrumabc_external_plugins.'+ name]
 
         metadata = self.external_plugin_metadata[name]
         plugin_file_path = metadata["__file__"]

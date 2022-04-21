@@ -152,11 +152,11 @@ class App(QtWidgets.QWidget):
         self.descriptionEdit.setPlaceholderText("Add scheduled payments at a fixed time either on a given day every week, or a specific day every month.")
         self.descriptionEdit.setAcceptRichText(False)
         groupLayout.addRow('Description', self.descriptionEdit)
-        self.minimumElectronCashVersionEdit = QtWidgets.QLineEdit()
-        self.minimumElectronCashVersionEdit.setPlaceholderText("3.2")
-        self.minimumElectronCashVersionEdit.setMaximumWidth(50)
-        self.minimumElectronCashVersionEdit.setToolTip("This is the lowest version of Electron Cash which this plugin can be installed with.")
-        groupLayout.addRow('Minimum Electron Cash Version', self.minimumElectronCashVersionEdit)
+        self.minimumElectrumABCVersionEdit = QtWidgets.QLineEdit()
+        self.minimumElectrumABCVersionEdit.setPlaceholderText("3.2")
+        self.minimumElectrumABCVersionEdit.setMaximumWidth(50)
+        self.minimumElectrumABCVersionEdit.setToolTip("This is the lowest version of Electron Cash which this plugin can be installed with.")
+        groupLayout.addRow('Minimum Electron Cash Version', self.minimumElectrumABCVersionEdit)
 
         availableVLayout = QtWidgets.QVBoxLayout()
         self.qtAvailableCheckBox = QtWidgets.QCheckBox("Supports the Qt user interface")
@@ -200,7 +200,7 @@ class App(QtWidgets.QWidget):
         self.versionEdit.textEdited.connect(self.on_required_text_change)
         self.projectUrlEdit.textEdited.connect(self.on_required_text_change)
         self.descriptionEdit.textChanged.connect(self.on_required_text_change)
-        self.minimumElectronCashVersionEdit.textEdited.connect(self.on_required_text_change)
+        self.minimumElectrumABCVersionEdit.textEdited.connect(self.on_required_text_change)
 
         self.refresh_ui()
         self.show()
@@ -212,11 +212,11 @@ class App(QtWidgets.QWidget):
         except ValueError:
             versionText = ""
 
-        minimumElectronCashVersionText = self.minimumElectronCashVersionEdit.text().strip()
+        minimumElectrumABCVersionText = self.minimumElectrumABCVersionEdit.text().strip()
         try:
-            versiontuple(minimumElectronCashVersionText)
+            versiontuple(minimumElectrumABCVersionText)
         except ValueError:
-            minimumElectronCashVersionText = ""
+            minimumElectrumABCVersionText = ""
 
         projectUrlText = self.projectUrlEdit.text().strip()
         url_components = urllib.parse.urlparse(projectUrlText)
@@ -227,7 +227,7 @@ class App(QtWidgets.QWidget):
         have_basics = have_basics and len(versionText) > 0
         have_basics = have_basics and len(projectUrlText) > 0
         have_basics = have_basics and len(self.descriptionEdit.toPlainText().strip()) > 3
-        have_basics = have_basics and len(minimumElectronCashVersionText) > 0
+        have_basics = have_basics and len(minimumElectrumABCVersionText) > 0
         have_basics = have_basics and (self.qtAvailableCheckBox.checkState() == Qt.Checked or self.cmdlineAvailableCheckBox.checkState() == Qt.Checked)
 
         can_export = have_basics
@@ -275,7 +275,7 @@ class App(QtWidgets.QWidget):
         version = self.versionEdit.text().strip()
         project_url = self.projectUrlEdit.text().strip()
         description = self.descriptionEdit.toPlainText().strip()
-        minimum_ec_version = self.minimumElectronCashVersionEdit.text().strip()
+        minimum_ec_version = self.minimumElectrumABCVersionEdit.text().strip()
         package_name = None
         if self.directory_path is not None:
             package_name = os.path.basename(self.directory_path)
@@ -319,7 +319,7 @@ class App(QtWidgets.QWidget):
         self.versionEdit.setText(str(metadata.get("version", "")))
         self.projectUrlEdit.setText(str(metadata.get("project_url", "")))
         self.descriptionEdit.setText(str(metadata.get("description", "")))
-        self.minimumElectronCashVersionEdit.setText(str(metadata.get("minimum_ec_version", "")))
+        self.minimumElectrumABCVersionEdit.setText(str(metadata.get("minimum_ec_version", "")))
         package_name = str(metadata.get("package_name", "")).strip()
         if len(package_name):
             manifest_path, manifest_filename = os.path.split(self.manifest_file_path)

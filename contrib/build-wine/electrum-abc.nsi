@@ -170,7 +170,7 @@ Section
   !insertmacro UNINSTALL.LOG_OPEN_INSTALL
 
   ;Files to pack into the installer
-  File /r "dist\electroncash\*.*"
+  File /r "dist\electrumabc\*.*"
   File "..\..\icons\electrumABC.ico"
 
   !insertmacro UNINSTALL.LOG_CLOSE_INSTALL

@@ -88,7 +88,7 @@ For plugin development, see the `plugin documentation <plugins/README.rst>`_.
 
 Running unit tests (optional)::
 
-    python3 -m electroncash.tests
+    python3 -m electrumabc.tests
 
 
 Running from source on old Linux

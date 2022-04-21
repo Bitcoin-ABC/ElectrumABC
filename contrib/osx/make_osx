@@ -203,7 +203,7 @@ verify_hash $BUILDDIR/libusb/1.0.21/lib/libusb-1.0.dylib d147e7382dfa676d93e8b17
 cp -fp $BUILDDIR/libusb/1.0.21/lib/libusb-1.0.dylib contrib/osx || fail "Could not copy libusb"
 
 # Build ZBar
-contrib/make_zbar && mv -vf electroncash/libzbar.0.dylib contrib/osx/. || fail "Could not build ZBar"
+contrib/make_zbar && mv -vf electrumabc/libzbar.0.dylib contrib/osx/. || fail "Could not build ZBar"
 
 info "Building libsecp256k1"
 pushd contrib/secp256k1 || fail "Could not chdir to contrib/secp256k1"
@@ -289,7 +289,7 @@ if ((DARWIN_VER >= 18 && FORCE_MOJAVE_DARK)); then
 fi
 
 # Sign the Tor binary separately
-DoCodeSignMaybe "tor binary" "dist/${PACKAGE}.app/Contents/MacOS/electroncash/tor/bin/tor" "$APP_SIGN"
+DoCodeSignMaybe "tor binary" "dist/${PACKAGE}.app/Contents/MacOS/electrumabc/tor/bin/tor" "$APP_SIGN"
 # Finally, codesign the whole thing
 DoCodeSignMaybe ".app bundle" "dist/${PACKAGE}.app" "$APP_SIGN"
 

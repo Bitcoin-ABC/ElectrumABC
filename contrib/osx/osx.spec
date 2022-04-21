@@ -5,7 +5,7 @@ import sys, os
 
 PACKAGE='ElectrumABC'
 BUNDLE_IDENTIFIER='org.electrumabc.' + PACKAGE # Used for info.plist
-PYPKG='electroncash'
+PYPKG='electrumabc'
 MAIN_SCRIPT='electrum-abc'
 ICONS_FILE='electrumABC.icns'
 
@@ -28,12 +28,12 @@ hiddenimports += collect_submodules('satochip')    # Satochip
 hiddenimports += collect_submodules('smartcard')   # Satochip
 
 datas = [
-    (home+'electroncash/currencies.json', PYPKG),
-    (home+'electroncash/servers.json', PYPKG),
-    (home+'electroncash/servers_testnet.json', PYPKG),
-    (home+'electroncash/wordlist/english.txt', PYPKG + '/wordlist'),
-    (home+'electroncash/locale', PYPKG + '/locale'),
-    (home+'electroncash_plugins', PYPKG + '_plugins'),
+    (home+'electrumabc/currencies.json', PYPKG),
+    (home+'electrumabc/servers.json', PYPKG),
+    (home+'electrumabc/servers_testnet.json', PYPKG),
+    (home+'electrumabc/wordlist/english.txt', PYPKG + '/wordlist'),
+    (home+'electrumabc/locale', PYPKG + '/locale'),
+    (home+'electrumabc_plugins', PYPKG + '_plugins'),
 ]
 datas += collect_data_files('trezorlib')
 datas += collect_data_files('btchip')
@@ -48,33 +48,33 @@ binaries += [(home + "contrib/osx/libsecp256k1.0.dylib", ".")]
 # LibZBar for QR code scanning
 binaries += [(home + "contrib/osx/libzbar.0.dylib", ".")]
 # Add Tor binary
-binaries += [(home + "electroncash/tor/bin/tor", "electroncash/tor/bin")]
+binaries += [(home + "electrumabc/tor/bin/tor", "electrumabc/tor/bin")]
 
 # Workaround for "Retro Look":
 binaries += [b for b in collect_dynamic_libs('PyQt5') if 'macstyle' in b[0]]
 
 # We don't put these files in to actually include them in the script but to make the Analysis method scan them for imports
 a = Analysis([home+MAIN_SCRIPT,
-              home+'electroncash_gui/qt/main_window.py',
-              home+'electroncash_gui/qt/qrreader/camera_dialog.py',
-              home+'electroncash_gui/text.py',
-              home+'electroncash/util.py',
-              home+'electroncash/wallet.py',
-              home+'electroncash/simple_config.py',
-              home+'electroncash/bitcoin.py',
-              home+'electroncash/dnssec.py',
-              home+'electroncash/commands.py',
-              home+'electroncash/tor/controller.py',
-              home+'electroncash_plugins/cosigner_pool/qt.py',
-              home+'electroncash_plugins/email_requests/qt.py',
-              home+'electroncash_plugins/trezor/clientbase.py',
-              home+'electroncash_plugins/trezor/trezor.py',
-              home+'electroncash_plugins/trezor/qt.py',
-              home+'electroncash_plugins/keepkey/qt.py',
-              home+'electroncash_plugins/ledger/qt.py',
-              home+'electroncash_plugins/satochip/qt.py',  # Satochip
-              home+'electroncash_plugins/fusion/fusion.py', # CashFusion
-              home+'electroncash_plugins/fusion/qt.py', # CashFusion
+              home+'electrumabc_gui/qt/main_window.py',
+              home+'electrumabc_gui/qt/qrreader/camera_dialog.py',
+              home+'electrumabc_gui/text.py',
+              home+'electrumabc/util.py',
+              home+'electrumabc/wallet.py',
+              home+'electrumabc/simple_config.py',
+              home+'electrumabc/bitcoin.py',
+              home+'electrumabc/dnssec.py',
+              home+'electrumabc/commands.py',
+              home+'electrumabc/tor/controller.py',
+              home+'electrumabc_plugins/cosigner_pool/qt.py',
+              home+'electrumabc_plugins/email_requests/qt.py',
+              home+'electrumabc_plugins/trezor/clientbase.py',
+              home+'electrumabc_plugins/trezor/trezor.py',
+              home+'electrumabc_plugins/trezor/qt.py',
+              home+'electrumabc_plugins/keepkey/qt.py',
+              home+'electrumabc_plugins/ledger/qt.py',
+              home+'electrumabc_plugins/satochip/qt.py',  # Satochip
+              home+'electrumabc_plugins/fusion/fusion.py', # CashFusion
+              home+'electrumabc_plugins/fusion/qt.py', # CashFusion
               ],
              binaries=binaries,
              datas=datas,

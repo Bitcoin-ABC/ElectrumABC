@@ -39,7 +39,7 @@ You have a few options:
     The library is included in the `.app` bundle.
   - For **Linux x86_64** (the most common architecture), the Electrum ABC
     [release srcdist .tar.gz available here](https://github.com/Bitcoin-ABC/ElectrumABC/releases)
-    should have the library pre-compiled and living in the `electroncash/`
+    should have the library pre-compiled and living in the `electrumabc/`
     subfolder of the tarball. You can simply run Electrum ABC "from source"
     (which, paradoxically, does include a compiled library embedded within
     it), and it should work.
@@ -53,7 +53,7 @@ You have a few options:
      (or `git pull` from master if you already  have it cloned).
    - run the script `contrib/make_secp`
    - **Done!** If all goes well, `libsecp256k1` should low live alongside the
-     Python files in the `electroncash/` subfolder of Electrum ABC.  If not,
+     Python files in the `electrumabc/` subfolder of Electrum ABC.  If not,
      make sure you have a C-compiler installed on the system as well as automake,
      and libtool installed and try again.
 
