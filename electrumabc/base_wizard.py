@@ -31,7 +31,7 @@ import sys
 import traceback
 from typing import Any, Callable, Dict, List, NamedTuple, Optional, TYPE_CHECKING
 
-from electroncash_plugins.hw_wallet import HW_PluginBase
+from electrumabc_plugins.hw_wallet import HW_PluginBase
 
 from .address import Address
 from . import bitcoin

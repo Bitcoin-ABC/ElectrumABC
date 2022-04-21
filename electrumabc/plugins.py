@@ -52,7 +52,7 @@ from .util import (print_error, print_stderr, make_dir, profiler,
                    DaemonThread, PrintError, ThreadJob, UserCancelled)
 
 if TYPE_CHECKING:
-    from electroncash_plugins.hw_wallet import (
+    from electrumabc_plugins.hw_wallet import (
         HW_PluginBase,
         HardwareClientBase,
         HardwareHandlerBase,
@@ -88,7 +88,7 @@ class Plugins(DaemonThread):
     @profiler
     def __init__(self, config, gui_name):
         DaemonThread.__init__(self)
-        internal_plugins_namespace = __import__('electroncash_plugins')
+        internal_plugins_namespace = __import__('electrumabc_plugins')
         self.internal_plugins_pkgpath = os.path.dirname(internal_plugins_namespace.__file__)
         self.config = config
         self.gui_name = gui_name
@@ -226,7 +226,7 @@ class Plugins(DaemonThread):
         if name in self.internal_plugins:
             return self.internal_plugins[name]
 
-        full_name = 'electroncash_plugins.' + name + '.' + self.gui_name
+        full_name = 'electrumabc_plugins.' + name + '.' + self.gui_name
         loader = pkgutil.find_loader(full_name)
         if not loader:
             raise RuntimeError("%s implementation for %s plugin not found"

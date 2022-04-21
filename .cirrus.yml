@@ -64,7 +64,7 @@ task:
   test_script:
     - set -e
     - coverage run -m electrumabc.tests -v;
-    - coverage run -m electroncash_plugins.fusion.tests -v;
+    - coverage run -m electrumabc_plugins.fusion.tests -v;
     - coverage report --include="./electrumabc*";
   matrix:
     - container:
@@ -83,7 +83,7 @@ task:
   test_script:
     - set -e
     - coverage run -m electrumabc.tests -v;
-    - coverage run -m electroncash_plugins.fusion.tests -v;
+    - coverage run -m electrumabc_plugins.fusion.tests -v;
     - coverage report --include="./electrumabc*";
   matrix:
     - container:

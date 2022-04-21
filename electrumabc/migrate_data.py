@@ -16,7 +16,7 @@ from .simple_config import read_user_config, save_user_config, SimpleConfig
 from .util import get_user_dir
 from .version import VERSION_TUPLE, PACKAGE_VERSION
 
-from electroncash_plugins.fusion.conf import DEFAULT_SERVERS
+from electrumabc_plugins.fusion.conf import DEFAULT_SERVERS
 
 _logger = logging.getLogger(__name__)
 

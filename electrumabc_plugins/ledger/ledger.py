@@ -13,8 +13,8 @@ from electrumabc.i18n import _
 from electrumabc.keystore import Hardware_KeyStore
 from electrumabc.plugins import Device
 from electrumabc.transaction import Transaction
-from electroncash_plugins.hw_wallet import HW_PluginBase, HardwareClientBase
-from electroncash_plugins.hw_wallet.plugin import (
+from electrumabc_plugins.hw_wallet import HW_PluginBase, HardwareClientBase
+from electrumabc_plugins.hw_wallet.plugin import (
     is_any_tx_output_on_change_branch,
     validate_op_return_output_and_get_data,
 )

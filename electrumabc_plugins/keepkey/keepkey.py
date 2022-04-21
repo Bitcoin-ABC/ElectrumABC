@@ -9,8 +9,8 @@ from electrumabc.keystore import Hardware_KeyStore, is_xpubkey, parse_xpubkey
 from electrumabc.address import Address
 from electrumabc.plugins import Device
 
-from electroncash_plugins.hw_wallet import HW_PluginBase
-from electroncash_plugins.hw_wallet.plugin import (
+from electrumabc_plugins.hw_wallet import HW_PluginBase
+from electrumabc_plugins.hw_wallet.plugin import (
     is_any_tx_output_on_change_branch,
     validate_op_return_output_and_get_data,
 )
@@ -87,7 +87,7 @@ class KeepKeyPlugin(HW_PluginBase):
         HW_PluginBase.__init__(self, parent, config, name)
 
         try:
-            from electroncash_plugins.keepkey import client
+            from electrumabc_plugins.keepkey import client
             import keepkeylib
             import keepkeylib.ckd_public
             import keepkeylib.transport_hid

@@ -187,19 +187,19 @@ setup(
         'electrumabc_gui.qt.qrreader',
         'electrumabc_gui.qt.utils',
         'electrumabc_gui.qt.utils.darkdetect',
-        'electroncash_plugins',
-        'electroncash_plugins.audio_modem',
-        'electroncash_plugins.cosigner_pool',
-        'electroncash_plugins.email_requests',
-        'electroncash_plugins.hw_wallet',
-        'electroncash_plugins.keepkey',
-        'electroncash_plugins.labels',
-        'electroncash_plugins.ledger',
-        'electroncash_plugins.trezor',
-        'electroncash_plugins.digitalbitbox',
-        'electroncash_plugins.virtualkeyboard',
-        'electroncash_plugins.satochip',
-        'electroncash_plugins.fusion',
+        'electrumabc_plugins',
+        'electrumabc_plugins.audio_modem',
+        'electrumabc_plugins.cosigner_pool',
+        'electrumabc_plugins.email_requests',
+        'electrumabc_plugins.hw_wallet',
+        'electrumabc_plugins.keepkey',
+        'electrumabc_plugins.labels',
+        'electrumabc_plugins.ledger',
+        'electrumabc_plugins.trezor',
+        'electrumabc_plugins.digitalbitbox',
+        'electrumabc_plugins.virtualkeyboard',
+        'electrumabc_plugins.satochip',
+        'electrumabc_plugins.fusion',
     ],
     package_data={
         'electrumabc': [
@@ -213,7 +213,7 @@ setup(
             'locale/*/LC_MESSAGES/electron-cash.mo',
             'tor/bin/*'
         ],
-        'electroncash_plugins.fusion': [
+        'electrumabc_plugins.fusion': [
             '*.svg', '*.png'
         ],
         # On Linux and Windows this means adding electrumabc_gui/qt/data/*.ttf

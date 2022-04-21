@@ -48,8 +48,8 @@ from .util import (
 )
 
 if TYPE_CHECKING:
-    from electroncash_gui.qt.util import TaskThread
-    from electroncash_plugins.hw_wallet import HardwareHandlerBase, HW_PluginBase
+    from electrumabc_gui.qt.util import TaskThread
+    from electrumabc_plugins.hw_wallet import HardwareHandlerBase, HW_PluginBase
 
 
 class KeyStore(PrintError):
