@@ -43,7 +43,7 @@ def parse_package_version(pvstr):
             '3.5.0.0.0_iOS' -> (3, 5, '_iOS')
     ... and, finally: The last element is *always* going to be present as
     a string, the 'variant'. The 'variant' will be the empty string '' if
-    this is the default Electron Cash. If you don't like this heterogeneity of
+    this is the default Electrum ABC. If you don't like this heterogeneity of
     types in a tuple, take the retVal[:-1] slice of the array to toss it
     (or just use normalize_version above).
     """

@@ -32,7 +32,7 @@ class ScriptOutput(address.ScriptOutput):
     # Optimization. In a normal call path cls.protocol_match parses a message and
     # returns a bool.  We save the parsed message in this cache because __new__
     # will be called very soon after on a True return to re-parse the Script,
-    # due to the way the protocol_match system works in Electron Cash.
+    # due to the way the protocol_match system works in Electrum ABC.
     _script_message_cache = caches.ExpiringCache(maxlen=25, name="SLP Script Message Cache", timeout=60.0)
 
     def __new__(cls, script):
@@ -69,7 +69,7 @@ class ScriptOutput(address.ScriptOutput):
         return False
 # /ScriptOutput
 
-address.ScriptOutput.protocol_classes.add(ScriptOutput)  # register class with Electron Cash script 'protocol factory' system
+address.ScriptOutput.protocol_classes.add(ScriptOutput)  # register class with Electrum ABC script 'protocol factory' system
 
 class Message:
     ''' This class represents a parsed and valid SLP OP_RETURN message that can

@@ -1,4 +1,4 @@
-Electron Cash - Plugins
+Electrum ABC - Plugins
 =======================
 
 The plugin system of Electrum ABC is designed to allow the development
@@ -36,8 +36,8 @@ Risks and Dangers
 =================
 
 Plugins, like Electrum ABC, are written in pure Python, in the form of
-PythonPackages_.  This means they can access almost all of Electron
-Cash's state, and change any behaviour, perhaps even in dishonest ways
+PythonPackages_.  This means they can access almost all of Electrum ABC's
+state, and change any behaviour, perhaps even in dishonest ways
 you might not even notice at first.  They might even use Python's file
 system access, or other similar functionality, to damage whatever else
 they can access.
@@ -60,9 +60,9 @@ available to all users of Electrum ABC to enable and disable as they wish.
 They cannot be uninstalled, and no installation functionality is provided
 either.
 
-User installable plugins (external plugins) are not included with Electron
-Cash.  The user must use the Plugin Manager to install these, through the
-user interface.  In the QT UI, this is accessed through the Tools menu.  The
+User installable plugins (external plugins) are not included with Electrum ABC.
+The user must use the Plugin Manager to install these, through the user interface.
+In the QT UI, this is accessed through the Tools menu.  The
 process of installation includes both warnings and required user confirmations
 that they accept the risks installing them incurs.
 

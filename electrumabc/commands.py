@@ -435,7 +435,7 @@ class Commands:
 
     @command('n')
     def getmerkle(self, txid, height):
-        """Get Merkle branch of a transaction included in a block. Electron Cash
+        """Get Merkle branch of a transaction included in a block. Electrum ABC
         uses this to verify transactions (Simple Payment Verification)."""
         return self.network.synchronous_get(('blockchain.transaction.get_merkle', [txid, int(height)]))
 
@@ -446,7 +446,7 @@ class Commands:
 
     @command('')
     def version(self):
-        """Return the version of Electron Cash."""
+        """Return the version of Electrum ABC."""
         from .version import PACKAGE_VERSION
         return PACKAGE_VERSION
 

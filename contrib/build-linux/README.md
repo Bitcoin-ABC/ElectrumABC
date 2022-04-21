@@ -17,7 +17,7 @@ Source tarballs
 
     Where `COMMIT_OR_TAG` is a git commit or branch or tag (eg `master`, `4.0.2`, etc).
 
-2. A `.tar.gz` and a `.zip` file of Electron Cash will be placed in the `dist/` subdirectory.
+2. A `.tar.gz` and a `.zip` file of Electrum ABC will be placed in the `dist/` subdirectory.
 
 
 AppImage

@@ -25,7 +25,7 @@
 # SOFTWARE.
 
 """
-This script automates all the work involved in packaging an external Electron Cash plugin.
+This script automates all the work involved in packaging an external Electrum ABC plugin.
 
 Future work:
 * Make this work on the command-line.
@@ -65,7 +65,7 @@ def write_plugin_archive(metadata, source_package_path, archive_file_path):
         # Copy the selected Python package into place.
         dest_package_path = os.path.join(temp_path, package_directory_name)
         shutil.copytree(source_package_path,  dest_package_path)
-        # Python bytecode cannot be written into the zip archive as Electron Cash runs it.
+        # Python bytecode cannot be written into the zip archive as Electrum ABC runs it.
         # So we precompile it before creating the archived form.
         compileall.compile_dir(dest_package_path)
         shutil.make_archive(suffixless_path, 'zip', temp_path)
@@ -119,7 +119,7 @@ class App(QtWidgets.QWidget):
 
         self.directory_path = None
 
-        self.setWindowTitle('Electron Cash Plugin Packager')
+        self.setWindowTitle('Electrum ABC Plugin Packager')
         self.setMinimumWidth(500)
         self.setMaximumWidth(500)
 
@@ -155,8 +155,8 @@ class App(QtWidgets.QWidget):
         self.minimumElectrumABCVersionEdit = QtWidgets.QLineEdit()
         self.minimumElectrumABCVersionEdit.setPlaceholderText("3.2")
         self.minimumElectrumABCVersionEdit.setMaximumWidth(50)
-        self.minimumElectrumABCVersionEdit.setToolTip("This is the lowest version of Electron Cash which this plugin can be installed with.")
-        groupLayout.addRow('Minimum Electron Cash Version', self.minimumElectrumABCVersionEdit)
+        self.minimumElectrumABCVersionEdit.setToolTip("This is the lowest version of Electrum ABC which this plugin can be installed with.")
+        groupLayout.addRow('Minimum Electrum ABC Version', self.minimumElectrumABCVersionEdit)
 
         availableVLayout = QtWidgets.QVBoxLayout()
         self.qtAvailableCheckBox = QtWidgets.QCheckBox("Supports the Qt user interface")

@@ -1,4 +1,4 @@
-AppImage binary for Electron Cash
+AppImage binary for Electrum ABC
 ============================
 
 ✓ _This binary is reproducible: you should be able to generate

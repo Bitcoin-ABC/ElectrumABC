@@ -152,7 +152,7 @@ seed_type_names_inv = {
 def autodetect_seed_type(seed: str, lang: Optional[str] = None, *,
                          prefix: str = version.SEED_PREFIX) -> Set[SeedType]:
     ''' Given a mnemonic seed phrase, auto-detect the possible seed types it can
-    be. Note that some lucky seed phrases match all three types. Electron Cash
+    be. Note that some lucky seed phrases match all three types. Electrum ABC
     will never generate a seed that matches more than one type, but it is
     possible for imported seeds to be ambiguous. May return the empty set if the
     seed phrase is invalid and/or fails checksum checks for all three types. '''

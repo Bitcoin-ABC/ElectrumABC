@@ -30,7 +30,7 @@
 # pylint: disable=C0103
 # pylint: enable=C0103
 """
-Electron Cash - lightweight Bitcoin Cash client
+Electrum ABC - lightweight Bitcoin Cash client
 """
 from __future__ import annotations
 

@@ -944,7 +944,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             #
             # In light of that fact, a possible approach would be to invalidate
             # this entire cache when a new block arrives (this is what Electrum
-            # does). However, for Electron Cash with its focus on many addresses
+            # does). However, for Electrum ABC with its focus on many addresses
             # for future privacy features such as integrated CashShuffle --
             # being notified in the wallet and invalidating the *entire* cache
             # whenever a new block arrives (which is the exact time you do
