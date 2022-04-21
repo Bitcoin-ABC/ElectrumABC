@@ -34,10 +34,10 @@ from .util import FusionError, sha256, size_of_input, size_of_output, component_
 from . import encrypt
 from .protocol import Protocol
 
-from electroncash.address import Address
-from electroncash.bitcoin import TYPE_ADDRESS
-from electroncash.transaction import get_address_from_output_script
-import electroncash.schnorr as schnorr
+from electrumabc.address import Address
+from electrumabc.bitcoin import TYPE_ADDRESS
+from electrumabc.transaction import get_address_from_output_script
+import electrumabc.schnorr as schnorr
 
 from google.protobuf.message import DecodeError
 

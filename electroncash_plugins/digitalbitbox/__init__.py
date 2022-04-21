@@ -1,4 +1,4 @@
-from electroncash.i18n import _
+from electrumabc.i18n import _
 
 fullname = 'Digital Bitbox'
 description = _('Provides support for Digital Bitbox hardware wallet')

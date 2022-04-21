@@ -12,20 +12,20 @@ from PyQt5.QtCore import QEventLoop, QRect, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon, QPainter, QPalette, QPen
 from PyQt5 import QtWidgets
 
-from electroncash import WalletStorage
-from electroncash.network import Network
-from electroncash.util import (
+from electrumabc import WalletStorage
+from electrumabc.network import Network
+from electrumabc.util import (
     UserCancelled,
     InvalidPassword,
     finalization_print_error,
     TimeoutException,
     WalletFileException,
 )
-from electroncash.base_wizard import BaseWizard, GoBack, HWD_SETUP_DECRYPT_WALLET
-from electroncash.i18n import _
-from electroncash.constants import PROJECT_NAME
-from electroncash import keystore
-from electroncash.wallet import Abstract_Wallet, Standard_Wallet
+from electrumabc.base_wizard import BaseWizard, GoBack, HWD_SETUP_DECRYPT_WALLET
+from electrumabc.i18n import _
+from electrumabc.constants import PROJECT_NAME
+from electrumabc import keystore
+from electrumabc.wallet import Abstract_Wallet, Standard_Wallet
 
 from .seed_dialog import SeedLayout, KeysLayout
 from .network_dialog import NetworkChoiceLayout

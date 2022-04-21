@@ -4,7 +4,7 @@ It reads the current stylesheet, appends our modifications and sets the new styl
 """
 
 from PyQt5 import QtWidgets
-from electroncash.util import print_error
+from electrumabc.util import print_error
 
 OLD_QDARKSTYLE_PATCH = '''
 QWidget:disabled {
@@ -48,7 +48,7 @@ def patch(use_dark_theme: bool = False, darkstyle_ver: tuple = None):
         # This patch is for qdarkstyle >= 2.6.8.
         custom_patch = CUSTOM_PATCH_FOR_DARK_THEME
         print_error("[style_patcher] qdarkstyle >= 2.6.8 detected; stylesheet patch #2 applied")
-    
+
     app = QtWidgets.QApplication.instance()
     style_sheet = app.styleSheet() + custom_patch
     app.setStyleSheet(style_sheet)

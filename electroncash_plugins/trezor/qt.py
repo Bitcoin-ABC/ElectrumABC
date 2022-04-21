@@ -14,10 +14,10 @@ from electroncash_gui.qt.util import (
     WindowModalDialog,
     WWLabel,
 )
-from electroncash.constants import PROJECT_NAME
-from electroncash.i18n import _
-from electroncash.plugins import hook
-from electroncash.util import bh2u
+from electrumabc.constants import PROJECT_NAME
+from electrumabc.i18n import _
+from electrumabc.plugins import hook
+from electrumabc.util import bh2u
 
 from ..hw_wallet.qt import QtHandlerBase, QtPluginBase
 from .trezor import (TrezorPlugin, TIM_RECOVER,

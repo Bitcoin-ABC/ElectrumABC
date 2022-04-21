@@ -3,11 +3,11 @@ import datetime
 
 from decimal import Decimal as PyDecimal
 
-from electroncash import WalletStorage, Wallet
-from electroncash.util import format_satoshis, set_verbosity
-from electroncash.address import Address
-from electroncash.bitcoin import CASH, TYPE_ADDRESS
-from electroncash.constants import SCRIPT_NAME
+from electrumabc import WalletStorage, Wallet
+from electrumabc.util import format_satoshis, set_verbosity
+from electrumabc.address import Address
+from electrumabc.bitcoin import CASH, TYPE_ADDRESS
+from electrumabc.constants import SCRIPT_NAME
 
 
 _ = lambda x:x

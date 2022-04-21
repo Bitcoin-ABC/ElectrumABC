@@ -34,13 +34,13 @@ import weakref
 
 from typing import Optional, Tuple
 
-from electroncash.address import Address, OpCodes
-from electroncash.bitcoin import COINBASE_MATURITY, TYPE_SCRIPT
-from electroncash.constants import PROJECT_NAME
-from electroncash.plugins import BasePlugin, hook, daemon_command
-from electroncash.i18n import _, ngettext, pgettext
-from electroncash.util import profiler, PrintError, InvalidPassword
-from electroncash import Network, Transaction
+from electrumabc.address import Address, OpCodes
+from electrumabc.bitcoin import COINBASE_MATURITY, TYPE_SCRIPT
+from electrumabc.constants import PROJECT_NAME
+from electrumabc.plugins import BasePlugin, hook, daemon_command
+from electrumabc.i18n import _, ngettext, pgettext
+from electrumabc.util import profiler, PrintError, InvalidPassword
+from electrumabc import Network, Transaction
 
 from .conf import Conf, Global
 from .fusion import Fusion, can_fuse_from, can_fuse_to, is_tor_port, MIN_TX_COMPONENTS

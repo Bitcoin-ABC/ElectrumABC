@@ -324,7 +324,7 @@ class PopupLabel(PopupWidget):
 
 ### Helpers for EC integration
 from .util import destroyed_print_error
-from electroncash.util import finalization_print_error
+from electrumabc.util import finalization_print_error
 
 _extant_popups = dict()
 def ShowPopupLabel(text, target, timeout, name="Global", pointer_position=PopupWidget.RightSide, opacity=0.9, onClick=None, onRightClick=None,

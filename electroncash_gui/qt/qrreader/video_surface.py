@@ -31,8 +31,8 @@ from PyQt5.QtMultimedia import (QVideoFrame, QAbstractVideoBuffer, QAbstractVide
 from PyQt5.QtGui import QImage
 from PyQt5.QtCore import QObject, pyqtSignal
 
-from electroncash.i18n import _
-from electroncash.util import print_error
+from electrumabc.i18n import _
+from electrumabc.util import print_error
 
 class QrReaderVideoSurface(QAbstractVideoSurface):
     """

@@ -24,13 +24,13 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from electroncash.i18n import _, ngettext
-import electroncash.web as web
-from electroncash.address import Address
-from electroncash.contacts import Contact, contact_types
-from electroncash.plugins import run_hook
-from electroncash.util import PrintError
-from electroncash.constants import PROJECT_NAME, SCRIPT_NAME
+from electrumabc.i18n import _, ngettext
+import electrumabc.web as web
+from electrumabc.address import Address
+from electrumabc.contacts import Contact, contact_types
+from electrumabc.plugins import run_hook
+from electrumabc.util import PrintError
+from electrumabc.constants import PROJECT_NAME, SCRIPT_NAME
 
 from PyQt5.QtGui import QCursor, QIcon, QFont
 from PyQt5.QtCore import pyqtSignal, Qt

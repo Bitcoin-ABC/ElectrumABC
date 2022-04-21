@@ -3,16 +3,16 @@ from typing import Optional, Sequence
 
 from PyQt5 import QtCore, QtWidgets
 
-from electroncash.address import Address, AddressError
-from electroncash.consolidate import (
+from electroncash_gui.qt.multi_transactions_dialog import MultiTransactionsWidget
+from electrumabc.address import Address, AddressError
+from electrumabc.consolidate import (
     MAX_STANDARD_TX_SIZE,
     MAX_TX_SIZE,
     AddressConsolidator,
 )
-from electroncash.constants import PROJECT_NAME, XEC
-from electroncash.transaction import Transaction
-from electroncash.wallet import Abstract_Wallet
-from electroncash_gui.qt.multi_transactions_dialog import MultiTransactionsWidget
+from electrumabc.constants import PROJECT_NAME, XEC
+from electrumabc.transaction import Transaction
+from electrumabc.wallet import Abstract_Wallet
 
 
 class TransactionsStatus(Enum):

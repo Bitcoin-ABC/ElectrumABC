@@ -27,17 +27,17 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Iterable, Sequence, Optional, Type
 
-from electroncash.plugins import BasePlugin, hook, Device, DeviceInfo, DeviceMgr
-from electroncash.i18n import _, ngettext
-from electroncash import Transaction
-from electroncash.bitcoin import TYPE_SCRIPT
-from electroncash.util import finalization_print_error
-from electroncash.address import OpCodes, Script
+from electrumabc.plugins import BasePlugin, hook, Device, DeviceInfo, DeviceMgr
+from electrumabc.i18n import _, ngettext
+from electrumabc import Transaction
+from electrumabc.bitcoin import TYPE_SCRIPT
+from electrumabc.util import finalization_print_error
+from electrumabc.address import OpCodes, Script
 
 if TYPE_CHECKING:
-    from electroncash.base_wizard import BaseWizard
-    from electroncash.keystore import Hardware_KeyStore
-    from electroncash.wallet import Abstract_Wallet
+    from electrumabc.base_wizard import BaseWizard
+    from electrumabc.keystore import Hardware_KeyStore
+    from electrumabc.wallet import Abstract_Wallet
 
 
 class HW_PluginBase(BasePlugin):

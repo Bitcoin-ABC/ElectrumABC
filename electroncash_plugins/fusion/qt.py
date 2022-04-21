@@ -34,14 +34,14 @@ from PyQt5.QtCore import QMargins, QObject, QPoint, QSize, Qt, QTimer, pyqtSigna
 from PyQt5.QtGui import QCursor, QIcon, QImage, QPainter
 from PyQt5 import QtWidgets
 
-from electroncash import networks
-from electroncash.address import Address
-from electroncash.i18n import _, ngettext, pgettext
-from electroncash.plugins import hook, run_hook
-from electroncash.util import (
+from electrumabc import networks
+from electrumabc.address import Address
+from electrumabc.i18n import _, ngettext, pgettext
+from electrumabc.plugins import hook, run_hook
+from electrumabc.util import (
     do_in_main_thread, finalization_print_error, format_satoshis_plain, InvalidPassword, inv_dict, print_error,
     PrintError, profiler)
-from electroncash.wallet import Abstract_Wallet
+from electrumabc.wallet import Abstract_Wallet
 from electroncash_gui.qt.amountedit import XECAmountEdit
 from electroncash_gui.qt.main_window import ElectrumWindow, StatusBarButton
 from electroncash_gui.qt.popup_widget import ShowPopupLabel, KillPopupLabel

@@ -1,9 +1,9 @@
 import sys
 
-from electroncash.i18n import _
-from electroncash.plugins import run_hook
-from electroncash import util
-from electroncash.qrreaders import get_qr_reader
+from electrumabc.i18n import _
+from electrumabc.plugins import run_hook
+from electrumabc import util
+from electrumabc.qrreaders import get_qr_reader
 
 from PyQt5.QtGui import QIcon, QImage, QPainter, QPixmap
 from PyQt5.QtCore import QPoint, Qt
@@ -143,7 +143,7 @@ class ScanQRTextEdit(_QrCodeTextEdit, MessageBoxMixin):
         from . import ElectrumGui
         if ElectrumGui.instance.warn_if_cant_import_qrreader(self):
             return
-        from electroncash import get_config
+        from electrumabc import get_config
         from .qrreader import QrReaderCameraDialog
         try:
             self.qr_dialog = QrReaderCameraDialog(parent=self.top_level_window())

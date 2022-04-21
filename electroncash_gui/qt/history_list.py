@@ -37,10 +37,10 @@ from .util import (
     rate_limited,
     webopen,
 )
-import electroncash.web as web
-from electroncash.i18n import _
-from electroncash.util import timestamp_to_datetime, profiler, Weak
-from electroncash.plugins import run_hook
+import electrumabc.web as web
+from electrumabc.i18n import _
+from electrumabc.util import timestamp_to_datetime, profiler, Weak
+from electrumabc.plugins import run_hook
 
 
 TX_ICONS = [

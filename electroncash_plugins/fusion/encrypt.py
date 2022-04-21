@@ -52,7 +52,7 @@ except ImportError:
 
 import hashlib, hmac
 import ecdsa
-from electroncash.bitcoin import ser_to_point, point_to_ser
+from electrumabc.bitcoin import ser_to_point, point_to_ser
 
 try:
     hmacdigest = hmac.digest # python 3.7+

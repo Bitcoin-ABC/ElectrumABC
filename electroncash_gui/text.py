@@ -8,12 +8,12 @@ import tty
 
 from decimal import Decimal as PyDecimal
 
-import electroncash
-from electroncash.address import Address
-from electroncash.constants import SCRIPT_NAME
-from electroncash.util import format_satoshis, set_verbosity
-from electroncash.bitcoin import CASH, TYPE_ADDRESS
-from electroncash import Wallet, WalletStorage
+import electrumabc
+from electrumabc.address import Address
+from electrumabc.constants import SCRIPT_NAME
+from electrumabc.util import format_satoshis, set_verbosity
+from electrumabc.bitcoin import CASH, TYPE_ADDRESS
+from electrumabc import Wallet, WalletStorage
 
 _ = lambda x: x
 
@@ -401,7 +401,7 @@ class ElectrumGui:
                         self.show_message("Error:" + server + "\nIn doubt, type \"auto-connect\"")
                         return False
             if out.get('server') or out.get('proxy'):
-                proxy = electroncash.network.deserialize_proxy(out.get('proxy')) if out.get('proxy') else proxy_config
+                proxy = electrumabc.network.deserialize_proxy(out.get('proxy')) if out.get('proxy') else proxy_config
                 self.network.set_parameters(host, port, protocol, proxy, auto_connect)
 
     def settings_dialog(self):

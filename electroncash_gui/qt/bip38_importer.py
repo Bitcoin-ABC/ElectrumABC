@@ -18,10 +18,10 @@ from .util import (
     WindowModalDialog,
 )
 
-from electroncash.i18n import _
-from electroncash import util, bitcoin, address
+from electrumabc.i18n import _
+from electrumabc import util, bitcoin, address
 
-from electroncash.constants import PROJECT_NAME
+from electrumabc.constants import PROJECT_NAME
 
 class Bip38Importer(WindowModalDialog, util.PrintError):
     ''' A drop-in GUI element for implementing a BIP38 import dialog.

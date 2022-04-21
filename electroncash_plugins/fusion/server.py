@@ -37,10 +37,10 @@ import time
 import traceback
 from collections import defaultdict
 
-import electroncash.schnorr as schnorr
-from electroncash.address import Address
-from electroncash import networks
-from electroncash.util import PrintError, ServerError, TimeoutException
+import electrumabc.schnorr as schnorr
+from electrumabc.address import Address
+from electrumabc import networks
+from electrumabc.util import PrintError, ServerError, TimeoutException
 from . import fusion_pb2 as pb
 from . import compatibility
 from .comms import send_pb, recv_pb, ClientHandlerThread, GenericServer, get_current_genesis_hash

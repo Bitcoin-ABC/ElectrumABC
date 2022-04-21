@@ -30,8 +30,8 @@ from abc import ABC, abstractmethod
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt
 
-from electroncash.i18n import _
-from electroncash.qrreaders import QrCodeResult
+from electrumabc.i18n import _
+from electrumabc.qrreaders import QrCodeResult
 
 from electroncash_gui.qt.utils import QColorLerp
 from electroncash_gui.qt.util import ColorScheme

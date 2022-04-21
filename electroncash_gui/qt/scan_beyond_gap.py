@@ -28,8 +28,8 @@ from PyQt5.QtCore import pyqtSignal, QTimer
 from PyQt5 import QtWidgets
 
 from .util import Buttons, WindowModalDialog
-from electroncash.util import PrintError, ServerError
-from electroncash.i18n import _
+from electrumabc.util import PrintError, ServerError
+from electrumabc.i18n import _
 
 
 class ScanBeyondGap(WindowModalDialog, PrintError):

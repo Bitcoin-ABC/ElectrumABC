@@ -10,8 +10,8 @@ from collections import namedtuple
 from functools import partial, wraps
 from locale import atof
 
-from electroncash.util import print_error, PrintError, Weak, finalization_print_error
-from electroncash.wallet import Abstract_Wallet
+from electrumabc.util import print_error, PrintError, Weak, finalization_print_error
+from electrumabc.wallet import Abstract_Wallet
 
 from PyQt5.QtGui import (
     QColor,
@@ -37,7 +37,7 @@ else:
 
 dialogs = []
 
-from electroncash.paymentrequest import PR_UNCONFIRMED, PR_UNPAID, PR_PAID, PR_EXPIRED
+from electrumabc.paymentrequest import PR_UNCONFIRMED, PR_UNPAID, PR_PAID, PR_EXPIRED
 
 pr_icons = {
     PR_UNPAID:":icons/unpaid.svg",
@@ -56,7 +56,7 @@ expiration_values = [
 ]
 
 del _
-from electroncash.i18n import _
+from electrumabc.i18n import _
 
 
 

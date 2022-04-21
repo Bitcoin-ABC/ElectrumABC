@@ -53,13 +53,13 @@ import time
 import requests
 from typing import Tuple, List, Callable
 from enum import IntEnum
-from electroncash import cashacct
-from electroncash import util
-from electroncash import web
-from electroncash.address import Address, UnknownAddress
-from electroncash.i18n import _, ngettext
-from electroncash.wallet import Abstract_Wallet
-from electroncash.constants import PROJECT_NAME
+from electrumabc import cashacct
+from electrumabc import util
+from electrumabc import web
+from electrumabc.address import Address, UnknownAddress
+from electrumabc.i18n import _, ngettext
+from electrumabc.wallet import Abstract_Wallet
+from electrumabc.constants import PROJECT_NAME
 
 
 class VerifyingDialog(WaitingDialog):

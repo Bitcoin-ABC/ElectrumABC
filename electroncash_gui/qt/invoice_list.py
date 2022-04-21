@@ -34,9 +34,9 @@ from .util import (
     pr_icons,
 )
 
-from electroncash.i18n import _
-from electroncash.util import format_time, FileImportFailed
-from electroncash.paymentrequest import pr_tooltips
+from electrumabc.i18n import _
+from electrumabc.util import format_time, FileImportFailed
+from electrumabc.paymentrequest import pr_tooltips
 
 
 class InvoiceList(MyTreeWidget):

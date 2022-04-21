@@ -11,8 +11,8 @@ from PyQt5 import QtCore
 from PyQt5 import QtGui
 from PyQt5 import QtWidgets
 
-from electroncash import util, get_config
-from electroncash.i18n import _
+from electrumabc import util, get_config
+from electrumabc.i18n import _
 from .util import ColorScheme, MONOSPACE_FONT
 
 

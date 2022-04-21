@@ -31,7 +31,7 @@ Compatibility checking.
 # Please avoid introducing local imports here, as in future it would be
 # nice if plugins could check compatibility in the plugins enable/disable menu
 # (i.e. in the __init__.py)
-from electroncash import schnorr
+from electrumabc import schnorr
 from google.protobuf.message import Message
 
 def check():

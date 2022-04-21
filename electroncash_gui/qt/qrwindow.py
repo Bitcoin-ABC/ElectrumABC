@@ -30,9 +30,9 @@ from PyQt5 import QtWidgets
 
 from electroncash_gui.qt.qrcodewidget import QRCodeWidget, save_to_file, copy_to_clipboard
 from .util import WWLabel, Buttons, MessageBoxMixin
-from electroncash.i18n import _
-from electroncash.util import Weak
-from electroncash.constants import PROJECT_NAME
+from electrumabc.i18n import _
+from electrumabc.util import Weak
+from electrumabc.constants import PROJECT_NAME
 
 class QR_Window(QtWidgets.QWidget, MessageBoxMixin):
 

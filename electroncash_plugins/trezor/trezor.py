@@ -3,15 +3,15 @@ from collections import defaultdict
 import traceback
 import sys
 
-from electroncash.util import bfh, bh2u, versiontuple, UserCancelled
-from electroncash.bitcoin import (b58_address_to_hash160, xpub_from_pubkey, deserialize_xpub,
-                                  TYPE_ADDRESS, TYPE_SCRIPT, SignatureType)
-from electroncash.i18n import _
-from electroncash.networks import NetworkConstants
-from electroncash.plugins import BasePlugin, Device
-from electroncash.transaction import deserialize
-from electroncash.keystore import Hardware_KeyStore, is_xpubkey, parse_xpubkey
-from electroncash.address import ScriptOutput
+from electrumabc.util import bfh, bh2u, versiontuple, UserCancelled
+from electrumabc.bitcoin import (b58_address_to_hash160, xpub_from_pubkey, deserialize_xpub,
+                                 TYPE_ADDRESS, TYPE_SCRIPT, SignatureType)
+from electrumabc.i18n import _
+from electrumabc.networks import NetworkConstants
+from electrumabc.plugins import BasePlugin, Device
+from electrumabc.transaction import deserialize
+from electrumabc.keystore import Hardware_KeyStore, is_xpubkey, parse_xpubkey
+from electrumabc.address import ScriptOutput
 
 from ..hw_wallet import HW_PluginBase
 

@@ -35,16 +35,16 @@ from PyQt5.QtCore import QTimer, Qt, QUrl, pyqtSignal
 from PyQt5.QtGui import QBrush, QCursor, QFont, QIcon, QKeySequence, QTextCharFormat
 from PyQt5 import QtWidgets
 
-from electroncash import cashacct
-from electroncash import web
+from electrumabc import cashacct
+from electrumabc import web
 
-from electroncash.address import Address, PublicKey, ScriptOutput
-from electroncash.bitcoin import base_encode
-from electroncash.i18n import _, ngettext
-from electroncash.plugins import run_hook
-from electroncash.transaction import InputValueMissing
+from electrumabc.address import Address, PublicKey, ScriptOutput
+from electrumabc.bitcoin import base_encode
+from electrumabc.i18n import _, ngettext
+from electrumabc.plugins import run_hook
+from electrumabc.transaction import InputValueMissing
 
-from electroncash.util import bfh, Weak, PrintError
+from electrumabc.util import bfh, Weak, PrintError
 from .util import (
     MONOSPACE_FONT,
     Buttons,

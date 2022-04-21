@@ -41,11 +41,11 @@ from .util import (
     rate_limited,
 )
 
-from electroncash.address import Address
-from electroncash.bitcoin import COINBASE_MATURITY
-from electroncash.constants import PROOF_DUST_THRESHOLD
-from electroncash.i18n import _
-from electroncash.plugins import run_hook
+from electrumabc.address import Address
+from electrumabc.bitcoin import COINBASE_MATURITY
+from electrumabc.constants import PROOF_DUST_THRESHOLD
+from electrumabc.i18n import _
+from electrumabc.plugins import run_hook
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QFont

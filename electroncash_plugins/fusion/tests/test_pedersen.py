@@ -10,7 +10,7 @@ if False:
     import os, sys, imp
     sys.path.append(os.path.realpath(os.path.dirname(__file__)+"/../../../"))
 
-    imp.load_module('electroncash', *imp.find_module('lib'))
+    imp.load_module('electrumabc', *imp.find_module('lib'))
     imp.load_module('electroncash_gui', *imp.find_module('gui/qt'))
     imp.load_module('electroncash_plugins', *imp.find_module('plugins'))
 

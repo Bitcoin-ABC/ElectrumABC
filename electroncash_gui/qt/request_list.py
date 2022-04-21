@@ -24,11 +24,11 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from electroncash.address import Address
-from electroncash.i18n import _
-from electroncash.util import format_time, age
-from electroncash.plugins import run_hook
-from electroncash.paymentrequest import pr_tooltips, PR_UNKNOWN
+from electrumabc.address import Address
+from electrumabc.i18n import _
+from electrumabc.util import format_time, age
+from electrumabc.plugins import run_hook
+from electrumabc.paymentrequest import pr_tooltips, PR_UNKNOWN
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5 import QtWidgets

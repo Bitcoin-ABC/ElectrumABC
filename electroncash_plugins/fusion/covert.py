@@ -45,7 +45,7 @@ import threading
 import time
 from collections import deque
 
-from electroncash.util import PrintError
+from electrumabc.util import PrintError
 from .comms import send_pb, recv_pb, pb, FusionError
 from .connection import open_connection
 
@@ -65,7 +65,7 @@ def is_tor_port(host, port):
     try:
         socketclass = socket.socket
         try:
-            # socket.socket could be monkeypatched (see electroncash/network.py),
+            # socket.socket could be monkeypatched (see electrumabc/network.py),
             # in which case we need to get the real one.
             socketclass = socket._socketobject
         except AttributeError:

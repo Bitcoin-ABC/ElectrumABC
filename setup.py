@@ -25,10 +25,10 @@ with open('contrib/requirements/requirements-binaries.txt') as f:
 
 # We use this convoluted way of importing version.py and constants.py
 # because the setup.py scripts tends to be called with python option
-# -O, which is not allowed for electroncash (see comment in module
-# electroncash/bitcoin.py). A regular import would trigger this issue.
+# -O, which is not allowed for electrumabc (see comment in module
+# electrumabc/bitcoin.py). A regular import would trigger this issue.
 dirname = os.path.dirname(os.path.abspath(__file__))
-ec_package_dirname = os.path.join(dirname, "electroncash")
+ec_package_dirname = os.path.join(dirname, "electrumabc")
 sys.path.insert(0, ec_package_dirname)
 
 
@@ -176,12 +176,12 @@ setup(
         'all': requirements_hw + requirements_binaries
     },
     packages=[
-        'electroncash',
-        'electroncash.avalanche',
-        'electroncash.qrreaders',
-        'electroncash.slp',
-        'electroncash.tor',
-        'electroncash.utils',
+        'electrumabc',
+        'electrumabc.avalanche',
+        'electrumabc.qrreaders',
+        'electrumabc.slp',
+        'electrumabc.tor',
+        'electrumabc.utils',
         'electroncash_gui',
         'electroncash_gui.qt',
         'electroncash_gui.qt.qrreader',
@@ -202,7 +202,7 @@ setup(
         'electroncash_plugins.fusion',
     ],
     package_data={
-        'electroncash': [
+        'electrumabc': [
             'servers.json',
             'servers_testnet.json',
             'currencies.json',

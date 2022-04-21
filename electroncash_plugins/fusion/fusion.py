@@ -30,12 +30,12 @@ Client-side fusion logic. See `class Fusion` for the main exposed API.
 This module has no GUI dependency.
 """
 
-from electroncash import schnorr
-from electroncash.bitcoin import public_key_from_private_key
-from electroncash.constants import XEC
-from electroncash.i18n import _, ngettext, pgettext
-from electroncash.util import format_satoshis, do_in_main_thread, PrintError, ServerError, TxHashMismatch, TimeoutException
-from electroncash.wallet import Standard_Wallet, Multisig_Wallet
+from electrumabc import schnorr
+from electrumabc.bitcoin import public_key_from_private_key
+from electrumabc.constants import XEC
+from electrumabc.i18n import _, ngettext, pgettext
+from electrumabc.util import format_satoshis, do_in_main_thread, PrintError, ServerError, TxHashMismatch, TimeoutException
+from electrumabc.wallet import Standard_Wallet, Multisig_Wallet
 
 from . import encrypt
 from . import fusion_pb2 as pb

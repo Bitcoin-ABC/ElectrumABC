@@ -34,12 +34,12 @@ import http.client
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5 import QtWidgets
 
-from electroncash import bitcoin, util, keystore
-from electroncash import transaction
-from electroncash.plugins import BasePlugin, hook
-from electroncash.i18n import _
-from electroncash.wallet import Multisig_Wallet
-from electroncash.util import bh2u, bfh, Weak, InvalidPassword, print_error
+from electrumabc import bitcoin, util, keystore
+from electrumabc import transaction
+from electrumabc.plugins import BasePlugin, hook
+from electrumabc.i18n import _
+from electrumabc.wallet import Multisig_Wallet
+from electrumabc.util import bh2u, bfh, Weak, InvalidPassword, print_error
 
 from electroncash_gui.qt.transaction_dialog import show_transaction, TxDialog
 
@@ -280,7 +280,7 @@ class Plugin(BasePlugin):
         return None, None
 
     def cosigner_can_sign(self, tx, cosigner_xpub):
-        from electroncash.keystore import is_xpubkey, parse_xpubkey
+        from electrumabc.keystore import is_xpubkey, parse_xpubkey
         xpub_set = set([])
         for txin in tx.inputs():
             for x_pubkey in txin['x_pubkeys']:

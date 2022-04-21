@@ -52,30 +52,30 @@ from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
 from functools import partial
 from typing import List, Optional
 
-import electroncash.constants
-import electroncash.web as web
-from electroncash import keystore, get_config
-from electroncash import networks
-from electroncash import paymentrequest
-from electroncash import util, bitcoin, commands, cashacct
-from electroncash.address import Address
-from electroncash.bitcoin import TYPE_ADDRESS
-from electroncash.constants import PROJECT_NAME, REPOSITORY_URL, CURRENCY, SCRIPT_NAME
-from electroncash.contacts import Contact
-from electroncash.i18n import _, ngettext, pgettext
-from electroncash.plugins import run_hook
-from electroncash.transaction import (
+import electrumabc.constants
+import electrumabc.web as web
+from electrumabc import keystore, get_config
+from electrumabc import networks
+from electrumabc import paymentrequest
+from electrumabc import util, bitcoin, commands, cashacct
+from electrumabc.address import Address
+from electrumabc.bitcoin import TYPE_ADDRESS
+from electrumabc.constants import PROJECT_NAME, REPOSITORY_URL, CURRENCY, SCRIPT_NAME
+from electrumabc.contacts import Contact
+from electrumabc.i18n import _, ngettext, pgettext
+from electrumabc.plugins import run_hook
+from electrumabc.transaction import (
     OPReturn,
     SerializationError,
     Transaction,
     tx_from_str,
 )
-from electroncash.util import (format_time, format_satoshis, PrintError,
-                               format_satoshis_plain, NotEnoughFunds,
-                               ExcessiveFee, UserCancelled, InvalidPassword,
-                               bh2u, bfh, format_fee_satoshis, Weak,
-                               print_error)
-from electroncash.wallet import Abstract_Wallet, Multisig_Wallet, sweep_preparations
+from electrumabc.util import (format_time, format_satoshis, PrintError,
+                              format_satoshis_plain, NotEnoughFunds,
+                              ExcessiveFee, UserCancelled, InvalidPassword,
+                              bh2u, bfh, format_fee_satoshis, Weak,
+                              print_error)
+from electrumabc.wallet import Abstract_Wallet, Multisig_Wallet, sweep_preparations
 
 
 from .amountedit import AmountEdit, XECAmountEdit, MyLineEdit, XECSatsByteEdit
@@ -153,7 +153,7 @@ class StatusBarButton(QtWidgets.QPushButton):
             super().keyPressEvent(e)
 
 
-from electroncash.paymentrequest import PR_PAID
+from electrumabc.paymentrequest import PR_PAID
 
 
 def windows_qt_use_freetype(config):
@@ -564,7 +564,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         xkey = ((hasattr(self.wallet, 'get_master_public_key') and self.wallet.get_master_public_key())
                 or None)
         if xkey:
-            from electroncash.bitcoin import deserialize_xpub, InvalidXKeyFormat, InvalidXKeyNotBase58
+            from electrumabc.bitcoin import deserialize_xpub, InvalidXKeyFormat, InvalidXKeyNotBase58
             try:
                 xp = deserialize_xpub(xkey)
             except InvalidXKeyNotBase58:
@@ -945,8 +945,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         return self.decimal_point
 
     def base_unit(self):
-        if self.decimal_point in electroncash.constants.BASE_UNITS_BY_DECIMALS:
-            return electroncash.constants.BASE_UNITS_BY_DECIMALS[self.decimal_point]
+        if self.decimal_point in electrumabc.constants.BASE_UNITS_BY_DECIMALS:
+            return electrumabc.constants.BASE_UNITS_BY_DECIMALS[self.decimal_point]
         raise Exception('Unknown base unit')
 
     def connect_fields(self, window, btc_e, fiat_e, fee_e):
@@ -3042,7 +3042,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.preview_button.setVisible(True)
 
     def change_password_dialog(self):
-        from electroncash.storage import STO_EV_XPUB_PW
+        from electrumabc.storage import STO_EV_XPUB_PW
         if self.wallet.get_available_storage_encryption_version() == STO_EV_XPUB_PW:
             from .password_dialog import ChangePasswordDialogForHW
             d = ChangePasswordDialogForHW(self, self.wallet)
@@ -3410,7 +3410,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             return
         if self.gui_object.warn_if_cant_import_qrreader(self):
             return
-        from electroncash import get_config
+        from electrumabc import get_config
         from .qrreader import QrReaderCameraDialog
         data = ''
         self._qr_dialog = None
@@ -4162,7 +4162,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         lang_help = _('Select which language is used in the GUI (after restart).')
         lang_label = HelpLabel(_('Language') + ':', lang_help)
         lang_combo = QtWidgets.QComboBox()
-        from electroncash.i18n import languages, get_system_language_match, match_language
+        from electrumabc.i18n import languages, get_system_language_match, match_language
 
         language_names = []
         language_keys = []
@@ -4332,8 +4332,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         misc_widgets.append((cr_gb, None))  # commit crash reporter gb to layout
 
         units_for_menu = tuple(u.name_for_selection_menu for
-                               u in electroncash.constants.BASE_UNITS)
-        unit_names = tuple(u.ticker for u in electroncash.constants.BASE_UNITS)
+                               u in electrumabc.constants.BASE_UNITS)
+        unit_names = tuple(u.ticker for u in electrumabc.constants.BASE_UNITS)
         msg = _('Base unit of your wallet.')\
               + '\n1 MegaXEC = 1 BCHA = 1,000,000 XEC.\n' \
               + _(' These settings affects the fields in the Send tab')+' '
@@ -4348,7 +4348,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 return
             edits = self.amount_e, self.fee_e, self.receive_amount_e
             amounts = [edit.get_amount() for edit in edits]
-            dp = electroncash.constants.BASE_UNITS[unit_index].decimals
+            dp = electrumabc.constants.BASE_UNITS[unit_index].decimals
             if dp is not None:
                 self.decimal_point = dp
             else:

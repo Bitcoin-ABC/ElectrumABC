@@ -41,8 +41,8 @@ from google.protobuf.message import DecodeError
 
 from weakref import WeakSet
 
-from electroncash import networks
-from electroncash.util import PrintError
+from electrumabc import networks
+from electrumabc.util import PrintError
 
 # Make a small patch to the generated protobuf:
 # We have some "outer" message types that simply contain a "oneof", with various

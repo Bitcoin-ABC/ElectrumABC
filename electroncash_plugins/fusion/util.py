@@ -28,9 +28,9 @@
 Some pieces of fusion that can be reused in the server.
 """
 
-from electroncash.transaction import Transaction, get_address_from_output_script
-from electroncash.address import Address, ScriptOutput, OpCodes
-from electroncash.bitcoin import TYPE_SCRIPT, TYPE_ADDRESS, hash_160
+from electrumabc.transaction import Transaction, get_address_from_output_script
+from electrumabc.address import Address, ScriptOutput, OpCodes
+from electrumabc.bitcoin import TYPE_SCRIPT, TYPE_ADDRESS, hash_160
 
 from . import fusion_pb2 as pb
 from .protocol import Protocol

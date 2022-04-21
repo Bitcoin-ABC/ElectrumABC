@@ -3,7 +3,7 @@ import shutil
 import tempfile
 import unittest
 
-from electroncash.migrate_data import migrate_data_from_ec
+from electrumabc.migrate_data import migrate_data_from_ec
 
 
 def create_blank_file(filename: str):

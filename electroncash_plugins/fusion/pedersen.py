@@ -43,9 +43,9 @@ amount is sensible.
 
 """
 
-from electroncash import secp256k1
+from electrumabc import secp256k1
 import ecdsa
-from electroncash.bitcoin import ser_to_point, point_to_ser
+from electrumabc.bitcoin import ser_to_point, point_to_ser
 from ctypes import create_string_buffer, c_void_p, c_char_p, c_int, c_size_t, byref, cast
 
 order = ecdsa.SECP256k1.generator.order()

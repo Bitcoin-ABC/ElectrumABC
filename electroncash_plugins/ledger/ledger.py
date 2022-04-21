@@ -6,19 +6,19 @@ import traceback
 from typing import Optional, Tuple
 import inspect
 
-from electroncash import bitcoin
-from electroncash.address import Address
-from electroncash.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, int_to_hex, var_int, SignatureType
-from electroncash.i18n import _
-from electroncash.keystore import Hardware_KeyStore
-from electroncash.plugins import Device
-from electroncash.transaction import Transaction
+from electrumabc import bitcoin
+from electrumabc.address import Address
+from electrumabc.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, int_to_hex, var_int, SignatureType
+from electrumabc.i18n import _
+from electrumabc.keystore import Hardware_KeyStore
+from electrumabc.plugins import Device
+from electrumabc.transaction import Transaction
 from electroncash_plugins.hw_wallet import HW_PluginBase, HardwareClientBase
 from electroncash_plugins.hw_wallet.plugin import (
     is_any_tx_output_on_change_branch,
     validate_op_return_output_and_get_data,
 )
-from electroncash.util import print_error, is_verbose, bfh, bh2u, versiontuple
+from electrumabc.util import print_error, is_verbose, bfh, bh2u, versiontuple
 
 try:
     import hid

@@ -1,9 +1,9 @@
 from PyQt5 import QtWidgets
 
-from electroncash.i18n import _
-from electroncash.util import print_error
-from electroncash.address import Address
-from electroncash import networks
+from electrumabc.i18n import _
+from electrumabc.util import print_error
+from electrumabc.address import Address
+from electrumabc import networks
 
 from electroncash_gui.qt.util import PasswordLineEdit
 

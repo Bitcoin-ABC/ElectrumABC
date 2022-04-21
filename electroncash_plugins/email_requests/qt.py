@@ -40,12 +40,12 @@ from email.encoders import encode_base64
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5 import QtWidgets
 
-from electroncash.plugins import BasePlugin, hook
-from electroncash.paymentrequest import PaymentRequest
-from electroncash.i18n import _
+from electrumabc.plugins import BasePlugin, hook
+from electrumabc.paymentrequest import PaymentRequest
+from electrumabc.i18n import _
 from electroncash_gui.qt.util import EnterButton, Buttons, CloseButton
 from electroncash_gui.qt.util import OkButton, WindowModalDialog
-from electroncash.util import Weak, PrintError
+from electrumabc.util import Weak, PrintError
 
 
 class Processor(threading.Thread, PrintError):
@@ -187,7 +187,7 @@ class Plugin(BasePlugin):
         if not self.processor:
             window.show_warning(_('The email plugin is enabled but not configured. Please go to its settings and configure it, or disable it if you do not wish to use it.'))
             return
-        from electroncash import paymentrequest
+        from electrumabc import paymentrequest
         r = window.wallet.receive_requests.get(addr)
         message = r.get('memo', '')
         try:

@@ -24,9 +24,9 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from electroncash.i18n import _
-from electroncash.address import Address
-from electroncash.util import PrintError
+from electrumabc.i18n import _
+from electrumabc.address import Address
+from electrumabc.util import PrintError
 
 from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QCursor

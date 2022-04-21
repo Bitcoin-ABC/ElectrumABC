@@ -1,5 +1,5 @@
-from electroncash.i18n import _
-from electroncash.util import print_error
+from electrumabc.i18n import _
+from electrumabc.util import print_error
 from electroncash_gui.qt.util import (
     EnterButton,
     Buttons,

@@ -3,13 +3,13 @@ from functools import partial
 from PyQt5.QtCore import QObject, Qt, pyqtSignal
 from PyQt5 import QtWidgets
 
-from electroncash.constants import PROJECT_NAME
-from electroncash.plugins import hook
-from electroncash.i18n import _
+from electrumabc.constants import PROJECT_NAME
+from electrumabc.plugins import hook
+from electrumabc.i18n import _
 from electroncash_gui.qt.main_window import ElectrumWindow
 from electroncash_gui.qt.util import EnterButton, ThreadedButton, Buttons
 from electroncash_gui.qt.util import WindowModalDialog, OkButton, WaitingDialog
-from electroncash.util import Weak
+from electrumabc.util import Weak
 
 from .labels import LabelsPlugin
 

@@ -1,10 +1,10 @@
 import time
 from struct import pack
 
-from electroncash.i18n import _
-from electroncash.util import PrintError, UserCancelled
-from electroncash.keystore import bip39_normalize_passphrase
-from electroncash.bitcoin import serialize_xpub
+from electrumabc.i18n import _
+from electrumabc.util import PrintError, UserCancelled
+from electrumabc.keystore import bip39_normalize_passphrase
+from electrumabc.bitcoin import serialize_xpub
 
 from trezorlib.client import TrezorClient, PASSPHRASE_ON_DEVICE
 from trezorlib.exceptions import TrezorFailure, Cancelled, OutdatedFirmwareError, TrezorException

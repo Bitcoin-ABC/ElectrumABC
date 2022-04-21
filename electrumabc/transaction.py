@@ -1351,7 +1351,7 @@ def tx_from_str(txt):
 # ---
 class OPReturn:
     ''' OPReturn helper namespace. Used by GUI main_window.py and also
-    electroncash/commands.py '''
+    electrumabc/commands.py '''
     class Error(Exception):
         """ thrown when the OP_RETURN for a tx not of the right format """
 

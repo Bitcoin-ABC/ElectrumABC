@@ -6,20 +6,20 @@ import logging
 
 import mnemonic
 
-#electroncash
-from electroncash import networks
-from electroncash.bitcoin import var_int
-from electroncash.constants import PROJECT_NAME
-from electroncash.i18n import _
-from electroncash.plugins import Device
-from electroncash.keystore import Hardware_KeyStore
-from electroncash.transaction import Transaction
-from electroncash.wallet import Standard_Wallet
-from electroncash.util import print_error, bfh, bh2u, PrintError, is_verbose
-from electroncash.bitcoin import hash_160, Hash, SignatureType
-from electroncash.mnemo import (
+#electrumabc
+from electrumabc import networks
+from electrumabc.bitcoin import var_int
+from electrumabc.constants import PROJECT_NAME
+from electrumabc.i18n import _
+from electrumabc.plugins import Device
+from electrumabc.keystore import Hardware_KeyStore
+from electrumabc.transaction import Transaction
+from electrumabc.wallet import Standard_Wallet
+from electrumabc.util import print_error, bfh, bh2u, PrintError, is_verbose
+from electrumabc.bitcoin import hash_160, Hash, SignatureType
+from electrumabc.mnemo import (
     Mnemonic_Electrum, seed_type_name, is_seed, bip39_mnemonic_to_seed)
-from electroncash.bitcoin import serialize_xpub
+from electrumabc.bitcoin import serialize_xpub
 from electroncash_gui.qt.qrcodewidget import QRDialog
 
 from ..hw_wallet.plugin import HW_PluginBase, HardwareClientBase

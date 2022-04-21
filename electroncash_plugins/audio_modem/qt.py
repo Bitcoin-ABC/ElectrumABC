@@ -5,10 +5,10 @@ from io import BytesIO
 import sys
 import platform
 
-from electroncash.plugins import BasePlugin, hook
+from electrumabc.plugins import BasePlugin, hook
 from electroncash_gui.qt.util import WaitingDialog, EnterButton, WindowModalDialog
-from electroncash.util import print_msg, print_error
-from electroncash.i18n import _
+from electrumabc.util import print_msg, print_error
+from electrumabc.i18n import _
 
 from PyQt5.QtGui import QIcon
 from PyQt5 import QtWidgets

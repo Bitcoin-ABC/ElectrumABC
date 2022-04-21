@@ -5,8 +5,8 @@ from PyQt5 import QtWidgets
 
 import qrcode
 
-from electroncash import util
-from electroncash.i18n import _
+from electrumabc import util
+from electrumabc.i18n import _
 from electroncash_gui.qt.util import (
     WindowModalDialog,
     MessageBoxMixin,

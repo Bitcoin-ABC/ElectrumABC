@@ -32,12 +32,12 @@ from .qrtextedit import ScanQRTextEdit
 import re
 import sys
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
-from electroncash import bitcoin
-from electroncash.address import Address, AddressError, ScriptOutput
-from electroncash import networks
-from electroncash.util import PrintError
-from electroncash.contacts import Contact
-from electroncash import web
+from electrumabc import bitcoin
+from electrumabc.address import Address, AddressError, ScriptOutput
+from electrumabc import networks
+from electrumabc.util import PrintError
+from electrumabc.contacts import Contact
+from electrumabc import web
 
 from . import util
 from . import cashacctqt

@@ -8,9 +8,9 @@ from PyQt5 import QtWidgets
 from electroncash_gui.qt.util import (WindowModalDialog, WWLabel, Buttons, CancelButton,
                                       OkButton, CloseButton)
 
-from electroncash.constants import PROJECT_NAME
-from electroncash.util import _, bh2u
-from electroncash.plugins import hook
+from electrumabc.constants import PROJECT_NAME
+from electrumabc.util import _, bh2u
+from electrumabc.plugins import hook
 
 from ..hw_wallet.qt import QtHandlerBase, QtPluginBase
 from ..hw_wallet.plugin import only_hook_if_libraries_available
@@ -251,7 +251,7 @@ class QtPlugin(QtPluginBase):
             else:
                 msg = _("Enter the master private key beginning with xprv:")
                 def set_enabled():
-                    from electroncash.bitcoin import is_xprv
+                    from electrumabc.bitcoin import is_xprv
                     wizard.next_button.setEnabled(is_xprv(clean_text(text)))
                 text.textChanged.connect(set_enabled)
                 next_enabled = False

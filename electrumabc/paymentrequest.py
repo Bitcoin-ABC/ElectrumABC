@@ -39,7 +39,7 @@ from collections import namedtuple
 try:
     from . import paymentrequest_pb2 as pb2
 except ImportError:
-    sys.exit("Error: could not find paymentrequest_pb2.py. Create it with 'protoc --proto_path=electroncash/ --python_out=electroncash/ electroncash/paymentrequest.proto'")
+    sys.exit("Error: could not find paymentrequest_pb2.py. Create it with 'protoc --proto_path=electrumabc/ --python_out=electrumabc/ electrumabc/paymentrequest.proto'")
 
 from . import bitcoin
 from . import util

@@ -31,9 +31,9 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5 import QtWidgets
 
-from electroncash.i18n import _
+from electrumabc.i18n import _
 
-from electroncash.plugins import run_hook
+from electrumabc.plugins import run_hook
 
 from electroncash_gui.qt.util import (
     WindowModalDialog,

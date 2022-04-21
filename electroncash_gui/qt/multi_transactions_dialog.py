@@ -4,11 +4,11 @@ from typing import Sequence
 
 from PyQt5 import QtGui, QtWidgets
 
-from electroncash import transaction
-from electroncash.bitcoin import sha256
-from electroncash.constants import XEC
-from electroncash.wallet import Abstract_Wallet
 from electroncash_gui.qt.util import MessageBoxMixin
+from electrumabc import transaction
+from electrumabc.bitcoin import sha256
+from electrumabc.constants import XEC
+from electrumabc.wallet import Abstract_Wallet
 
 
 class MultiTransactionsWidget(QtWidgets.QWidget, MessageBoxMixin):

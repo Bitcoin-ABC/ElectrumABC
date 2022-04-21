@@ -4,24 +4,24 @@ from typing import TYPE_CHECKING, List, Optional
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from electroncash.address import Address, AddressError
-from electroncash.avalanche.delegation import (
+from electrumabc.address import Address, AddressError
+from electrumabc.avalanche.delegation import (
     Delegation,
     DelegationBuilder,
     WrongDelegatorKeyError,
 )
-from electroncash.avalanche.primitives import Key, PublicKey
-from electroncash.avalanche.proof import LimitedProofId, Proof, ProofBuilder
-from electroncash.avalanche.serialize import DeserializationError
-from electroncash.bitcoin import is_private_key
-from electroncash.constants import PROOF_DUST_THRESHOLD
-from electroncash.i18n import _
-from electroncash.uint256 import UInt256
+from electrumabc.avalanche.primitives import Key, PublicKey
+from electrumabc.avalanche.proof import LimitedProofId, Proof, ProofBuilder
+from electrumabc.avalanche.serialize import DeserializationError
+from electrumabc.bitcoin import is_private_key
+from electrumabc.constants import PROOF_DUST_THRESHOLD
+from electrumabc.i18n import _
+from electrumabc.uint256 import UInt256
 
 from .password_dialog import PasswordDialog
 
 if TYPE_CHECKING:
-    from electroncash.wallet import Deterministic_Wallet
+    from electrumabc.wallet import Deterministic_Wallet
 
 
 class Link(QtWidgets.QPushButton):

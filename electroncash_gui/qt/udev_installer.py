@@ -33,10 +33,10 @@ import grp
 from PyQt5.QtCore import Qt
 from PyQt5 import QtWidgets
 
-from electroncash.util import _, PrintError
-from electroncash.plugins import Plugins
+from electrumabc.util import _, PrintError
+from electrumabc.plugins import Plugins
 from electroncash_gui.qt.util import WindowModalDialog
-from electroncash.constants import PROJECT_NAME
+from electrumabc.constants import PROJECT_NAME
 
 
 class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):

@@ -35,10 +35,10 @@ from PyQt5 import QtWidgets
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QSize, QRect, Qt, pyqtSignal, PYQT_VERSION
 
-from electroncash import get_config
-from electroncash.i18n import _
-from electroncash.util import print_error, PrintError
-from electroncash.qrreaders import get_qr_reader, QrCodeResult
+from electrumabc import get_config
+from electrumabc.i18n import _
+from electrumabc.util import print_error, PrintError
+from electrumabc.qrreaders import get_qr_reader, QrCodeResult
 
 from electroncash_gui.qt.utils import FixedAspectRatioLayout, ImageGraphicsEffect
 

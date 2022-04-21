@@ -1,5 +1,5 @@
-from electroncash.i18n import _
-from electroncash.constants import PROJECT_NAME
+from electrumabc.i18n import _
+from electrumabc.constants import PROJECT_NAME
 
 fullname = _('LabelSync')
 description = [

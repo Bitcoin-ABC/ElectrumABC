@@ -47,8 +47,8 @@ from electroncash_gui.qt.util import (
     char_width_in_lineedit,
 )
 
-from electroncash.i18n import _
-from electroncash.util import PrintError
+from electrumabc.i18n import _
+from electrumabc.util import PrintError
 
 from.plugin import HW_PluginBase, HardwareHandlerBase
 
@@ -212,8 +212,8 @@ class QtHandlerBase(HardwareHandlerBase, QObject, PrintError):
 
 
 import sys, queue
-from electroncash.plugins import hook
-from electroncash.util import UserCancelled
+from electrumabc.plugins import hook
+from electrumabc.util import UserCancelled
 from electroncash_gui.qt.main_window import StatusBarButton
 
 class ThreadJob_TaskThread_Facade(TaskThread):
