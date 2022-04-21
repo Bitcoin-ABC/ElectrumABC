@@ -41,7 +41,7 @@ from electrumabc.i18n import _
 from electrumabc.wallet import Multisig_Wallet
 from electrumabc.util import bh2u, bfh, Weak, InvalidPassword, print_error
 
-from electroncash_gui.qt.transaction_dialog import show_transaction, TxDialog
+from electrumabc_gui.qt.transaction_dialog import show_transaction, TxDialog
 
 # Workarounds to the fact that xmlrpc.client doesn't take a timeout= arg.
 class TimeoutTransport(Transport):

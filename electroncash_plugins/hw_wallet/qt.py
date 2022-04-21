@@ -33,10 +33,10 @@ from typing import TYPE_CHECKING, Union, Optional, Callable, Any
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtGui import QIcon
 from PyQt5 import QtWidgets
-from electroncash_gui.qt.installwizard import InstallWizard
-from electroncash_gui.qt.main_window import ElectrumWindow
-from electroncash_gui.qt.password_dialog import PasswordLayout, PW_PASSPHRASE
-from electroncash_gui.qt.util import (
+from electrumabc_gui.qt.installwizard import InstallWizard
+from electrumabc_gui.qt.main_window import ElectrumWindow
+from electrumabc_gui.qt.password_dialog import PasswordLayout, PW_PASSPHRASE
+from electrumabc_gui.qt.util import (
     Buttons,
     CancelButton,
     OkButton,
@@ -53,8 +53,8 @@ from electrumabc.util import PrintError
 from.plugin import HW_PluginBase, HardwareHandlerBase
 
 if TYPE_CHECKING:
-    from electroncash.wallet import Abstract_Wallet
-    from electroncash.keystore import Hardware_KeyStore
+    from electrumabc.wallet import Abstract_Wallet
+    from electrumabc.keystore import Hardware_KeyStore
 
 
 # The trickiest thing about this handler was getting windows properly
@@ -214,7 +214,7 @@ class QtHandlerBase(HardwareHandlerBase, QObject, PrintError):
 import sys, queue
 from electrumabc.plugins import hook
 from electrumabc.util import UserCancelled
-from electroncash_gui.qt.main_window import StatusBarButton
+from electrumabc_gui.qt.main_window import StatusBarButton
 
 class ThreadJob_TaskThread_Facade(TaskThread):
     ''' This class is really a ThreadJob intended to mimic the TaskThread's

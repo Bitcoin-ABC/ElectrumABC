@@ -7,7 +7,7 @@ import qrcode
 
 from electrumabc import util
 from electrumabc.i18n import _
-from electroncash_gui.qt.util import (
+from electrumabc_gui.qt.util import (
     WindowModalDialog,
     MessageBoxMixin,
     CloseButton,
@@ -101,7 +101,7 @@ class QRCodeWidget(QtWidgets.QWidget, util.PrintError):
 
 
 def save_to_file(qrw, parent):
-    from electroncash_gui.qt.main_window import ElectrumWindow
+    from electrumabc_gui.qt.main_window import ElectrumWindow
     p = qrw and qrw.grab()
     if p and not p.isNull():
         filename = ElectrumWindow.static_getSaveFileName(title=_("Save QR Image"), filename="qrcode.png", parent=parent, filter="*.png")

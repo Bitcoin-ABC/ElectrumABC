@@ -4,7 +4,7 @@ from typing import Sequence
 
 from PyQt5 import QtGui, QtWidgets
 
-from electroncash_gui.qt.util import MessageBoxMixin
+from electrumabc_gui.qt.util import MessageBoxMixin
 from electrumabc import transaction
 from electrumabc.bitcoin import sha256
 from electrumabc.constants import XEC

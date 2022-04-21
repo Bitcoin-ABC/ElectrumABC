@@ -33,8 +33,8 @@ from PyQt5.QtCore import Qt
 from electrumabc.i18n import _
 from electrumabc.qrreaders import QrCodeResult
 
-from electroncash_gui.qt.utils import QColorLerp
-from electroncash_gui.qt.util import ColorScheme
+from electrumabc_gui.qt.utils import QColorLerp
+from electrumabc_gui.qt.util import ColorScheme
 
 class QrReaderValidatorResult():
     """

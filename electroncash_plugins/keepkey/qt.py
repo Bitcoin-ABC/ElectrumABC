@@ -5,8 +5,8 @@ from PyQt5.QtCore import Qt, QEventLoop, pyqtSignal, QRegExp
 from PyQt5.QtGui import QRegExpValidator
 from PyQt5 import QtWidgets
 
-from electroncash_gui.qt.util import (WindowModalDialog, WWLabel, Buttons, CancelButton,
-                                      OkButton, CloseButton)
+from electrumabc_gui.qt.util import (WindowModalDialog, WWLabel, Buttons, CancelButton,
+                                     OkButton, CloseButton)
 
 from electrumabc.constants import PROJECT_NAME
 from electrumabc.util import _, bh2u

@@ -35,7 +35,7 @@ from electrumabc.i18n import _
 
 from electrumabc.plugins import run_hook
 
-from electroncash_gui.qt.util import (
+from electrumabc_gui.qt.util import (
     WindowModalDialog,
     OkButton,
     Buttons,

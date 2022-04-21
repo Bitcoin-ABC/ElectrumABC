@@ -6,9 +6,9 @@ from PyQt5 import QtWidgets
 from electrumabc.constants import PROJECT_NAME
 from electrumabc.plugins import hook
 from electrumabc.i18n import _
-from electroncash_gui.qt.main_window import ElectrumWindow
-from electroncash_gui.qt.util import EnterButton, ThreadedButton, Buttons
-from electroncash_gui.qt.util import WindowModalDialog, OkButton, WaitingDialog
+from electrumabc_gui.qt.main_window import ElectrumWindow
+from electrumabc_gui.qt.util import EnterButton, ThreadedButton, Buttons
+from electrumabc_gui.qt.util import WindowModalDialog, OkButton, WaitingDialog
 from electrumabc.util import Weak
 
 from .labels import LabelsPlugin

@@ -40,7 +40,7 @@ from electrumabc.i18n import _
 from electrumabc.util import print_error, PrintError
 from electrumabc.qrreaders import get_qr_reader, QrCodeResult
 
-from electroncash_gui.qt.utils import FixedAspectRatioLayout, ImageGraphicsEffect
+from electrumabc_gui.qt.utils import FixedAspectRatioLayout, ImageGraphicsEffect
 
 from .video_widget import QrReaderVideoWidget
 from .video_overlay import QrReaderVideoOverlay

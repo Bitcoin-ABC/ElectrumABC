@@ -20,7 +20,7 @@ from electrumabc.bitcoin import hash_160, Hash, SignatureType
 from electrumabc.mnemo import (
     Mnemonic_Electrum, seed_type_name, is_seed, bip39_mnemonic_to_seed)
 from electrumabc.bitcoin import serialize_xpub
-from electroncash_gui.qt.qrcodewidget import QRDialog
+from electrumabc_gui.qt.qrcodewidget import QRDialog
 
 from ..hw_wallet.plugin import HW_PluginBase, HardwareClientBase
 

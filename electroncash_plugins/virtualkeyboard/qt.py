@@ -2,7 +2,7 @@ from PyQt5.QtGui import QFont
 from PyQt5 import QtWidgets
 from electrumabc.plugins import BasePlugin, hook
 from electrumabc.i18n import _
-from electroncash_gui.qt.util import MONOSPACE_FONT
+from electrumabc_gui.qt.util import MONOSPACE_FONT
 import random
 
 

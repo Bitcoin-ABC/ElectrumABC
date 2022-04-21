@@ -43,8 +43,8 @@ from PyQt5 import QtWidgets
 from electrumabc.plugins import BasePlugin, hook
 from electrumabc.paymentrequest import PaymentRequest
 from electrumabc.i18n import _
-from electroncash_gui.qt.util import EnterButton, Buttons, CloseButton
-from electroncash_gui.qt.util import OkButton, WindowModalDialog
+from electrumabc_gui.qt.util import EnterButton, Buttons, CloseButton
+from electrumabc_gui.qt.util import OkButton, WindowModalDialog
 from electrumabc.util import Weak, PrintError
 
 

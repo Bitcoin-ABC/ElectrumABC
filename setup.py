@@ -150,7 +150,7 @@ platform_package_data = {}
 
 if sys.platform in ('linux'):
     platform_package_data = {
-        'electroncash_gui.qt': [
+        'electrumabc_gui.qt': [
             'data/ecsupplemental_lnx.ttf',
             'data/fonts.xml'
         ],
@@ -158,7 +158,7 @@ if sys.platform in ('linux'):
 
 if sys.platform in ('win32', 'cygwin'):
     platform_package_data = {
-        'electroncash_gui.qt': [
+        'electrumabc_gui.qt': [
             'data/ecsupplemental_win.ttf'
         ],
     }
@@ -182,11 +182,11 @@ setup(
         'electrumabc.slp',
         'electrumabc.tor',
         'electrumabc.utils',
-        'electroncash_gui',
-        'electroncash_gui.qt',
-        'electroncash_gui.qt.qrreader',
-        'electroncash_gui.qt.utils',
-        'electroncash_gui.qt.utils.darkdetect',
+        'electrumabc_gui',
+        'electrumabc_gui.qt',
+        'electrumabc_gui.qt.qrreader',
+        'electrumabc_gui.qt.utils',
+        'electrumabc_gui.qt.utils.darkdetect',
         'electroncash_plugins',
         'electroncash_plugins.audio_modem',
         'electroncash_plugins.cosigner_pool',
@@ -216,7 +216,7 @@ setup(
         'electroncash_plugins.fusion': [
             '*.svg', '*.png'
         ],
-        # On Linux and Windows this means adding electroncash_gui/qt/data/*.ttf
+        # On Linux and Windows this means adding electrumabc_gui/qt/data/*.ttf
         # On Darwin we don't use that font, so we don't add it to save space.
         **platform_package_data
     },

@@ -1,6 +1,6 @@
 from electrumabc.i18n import _
 from electrumabc.util import print_error
-from electroncash_gui.qt.util import (
+from electrumabc_gui.qt.util import (
     EnterButton,
     Buttons,
     CloseButton,
@@ -10,7 +10,7 @@ from electroncash_gui.qt.util import (
     WindowModalDialog,
     WWLabel,
 )
-from electroncash_gui.qt.qrcodewidget import QRDialog
+from electrumabc_gui.qt.qrcodewidget import QRDialog
 
 from PyQt5.QtCore import Qt
 from PyQt5 import QtWidgets

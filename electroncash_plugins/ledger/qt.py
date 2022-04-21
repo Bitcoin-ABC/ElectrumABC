@@ -8,7 +8,7 @@ from electrumabc.plugins import hook
 from electrumabc.wallet import Standard_Wallet
 from .ledger import LedgerPlugin
 from ..hw_wallet.qt import QtHandlerBase, QtPluginBase
-from electroncash_gui.qt.util import WindowModalDialog
+from electrumabc_gui.qt.util import WindowModalDialog
 
 
 class Plugin(LedgerPlugin, QtPluginBase):

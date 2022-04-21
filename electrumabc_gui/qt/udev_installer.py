@@ -35,7 +35,7 @@ from PyQt5 import QtWidgets
 
 from electrumabc.util import _, PrintError
 from electrumabc.plugins import Plugins
-from electroncash_gui.qt.util import WindowModalDialog
+from electrumabc_gui.qt.util import WindowModalDialog
 from electrumabc.constants import PROJECT_NAME
 
 

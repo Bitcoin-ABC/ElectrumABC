@@ -5,7 +5,7 @@ from PyQt5.QtCore import QEventLoop, Qt, QStandardPaths, pyqtSignal
 from PyQt5.QtGui import QImage, QBitmap, qRed, qGreen, qBlue
 from PyQt5 import QtWidgets
 
-from electroncash_gui.qt.util import (
+from electrumabc_gui.qt.util import (
     Buttons,
     CancelButton,
     CloseButton,

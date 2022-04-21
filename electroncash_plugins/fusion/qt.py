@@ -42,10 +42,10 @@ from electrumabc.util import (
     do_in_main_thread, finalization_print_error, format_satoshis_plain, InvalidPassword, inv_dict, print_error,
     PrintError, profiler)
 from electrumabc.wallet import Abstract_Wallet
-from electroncash_gui.qt.amountedit import XECAmountEdit
-from electroncash_gui.qt.main_window import ElectrumWindow, StatusBarButton
-from electroncash_gui.qt.popup_widget import ShowPopupLabel, KillPopupLabel
-from electroncash_gui.qt.util import (
+from electrumabc_gui.qt.amountedit import XECAmountEdit
+from electrumabc_gui.qt.main_window import ElectrumWindow, StatusBarButton
+from electrumabc_gui.qt.popup_widget import ShowPopupLabel, KillPopupLabel
+from electrumabc_gui.qt.util import (
     Buttons,
     CancelButton,
     CloseButton,
@@ -55,7 +55,7 @@ from electroncash_gui.qt.util import (
     WaitingDialog,
     WindowModalDialog,
 )
-from electroncash_gui.qt.utils import PortValidator, UserPortValidator
+from electrumabc_gui.qt.utils import PortValidator, UserPortValidator
 
 from .conf import Conf, Global
 from .fusion import can_fuse_from, can_fuse_to

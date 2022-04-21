@@ -3,7 +3,7 @@ from typing import Optional, Sequence
 
 from PyQt5 import QtCore, QtWidgets
 
-from electroncash_gui.qt.multi_transactions_dialog import MultiTransactionsWidget
+from electrumabc_gui.qt.multi_transactions_dialog import MultiTransactionsWidget
 from electrumabc.address import Address, AddressError
 from electrumabc.consolidate import (
     MAX_STANDARD_TX_SIZE,

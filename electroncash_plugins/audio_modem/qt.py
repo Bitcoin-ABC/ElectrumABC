@@ -6,7 +6,7 @@ import sys
 import platform
 
 from electrumabc.plugins import BasePlugin, hook
-from electroncash_gui.qt.util import WaitingDialog, EnterButton, WindowModalDialog
+from electrumabc_gui.qt.util import WaitingDialog, EnterButton, WindowModalDialog
 from electrumabc.util import print_msg, print_error
 from electrumabc.i18n import _
 
