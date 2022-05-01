@@ -40,10 +40,11 @@ hex_to_bytes = bytes.fromhex
 
 
 class AddressError(Exception):
-    '''Exception used for Address errors.'''
+    """Exception used for Address errors."""
+
 
 class ScriptError(Exception):
-    '''Exception used for Script errors.'''
+    """Exception used for Script errors."""
 
 
 P2PKH_prefix = bytes([OpCodes.OP_DUP, OpCodes.OP_HASH160, 20])
@@ -55,39 +56,46 @@ P2SH_suffix = bytes([OpCodes.OP_EQUAL])
 # Utility functions
 
 def to_bytes(x):
-    '''Convert to bytes which is hashable.'''
+    """Convert to bytes which is hashable."""
     if isinstance(x, bytes):
         return x
     if isinstance(x, bytearray):
         return bytes(x)
     raise TypeError('{} is not bytes ({})'.format(x, type(x)))
 
+
 def hash_to_hex_str(x):
-    '''Convert a big-endian binary hash to displayed hex string.
+    """Convert a big-endian binary hash to displayed hex string.
 
     Display form of a binary hash is reversed and converted to hex.
-    '''
+    """
     return bytes(reversed(x)).hex()
 
+
 def hex_str_to_hash(x):
-    '''Convert a displayed hex string to a binary hash.'''
+    """Convert a displayed hex string to a binary hash."""
     return bytes(reversed(hex_to_bytes(x)))
 
+
 def bytes_to_int(be_bytes):
-    '''Interprets a big-endian sequence of bytes as an integer'''
+    """Interprets a big-endian sequence of bytes as an integer"""
     return int.from_bytes(be_bytes, 'big')
 
+
 def int_to_bytes(value):
-    '''Converts an integer to a big-endian sequence of bytes'''
+    """Converts an integer to a big-endian sequence of bytes"""
     return value.to_bytes((value.bit_length() + 7) // 8, 'big')
 
+
 def sha256(x):
-    '''Simple wrapper of hashlib sha256.'''
+    """Simple wrapper of hashlib sha256."""
     return _sha256(x).digest()
 
+
 def double_sha256(x):
-    '''SHA-256 of SHA-256, as used extensively in bitcoin.'''
+    """SHA-256 of SHA-256, as used extensively in bitcoin."""
     return sha256(sha256(x))
+
 
 def ripemd160(x):
     '''Simple wrapper of hashlib ripemd160.'''
