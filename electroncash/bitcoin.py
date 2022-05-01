@@ -465,7 +465,7 @@ def hash_160(public_key: bytes) -> bytes:
         md = hashlib.new('ripemd160')
         md.update(sha256(public_key))
         return md.digest()
-    except BaseException:
+    except ValueError:
         from . import ripemd
         md = ripemd.new(sha256(public_key))
         return md.digest()
