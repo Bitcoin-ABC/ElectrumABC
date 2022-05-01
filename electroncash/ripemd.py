@@ -57,7 +57,7 @@ class RIPEMD160:
         RMD160Update(self.ctx, arg, len(arg))
         self.dig = None
 
-    def digest(self):
+    def digest(self) -> bytes:
         """digest()"""
         if self.dig:
             return self.dig
@@ -375,7 +375,7 @@ def RMD160Update(ctx, inp, inplen):
         for i in range(inplen - off):
             ctx.buffer[have+i] = inp[off+i]
 
-def RMD160Final(ctx):
+def RMD160Final(ctx: RMDContext) -> bytes:
     size = struct.pack("<Q", ctx.count)
     padlen = 64 - ((ctx.count // 8) % 64)
     if padlen < 1+8:
