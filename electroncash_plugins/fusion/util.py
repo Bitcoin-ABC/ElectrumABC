@@ -29,8 +29,8 @@ Some pieces of fusion that can be reused in the server.
 """
 
 from electroncash.transaction import Transaction, get_address_from_output_script
-from electroncash.address import Address, ScriptOutput, hash160, OpCodes
-from electroncash.bitcoin import TYPE_SCRIPT, TYPE_ADDRESS
+from electroncash.address import Address, ScriptOutput, OpCodes
+from electroncash.bitcoin import TYPE_SCRIPT, TYPE_ADDRESS, hash_160
 
 from . import fusion_pb2 as pb
 from .protocol import Protocol
@@ -133,7 +133,7 @@ def tx_from_components(all_components, session_hash):
             inp = comp.input
             if len(inp.prev_txid) != 32:
                 raise FusionError("bad component prevout")
-            inputs.append(dict(address = Address.from_P2PKH_hash(hash160(inp.pubkey)),
+            inputs.append(dict(address = Address.from_P2PKH_hash(hash_160(inp.pubkey)),
                                prevout_hash = inp.prev_txid[::-1].hex(),
                                prevout_n = inp.prev_index,
                                num_sig = 1,

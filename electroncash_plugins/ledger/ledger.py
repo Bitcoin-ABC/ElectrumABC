@@ -116,9 +116,8 @@ class Ledger_Client:
             prevPath = "/".join(splitPath[0:len(splitPath) - 1])
             nodeData = self.dongleObject.getWalletPublicKey(prevPath)
             publicKey = compress_public_key(nodeData['publicKey'])
-            h = hashlib.new('ripemd160')
-            h.update(hashlib.sha256(publicKey).digest())
-            fingerprint = unpack(">I", h.digest()[0:4])[0]
+            h = bitcoin.hash_160(publicKey)
+            fingerprint = unpack(">I", h[0:4])[0]
         nodeData = self.dongleObject.getWalletPublicKey(bip32_path)
         publicKey = compress_public_key(nodeData['publicKey'])
         depth = len(splitPath)

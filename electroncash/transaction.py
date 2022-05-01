@@ -35,7 +35,7 @@ from .util import print_error, profiler
 from .caches import ExpiringCache
 
 from . import bitcoin
-from .address import (PublicKey, Address, Script, ScriptOutput, hash160,
+from .address import (PublicKey, Address, Script, ScriptOutput,
                       UnknownAddress, P2PKH_prefix, P2PKH_suffix, P2SH_prefix,
                       P2SH_suffix)
 from .bitcoin import OpCodes as opcodes
@@ -254,7 +254,7 @@ def parse_scriptSig(d, _bytes):
     d['x_pubkeys'] = x_pubkeys
     d['pubkeys'] = pubkeys
     d['redeemScript'] = redeemScript
-    d['address'] = Address.from_P2SH_hash(hash160(redeemScript))
+    d['address'] = Address.from_P2SH_hash(bitcoin.hash_160(redeemScript))
 
 
 def parse_redeemScript(s):

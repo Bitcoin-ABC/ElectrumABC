@@ -30,12 +30,19 @@ from collections import namedtuple
 from typing import Tuple, Union
 
 from . import cashaddr, networks
-from .bitcoin import EC_KEY, is_minikey, minikey_to_private_key, SCRIPT_TYPES, OpCodes, push_script_bytes
+from .bitcoin import (
+    EC_KEY,
+    SCRIPT_TYPES,
+    OpCodes,
+    hash_160,
+    is_minikey,
+    minikey_to_private_key,
+    push_script_bytes,
+)
 from .constants import WHITELISTED_PREFIXES, WHITELISTED_TESTNET_PREFIXES
 from .util import cachedproperty, inv_dict
 
 _sha256 = hashlib.sha256
-_new_hash = hashlib.new
 hex_to_bytes = bytes.fromhex
 
 
@@ -96,18 +103,6 @@ def double_sha256(x):
     """SHA-256 of SHA-256, as used extensively in bitcoin."""
     return sha256(sha256(x))
 
-
-def ripemd160(x):
-    '''Simple wrapper of hashlib ripemd160.'''
-    h = _new_hash('ripemd160')
-    h.update(x)
-    return h.digest()
-
-def hash160(x):
-    '''RIPEMD-160 of SHA-256.
-
-    Used to make bitcoin addresses from pubkeys.'''
-    return ripemd160(sha256(x))
 
 class UnknownAddress(namedtuple("UnknownAddress", "meta")):
 
@@ -196,7 +191,7 @@ class PublicKey(namedtuple("PublicKeyTuple", "pubkey")):
     @cachedproperty
     def address(self):
         '''Convert to an Address object.'''
-        return Address(hash160(self.pubkey), Address.ADDR_P2PKH)
+        return Address(hash_160(self.pubkey), Address.ADDR_P2PKH)
 
     def is_compressed(self):
         '''Returns True if the pubkey is compressed.'''
@@ -504,7 +499,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
         if isinstance(pubkey, str):
             pubkey = hex_to_bytes(pubkey)
         PublicKey.validate(pubkey)
-        return cls(hash160(pubkey), cls.ADDR_P2PKH)
+        return cls(hash_160(pubkey), cls.ADDR_P2PKH)
 
     @classmethod
     def from_P2PKH_hash(cls, hash160):
@@ -518,7 +513,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
 
     @classmethod
     def from_multisig_script(cls, script):
-        return cls(hash160(script), cls.ADDR_P2SH)
+        return cls(hash_160(script), cls.ADDR_P2SH)
 
     @classmethod
     def to_strings(cls, fmt, addrs, *, net=None):
