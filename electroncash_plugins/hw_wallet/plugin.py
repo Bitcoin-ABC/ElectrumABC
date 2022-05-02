@@ -41,6 +41,7 @@ if TYPE_CHECKING:
 
 class HW_PluginBase(BasePlugin):
     keystore_class: Type[Hardware_KeyStore]
+    libraries_available: bool
 
     # For now, Ledger and Trezor don't support the 899' derivation path.
     # SatochipPlugin overrides this class attribute.
@@ -184,7 +185,7 @@ def validate_op_return_output_and_get_data(output: tuple,        # tuple(typ, 'a
 def only_hook_if_libraries_available(func):
     # note: this decorator must wrap @hook, not the other way around,
     # as 'hook' uses the name of the function it wraps
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self: HW_PluginBase, *args, **kwargs):
         if not self.libraries_available: return None
         return func(self, *args, **kwargs)
     return wrapper

@@ -24,12 +24,16 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
+
 from functools import partial
 import threading
+from typing import TYPE_CHECKING, Union, Optional, Callable, Any
 
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtGui import QIcon
 from PyQt5 import QtWidgets
+from electroncash_gui.qt.main_window import ElectrumWindow
 from electroncash_gui.qt.password_dialog import PasswordLayout, PW_PASSPHRASE
 from electroncash_gui.qt.util import (
     Buttons,
@@ -43,6 +47,13 @@ from electroncash_gui.qt.util import (
 
 from electroncash.i18n import _
 from electroncash.util import PrintError
+
+from.plugin import HW_PluginBase
+
+if TYPE_CHECKING:
+    from electroncash.wallet import Abstract_Wallet
+    from electroncash.keystore import Hardware_KeyStore
+
 
 # The trickiest thing about this handler was getting windows properly
 # parented on MacOSX.
@@ -256,7 +267,11 @@ class ThreadJob_TaskThread_Facade(TaskThread):
 class QtPluginBase(object):
 
     @hook
-    def load_wallet(self, wallet, window):
+    def load_wallet(
+        self: Union[QtPluginBase, HW_PluginBase],
+        wallet: Abstract_Wallet,
+        window: ElectrumWindow
+    ):
         for i, keystore in enumerate(wallet.get_keystores()):
             if not isinstance(keystore, self.keystore_class):
                 continue
@@ -281,7 +296,11 @@ class QtPluginBase(object):
             # Trigger a pairing
             keystore.thread.add(partial(self.get_client, keystore))
 
-    def choose_device(self, window, keystore):
+    def choose_device(
+        self: Union['QtPluginBase', HW_PluginBase],
+        window: ElectrumWindow,
+        keystore: Hardware_KeyStore
+    ) -> Optional[str]:
         '''This dialog box should be usable even if the user has
         forgotten their PIN or it is in bootloader mode.'''
         device_id = self.device_manager().xpub_id(keystore.xpub)
@@ -293,8 +312,11 @@ class QtPluginBase(object):
             device_id = info.device.id_
         return device_id
 
-    def show_settings_dialog(self, window, keystore):
+    def show_settings_dialog(self, window: ElectrumWindow, keystore: Hardware_KeyStore):
         try:
             device_id = self.choose_device(window, keystore)
         except:
             window.on_error(sys.exc_info())
+
+    def create_handler(self, window: ElectrumWindow) -> QtHandlerBase:
+        raise NotImplementedError()

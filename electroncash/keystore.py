@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import hashlib
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Tuple, Union
+from typing import TYPE_CHECKING, Optional, Tuple, Union
 
 import ecdsa
 from ecdsa.curves import SECP256k1
@@ -48,30 +48,31 @@ from .util import (
 )
 
 if TYPE_CHECKING:
+    from electroncash_gui.qt.util import TaskThread
     from electroncash_plugins.hw_wallet import HW_PluginBase
 
 
 class KeyStore(PrintError):
+    type: str
+
     def __init__(self):
         PrintError.__init__(self)
         self.wallet_advice = {}
-        # Hardware_KeyStore may use this attribute, otherwise stays None
-        self.thread = None
 
-    def has_seed(self):
+    def has_seed(self) -> bool:
         return False
 
-    def has_derivation(self):
+    def has_derivation(self) -> bool:
         """Only applies to BIP32 keystores."""
         return False
 
-    def is_watching_only(self):
+    def is_watching_only(self) -> bool:
         return False
 
-    def can_import(self):
+    def can_import(self) -> bool:
         return False
 
-    def may_have_password(self):
+    def may_have_password(self) -> bool:
         """Returns whether the keystore can be encrypted with a password."""
         raise NotImplementedError()
 
@@ -96,7 +97,7 @@ class KeyStore(PrintError):
                 keypairs[x_pubkey] = derivation
         return keypairs
 
-    def can_sign(self, tx):
+    def can_sign(self, tx) -> bool:
         if self.is_watching_only():
             return False
         return bool(self.get_tx_derivations(tx))
@@ -587,6 +588,7 @@ class Hardware_KeyStore(KeyStore, Xpub):
     hw_type: str
     device: str
     plugin: HW_PluginBase
+    thread: Optional[TaskThread]
 
     # restore_wallet_class = BIP32_RD_Wallet
     max_change_outputs = 1
@@ -602,6 +604,7 @@ class Hardware_KeyStore(KeyStore, Xpub):
         self.derivation = d.get("derivation")
         self.handler = None
         run_hook("init_keystore", self)
+        self.thread = None
 
     def set_label(self, label):
         self.label = label
@@ -648,7 +651,7 @@ class Hardware_KeyStore(KeyStore, Xpub):
         transactions to sign a transactions"""
         return True
 
-    def get_password_for_storage_encryption(self):
+    def get_password_for_storage_encryption(self) -> str:
         from .storage import get_derivation_used_for_hw_device_encryption
 
         client = self.plugin.get_client(self)
