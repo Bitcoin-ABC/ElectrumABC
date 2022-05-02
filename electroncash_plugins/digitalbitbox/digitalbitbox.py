@@ -701,13 +701,10 @@ class DigitalBitboxPlugin(HW_PluginBase):
 
 
     def setup_device(self, device_info, wizard, purpose):
-        devmgr = self.device_manager()
         device_id = device_info.device.id_
-        client = devmgr.client_by_id(device_id)
-        if client is None:
-            raise Exception(_('Failed to create a client for this device.') + '\n' +
-                            _('Make sure it is in the correct state.'))
-        client.handler = self.create_handler(wizard)
+        client = self.scan_and_create_client_for_device(
+            device_id=device_id, wizard=wizard
+        )
         if purpose == HWD_SETUP_NEW_WALLET:
             client.setupRunning = True
         client.get_xpub("m/44'/0'", 'standard')

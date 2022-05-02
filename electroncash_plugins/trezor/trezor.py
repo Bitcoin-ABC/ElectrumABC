@@ -318,18 +318,14 @@ class TrezorPlugin(HW_PluginBase):
         '''Called when creating a new wallet.  Select the device to use.  If
         the device is uninitialized, go through the intialization
         process.'''
-        devmgr = self.device_manager()
         device_id = device_info.device.id_
-        client = devmgr.client_by_id(device_id)
-        if client is None:
-            raise Exception(_('Failed to create a client for this device.') + '\n' +
-                            _('Make sure it is in the correct state.'))
+        client = self.scan_and_create_client_for_device(
+            device_id=device_id, wizard=wizard
+        )
         if not client.is_uptodate():
             raise Exception(_('Outdated {} firmware for device labelled {}. Please '
                               'download the updated firmware from {}')
                             .format(self.device, client.label(), self.firmware_URL))
-        # fixme: we should use: client.handler = wizard
-        client.handler = self.create_handler(wizard)
         creating = not device_info.initialized
         if creating:
             self.initialize_device(device_id, wizard, client.handler)
@@ -337,9 +333,9 @@ class TrezorPlugin(HW_PluginBase):
         client.used()
 
     def get_xpub(self, device_id, derivation, xtype, wizard):
-        devmgr = self.device_manager()
-        client = devmgr.client_by_id(device_id)
-        client.handler = wizard
+        client = self.scan_and_create_client_for_device(
+            device_id=device_id, wizard=wizard
+        )
         xpub = client.get_xpub(derivation, xtype)
         client.used()
         return xpub

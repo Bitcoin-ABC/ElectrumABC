@@ -565,13 +565,10 @@ class SatochipPlugin(HW_PluginBase):
         if not LIBS_AVAILABLE:
             raise RuntimeError("No libraries available")
 
-        devmgr = self.device_manager()
         device_id = device_info.device.id_
-        client = devmgr.client_by_id(device_id)
-        if client is None:
-            raise Exception(_('Failed to create a client for this device.') + '\n' +
-                            _('Make sure it is in the correct state.'))
-        client.handler = self.create_handler(wizard)
+        client = self.scan_and_create_client_for_device(
+            device_id=device_id, wizard=wizard
+        )
         client.cc.parser.authentikey_from_storage=None # https://github.com/simpleledger/Electron-Cash-SLP/pull/101#issuecomment-561238614
 
         # check setup
@@ -693,9 +690,9 @@ class SatochipPlugin(HW_PluginBase):
         self.print_error("get_xpub()")#debugSatochip
         #if xtype not in self.SUPPORTED_XTYPES:
         #    raise ScriptTypeNotSupported(_('This type of script is not supported with {}.').format(self.device))
-        devmgr = self.device_manager()
-        client = devmgr.client_by_id(device_id)
-        client.handler = self.create_handler(wizard)
+        client = self.scan_and_create_client_for_device(
+            device_id=device_id, wizard=wizard
+        )
         client.ping_check()
 
         xpub = client.get_xpub(derivation, xtype)

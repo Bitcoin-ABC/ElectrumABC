@@ -66,6 +66,22 @@ class HW_PluginBase(BasePlugin):
                 self.device_manager().unpair_xpub(keystore.xpub)
                 self._cleanup_keystore_extra(keystore)
 
+    def scan_and_create_client_for_device(
+        self,
+        *,
+        device_id: str,
+        wizard: BaseWizard
+    ) -> HardwareClientBase:
+        devmgr = self.device_manager()
+        client = devmgr.client_by_id(device_id)
+        if client is None:
+            raise Exception(
+                _('Failed to create a client for this device.') + '\n' +
+                _('Make sure it is in the correct state.')
+            )
+        client.handler = self.create_handler(wizard)
+        return client
+
     def setup_device(self, device_info: DeviceInfo, wizard: BaseWizard, purpose):
         """Called when creating a new wallet or when using the device to decrypt
         an existing wallet. Select the device to use.  If the device is
@@ -103,6 +119,9 @@ class HW_PluginBase(BasePlugin):
     def get_xpub(self, device_id, derivation: str, xtype, wizard) -> str:
         raise NotImplementedError()
 
+    def create_handler(self, window):
+        # note: in Qt GUI, 'window' is either an ElectrumWindow or an InstallWizard
+        raise NotImplementedError()
 
 class HardwareClientBase:
 

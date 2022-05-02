@@ -612,19 +612,16 @@ class LedgerPlugin(HW_PluginBase):
         return client
 
     def setup_device(self, device_info, wizard, purpose):
-        devmgr = self.device_manager()
         device_id = device_info.device.id_
-        client = devmgr.client_by_id(device_id)
-        if client is None:
-            # BaseWizard expects this Exception to re-try
-            raise OSError(_('Device id not found or was changed'))
-        client.handler = self.create_handler(wizard)
+        client = self.scan_and_create_client_for_device(
+            device_id=device_id, wizard=wizard
+        )
         client.get_xpub("m/44'/0'", 'standard') # TODO replace by direct derivation once Nano S > 1.1
 
     def get_xpub(self, device_id, derivation, xtype, wizard):
-        devmgr = self.device_manager()
-        client = devmgr.client_by_id(device_id)
-        client.handler = self.create_handler(wizard)
+        client = self.scan_and_create_client_for_device(
+            device_id=device_id, wizard=wizard
+        )
         client.checkDevice()
         xpub = client.get_xpub(derivation, xtype)
         return xpub
