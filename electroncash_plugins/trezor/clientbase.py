@@ -59,8 +59,8 @@ def parse_path(n):
 
 class TrezorClientBase(HardwareClientBase, PrintError):
     def __init__(self, transport, handler, plugin):
+        HardwareClientBase.__init__(self, plugin=plugin)
         self.client = TrezorClient(transport, ui=self)
-        self.plugin = plugin
         self.device = plugin.device
         self.handler = handler
 

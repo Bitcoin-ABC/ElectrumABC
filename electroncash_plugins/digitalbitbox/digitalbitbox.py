@@ -51,7 +51,7 @@ MIN_MAJOR_VERSION = 5
 class DigitalBitbox_Client(HardwareClientBase):
 
     def __init__(self, plugin, hidDevice):
-        self.plugin = plugin
+        HardwareClientBase.__init__(self, plugin=plugin)
         self.dbb_hid = hidDevice
         self.opened = True
         self.password = None

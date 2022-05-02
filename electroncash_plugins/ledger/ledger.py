@@ -57,7 +57,8 @@ def test_pin_unlocked(func):
 
 class Ledger_Client(HardwareClientBase):
 
-    def __init__(self, plugin, hidDevice, *, product_key: Tuple[int, int]):
+    def __init__(self, hidDevice, *, product_key: Tuple[int, int], plugin: HW_PluginBase):
+        HardwareClientBase.__init__(self, plugin=plugin)
         self.device = plugin.device
         self.dongleObject = btchip(hidDevice)
         self.preflightDone = False
@@ -616,7 +617,7 @@ class LedgerPlugin(HW_PluginBase):
 
         client = self.get_btchip_device(device)
         if client is not None:
-            client = Ledger_Client(self, client, product_key=device.product_key)
+            client = Ledger_Client(client, product_key=device.product_key, plugin=self)
         return client
 
     def setup_device(self, device_info, wizard, purpose):

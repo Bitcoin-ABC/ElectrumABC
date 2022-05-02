@@ -84,6 +84,7 @@ def bip32path2bytes(bip32path:str) -> (int, bytes):
 
 class SatochipClient(HardwareClientBase, PrintError):
     def __init__(self, plugin, handler):
+        HardwareClientBase.__init__(self, plugin=plugin)
         if not LIBS_AVAILABLE:
             self.print_error("** No libraries available")
             return
