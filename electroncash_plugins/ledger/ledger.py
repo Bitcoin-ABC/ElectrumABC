@@ -2,6 +2,7 @@ from struct import pack, unpack
 import hashlib
 import sys
 import traceback
+from typing import Tuple
 import inspect
 
 from electroncash import bitcoin
@@ -56,11 +57,11 @@ def test_pin_unlocked(func):
 
 class Ledger_Client(HardwareClientBase):
 
-    def __init__(self, plugin, hidDevice, isHW1=False):
+    def __init__(self, plugin, hidDevice, *, product_key: Tuple[int, int]):
         self.device = plugin.device
         self.dongleObject = btchip(hidDevice)
         self.preflightDone = False
-        self.isHW1 = isHW1
+        self._product_key = product_key
 
     def is_pairable(self):
         return True
@@ -78,7 +79,18 @@ class Ledger_Client(HardwareClientBase):
         return ""
 
     def is_hw1(self):
-        return self.isHW1
+        return self._product_key[0] == 0x2581
+
+    def device_model_name(self):
+        if self.is_hw1():
+            return "Ledger HW.1"
+        if self._product_key == (0x2c97, 0x0000):
+            return "Ledger Blue"
+        if self._product_key == (0x2c97, 0x0001):
+            return "Ledger Nano S"
+        if self._product_key == (0x2c97, 0x0004):
+            return "Ledger Nano X"
+        return None
 
     def i4b(self, x):
         return pack('>I', x)
@@ -606,9 +618,8 @@ class LedgerPlugin(HW_PluginBase):
         self.handler = handler
 
         client = self.get_btchip_device(device)
-        ishw1 = device.product_key[0] == 0x2581
         if client is not None:
-            client = Ledger_Client(self, client, ishw1)
+            client = Ledger_Client(self, client, product_key=device.product_key)
         return client
 
     def setup_device(self, device_info, wizard, purpose):

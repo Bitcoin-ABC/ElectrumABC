@@ -34,13 +34,13 @@ import sys
 import threading
 import time
 import traceback
-from typing import Union, TYPE_CHECKING, Tuple, Dict, Iterable, List
+from typing import Any, Union, TYPE_CHECKING, Tuple, Dict, Iterable, List
 from warnings import warn
 import zipimport
 
 from collections import namedtuple, defaultdict
 from enum import IntEnum
-from typing import Callable, Optional
+from typing import Callable, NamedTuple, Optional
 
 from . import bitcoin
 from . import version
@@ -702,8 +702,19 @@ class DeviceUnpairableError(Exception):
     pass
 
 
-Device = namedtuple("Device", "path interface_number id_ product_key usage_page")
-DeviceInfo = namedtuple("DeviceInfo", "device label initialized")
+class Device(NamedTuple):
+    path: Union[str, bytes]
+    interface_number: int
+    id_: str
+    product_key: Any  # when using hid, often Tuple[int, int]
+    usage_page: int
+
+class DeviceInfo(NamedTuple):
+    device: Device
+    label: Optional[str]
+    initialized: Optional[bool]
+    model_name: Optional[str] = None  # e.g. "Ledger Nano S"
+
 
 PLACEHOLDER_HW_CLIENT_LABELS = {None, "", " "}
 
@@ -934,7 +945,14 @@ class DeviceMgr(ThreadJob):
             client = self.create_client(device, handler, plugin)
             if not client:
                 continue
-            infos.append(DeviceInfo(device, client.label(), client.is_initialized()))
+            infos.append(
+                DeviceInfo(
+                    device=device,
+                    label=client.label(),
+                    initialized=client.is_initialized(),
+                    model_name=client.device_model_name(),
+                )
+            )
 
         return infos
 
@@ -969,12 +987,13 @@ class DeviceMgr(ThreadJob):
         # ask user to select device
         msg = _("Please select which {} device to use:").format(plugin.device)
         descriptions = [
-            "{label} ({init}, {transport})".format(
+            "{label} ({maybe_model}{init}, {transport})".format(
                 label=info.label,
                 init=_("initialized") if info.initialized else _("wiped"),
                 transport=str(
                     (info.device and info.device.path) or 'unknown transport'
-                )[:20]
+                )[:20],
+                maybe_model=f"{info.model_name}, " if info.model_name else "",
             )
             for info in infos
         ]

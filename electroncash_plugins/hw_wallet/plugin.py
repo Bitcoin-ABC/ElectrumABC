@@ -156,6 +156,14 @@ class HardwareClientBase:
     def get_xpub(self, bip32_path: str, xtype) -> str:
         raise NotImplementedError()
 
+    def device_model_name(self) -> Optional[str]:
+        """Return the name of the model of this device, which might be displayed in the
+        UI.
+        E.g. for Trezor, "Trezor One" or "Trezor T".
+        """
+        return None
+
+
 
 class HardwareHandlerBase:
     """An interface between the GUI and the device handling logic for handling I/O."""
