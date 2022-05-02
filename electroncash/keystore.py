@@ -49,7 +49,7 @@ from .util import (
 
 if TYPE_CHECKING:
     from electroncash_gui.qt.util import TaskThread
-    from electroncash_plugins.hw_wallet import HW_PluginBase
+    from electroncash_plugins.hw_wallet import HardwareHandlerBase, HW_PluginBase
 
 
 class KeyStore(PrintError):
@@ -602,7 +602,7 @@ class Hardware_KeyStore(KeyStore, Xpub):
         self.xpub = d.get("xpub")
         self.label = d.get("label")
         self.derivation = d.get("derivation")
-        self.handler = None
+        self.handler: Optional[HardwareHandlerBase] = None
         run_hook("init_keystore", self)
         self.thread = None
 

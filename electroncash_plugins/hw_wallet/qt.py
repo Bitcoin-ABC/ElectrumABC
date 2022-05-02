@@ -33,6 +33,7 @@ from typing import TYPE_CHECKING, Union, Optional, Callable, Any
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtGui import QIcon
 from PyQt5 import QtWidgets
+from electroncash_gui.qt.installwizard import InstallWizard
 from electroncash_gui.qt.main_window import ElectrumWindow
 from electroncash_gui.qt.password_dialog import PasswordLayout, PW_PASSPHRASE
 from electroncash_gui.qt.util import (
@@ -48,7 +49,7 @@ from electroncash_gui.qt.util import (
 from electroncash.i18n import _
 from electroncash.util import PrintError
 
-from.plugin import HW_PluginBase
+from.plugin import HW_PluginBase, HardwareHandlerBase
 
 if TYPE_CHECKING:
     from electroncash.wallet import Abstract_Wallet
@@ -57,7 +58,7 @@ if TYPE_CHECKING:
 
 # The trickiest thing about this handler was getting windows properly
 # parented on MacOSX.
-class QtHandlerBase(QObject, PrintError):
+class QtHandlerBase(HardwareHandlerBase, QObject, PrintError):
     '''An interface between the GUI (here, Qt) and the device handling
     logic for handling I/O.'''
 
@@ -71,7 +72,7 @@ class QtHandlerBase(QObject, PrintError):
     yes_no_signal = pyqtSignal(object)
     status_signal = pyqtSignal(object)
 
-    def __init__(self, win, device):
+    def __init__(self, win: Union[ElectrumWindow, InstallWizard], device: str):
         super(QtHandlerBase, self).__init__()
         self.clear_signal.connect(self.clear_dialog)
         self.error_signal.connect(self.error_dialog)
@@ -318,5 +319,7 @@ class QtPluginBase(object):
         except:
             window.on_error(sys.exc_info())
 
-    def create_handler(self, window: ElectrumWindow) -> QtHandlerBase:
+    def create_handler(
+        self, window:  Union[ElectrumWindow, InstallWizard]
+    ) -> QtHandlerBase:
         raise NotImplementedError()

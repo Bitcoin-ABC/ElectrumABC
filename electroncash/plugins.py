@@ -50,7 +50,11 @@ from .util import (print_error, print_stderr, make_dir, profiler,
                    DaemonThread, PrintError, ThreadJob, UserCancelled)
 
 if TYPE_CHECKING:
-    from electroncash_plugins.hw_wallet import HW_PluginBase, HardwareClientBase
+    from electroncash_plugins.hw_wallet import (
+        HW_PluginBase,
+        HardwareClientBase,
+        HardwareHandlerBase,
+    )
     from .keystore import Hardware_KeyStore
 
 plugin_loaders = {}
@@ -774,7 +778,7 @@ class DeviceMgr(ThreadJob):
         self.enumerate_func.add(func)
 
     def create_client(
-        self, device: Device, handler, plugin: HW_PluginBase
+        self, device: Device, handler: HardwareHandlerBase, plugin: HW_PluginBase
     ) -> Optional[HardwareClientBase]:
         # Get from cache first
         client = self.client_lookup(device.id_)
@@ -839,7 +843,7 @@ class DeviceMgr(ThreadJob):
     def client_for_keystore(
         self,
         plugin: HW_PluginBase,
-        handler,
+        handler: Optional[HardwareHandlerBase],
         keystore: Hardware_KeyStore,
         force_pair: bool
     ) -> Optional[HardwareClientBase]:
@@ -863,7 +867,7 @@ class DeviceMgr(ThreadJob):
         self,
         plugin: HW_PluginBase,
         xpub,
-        handler,
+        handler: HardwareHandlerBase,
         devices: Iterable[Device]
     ) -> Optional['HardwareClientBase']:
         _id = self.xpub_id(xpub)
@@ -881,7 +885,8 @@ class DeviceMgr(ThreadJob):
     def force_pair_xpub(
         self,
         plugin: HW_PluginBase,
-        handler, info: DeviceInfo,
+        handler: HardwareHandlerBase,
+        info: DeviceInfo,
         xpub,
         derivation
     ) -> Optional[HardwareClientBase]:
@@ -913,7 +918,7 @@ class DeviceMgr(ThreadJob):
 
     def unpaired_device_infos(
         self,
-        handler,
+        handler: Optional[HardwareHandlerBase],
         plugin: HW_PluginBase,
         devices: List[Device] = None
     ) -> List['DeviceInfo']:
@@ -936,7 +941,7 @@ class DeviceMgr(ThreadJob):
     def select_device(
         self,
         plugin: HW_PluginBase,
-        handler,
+        handler: HardwareHandlerBase,
         keystore: Hardware_KeyStore,
         devices: List['Device'] = None) -> DeviceInfo:
         '''Ask the user to select a device to use if there is more than one,
@@ -979,7 +984,9 @@ class DeviceMgr(ThreadJob):
         info = infos[c]
         # save new label
         keystore.set_label(info.label)
-        handler.win.wallet.save_keystore()
+        wallet = handler.get_wallet()
+        if wallet is not None:
+            wallet.save_keystore()
         return info
 
     def _scan_devices_with_hid(self) -> List['Device']:

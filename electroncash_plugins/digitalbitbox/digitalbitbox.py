@@ -729,9 +729,9 @@ class DigitalBitboxPlugin(HW_PluginBase):
 
 
     def get_xpub(self, device_id, derivation, xtype, wizard):
-        devmgr = self.device_manager()
-        client = devmgr.client_by_id(device_id)
-        client.handler = self.create_handler(wizard)
+        client = self.scan_and_create_client_for_device(
+            device_id=device_id, wizard=wizard
+        )
         client.check_device_dialog()
         xpub = client.get_xpub(derivation, xtype)
         return xpub

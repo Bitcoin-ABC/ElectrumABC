@@ -1,6 +1,9 @@
 from electroncash.util import print_msg, print_error, raw_input
 
-class CmdLineHandler:
+from .plugin import HardwareHandlerBase
+
+
+class CmdLineHandler(HardwareHandlerBase):
 
     def get_passphrase(self, msg, confirm):
         import getpass

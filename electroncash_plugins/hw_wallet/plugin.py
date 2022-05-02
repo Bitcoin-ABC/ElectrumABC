@@ -25,7 +25,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 from __future__ import annotations
-from typing import TYPE_CHECKING, Optional, Type
+from typing import TYPE_CHECKING, Sequence, Optional, Type
 
 from electroncash.plugins import BasePlugin, hook, Device, DeviceInfo, DeviceMgr
 from electroncash.i18n import _, ngettext
@@ -112,18 +112,22 @@ class HW_PluginBase(BasePlugin):
         return self.SUPPORTS_XEC_BIP44_DERIVATION
 
     def create_client(
-        self, device: Device, handler
+        self, device: Device, handler: Optional[HardwareHandlerBase],
     ) -> Optional[HardwareClientBase]:
         raise NotImplementedError()
 
-    def get_xpub(self, device_id, derivation: str, xtype, wizard) -> str:
+    def get_xpub(self, device_id, derivation: str, xtype, wizard: BaseWizard) -> str:
         raise NotImplementedError()
 
-    def create_handler(self, window):
+    def create_handler(self, window) -> HardwareHandlerBase:
         # note: in Qt GUI, 'window' is either an ElectrumWindow or an InstallWizard
         raise NotImplementedError()
 
+
 class HardwareClientBase:
+
+    plugin: HW_PluginBase
+    handler: Optional[HardwareHandlerBase]
 
     def is_pairable(self) -> bool:
         raise NotImplementedError()
@@ -150,6 +154,41 @@ class HardwareClientBase:
         raise NotImplementedError()
 
     def get_xpub(self, bip32_path: str, xtype) -> str:
+        raise NotImplementedError()
+
+
+class HardwareHandlerBase:
+    """An interface between the GUI and the device handling logic for handling I/O."""
+    win = None
+    device: str
+
+    def get_wallet(self) -> Optional[Abstract_Wallet]:
+        if self.win is not None:
+            if hasattr(self.win, 'wallet'):
+                return self.win.wallet
+
+    def update_status(self, paired: bool) -> None:
+        pass
+
+    def query_choice(self, msg: str, labels: Sequence[str]) -> Optional[int]:
+        raise NotImplementedError()
+
+    def yes_no_question(self, msg: str) -> bool:
+        raise NotImplementedError()
+
+    def show_message(self, msg: str, on_cancel=None) -> None:
+        raise NotImplementedError()
+
+    def show_error(self, msg: str, blocking: bool = False) -> None:
+        raise NotImplementedError()
+
+    def finished(self) -> None:
+        pass
+
+    def get_word(self, msg: str) -> str:
+        raise NotImplementedError()
+
+    def get_passphrase(self, msg: str, confirm: bool) -> Optional[str]:
         raise NotImplementedError()
 
 

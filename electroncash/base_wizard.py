@@ -31,12 +31,15 @@ import sys
 import traceback
 from typing import Any, Callable, Dict, List, NamedTuple, Optional, TYPE_CHECKING
 
+from electroncash_plugins.hw_wallet import HW_PluginBase
+
 from .address import Address
 from . import bitcoin
 from . import keystore
 from . import mnemo
 from . import util
 from .keystore import Hardware_KeyStore
+from .plugins import BasePlugin, DeviceInfo
 from .simple_config import SimpleConfig
 from .storage import (
     STO_EV_USER_PW,
@@ -47,9 +50,6 @@ from .storage import (
 from .wallet import wallet_types
 from .i18n import _
 from .constants import PROJECT_NAME, REPOSITORY_URL, CURRENCY
-
-if TYPE_CHECKING:
-    from .plugins import BasePlugin, DeviceInfo
 
 # hardware device setup purpose
 HWD_SETUP_NEW_WALLET, HWD_SETUP_DECRYPT_WALLET = range(0, 2)
@@ -519,6 +519,7 @@ class BaseWizard(util.PrintError):
         if self.wallet_type == 'standard' and isinstance(self.keystores[0], Hardware_KeyStore):
             # offer encrypting with a pw derived from the hw device
             k: Hardware_KeyStore = self.keystores[0]
+            assert isinstance(self.plugin, HW_PluginBase)
             try:
                 k.handler = self.plugin.create_handler(self)
                 password = k.get_password_for_storage_encryption()

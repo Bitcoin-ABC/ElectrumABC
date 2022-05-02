@@ -353,10 +353,6 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         if storage.requires_upgrade():
             self.upgrade_storage(storage)
 
-    def finished(self):
-        """Called in hardware client wrapper, in order to close popups."""
-        return
-
     def on_error(self, exc_info):
         if not isinstance(exc_info[1], UserCancelled):
             traceback.print_exception(*exc_info)
