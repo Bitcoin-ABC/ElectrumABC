@@ -116,10 +116,6 @@ class SatochipClient(HardwareClientBase, PrintError):
     def is_initialized(self):
         return LIBS_AVAILABLE
 
-    def label(self):
-        # TODO - currently empty #debugSatochip
-        return ""
-
     def has_usable_connection_with_device(self):
         self.print_error(f"has_usable_connection_with_device()")#debugSatochip
         try:

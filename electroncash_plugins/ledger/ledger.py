@@ -75,9 +75,6 @@ class Ledger_Client(HardwareClientBase):
     def is_initialized(self):
         return True
 
-    def label(self):
-        return ""
-
     def is_hw1(self):
         return self._product_key[0] == 0x2581
 

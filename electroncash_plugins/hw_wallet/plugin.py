@@ -148,7 +148,10 @@ class HardwareClientBase:
         and they are also used as a fallback to distinguish devices programmatically.
         So ideally, different devices would have different labels.
         """
-        raise NotImplementedError()
+        # When returning a constant here (i.e. not implementing the method in the way
+        # it is supposed to work), make sure the return value is in
+        # electrumabc.plugins.PLACEHOLDER_HW_CLIENT_LABELS
+        return " "
 
     def has_usable_connection_with_device(self) -> bool:
         raise NotImplementedError()

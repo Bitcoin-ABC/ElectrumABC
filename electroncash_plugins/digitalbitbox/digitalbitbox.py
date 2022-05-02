@@ -72,11 +72,6 @@ class DigitalBitbox_Client(HardwareClientBase):
     def timeout(self, cutoff):
         pass
 
-
-    def label(self):
-        return " "
-
-
     def is_pairable(self):
         return True
 

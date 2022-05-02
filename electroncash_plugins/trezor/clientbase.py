@@ -213,7 +213,7 @@ class TrezorClientBase(HardwareClientBase, PrintError):
         elif model == 'T':
             return "Trezor T"
         return None
-    
+
     def show_address(self, address_str, script_type, multisig=None):
         coin_name = self.plugin.get_coin_name()
         address_n = parse_path(address_str)
