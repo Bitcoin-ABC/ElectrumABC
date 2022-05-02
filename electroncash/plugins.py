@@ -23,6 +23,8 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
+
 import codecs
 import json
 import os
@@ -691,11 +693,16 @@ class BasePlugin(PrintError):
 class DeviceNotFoundError(Exception):
     pass
 
+
 class DeviceUnpairableError(Exception):
     pass
 
+
 Device = namedtuple("Device", "path interface_number id_ product_key usage_page")
 DeviceInfo = namedtuple("DeviceInfo", "device label initialized")
+
+PLACEHOLDER_HW_CLIENT_LABELS = {"", " "}
+
 
 class DeviceMgr(ThreadJob):
     '''Manages hardware clients.  A client communicates over a hardware
@@ -904,7 +911,12 @@ class DeviceMgr(ThreadJob):
               'its seed (and passphrase, if any).  Otherwise all bitcoins you '
               'receive will be unspendable.'))
 
-    def unpaired_device_infos(self, handler, plugin, devices=None):
+    def unpaired_device_infos(
+        self,
+        handler,
+        plugin: HW_PluginBase,
+        devices: List[Device] = None
+    ):
         '''Returns a list of DeviceInfo objects: one for each connected,
         unpaired device accepted by the plugin.'''
         if devices is None:
@@ -926,7 +938,7 @@ class DeviceMgr(ThreadJob):
         plugin: HW_PluginBase,
         handler,
         keystore: Hardware_KeyStore,
-        devices=None) -> DeviceInfo:
+        devices: List['Device'] = None) -> DeviceInfo:
         '''Ask the user to select a device to use if there is more than one,
         and return the DeviceInfo for the device.'''
         while True:
@@ -941,16 +953,26 @@ class DeviceMgr(ThreadJob):
             devices = None
         if len(infos) == 1:
             return infos[0]
-        # select device by label
-        for info in infos:
-            if info.label == keystore.label:
-                return info
+        # select device by label automatically;
+        # but only if not a placeholder label and only if there is no collision
+        device_labels = [info.label for info in infos]
+        if (keystore.label not in PLACEHOLDER_HW_CLIENT_LABELS
+                and device_labels.count(keystore.label) == 1):
+            for info in infos:
+                if info.label == keystore.label:
+                    return info
+        # ask user to select device
         msg = _("Please select which {} device to use:").format(plugin.device)
-        descriptions = [info.label + ' (%s, %s)' % (_("initialized") if info.initialized else _("wiped"),
-                                                    str( (info.device and info.device.path)
-                                                         or 'unknown transport' )[:20]
-                                                    )
-                        for info in infos]
+        descriptions = [
+            "{label} ({init}, {transport})".format(
+                label=info.label,
+                init=_("initialized") if info.initialized else _("wiped"),
+                transport=str(
+                    (info.device and info.device.path) or 'unknown transport'
+                )[:20]
+            )
+            for info in infos
+        ]
         c = handler.query_choice(msg, descriptions)
         if c is None:
             raise UserCancelled()
