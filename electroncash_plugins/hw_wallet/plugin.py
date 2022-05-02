@@ -26,7 +26,7 @@
 # SOFTWARE.
 from __future__ import annotations
 from functools import partial
-from typing import TYPE_CHECKING, Sequence, Optional, Type
+from typing import TYPE_CHECKING, Any, Iterable, Sequence, Optional, Type
 
 from electroncash.plugins import BasePlugin, hook, Device, DeviceInfo, DeviceMgr
 from electroncash.i18n import _, ngettext
@@ -45,6 +45,8 @@ class HW_PluginBase(BasePlugin):
     keystore_class: Type[Hardware_KeyStore]
     libraries_available: bool
 
+    DEVICE_IDS: Iterable[Any]
+
     # For now, Ledger and Trezor don't support the 899' derivation path.
     # SatochipPlugin overrides this class attribute.
     SUPPORTS_XEC_BIP44_DERIVATION: bool = False
@@ -60,7 +62,9 @@ class HW_PluginBase(BasePlugin):
     def device_manager(self) -> DeviceMgr:
         return self.parent.device_manager
 
-    def create_device_from_hid_enumeration(self, d: dict, *, product_key) -> Device:
+    def create_device_from_hid_enumeration(
+        self, d: dict, *, product_key,
+    ) -> Optional[Device]:
         # Older versions of hid don't provide interface_number
         interface_number = d.get('interface_number', -1)
         usage_page = d['usage_page']
@@ -140,6 +144,12 @@ class HW_PluginBase(BasePlugin):
     def create_handler(self, window) -> HardwareHandlerBase:
         # note: in Qt GUI, 'window' is either an ElectrumWindow or an InstallWizard
         raise NotImplementedError()
+
+    def can_recognize_device(self, device: Device) -> bool:
+        """Whether the plugin thinks it can handle the given device.
+        Used for filtering all connected hardware devices to only those by this vendor.
+        """
+        return device.product_key in self.DEVICE_IDS
 
 
 class HardwareClientBase:

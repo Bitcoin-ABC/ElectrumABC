@@ -1,8 +1,9 @@
+from __future__ import annotations
 from struct import pack, unpack
 import hashlib
 import sys
 import traceback
-from typing import Tuple
+from typing import Optional, Tuple
 import inspect
 
 from electroncash import bitcoin
@@ -10,6 +11,7 @@ from electroncash.address import Address
 from electroncash.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, int_to_hex, var_int, SignatureType
 from electroncash.i18n import _
 from electroncash.keystore import Hardware_KeyStore
+from electroncash.plugins import Device
 from electroncash.transaction import Transaction
 from electroncash_plugins.hw_wallet import HW_PluginBase, HardwareClientBase
 from electroncash_plugins.hw_wallet.plugin import (
@@ -80,15 +82,7 @@ class Ledger_Client(HardwareClientBase):
         return self._product_key[0] == 0x2581
 
     def device_model_name(self):
-        if self.is_hw1():
-            return "Ledger HW.1"
-        if self._product_key == (0x2c97, 0x0000):
-            return "Ledger Blue"
-        if self._product_key == (0x2c97, 0x0001):
-            return "Ledger Nano S"
-        if self._product_key == (0x2c97, 0x0004):
-            return "Ledger Nano X"
-        return None
+        return LedgerPlugin.device_name_from_product_key(self._product_key)
 
     def i4b(self, x):
         return pack('>I', x)
@@ -570,7 +564,6 @@ class Ledger_KeyStore(Hardware_KeyStore):
         finally:
             self.handler.finished()
 
-
 class LedgerPlugin(HW_PluginBase):
     libraries_available = BTCHIP
     keystore_class = Ledger_KeyStore
@@ -591,10 +584,57 @@ class LedgerPlugin(HW_PluginBase):
                    (0x2c97, 0x4015), # Nano-X app-bitcoin >= 1.5.1
                  ]
 
+    VENDOR_IDS = (0x2c97, )
+    LEDGER_MODEL_IDS = {
+        0x10: "Ledger Nano S",
+        0x40: "Ledger Nano X",
+    }
+
     def __init__(self, parent, config, name):
         HW_PluginBase.__init__(self, parent, config, name)
-        if self.libraries_available:
-            self.device_manager().register_devices(self.DEVICE_IDS, plugin=self)
+        if not self.libraries_available:
+            return
+        # to support legacy devices and legacy firmwares
+        self.device_manager().register_devices(self.DEVICE_IDS, plugin=self)
+        # to support modern firmware
+        self.device_manager().register_vendor_ids(self.VENDOR_IDS, plugin=self)
+
+    @classmethod
+    def _recognize_device(cls, product_key) -> Tuple[bool, Optional[str]]:
+        """Returns (can_recognize, model_name) tuple."""
+        # legacy product_keys
+        if product_key in cls.DEVICE_IDS:
+            if product_key[0] == 0x2581:
+                return True, "Ledger HW.1"
+            if product_key == (0x2c97, 0x0000):
+                return True, "Ledger Blue"
+            if product_key == (0x2c97, 0x0001):
+                return True, "Ledger Nano S"
+            if product_key == (0x2c97, 0x0004):
+                return True, "Ledger Nano X"
+            return True, None
+        # modern product_keys
+        if product_key[0] == 0x2c97:
+            product_id = product_key[1]
+            model_id = product_id >> 8
+            if model_id in cls.LEDGER_MODEL_IDS:
+                model_name = cls.LEDGER_MODEL_IDS[model_id]
+                return True, model_name
+        # give up
+        return False, None
+
+    def can_recognize_device(self, device: Device) -> bool:
+        return self._recognize_device(device.product_key)[0]
+
+    @classmethod
+    def device_name_from_product_key(cls, product_key) -> Optional[str]:
+        return cls._recognize_device(product_key)[1]
+
+    def create_device_from_hid_enumeration(self, d, *, product_key):
+        device = super().create_device_from_hid_enumeration(d, product_key=product_key)
+        if not self.can_recognize_device(device):
+            return None
+        return device
 
     def get_btchip_device(self, device):
         ledger = False
