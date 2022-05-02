@@ -701,7 +701,7 @@ class DeviceUnpairableError(Exception):
 Device = namedtuple("Device", "path interface_number id_ product_key usage_page")
 DeviceInfo = namedtuple("DeviceInfo", "device label initialized")
 
-PLACEHOLDER_HW_CLIENT_LABELS = {"", " "}
+PLACEHOLDER_HW_CLIENT_LABELS = {None, "", " "}
 
 
 class DeviceMgr(ThreadJob):
@@ -916,7 +916,7 @@ class DeviceMgr(ThreadJob):
         handler,
         plugin: HW_PluginBase,
         devices: List[Device] = None
-    ):
+    ) -> List['DeviceInfo']:
         '''Returns a list of DeviceInfo objects: one for each connected,
         unpaired device accepted by the plugin.'''
         if devices is None:
