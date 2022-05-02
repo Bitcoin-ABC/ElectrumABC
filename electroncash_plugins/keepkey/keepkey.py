@@ -98,7 +98,7 @@ class KeepKeyPlugin(HW_PluginBase):
             self.types = keepkeylib.client.types
             self.DEVICE_IDS = (keepkeylib.transport_hid.DEVICE_IDS +
                                keepkeylib.transport_webusb.DEVICE_IDS)
-            self.device_manager().register_devices(self.DEVICE_IDS)
+            self.device_manager().register_devices(self.DEVICE_IDS, plugin=self)
             self.device_manager().register_enumerate_func(self.enumerate)
             self.usb_context = USBContext()
             self.usb_context.open()
