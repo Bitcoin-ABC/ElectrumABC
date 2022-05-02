@@ -32,6 +32,8 @@
 """
 Electron Cash - lightweight Bitcoin Cash client
 """
+from __future__ import annotations
+
 import getpass
 import logging
 import os

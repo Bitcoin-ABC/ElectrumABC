@@ -822,14 +822,14 @@ class DeviceMgr(ThreadJob):
         with self.lock:
             self.xpub_ids[xpub] = id_
 
-    def client_lookup(self, id_) -> Optional['HardwareClientBase']:
+    def client_lookup(self, id_) -> Optional[HardwareClientBase]:
         with self.lock:
             for client, (path, client_id) in self.clients.items():
                 if client_id == id_:
                     return client
         return None
 
-    def client_by_id(self, id_) -> Optional['HardwareClientBase']:
+    def client_by_id(self, id_) -> Optional[HardwareClientBase]:
         '''Returns a client for the device ID if one is registered.  If
         a device is wiped or in bootloader mode pairing is impossible;
         in such cases we communicate by device ID and not wallet.'''
@@ -842,7 +842,7 @@ class DeviceMgr(ThreadJob):
         handler,
         keystore: Hardware_KeyStore,
         force_pair: bool
-    ) -> Optional['HardwareClientBase']:
+    ) -> Optional[HardwareClientBase]:
         self.print_error("getting client for keystore")
         if handler is None:
             raise BaseException(_("Handler not found for") + ' ' + plugin.name + '\n' + _("A library is probably missing."))

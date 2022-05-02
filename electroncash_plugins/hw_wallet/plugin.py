@@ -27,16 +27,17 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Optional, Type
 
-from electroncash.plugins import BasePlugin, hook, Device, DeviceMgr
+from electroncash.plugins import BasePlugin, hook, Device, DeviceInfo, DeviceMgr
 from electroncash.i18n import _, ngettext
 from electroncash import Transaction
 from electroncash.bitcoin import TYPE_SCRIPT
-from electroncash.util import bfh, finalization_print_error
-from electroncash.address import OpCodes, Address, Script
+from electroncash.util import finalization_print_error
+from electroncash.address import OpCodes, Script
 
 if TYPE_CHECKING:
-    from electroncash.wallet import Abstract_Wallet
+    from electroncash.base_wizard import BaseWizard
     from electroncash.keystore import Hardware_KeyStore
+    from electroncash.wallet import Abstract_Wallet
 
 
 class HW_PluginBase(BasePlugin):
@@ -65,7 +66,7 @@ class HW_PluginBase(BasePlugin):
                 self.device_manager().unpair_xpub(keystore.xpub)
                 self._cleanup_keystore_extra(keystore)
 
-    def setup_device(self, device_info, wizard, purpose):
+    def setup_device(self, device_info: DeviceInfo, wizard: BaseWizard, purpose):
         """Called when creating a new wallet or when using the device to decrypt
         an existing wallet. Select the device to use.  If the device is
         uninitialized, go through the initialization process.

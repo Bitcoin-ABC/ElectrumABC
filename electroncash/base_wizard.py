@@ -24,6 +24,7 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
 
 import copy
 import sys
@@ -48,7 +49,7 @@ from .i18n import _
 from .constants import PROJECT_NAME, REPOSITORY_URL, CURRENCY
 
 if TYPE_CHECKING:
-    from .plugins import BasePlugin
+    from .plugins import BasePlugin, DeviceInfo
 
 # hardware device setup purpose
 HWD_SETUP_NEW_WALLET, HWD_SETUP_DECRYPT_WALLET = range(0, 2)
@@ -328,7 +329,7 @@ class BaseWizard(util.PrintError):
             extra_button=extra_button
         )
 
-    def on_device(self, name, device_info, *, purpose, storage=None):
+    def on_device(self, name, device_info: DeviceInfo, *, purpose, storage=None):
         self.plugin = self.plugins.find_plugin(name, force_load=True)
         print("-------  " + name + "--------------")
         try:
@@ -405,11 +406,14 @@ class BaseWizard(util.PrintError):
                                     message=message, default=default_derivation, test=bitcoin.is_bip32_derivation,
                                     seed=seed, scannable=scannable)
 
-    def on_hw_derivation(self, name, device_info, derivation):
+    def on_hw_derivation(self, name, device_info: DeviceInfo, derivation):
         from .keystore import hardware_keystore
+        devmgr = self.plugins.device_manager
         xtype = 'standard'
         try:
             xpub = self.plugin.get_xpub(device_info.device.id_, derivation, xtype, self)
+            client = devmgr.client_by_id(device_info.device.id_)
+            label = client.label()
         except BaseException as e:
             self.print_error(traceback.format_exc())
             self.show_error(str(e))
@@ -419,7 +423,7 @@ class BaseWizard(util.PrintError):
             'hw_type': name,
             'derivation': derivation,
             'xpub': xpub,
-            'label': device_info.label,
+            'label': label,
         }
         k = hardware_keystore(d)
         self.on_keystore(k)
