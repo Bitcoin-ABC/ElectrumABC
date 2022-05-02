@@ -703,7 +703,7 @@ class DigitalBitboxPlugin(HW_PluginBase):
         if purpose == HWD_SETUP_NEW_WALLET:
             client.setupRunning = True
         client.get_xpub("m/44'/0'", 'standard')
-
+        return client
 
     def is_mobile_paired(self):
         return 'encryptionprivkey' in self.digitalbitbox_config

@@ -25,6 +25,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 from __future__ import annotations
+from functools import partial
 from typing import TYPE_CHECKING, Sequence, Optional, Type
 
 from electroncash.plugins import BasePlugin, hook, Device, DeviceInfo, DeviceMgr
@@ -82,7 +83,9 @@ class HW_PluginBase(BasePlugin):
         client.handler = self.create_handler(wizard)
         return client
 
-    def setup_device(self, device_info: DeviceInfo, wizard: BaseWizard, purpose):
+    def setup_device(
+        self, device_info: DeviceInfo, wizard: BaseWizard, purpose
+    ) -> HardwareClientBase:
         """Called when creating a new wallet or when using the device to decrypt
         an existing wallet. Select the device to use.  If the device is
         uninitialized, go through the initialization process.

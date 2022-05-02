@@ -333,7 +333,7 @@ class BaseWizard(util.PrintError):
         self.plugin = self.plugins.find_plugin(name, force_load=True)
         print("-------  " + name + "--------------")
         try:
-            self.plugin.setup_device(device_info, self, purpose)
+            client = self.plugin.setup_device(device_info, self, purpose)
         except OSError as e:
             self.show_error(_('We encountered an error while connecting to your device:')
                             + '\n\n"' + str(e) + '"\n\n'
@@ -349,6 +349,7 @@ class BaseWizard(util.PrintError):
         except BaseException as e:
             self.choose_hw_device(purpose, storage=storage)
             return
+
         if purpose == HWD_SETUP_NEW_WALLET:
             if self.wallet_type == 'multisig':
                 # There is no general standard for HD multisig.
@@ -369,9 +370,6 @@ class BaseWizard(util.PrintError):
             try:
                 storage.decrypt(password)
             except util.InvalidPassword:
-                # try to clear session so that user can type another passphrase
-                devmgr = self.plugins.device_manager
-                client = devmgr.client_by_id(device_info.device.id_)
                 if hasattr(client, 'clear_session'):  # FIXME not all hw wallet plugins have this
                     client.clear_session()
                 raise
@@ -412,7 +410,7 @@ class BaseWizard(util.PrintError):
         xtype = 'standard'
         try:
             xpub = self.plugin.get_xpub(device_info.device.id_, derivation, xtype, self)
-            client = devmgr.client_by_id(device_info.device.id_)
+            client = devmgr.client_by_id(device_info.device.id_, scan_now=False)
             label = client.label()
         except BaseException as e:
             self.print_error(traceback.format_exc())

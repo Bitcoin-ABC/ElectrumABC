@@ -331,6 +331,7 @@ class TrezorPlugin(HW_PluginBase):
             self.initialize_device(device_id, wizard, client.handler)
         client.get_xpub('m', 'standard', creating)
         client.used()
+        return client
 
     def get_xpub(self, device_id, derivation, xtype, wizard):
         client = self.scan_and_create_client_for_device(

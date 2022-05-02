@@ -301,6 +301,7 @@ class KeepKeyPlugin(HW_PluginBase):
             self.initialize_device(device_id, wizard, client.handler)
         client.get_xpub('m', 'standard')
         client.used()
+        return client
 
     def get_xpub(self, device_id, derivation, xtype, wizard):
         if xtype not in self.SUPPORTED_XTYPES:

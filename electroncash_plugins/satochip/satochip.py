@@ -633,7 +633,6 @@ class SatochipPlugin(HW_PluginBase):
                     self.print_error("setup_device(): unable to set up applet!  sw12="+hex(sw1)+" "+hex(sw2))#debugSatochip
                     raise RuntimeError('Unable to setup the device with error code:'+hex(sw1)+' '+hex(sw2))
 
-
         # verify pin:
         client.cc.card_verify_PIN()
 
@@ -679,6 +678,7 @@ class SatochipPlugin(HW_PluginBase):
             wizard.data['authentikey'] = hex_authentikey
             self.print_error("setup_device(): authentikey from storage=", wizard.data['authentikey'])#debugSatochip
             break
+        return client
 
     def get_xpub(self, device_id, derivation, xtype, wizard):
         # this seems to be part of the pairing process only, not during normal ops?

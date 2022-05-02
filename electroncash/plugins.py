@@ -792,7 +792,7 @@ class DeviceMgr(ThreadJob):
         self, device: Device, handler: HardwareHandlerBase, plugin: HW_PluginBase
     ) -> Optional[HardwareClientBase]:
         # Get from cache first
-        client = self.client_lookup(device.id_)
+        client = self._client_by_id(device.id_)
         if client:
             return client
         client = plugin.create_client(device, handler)
@@ -828,7 +828,7 @@ class DeviceMgr(ThreadJob):
             self._close_client(id_)
 
     def _close_client(self, id_):
-        client = self.client_lookup(id_)
+        client = self._client_by_id(id_)
         self.clients.pop(client, None)
         if client:
             client.close()
@@ -837,19 +837,22 @@ class DeviceMgr(ThreadJob):
         with self.lock:
             self.xpub_ids[xpub] = id_
 
-    def client_lookup(self, id_) -> Optional[HardwareClientBase]:
+    def _client_by_id(self, id_) -> Optional[HardwareClientBase]:
         with self.lock:
             for client, (path, client_id) in self.clients.items():
                 if client_id == id_:
                     return client
         return None
 
-    def client_by_id(self, id_) -> Optional[HardwareClientBase]:
+    def client_by_id(
+        self, id_, *, scan_now: bool = True
+    ) -> Optional[HardwareClientBase]:
         '''Returns a client for the device ID if one is registered.  If
         a device is wiped or in bootloader mode pairing is impossible;
         in such cases we communicate by device ID and not wallet.'''
-        self.scan_devices()
-        return self.client_lookup(id_)
+        if scan_now:
+            self.scan_devices()
+        return self._client_by_id(id_)
 
     def client_for_keystore(
         self,
@@ -882,7 +885,7 @@ class DeviceMgr(ThreadJob):
         devices: Iterable[Device]
     ) -> Optional['HardwareClientBase']:
         _id = self.xpub_id(xpub)
-        client = self.client_lookup(_id)
+        client = self._client_by_id(_id)
         if client:
             # An unpaired client might have another wallet's handler
             # from a prior scan.  Replace to fix dialog parenting.
@@ -904,7 +907,7 @@ class DeviceMgr(ThreadJob):
         # The wallet has not been previously paired, so let the user
         # choose an unpaired device and compare its first address.
         xtype = bitcoin.xpub_type(xpub)
-        client = self.client_lookup(info.device.id_)
+        client = self._client_by_id(info.device.id_)
         if client and client.is_pairable():
             # See comment above for same code
             client.handler = handler
