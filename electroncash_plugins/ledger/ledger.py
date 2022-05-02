@@ -5,13 +5,12 @@ import traceback
 import inspect
 
 from electroncash import bitcoin
-from electroncash.address import Address, OpCodes
+from electroncash.address import Address
 from electroncash.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, int_to_hex, var_int, SignatureType
 from electroncash.i18n import _
-from electroncash.plugins import BasePlugin
 from electroncash.keystore import Hardware_KeyStore
 from electroncash.transaction import Transaction
-from electroncash_plugins.hw_wallet import HW_PluginBase
+from electroncash_plugins.hw_wallet import HW_PluginBase, HardwareClientBase
 from electroncash_plugins.hw_wallet.plugin import (
     is_any_tx_output_on_change_branch,
     validate_op_return_output_and_get_data,
@@ -55,7 +54,7 @@ def test_pin_unlocked(func):
                 raise
     return catch_exception
 
-class Ledger_Client:
+class Ledger_Client(HardwareClientBase):
 
     def __init__(self, plugin, hidDevice, isHW1=False):
         self.device = plugin.device

@@ -6,6 +6,8 @@ from electroncash.util import PrintError, UserCancelled
 from electroncash.keystore import bip39_normalize_passphrase
 from electroncash.bitcoin import serialize_xpub
 
+from ..hw_wallet.plugin import HardwareClientBase
+
 
 class GuiMixin(object):
     # Requires: self.proto, self.device
@@ -92,7 +94,7 @@ class GuiMixin(object):
         return self.proto.CharacterAck(**char_info)
 
 
-class KeepKeyClientBase(GuiMixin, PrintError):
+class KeepKeyClientBase(HardwareClientBase, GuiMixin, PrintError):
 
     def __init__(self, handler, plugin, proto):
         assert hasattr(self, 'tx_api')  # ProtocolMixin already constructed?
@@ -109,11 +111,9 @@ class KeepKeyClientBase(GuiMixin, PrintError):
         return "%s/%s" % (self.label(), self.features.device_id)
 
     def label(self):
-        '''The name given by the user to the device.'''
         return self.features.label
 
     def is_initialized(self):
-        '''True if initialized, False if wiped.'''
         return self.features.initialized
 
     def is_pairable(self):

@@ -24,10 +24,11 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
 
 import hashlib
 from abc import abstractmethod
-from typing import Tuple, Union
+from typing import TYPE_CHECKING, Tuple, Union
 
 import ecdsa
 from ecdsa.curves import SECP256k1
@@ -45,6 +46,9 @@ from .util import (
     bh2u,
     print_error,
 )
+
+if TYPE_CHECKING:
+    from electroncash_plugins.hw_wallet import HW_PluginBase
 
 
 class KeyStore(PrintError):
@@ -580,10 +584,9 @@ class Old_KeyStore(Deterministic_KeyStore):
 
 
 class Hardware_KeyStore(KeyStore, Xpub):
-    # Derived classes must set:
-    #   - device
-    #   - DEVICE_IDS
-    #   - wallet_type
+    hw_type: str
+    device: str
+    plugin: HW_PluginBase
 
     # restore_wallet_class = BIP32_RD_Wallet
     max_change_outputs = 1

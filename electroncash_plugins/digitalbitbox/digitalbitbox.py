@@ -9,7 +9,7 @@ try:
     from electroncash.transaction import Transaction
     from electroncash.i18n import _
     from electroncash.keystore import Hardware_KeyStore
-    from ..hw_wallet import HW_PluginBase
+    from ..hw_wallet import HW_PluginBase, HardwareClientBase
     from electroncash.util import print_error, to_string, UserCancelled
     from electroncash.base_wizard import HWD_SETUP_NEW_WALLET
     import time
@@ -48,7 +48,7 @@ def derive_keys(x):
 
 MIN_MAJOR_VERSION = 5
 
-class DigitalBitbox_Client():
+class DigitalBitbox_Client(HardwareClientBase):
 
     def __init__(self, plugin, hidDevice):
         self.plugin = plugin

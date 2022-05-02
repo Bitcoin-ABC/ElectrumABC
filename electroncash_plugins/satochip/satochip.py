@@ -22,7 +22,7 @@ from electroncash.mnemo import (
 from electroncash.bitcoin import serialize_xpub
 from electroncash_gui.qt.qrcodewidget import QRDialog
 
-from ..hw_wallet import HW_PluginBase
+from ..hw_wallet.plugin import HW_PluginBase, HardwareClientBase
 
 try:
     #pysatochip
@@ -82,7 +82,7 @@ def bip32path2bytes(bip32path:str) -> (int, bytes):
 
     return depth, bytePath
 
-class SatochipClient(PrintError):
+class SatochipClient(HardwareClientBase, PrintError):
     def __init__(self, plugin, handler):
         if not LIBS_AVAILABLE:
             self.print_error("** No libraries available")

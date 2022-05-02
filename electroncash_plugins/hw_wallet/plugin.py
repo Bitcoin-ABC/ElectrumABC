@@ -24,20 +24,23 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
+from typing import TYPE_CHECKING, Optional, Type
 
-from electroncash.plugins import BasePlugin, hook
+from electroncash.plugins import BasePlugin, hook, Device, DeviceMgr
 from electroncash.i18n import _, ngettext
 from electroncash import Transaction
 from electroncash.bitcoin import TYPE_SCRIPT
 from electroncash.util import bfh, finalization_print_error
 from electroncash.address import OpCodes, Address, Script
 
+if TYPE_CHECKING:
+    from electroncash.wallet import Abstract_Wallet
+    from electroncash.keystore import Hardware_KeyStore
+
+
 class HW_PluginBase(BasePlugin):
-    # Derived classes provide:
-    #
-    #  class-static variables: client_class, firmware_URL, handler_class,
-    #     libraries_available, libraries_URL, minimum_firmware,
-    #     wallet_class, ckd_public, types, HidTransport
+    keystore_class: Type[Hardware_KeyStore]
 
     # For now, Ledger and Trezor don't support the 899' derivation path.
     # SatochipPlugin overrides this class attribute.
@@ -51,11 +54,11 @@ class HW_PluginBase(BasePlugin):
     def is_enabled(self):
         return True
 
-    def device_manager(self):
+    def device_manager(self) -> DeviceMgr:
         return self.parent.device_manager
 
     @hook
-    def close_wallet(self, wallet):
+    def close_wallet(self, wallet: Abstract_Wallet):
         for keystore in wallet.get_keystores():
             if isinstance(keystore, self.keystore_class):
                 self.device_manager().unpair_xpub(keystore.xpub)
@@ -89,6 +92,40 @@ class HW_PluginBase(BasePlugin):
 
     def supports_xec_bip44_derivation(self) -> bool:
         return self.SUPPORTS_XEC_BIP44_DERIVATION
+
+    def create_client(
+        self, device: Device, handler
+    ) -> Optional[HardwareClientBase]:
+        raise NotImplementedError()
+
+    def get_xpub(self, device_id, derivation: str, xtype, wizard) -> str:
+        raise NotImplementedError()
+
+
+class HardwareClientBase:
+
+    def is_pairable(self) -> bool:
+        raise NotImplementedError()
+
+    def close(self):
+        raise NotImplementedError()
+
+    def timeout(self, cutoff) -> None:
+        pass
+
+    def is_initialized(self) -> bool:
+        """True if initialized, False if wiped."""
+        raise NotImplementedError()
+
+    def label(self) -> str:
+        """The name given by the user to the device."""
+        raise NotImplementedError()
+
+    def has_usable_connection_with_device(self) -> bool:
+        raise NotImplementedError()
+
+    def get_xpub(self, bip32_path: str, xtype) -> str:
+        raise NotImplementedError()
 
 
 def is_any_tx_output_on_change_branch(tx: Transaction) -> bool:

@@ -32,6 +32,7 @@ import sys
 import threading
 import time
 import traceback
+from typing import Union, TYPE_CHECKING, Tuple, Dict, Iterable, List
 from warnings import warn
 import zipimport
 
@@ -45,6 +46,10 @@ from .constants import PROJECT_NAME, SCRIPT_NAME
 from .i18n import _
 from .util import (print_error, print_stderr, make_dir, profiler,
                    DaemonThread, PrintError, ThreadJob, UserCancelled)
+
+if TYPE_CHECKING:
+    from electroncash_plugins.hw_wallet import HW_PluginBase, HardwareClientBase
+    from .keystore import Hardware_KeyStore
 
 plugin_loaders = {}
 hooks = defaultdict(list)
@@ -603,7 +608,7 @@ def daemon_command(func):
 
 class BasePlugin(PrintError):
     def __init__(self, parent, config, name):
-        self.parent = parent  # The plugins object
+        self.parent: Plugins = parent  # The plugins object
         self.name = name
         self.config = config
         self.wallet = None
@@ -730,7 +735,7 @@ class DeviceMgr(ThreadJob):
         self.xpub_ids = {}
         # A list of clients.  The key is the client, the value is
         # a (path, id_) pair.
-        self.clients = {}
+        self.clients: Dict[HardwareClientBase, Tuple[Union[str, bytes], str]] = {}
         # What we recognise.  Each entry is a (vendor_id, product_id)
         # pair.
         self.recognised_hardware = set()
@@ -761,7 +766,9 @@ class DeviceMgr(ThreadJob):
     def register_enumerate_func(self, func):
         self.enumerate_func.add(func)
 
-    def create_client(self, device, handler, plugin):
+    def create_client(
+        self, device: Device, handler, plugin: HW_PluginBase
+    ) -> Optional[HardwareClientBase]:
         # Get from cache first
         client = self.client_lookup(device.id_)
         if client:
@@ -808,21 +815,27 @@ class DeviceMgr(ThreadJob):
         with self.lock:
             self.xpub_ids[xpub] = id_
 
-    def client_lookup(self, id_):
+    def client_lookup(self, id_) -> Optional['HardwareClientBase']:
         with self.lock:
             for client, (path, client_id) in self.clients.items():
                 if client_id == id_:
                     return client
         return None
 
-    def client_by_id(self, id_):
+    def client_by_id(self, id_) -> Optional['HardwareClientBase']:
         '''Returns a client for the device ID if one is registered.  If
         a device is wiped or in bootloader mode pairing is impossible;
         in such cases we communicate by device ID and not wallet.'''
         self.scan_devices()
         return self.client_lookup(id_)
 
-    def client_for_keystore(self, plugin, handler, keystore, force_pair):
+    def client_for_keystore(
+        self,
+        plugin: HW_PluginBase,
+        handler,
+        keystore: Hardware_KeyStore,
+        force_pair: bool
+    ) -> Optional['HardwareClientBase']:
         self.print_error("getting client for keystore")
         if handler is None:
             raise BaseException(_("Handler not found for") + ' ' + plugin.name + '\n' + _("A library is probably missing."))
@@ -833,13 +846,19 @@ class DeviceMgr(ThreadJob):
         client = self.client_by_xpub(plugin, xpub, handler, devices)
         if client is None and force_pair:
             info = self.select_device(plugin, handler, keystore, devices)
-            client = self.force_pair_xpub(plugin, handler, info, xpub, derivation, devices)
+            client = self.force_pair_xpub(plugin, handler, info, xpub, derivation)
         if client:
             handler.update_status(True)
         self.print_error("end client for keystore")
         return client
 
-    def client_by_xpub(self, plugin, xpub, handler, devices):
+    def client_by_xpub(
+        self,
+        plugin: HW_PluginBase,
+        xpub,
+        handler,
+        devices: Iterable[Device]
+    ) -> Optional['HardwareClientBase']:
         _id = self.xpub_id(xpub)
         client = self.client_lookup(_id)
         if client:
@@ -852,8 +871,13 @@ class DeviceMgr(ThreadJob):
             if device.id_ == _id:
                 return self.create_client(device, handler, plugin)
 
-
-    def force_pair_xpub(self, plugin, handler, info, xpub, derivation, devices):
+    def force_pair_xpub(
+        self,
+        plugin: HW_PluginBase,
+        handler, info: DeviceInfo,
+        xpub,
+        derivation
+    ) -> Optional[HardwareClientBase]:
         # The wallet has not been previously paired, so let the user
         # choose an unpaired device and compare its first address.
         xtype = bitcoin.xpub_type(xpub)
@@ -897,7 +921,12 @@ class DeviceMgr(ThreadJob):
 
         return infos
 
-    def select_device(self, plugin, handler, keystore, devices=None):
+    def select_device(
+        self,
+        plugin: HW_PluginBase,
+        handler,
+        keystore: Hardware_KeyStore,
+        devices=None) -> DeviceInfo:
         '''Ask the user to select a device to use if there is more than one,
         and return the DeviceInfo for the device.'''
         while True:
@@ -931,7 +960,7 @@ class DeviceMgr(ThreadJob):
         handler.win.wallet.save_keystore()
         return info
 
-    def _scan_devices_with_hid(self):
+    def _scan_devices_with_hid(self) -> List['Device']:
         try:
             import hid
         except ImportError:
@@ -955,7 +984,7 @@ class DeviceMgr(ThreadJob):
                                       id_, product_key, usage_page))
         return devices
 
-    def scan_devices(self):
+    def scan_devices(self) -> List['Device']:
         self.print_error("scanning devices...")
 
         # First see what's connected that we know about

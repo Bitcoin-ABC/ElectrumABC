@@ -12,6 +12,8 @@ from trezorlib.messages import WordRequestType, FailureType, RecoveryDeviceType,
 import trezorlib.btc
 import trezorlib.device
 
+from ..hw_wallet.plugin import HardwareClientBase
+
 MESSAGES = {
     ButtonRequestType.ConfirmOutput:
         _("Confirm the transaction output on your {} device"),
@@ -55,7 +57,7 @@ def parse_path(n):
     return path
 
 
-class TrezorClientBase(PrintError):
+class TrezorClientBase(HardwareClientBase, PrintError):
     def __init__(self, transport, handler, plugin):
         self.client = TrezorClient(transport, ui=self)
         self.plugin = plugin
@@ -110,11 +112,9 @@ class TrezorClientBase(PrintError):
         return "%s/%s" % (self.label(), self.features.device_id)
 
     def label(self):
-        '''The name given by the user to the device.'''
         return "An unnamed trezor" if self.features.label is None else self.features.label
 
     def is_initialized(self):
-        '''True if initialized, False if wiped.'''
         return self.features.initialized
 
     def is_pairable(self):
