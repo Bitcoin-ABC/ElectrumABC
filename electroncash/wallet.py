@@ -1482,7 +1482,14 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             delta = tx_deltas[tx_hash]
             height, conf, timestamp = self.get_tx_height(tx_hash)
             history.append((tx_hash, height, conf, timestamp, delta))
-        history.sort(key = lambda x: self.get_txpos(x[0]), reverse=True)
+
+        def sort_func_receives_before_sends(h_item):
+            """Here we sort in a way such that receives are always ordered before sends, per block"""
+            height, pos = self.get_txpos(h_item[0])
+            delta = h_item[4] or 0  # Guard against delta == None by forcing None -> 0
+            return height, -delta, pos
+
+        history.sort(key=sort_func_receives_before_sends, reverse=True)
 
         # 3. add balance
         c, u, x = self.get_balance(domain)
