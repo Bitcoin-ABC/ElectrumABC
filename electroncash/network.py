@@ -1719,22 +1719,23 @@ class Network(util.DaemonThread):
 
         Returns a boolean to represent whether the server's proof is correct.
         """
-        received_merkle_root = bytes(reversed(bytes.fromhex(merkle_root)))
+        received_merkle_root = bytes.fromhex(merkle_root)[::-1]
         if networks.net.VERIFICATION_BLOCK_MERKLE_ROOT:
-            expected_merkle_root = bytes(reversed(
-                bytes.fromhex(networks.net.VERIFICATION_BLOCK_MERKLE_ROOT)))
+            expected_merkle_root = bytes.fromhex(networks.net.VERIFICATION_BLOCK_MERKLE_ROOT)[::-1]
         else:
             expected_merkle_root = received_merkle_root
 
         if received_merkle_root != expected_merkle_root:
-            interface.print_error("Sent unexpected merkle root, expected: {}, got: {}".format(networks.net.VERIFICATION_BLOCK_MERKLE_ROOT, merkle_root))
+            interface.print_error("Sent unexpected merkle root, expected: {}, got: {}"
+                                  .format(networks.net.VERIFICATION_BLOCK_MERKLE_ROOT, merkle_root))
             return False
 
         header_hash = bitcoin.Hash(bytes.fromhex(header))
-        byte_branches = [ bytes(reversed(bytes.fromhex(v))) for v in merkle_branch ]
+        byte_branches = [bytes.fromhex(v)[::-1] for v in merkle_branch]
         proven_merkle_root = blockchain.root_from_proof(header_hash, byte_branches, header_height)
         if proven_merkle_root != expected_merkle_root:
-            interface.print_error("Sent incorrect merkle branch, expected: {}, proved: {}".format(networks.net.VERIFICATION_BLOCK_MERKLE_ROOT, util.hfu(reversed(proven_merkle_root))))
+            interface.print_error("Sent incorrect merkle branch, expected: {}, proved: {}"
+                                  .format(networks.net.VERIFICATION_BLOCK_MERKLE_ROOT, proven_merkle_root[::-1].hex()))
             return False
 
         return True
