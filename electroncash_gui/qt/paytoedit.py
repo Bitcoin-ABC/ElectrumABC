@@ -139,7 +139,7 @@ class PayToEdit(PrintError, ScanQRTextEdit):
     def parse_amount(self, x):
         if x.strip() == '!':
             return '!'
-        p = pow(10, self.amount_edit.decimal_point())
+        p = pow(10, self.amount_edit.decimal_point)
         return int(p * PyDecimal(x.strip()))
 
     def check_text(self):
