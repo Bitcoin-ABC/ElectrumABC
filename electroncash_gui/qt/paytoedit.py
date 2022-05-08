@@ -33,7 +33,7 @@ import re
 import sys
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
 from electroncash import bitcoin
-from electroncash.address import Address, ScriptOutput
+from electroncash.address import Address, AddressError, ScriptOutput
 from electroncash import networks
 from electroncash.util import PrintError
 from electroncash.contacts import Contact
@@ -169,7 +169,7 @@ class PayToEdit(PrintError, ScanQRTextEdit):
         for i, line in enumerate(lines):
             try:
                 _type, to_address, amount = self.parse_address_and_amount(line)
-            except:
+            except (AddressError, ArithmeticError, ValueError):
                 self.errors.append((i, line.strip()))
                 continue
 
