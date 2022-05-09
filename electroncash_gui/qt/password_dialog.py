@@ -40,6 +40,7 @@ from electroncash_gui.qt.util import (
     OkButton,
     Buttons,
     CancelButton,
+    PasswordLineEdit,
 )
 
 
@@ -80,12 +81,9 @@ class PasswordLayout:
         self.wallet = wallet
 
         self.permit_empty = bool(permit_empty)
-        self.pw = QtWidgets.QLineEdit()
-        self.pw.setEchoMode(QtWidgets.QLineEdit.Password)
-        self.new_pw = QtWidgets.QLineEdit()
-        self.new_pw.setEchoMode(QtWidgets.QLineEdit.Password)
-        self.conf_pw = QtWidgets.QLineEdit()
-        self.conf_pw.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.pw = PasswordLineEdit()
+        self.new_pw = PasswordLineEdit()
+        self.conf_pw = PasswordLineEdit()
         self.kind = kind
         self.OK_button = OK_button
         self.all_lineedits = ( self.pw, self.new_pw, self.conf_pw )
@@ -321,8 +319,7 @@ class PasswordDialog(WindowModalDialog):
     def __init__(self, parent=None, msg=None):
         msg = msg or _('Please enter your password')
         WindowModalDialog.__init__(self, parent, _("Enter Password"))
-        self.pw = pw = QtWidgets.QLineEdit()
-        pw.setEchoMode(2)
+        self.pw = pw = PasswordLineEdit
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(QtWidgets.QLabel(msg))
         grid = QtWidgets.QGridLayout()

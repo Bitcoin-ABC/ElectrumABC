@@ -49,6 +49,7 @@ from .util import (
     CloseButton,
     HelpButton,
     MessageBoxMixin,
+    PasswordLineEdit,
     WindowModalDialog,
     WWLabel,
     char_width_in_lineedit,
@@ -529,9 +530,8 @@ class NetworkChoiceLayout(QObject, PrintError):
         self.proxy_port.setFixedWidth(fixed_width_port)
         self.proxy_user = QtWidgets.QLineEdit()
         self.proxy_user.setPlaceholderText(_("Proxy user"))
-        self.proxy_password = QtWidgets.QLineEdit()
+        self.proxy_password = PasswordLineEdit()
         self.proxy_password.setPlaceholderText(_("Password"))
-        self.proxy_password.setEchoMode(QtWidgets.QLineEdit.Password)
 
         self.proxy_mode.currentIndexChanged.connect(self.set_proxy)
         self.proxy_host.editingFinished.connect(self.set_proxy)

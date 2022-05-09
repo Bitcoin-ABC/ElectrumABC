@@ -12,6 +12,7 @@ from locale import atof
 
 from electroncash.util import print_error, PrintError, Weak, finalization_print_error
 from electroncash.wallet import Abstract_Wallet
+
 from PyQt5.QtGui import (
     QColor,
     QCursor,
@@ -931,10 +932,12 @@ class OverlayControlMixin:
             return
         super().keyReleaseEvent(e)
 
+
 class ButtonsLineEdit(OverlayControlMixin, QtWidgets.QLineEdit):
     def __init__(self, text=None):
         QtWidgets.QLineEdit.__init__(self, text)
         OverlayControlMixin.__init__(self, middle=True)
+
 
 class ButtonsTextEdit(OverlayControlMixin, QtWidgets.QPlainTextEdit):
     def __init__(self, text=None):
@@ -942,6 +945,13 @@ class ButtonsTextEdit(OverlayControlMixin, QtWidgets.QPlainTextEdit):
         OverlayControlMixin.__init__(self)
         self.setText = self.setPlainText
         self.text = self.toPlainText
+
+
+class PasswordLineEdit(QtWidgets.QLineEdit):
+    def __init__(self, *args, **kwargs):
+        QtWidgets.QLineEdit.__init__(self, *args, **kwargs)
+        self.setEchoMode(QtWidgets.QLineEdit.Password)
+
 
 class TaskThread(PrintError, QThread):
     '''Thread that runs background tasks.  Callbacks are guaranteed

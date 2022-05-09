@@ -5,6 +5,8 @@ from electroncash.util import print_error
 from electroncash.address import Address
 from electroncash import networks
 
+from electroncash_gui.qt.util import PasswordLineEdit
+
 import copy
 
 from btchip.btchip import BTChipException
@@ -79,8 +81,7 @@ class LedgerAuthDialog(QtWidgets.QDialog):
         self.pinbox = QtWidgets.QWidget()
         pinlayout = QtWidgets.QHBoxLayout()
         self.pinbox.setLayout(pinlayout)
-        self.pintxt = QtWidgets.QLineEdit()
-        self.pintxt.setEchoMode(2)
+        self.pintxt = PasswordLineEdit()
         self.pintxt.setMaxLength(4)
         self.pintxt.returnPressed.connect(return_pin)
         pinlayout.addWidget(QtWidgets.QLabel(_("Enter PIN:")))
@@ -119,8 +120,7 @@ class LedgerAuthDialog(QtWidgets.QDialog):
         pin_changed('')
         cardpin = QtWidgets.QHBoxLayout()
         cardpin.addWidget(QtWidgets.QLabel(_("Enter PIN:")))
-        self.cardtxt = QtWidgets.QLineEdit()
-        self.cardtxt.setEchoMode(2)
+        self.cardtxt = PasswordLineEdit()
         self.cardtxt.setMaxLength(len(self.idxs))
         self.cardtxt.textChanged.connect(pin_changed)
         self.cardtxt.returnPressed.connect(return_pin)

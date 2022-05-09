@@ -40,6 +40,7 @@ from electroncash_gui.qt.util import (
     Buttons,
     CancelButton,
     OkButton,
+    PasswordLineEdit,
     TaskThread,
     WindowModalDialog,
     WWLabel,
@@ -151,8 +152,7 @@ class QtHandlerBase(HardwareHandlerBase, QObject, PrintError):
             d.setLayout(vbox)
             passphrase = playout.new_password() if d.exec_() else None
         else:
-            pw = QtWidgets.QLineEdit()
-            pw.setEchoMode(2)
+            pw = PasswordLineEdit()
             pw.setMinimumWidth(200)
             vbox = QtWidgets.QVBoxLayout()
             vbox.addWidget(WWLabel(msg))

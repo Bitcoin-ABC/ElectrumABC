@@ -6,6 +6,7 @@ from electroncash_gui.qt.util import (
     CloseButton,
     OkButton,
     CancelButton,
+    PasswordLineEdit,
     WindowModalDialog,
     WWLabel,
 )
@@ -328,8 +329,7 @@ class SatochipSettingsDialog(WindowModalDialog):
         print_error("In reset_seed_dialog")
         parent = self.top_level_window()
         d = WindowModalDialog(parent, _("Enter PIN"))
-        pw = QtWidgets.QLineEdit()
-        pw.setEchoMode(2)
+        pw = PasswordLineEdit()
         pw.setMinimumWidth(200)
 
         vbox = QtWidgets.QVBoxLayout()

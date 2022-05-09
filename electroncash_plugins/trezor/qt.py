@@ -10,6 +10,7 @@ from electroncash_gui.qt.util import (
     CancelButton,
     CloseButton,
     OkButton,
+    PasswordLineEdit,
     WindowModalDialog,
     WWLabel,
 )
@@ -173,10 +174,8 @@ class QtHandler(QtHandlerBase):
         OK_button = OkButton(d, _('Enter Passphrase'))
         OnDevice_button = QtWidgets.QPushButton(_('Enter Passphrase on Device'))
 
-        new_pw = QtWidgets.QLineEdit()
-        new_pw.setEchoMode(2)
-        conf_pw = QtWidgets.QLineEdit()
-        conf_pw.setEchoMode(2)
+        new_pw = PasswordLineEdit()
+        conf_pw = PasswordLineEdit()
 
         vbox = QtWidgets.QVBoxLayout()
         label = QtWidgets.QLabel(msg + "\n")

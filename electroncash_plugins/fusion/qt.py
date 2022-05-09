@@ -46,7 +46,15 @@ from electroncash_gui.qt.amountedit import XECAmountEdit
 from electroncash_gui.qt.main_window import ElectrumWindow, StatusBarButton
 from electroncash_gui.qt.popup_widget import ShowPopupLabel, KillPopupLabel
 from electroncash_gui.qt.util import (
-    Buttons, CancelButton, CloseButton, ColorScheme, OkButton, WaitingDialog, WindowModalDialog)
+    Buttons,
+    CancelButton,
+    CloseButton,
+    ColorScheme,
+    OkButton,
+    PasswordLineEdit,
+    WaitingDialog,
+    WindowModalDialog,
+)
 from electroncash_gui.qt.utils import PortValidator, UserPortValidator
 
 from .conf import Conf, Global
@@ -698,8 +706,7 @@ class PasswordDialog(WindowModalDialog):
         hbox.addWidget(self.msglabel, 1, Qt.AlignLeft|Qt.AlignVCenter)
         cmargins = hbox.contentsMargins(); cmargins.setBottom(10); hbox.setContentsMargins(cmargins)  # pad the bottom a bit
         vbox.addLayout(hbox, 1)
-        self.pwle = QtWidgets.QLineEdit()
-        self.pwle.setEchoMode(2)
+        self.pwle = PasswordLineEdit()
         grid_for_hook_api = QtWidgets.QGridLayout()
         grid_for_hook_api.setContentsMargins(0,0,0,0)
         grid_for_hook_api.addWidget(self.pwle, 0, 0)
