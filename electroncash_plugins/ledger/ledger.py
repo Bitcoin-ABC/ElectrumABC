@@ -356,19 +356,20 @@ class Ledger_KeyStore(Hardware_KeyStore):
     def sign_transaction(self, tx, password, *, use_cache=False):
         if tx.is_complete():
             return
-        client = self.get_client()
         inputs = []
         inputsPaths = []
         pubKeys = []
         chipInputs = []
         redeemScripts = []
         signatures = []
-        preparedTrustedInputs = []
         changePath = ""
         output = None
         p2shTransaction = False
         pin = ""
-        self.get_client() # prompt for the PIN before displaying the dialog if necessary
+        # prompt for the PIN before displaying the dialog if necessary
+        self.get_client()
+        client_electrum = self.get_client_electrum()
+        assert client_electrum
         self.cashaddr_alert()
 
         # Fetch inputs of the transaction to sign
@@ -414,14 +415,14 @@ class Ledger_KeyStore(Hardware_KeyStore):
         # - only one output and one change is authorized (for hw.1 and nano)
         # - at most one output can bypass confirmation (~change) (for all)
         if not p2shTransaction:
-            if not self.get_client_electrum().supports_multi_output():
+            if not client_electrum.supports_multi_output():
                 if len(tx.outputs()) > 2:
                     self.give_error(_('Transaction with more than 2 outputs not supported by {}').format(self.device))
             has_change = False
             any_output_on_change_branch = is_any_tx_output_on_change_branch(tx)
             for o in tx.outputs():
                 _type, address, amount = o
-                if self.get_client_electrum().is_hw1():
+                if client_electrum.is_hw1():
                     if not _type == TYPE_ADDRESS:
                         self.give_error(_('Only address outputs are supported by {}').format(self.device))
                 else:
@@ -458,7 +459,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
             # Get trusted inputs from the original transactions
             for utxo in inputs:
                 sequence = int_to_hex(utxo[5], 4)
-                if not self.get_client_electrum().requires_trusted_inputs():
+                if not client_electrum.requires_trusted_inputs():
                     txtmp = bitcoinTransaction(bfh(utxo[0]))
                     tmp = bfh(utxo[3])[::-1]
                     tmp += bfh(int_to_hex(utxo[1], 4))
@@ -480,7 +481,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
             inputIndex = 0
             self.get_client().enableAlternate2fa(False)
             cashaddr = Address.FMT_UI == Address.FMT_CASHADDR_BCH
-            if cashaddr and self.get_client_electrum().supports_cashaddr():
+            if cashaddr and client_electrum.supports_cashaddr():
                 self.get_client().startUntrustedTransaction(True, inputIndex, chipInputs,
                                                             redeemScripts[inputIndex], cashAddr=True)
             else:
@@ -500,7 +501,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
                 self.handler.show_message(_('Confirmed. Signing Transaction...'))
             while inputIndex < len(inputs):
                 singleInput = [ chipInputs[inputIndex] ]
-                if cashaddr and self.get_client_electrum().supports_cashaddr():
+                if cashaddr and client_electrum.supports_cashaddr():
                     self.get_client().startUntrustedTransaction(False, 0, singleInput,
                                                             redeemScripts[inputIndex], cashAddr=True)
                 else:
