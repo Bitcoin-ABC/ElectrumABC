@@ -677,12 +677,10 @@ class DigitalBitboxPlugin(HW_PluginBase):
 
         self.digitalbitbox_config = self.config.get('digitalbitbox', {})
 
-
     def get_dbb_device(self, device):
         dev = hid.device()
         dev.open_path(device.path)
         return dev
-
 
     def create_client(self, device, handler):
         if device.interface_number == 0 or device.usage_page == 0xffff:
@@ -694,7 +692,6 @@ class DigitalBitboxPlugin(HW_PluginBase):
         else:
             return None
 
-
     def setup_device(self, device_info, wizard, purpose):
         device_id = device_info.device.id_
         client = self.scan_and_create_client_for_device(
@@ -702,12 +699,12 @@ class DigitalBitboxPlugin(HW_PluginBase):
         )
         if purpose == HWD_SETUP_NEW_WALLET:
             client.setupRunning = True
-        client.get_xpub("m/44'/0'", 'standard')
+        wizard.run_task_without_blocking_gui(
+            task=lambda: client.get_xpub("m/44'/0'", 'standard'))
         return client
 
     def is_mobile_paired(self):
         return 'encryptionprivkey' in self.digitalbitbox_config
-
 
     def comserver_post_notification(self, payload):
         assert self.is_mobile_paired(), "unexpected mobile pairing error"
@@ -722,7 +719,6 @@ class DigitalBitboxPlugin(HW_PluginBase):
         except Exception as e:
             self.handler.show_error(str(e))
 
-
     def get_xpub(self, device_id, derivation, xtype, wizard):
         client = self.scan_and_create_client_for_device(
             device_id=device_id, wizard=wizard
@@ -730,7 +726,6 @@ class DigitalBitboxPlugin(HW_PluginBase):
         client.check_device_dialog()
         xpub = client.get_xpub(derivation, xtype)
         return xpub
-
 
     def get_client(self, keystore, force_pair=True):
         devmgr = self.device_manager()

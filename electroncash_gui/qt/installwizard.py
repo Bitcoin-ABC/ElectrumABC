@@ -526,6 +526,26 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
     def terminate(self, **kwargs):
         self.accept_signal.emit()
 
+    def run_task_without_blocking_gui(self, task, *, msg=None):
+        assert self.gui_thread == threading.current_thread(), 'must be called from GUI thread'
+        if msg is None:
+            msg = _("Please wait...")
+
+        exc: Optional[Exception] = None
+        res = None
+        def task_wrapper():
+            nonlocal exc
+            nonlocal res
+            try:
+                task()
+            except Exception as e:
+                exc = e
+        self.waiting_dialog(task_wrapper, msg=msg)
+        if exc is None:
+            return res
+        else:
+            raise exc
+
     def waiting_dialog(self, task, msg, on_finished=None):
         label = WWLabel(msg)
         vbox = QtWidgets.QVBoxLayout()

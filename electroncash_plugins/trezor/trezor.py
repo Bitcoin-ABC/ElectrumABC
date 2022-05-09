@@ -328,7 +328,8 @@ class TrezorPlugin(HW_PluginBase):
         creating = not device_info.initialized
         if creating:
             self.initialize_device(device_id, wizard, client.handler)
-        client.get_xpub('m', 'standard', creating)
+        wizard.run_task_without_blocking_gui(
+            task=lambda: client.get_xpub('m', 'standard', creating))
         client.used()
         return client
 

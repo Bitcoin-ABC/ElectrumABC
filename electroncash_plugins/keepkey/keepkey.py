@@ -298,7 +298,8 @@ class KeepKeyPlugin(HW_PluginBase):
         )
         if not device_info.initialized:
             self.initialize_device(device_id, wizard, client.handler)
-        client.get_xpub('m', 'standard')
+        wizard.run_task_without_blocking_gui(
+            task=lambda: client.get_xpub("m", 'standard'))
         client.used()
         return client
 
