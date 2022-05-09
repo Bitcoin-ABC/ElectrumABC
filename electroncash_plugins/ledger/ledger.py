@@ -401,7 +401,29 @@ class Ledger_KeyStore(Hardware_KeyStore):
             txOutput += script
         txOutput = bfh(txOutput)
 
-        # Recognize outputs
+        if not client_electrum.supports_multi_output():
+            if len(tx.outputs()) > 2:
+                self.give_error(_('Transaction with more than 2 outputs not supported by {}').format(self.device))
+        for o in tx.outputs():
+            _type, address, amount = o
+            if client_electrum.is_hw1():
+                if not _type == TYPE_ADDRESS:
+                    self.give_error(_('Only address outputs are supported by {}').format(self.device))
+            else:
+                if not _type in [TYPE_ADDRESS, TYPE_SCRIPT]:
+                    self.give_error(_('Only address and script outputs are supported by {}').format(self.device))
+                if _type == TYPE_SCRIPT:
+                    try:
+                        # Ledger has a maximum output size of 200 bytes:
+                        # https://github.com/LedgerHQ/ledger-app-btc/commit/3a78dee9c0484821df58975803e40d58fbfc2c38#diff-c61ccd96a6d8b54d48f54a3bc4dfa7e2R26
+                        # which gives us a maximum OP_RETURN payload size of
+                        # 187 bytes. It also apparently has no limit on
+                        # max_pushes, so we specify max_pushes=None so as
+                        # to bypass that check.
+                        validate_op_return_output_and_get_data(o, max_size=187, max_pushes=None)
+                    except RuntimeError as e:
+                        self.give_error('{}: {}'.format(self.device, str(e)))
+
         # - only one output and one change is authorized (for hw.1 and nano)
         # - at most one output can bypass confirmation (~change) (for all)
         if not p2shTransaction:
@@ -410,25 +432,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
                     self.give_error(_('Transaction with more than 2 outputs not supported by {}').format(self.device))
             has_change = False
             any_output_on_change_branch = is_any_tx_output_on_change_branch(tx)
-            for o in tx.outputs():
-                _type, address, amount = o
-                if client_electrum.is_hw1():
-                    if not _type == TYPE_ADDRESS:
-                        self.give_error(_('Only address outputs are supported by {}').format(self.device))
-                else:
-                    if not _type in [TYPE_ADDRESS, TYPE_SCRIPT]:
-                        self.give_error(_('Only address and script outputs are supported by {}').format(self.device))
-                    if _type == TYPE_SCRIPT:
-                        try:
-                            # Ledger has a maximum output size of 200 bytes:
-                            # https://github.com/LedgerHQ/ledger-app-btc/commit/3a78dee9c0484821df58975803e40d58fbfc2c38#diff-c61ccd96a6d8b54d48f54a3bc4dfa7e2R26
-                            # which gives us a maximum OP_RETURN payload size of
-                            # 187 bytes. It also apparently has no limit on
-                            # max_pushes, so we specify max_pushes=None so as
-                            # to bypass that check.
-                            validate_op_return_output_and_get_data(o, max_size=187, max_pushes=None)
-                        except RuntimeError as e:
-                            self.give_error('{}: {}'.format(self.device, str(e)))
+            for _type, address, amount in tx.outputs():
                 info = tx.output_info.get(address)
                 if (info is not None) and len(tx.outputs()) > 1 \
                         and not has_change:
