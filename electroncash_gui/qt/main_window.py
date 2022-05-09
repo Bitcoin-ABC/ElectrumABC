@@ -201,6 +201,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         QtWidgets.QMainWindow.__init__(self)
 
         self.gui_object = gui_object
+        self.gui_thread = gui_object.gui_thread
         self.wallet = wallet
         assert not self.wallet.weak_window
         self.wallet.weak_window = Weak.ref(self)  # This enables plugins such as CashFusion to keep just a reference to the wallet, but eventually be able to find the window it belongs to.

@@ -30,6 +30,7 @@ import os
 import shutil
 import signal
 import sys
+import threading
 import traceback
 from typing import Callable, Optional
 
@@ -180,6 +181,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         assert __class__.instance is None, "ElectrumGui is a singleton, yet an instance appears to already exist! FIXME!"
         __class__.instance = self
 
+        self.gui_thread = threading.current_thread()
         self.config = config
         self.daemon = daemon
         self.plugins = plugins
