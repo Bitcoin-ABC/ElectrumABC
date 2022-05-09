@@ -281,15 +281,6 @@ class Ledger_KeyStore(Hardware_KeyStore):
                 self.signing = False
         return wrapper
 
-    def cashaddr_alert(self):
-        """Alert users about fw/sw updates for cashaddr."""
-        if Address.FMT_UI == Address.FMT_CASHADDR_BCH:
-            # Do not warn if the device is HW1, they have no display anyway
-            if not self.get_client_electrum().fw_supports_cashaddr() and not self.get_client_electrum().is_hw1():
-                self.handler.show_warning(MSG_NEEDS_FW_UPDATE_CASHADDR)
-            if not self.get_client_electrum().sw_supports_cashaddr():
-                self.handler.show_warning(MSG_NEEDS_SW_UPDATE_CASHADDR)
-
     def address_id_stripped(self, address):
         # Strip the leading "m/"
         change, index = self.get_address_index(address)
@@ -370,7 +361,6 @@ class Ledger_KeyStore(Hardware_KeyStore):
         self.get_client()
         client_electrum = self.get_client_electrum()
         assert client_electrum
-        self.cashaddr_alert()
 
         # Fetch inputs of the transaction to sign
         derivations = self.get_tx_derivations(tx)
@@ -539,7 +529,6 @@ class Ledger_KeyStore(Hardware_KeyStore):
         client = self.get_client()
         # prompt for the PIN before displaying the dialog if necessary
         address_path = self.get_derivation()[2:] + "/{:d}/{:d}".format(*sequence)
-        self.cashaddr_alert()
         self.handler.show_message(_('Showing address on {}...').format(self.device))
         try:
             if Address.FMT_UI == Address.FMT_CASHADDR_BCH and self.get_client_electrum().supports_cashaddr():
