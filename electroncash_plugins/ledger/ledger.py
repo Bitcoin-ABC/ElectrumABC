@@ -454,10 +454,11 @@ class Ledger_KeyStore(Hardware_KeyStore):
                 else:
                     output = address
 
-        self.handler.show_message(_('Confirm Transaction on your {}...').format(self.device))
         try:
             # Get trusted inputs from the original transactions
-            for utxo in inputs:
+            for input_idx, utxo in enumerate(inputs):
+                self.handler.show_message(_("Preparing transaction inputs...")
+                                          + f" (phase1, {input_idx}/{len(inputs)})")
                 sequence = int_to_hex(utxo[5], 4)
                 if not client_electrum.requires_trusted_inputs():
                     txtmp = bitcoinTransaction(bfh(utxo[0]))
@@ -477,6 +478,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
                     else:
                         redeemScripts.append(txtmp.outputs[utxo[1]].script)
 
+            self.handler.show_message(_("Confirm Transaction on your Ledger device..."))
             # Sign all inputs
             inputIndex = 0
             client_ledger.enableAlternate2fa(False)
@@ -500,6 +502,8 @@ class Ledger_KeyStore(Hardware_KeyStore):
                     raise UserWarning()
                 self.handler.show_message(_('Confirmed. Signing Transaction...'))
             while inputIndex < len(inputs):
+                self.handler.show_message(_("Signing transaction...")
+                                          + f" (phase2, {inputIndex}/{len(inputs)})")
                 singleInput = [ chipInputs[inputIndex] ]
                 if cashaddr and client_electrum.supports_cashaddr():
                     client_ledger.startUntrustedTransaction(False, 0, singleInput,
