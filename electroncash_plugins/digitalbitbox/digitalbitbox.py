@@ -59,15 +59,14 @@ class DigitalBitbox_Client(HardwareClientBase):
         self.setupRunning = False
         self.usbReportSize = 64 # firmware > v2.0.0
 
-
     def close(self):
         if self.opened:
-            try:
-                self.dbb_hid.close()
-            except:
-                pass
+            with self.device_manager().hid_lock:
+                try:
+                    self.dbb_hid.close()
+                except:
+                    pass
         self.opened = False
-
 
     def timeout(self, cutoff):
         pass
@@ -75,10 +74,8 @@ class DigitalBitbox_Client(HardwareClientBase):
     def is_pairable(self):
         return True
 
-
     def is_initialized(self):
         return self.dbb_has_password()
-
 
     def is_paired(self):
         return self.password is not None
@@ -94,7 +91,6 @@ class DigitalBitbox_Client(HardwareClientBase):
         if self.check_device_dialog():
             return self.hid_send_encrypt(b'{"xpub": "%s"}' % bip32_path.encode('utf8'))
 
-
     def get_xpub(self, bip32_path, xtype):
         assert xtype == 'standard'
         reply = self._get_xpub(bip32_path)
@@ -104,7 +100,6 @@ class DigitalBitbox_Client(HardwareClientBase):
         else:
             raise BaseException('no reply')
 
-
     def dbb_has_password(self):
         reply = self.hid_send_plain(b'{"ping":""}')
         if 'ping' not in reply:
@@ -112,7 +107,6 @@ class DigitalBitbox_Client(HardwareClientBase):
         if reply['ping'] == 'password':
             return True
         return False
-
 
     def stretch_key(self, key):
         return binascii.hexlify(hashlib.pbkdf2_hmac('sha512', key.encode('utf-8'), b'Digital Bitbox', iterations = 20480))
@@ -132,7 +126,6 @@ class DigitalBitbox_Client(HardwareClientBase):
             else:
                 return password.encode('utf8')
 
-
     def password_dialog(self, msg):
         while True:
             password = self.handler.get_passphrase(msg, False)
@@ -147,7 +140,6 @@ class DigitalBitbox_Client(HardwareClientBase):
             else:
                 self.password = password.encode('utf8')
                 return True
-
 
     def check_device_dialog(self):
         #Check device firmware version
@@ -202,7 +194,6 @@ class DigitalBitbox_Client(HardwareClientBase):
             self.mobile_pairing_dialog()
         return self.isInitialized
 
-
     def recover_or_erase_dialog(self):
         msg = _("The Digital Bitbox is already seeded. Choose an option:") + "\n"
         choices = [
@@ -224,7 +215,6 @@ class DigitalBitbox_Client(HardwareClientBase):
                 raise Exception(_("Full 2FA enabled. This is not supported yet."))
             # Use existing seed
         self.isInitialized = True
-
 
     def seed_device_dialog(self):
         msg = _("Choose how to initialize your Digital Bitbox:") + "\n"
@@ -304,7 +294,6 @@ class DigitalBitbox_Client(HardwareClientBase):
             self.password = None
             raise Exception('Device erased')
 
-
     def dbb_load_backup(self, show_msg=True):
         backups = self.hid_send_encrypt(b'{"backup":"list"}')
         if 'error' in backups:
@@ -328,7 +317,6 @@ class DigitalBitbox_Client(HardwareClientBase):
             raise Exception(hid_reply['error']['message'])
         return True
 
-
     def hid_send_frame(self, data):
         HWW_CID = 0xFF000000
         HWW_CMD = 0x80 + 0x40 + 0x01
@@ -348,7 +336,6 @@ class DigitalBitbox_Client(HardwareClientBase):
                 seq += 1
             idx += len(write)
 
-
     def hid_read_frame(self):
         # INIT response
         read = bytearray(self.dbb_hid.read(self.usbReportSize))
@@ -363,7 +350,6 @@ class DigitalBitbox_Client(HardwareClientBase):
             data += read[5:]
             idx += len(read) - 5
         return data
-
 
     def hid_send_plain(self, msg):
         reply = ""
@@ -385,7 +371,6 @@ class DigitalBitbox_Client(HardwareClientBase):
         except Exception as e:
             print_error('Exception caught ' + str(e))
         return reply
-
 
     def hid_send_encrypt(self, msg):
         sha256_byte_len = 32
@@ -678,8 +663,9 @@ class DigitalBitboxPlugin(HW_PluginBase):
         self.digitalbitbox_config = self.config.get('digitalbitbox', {})
 
     def get_dbb_device(self, device):
-        dev = hid.device()
-        dev.open_path(device.path)
+        with self.device_manager().hid_lock:
+            dev = hid.device()
+            dev.open_path(device.path)
         return dev
 
     def create_client(self, device, handler):

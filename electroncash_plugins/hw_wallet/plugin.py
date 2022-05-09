@@ -25,7 +25,6 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 from __future__ import annotations
-from functools import partial
 from typing import TYPE_CHECKING, Any, Iterable, Sequence, Optional, Type
 
 from electroncash.plugins import BasePlugin, hook, Device, DeviceInfo, DeviceMgr
@@ -160,6 +159,9 @@ class HardwareClientBase:
 
     def __init__(self, *, plugin: HW_PluginBase):
         self.plugin = plugin
+
+    def device_manager(self) -> DeviceMgr:
+        return self.plugin.device_manager()
 
     def is_pairable(self) -> bool:
         raise NotImplementedError()
