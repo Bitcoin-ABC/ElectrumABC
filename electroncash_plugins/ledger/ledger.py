@@ -359,7 +359,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
         p2shTransaction = False
         pin = ""
         # prompt for the PIN before displaying the dialog if necessary
-        self.get_client()
+        client_ledger = self.get_client()
         client_electrum = self.get_client_electrum()
         assert client_electrum
 
@@ -463,7 +463,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
                     redeemScripts.append(bfh(utxo[2]))
                 else:
                     txtmp = bitcoinTransaction(bfh(utxo[0]))
-                    trustedInput = self.get_client().getTrustedInput(txtmp, utxo[1])
+                    trustedInput = client_ledger.getTrustedInput(txtmp, utxo[1])
                     trustedInput['sequence'] = sequence
                     trustedInput['witness'] = True
                     chipInputs.append(trustedInput)
@@ -474,17 +474,17 @@ class Ledger_KeyStore(Hardware_KeyStore):
 
             # Sign all inputs
             inputIndex = 0
-            self.get_client().enableAlternate2fa(False)
+            client_ledger.enableAlternate2fa(False)
             cashaddr = Address.FMT_UI == Address.FMT_CASHADDR_BCH
             if cashaddr and client_electrum.supports_cashaddr():
-                self.get_client().startUntrustedTransaction(True, inputIndex, chipInputs,
-                                                            redeemScripts[inputIndex], cashAddr=True)
+                client_ledger.startUntrustedTransaction(True, inputIndex, chipInputs,
+                                                        redeemScripts[inputIndex], cashAddr=True)
             else:
-                self.get_client().startUntrustedTransaction(True, inputIndex,
-                                                            chipInputs, redeemScripts[inputIndex])
+                client_ledger.startUntrustedTransaction(True, inputIndex,
+                                                        chipInputs, redeemScripts[inputIndex])
             # we don't set meaningful outputAddress, amount and fees
             # as we only care about the alternateEncoding==True branch
-            outputData = self.get_client().finalizeInput(b'', 0, 0, changePath, bfh(tx.serialize(True)))
+            outputData = client_ledger.finalizeInput(b'', 0, 0, changePath, bfh(tx.serialize(True)))
             outputData['outputData'] = txOutput
             transactionOutput = outputData['outputData']
             if outputData['confirmationNeeded']:
@@ -497,12 +497,12 @@ class Ledger_KeyStore(Hardware_KeyStore):
             while inputIndex < len(inputs):
                 singleInput = [ chipInputs[inputIndex] ]
                 if cashaddr and client_electrum.supports_cashaddr():
-                    self.get_client().startUntrustedTransaction(False, 0, singleInput,
+                    client_ledger.startUntrustedTransaction(False, 0, singleInput,
                                                             redeemScripts[inputIndex], cashAddr=True)
                 else:
-                    self.get_client().startUntrustedTransaction(False, 0,
+                    client_ledger.startUntrustedTransaction(False, 0,
                                                             singleInput, redeemScripts[inputIndex])
-                inputSignature = self.get_client().untrustedHashSign(inputsPaths[inputIndex], pin, lockTime=tx.locktime, sighashType=0x41)
+                inputSignature = client_ledger.untrustedHashSign(inputsPaths[inputIndex], pin, lockTime=tx.locktime, sighashType=0x41)
                 inputSignature[0] = 0x30 # force for 1.4.9+
                 signatures.append(inputSignature)
                 inputIndex = inputIndex + 1
