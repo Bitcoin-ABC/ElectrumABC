@@ -483,17 +483,6 @@ class AvaDelegationWidget(QtWidgets.QWidget):
     def set_master(self, master_wif: str):
         self.delegator_key_edit.setText(master_wif)
 
-    def compute_ltd_id_from_proof(self):
-        proof_hex = self.proof_edit.toPlainText()
-        try:
-            proof = Proof.from_hex(proof_hex)
-        except DeserializationError:
-            self.ltd_id_edit.setText("")
-            self.proof_title_label.setText("Proof ❌")
-        else:
-            self.ltd_id_edit.setText(proof.limitedid.get_hex())
-            self.proof_title_label.setText("Proof ✔")
-
     def on_generate_clicked(self):
         dg_hex = self._build()
         if dg_hex is not None:
