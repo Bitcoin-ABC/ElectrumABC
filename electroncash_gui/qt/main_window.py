@@ -757,7 +757,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.raw_transaction_menu = raw_transaction_menu
         tools_menu.addSeparator()
         avaproof_action = tools_menu.addAction(
-            "Build avalanche proof", self.build_avalanche_proof
+            "Build avalanche proof from coins file", self.build_avalanche_proof
         )
         tools_menu.addAction(
             "Build avalanche delegation", self.build_avalanche_delegation
