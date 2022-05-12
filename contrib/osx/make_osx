@@ -2,12 +2,8 @@
 
 build_dir="$(dirname "$(realpath "$0")")"
 test -n "$build_dir" -a -d "$build_dir" || (echo "Cannot determine build dir. FIXME!" && exit 1)
-CACHEDIR="$build_dir/.cache"
-
-mkdir -p "$CACHEDIR"
 
 . "$build_dir"/../base.sh # functions we use below
-
 
 OSX_COMPAT=""
 DARWIN_VER=$(uname -r | cut -f 1 -d .)
@@ -140,25 +136,25 @@ python3 -m pip install -I --user -r contrib/deterministic-build/requirements-pip
 python3 -m pip install -I --user -r contrib/osx/requirements-osx-build.txt \
     || fail "Could not install osx build requirements"
 
-
-#info "Installing PyInstaller"
-#python3 -m pip install pyinstaller==4.3 --user --upgrade && pyenv rehash || fail "Could not install PyInstaller"
+# Create the build directory in /tmp
+rm  -rf $BUILDDIR > /dev/null 2>&1
+mkdir -p $BUILDDIR
 
 info "Building PyInstaller."
 PYINSTALLER_REPO="https://github.com/pyinstaller/pyinstaller.git"
-PYINSTALLER_COMMIT="40c9abce2d8de879e414fd377c933dccaab1e156"
-# ^ tag "4.2"
+PYINSTALLER_COMMIT="e20e74c03768d432d48665b8ef1e02511b16e4be"
+# ^ tag "4.3"
 # TODO test newer versions of pyinstaller for build-reproducibility.
 #      we are using this version for now due to change in code-signing behaviour
 #      (https://github.com/pyinstaller/pyinstaller/pull/5581)
 (
-    if [ -f "$CACHEDIR/pyinstaller/PyInstaller/bootloader/Darwin-64bit/runw" ]; then
+    if [ -f "$BUILDDIR/pyinstaller/PyInstaller/bootloader/Darwin-64bit/runw" ]; then
         info "pyinstaller already built, skipping"
         exit 0
     fi
-    cd $build_dir/../..
-    ELECTRUM_COMMIT_HASH=$(git rev-parse HEAD)
-    cd "$CACHEDIR"
+    pushd "${build_dir}"
+    EC_COMMIT_HASH=$(git rev-parse HEAD)
+    pushd "$BUILDDIR"
     rm -rf pyinstaller
     mkdir pyinstaller
     cd pyinstaller
@@ -177,10 +173,12 @@ PYINSTALLER_COMMIT="40c9abce2d8de879e414fd377c933dccaab1e156"
     popd
     # sanity check bootloader is there:
     [[ -e "PyInstaller/bootloader/Darwin-64bit/runw" ]] || fail "Could not find runw in target dir!"
-    rm -fv pyinstaller.py # workaround for https://github.com/pyinstaller/pyinstaller/pull/6701
+    rm pyinstaller.py  # workaround for https://github.com/pyinstaller/pyinstaller/pull/6701
+    popd # $BUILDDIR
+    popd # $build_dir
 ) || fail "PyInstaller build failed"
 info "Installing PyInstaller."
-python3 -m pip install --no-build-isolation --no-dependencies --no-warn-script-location "$CACHEDIR/pyinstaller"
+python3 -m pip install --no-build-isolation --no-dependencies --no-warn-script-location "$BUILDDIR/pyinstaller"
 
 info "Using these versions for building $PACKAGE:"  # NB: PACKAGE var comes from ../base.sh
 sw_vers
@@ -189,9 +187,6 @@ echo -n "Pyinstaller "
 pyinstaller --version
 
 rm -rf ./dist
-
-rm  -rf $BUILDDIR > /dev/null 2>&1
-mkdir -p $BUILDDIR
 
 info "Making locale..."
 python3 ./contrib/make_locale || fail "Failed to make locale..."
