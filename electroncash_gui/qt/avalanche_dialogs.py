@@ -307,12 +307,6 @@ class AvaProofWidget(CachedWalletPasswordWidget):
         self.generate_dg_button.setEnabled(proof is not None)
 
     def _build(self) -> Optional[str]:
-        if self.wallet.has_password() and self.pwd is None:
-            self.proof_display.setText(
-                '<p style="color:red;">Password dialog cancelled!</p>'
-            )
-            return
-
         master_wif = self.master_key_edit.text()
         if not is_private_key(master_wif):
             QtWidgets.QMessageBox.critical(
@@ -327,6 +321,12 @@ class AvaProofWidget(CachedWalletPasswordWidget):
             QtWidgets.QMessageBox.critical(self, "Invalid payout address", str(e))
             return
         payout_script = payout_address.to_script()
+
+        if self.wallet.has_password() and self.pwd is None:
+            self.proof_display.setText(
+                '<p style="color:red;">Password dialog cancelled!</p>'
+            )
+            return
 
         proofbuilder = ProofBuilder(
             sequence=self.sequence_sb.value(),
