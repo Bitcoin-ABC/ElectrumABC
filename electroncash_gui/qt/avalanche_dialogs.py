@@ -24,6 +24,67 @@ if TYPE_CHECKING:
     from electroncash.wallet import Deterministic_Wallet
 
 
+def get_privkey_suggestion(
+    wallet: Deterministic_Wallet,
+    key_index: int = 0,
+    pwd: Optional[str] = None,
+) -> str:
+    """Get a deterministic private key derived from a BIP44 path that is not used
+    by the wallet to generate addresses.
+
+    Return it in WIF format, or return an empty string on failure (pwd dialog
+    cancelled).
+    """
+    # Use BIP44 change_index 2, which is not used by any application.
+    privkey_index = (2, key_index)
+
+    if wallet.has_password() and pwd is None:
+        raise RuntimeError("Wallet password required")
+    return wallet.export_private_key_for_index(privkey_index, pwd)
+
+
+class CachedWalletPasswordWidget(QtWidgets.QWidget):
+    """A base class for widgets that may prompt the user for a wallet password and
+    remember that password for later reuse.
+    The password can also be specified in the constructor. In this case, there is no
+    need to prompt the user for it.
+    """
+
+    def __init__(
+        self,
+        wallet: Deterministic_Wallet,
+        pwd: Optional[str] = None,
+        parent: QtWidgets.QWidget = None,
+    ):
+        super().__init__(parent)
+        self._pwd = pwd
+        self.wallet = wallet
+
+    @property
+    def pwd(self) -> Optional[str]:
+        """Return wallet password.
+
+        Open a dialog to ask for the wallet password if necessary, and cache it.
+        Keep asking until the user provides the correct pwd or clicks cancel.
+        If the password dialog is cancelled, return None.
+        """
+        if self._pwd is not None:
+            return self._pwd
+
+        while self.wallet.has_password():
+            password = PasswordDialog(parent=self).run()
+            if password is None:
+                # dialog cancelled
+                return
+            try:
+                self.wallet.check_password(password)
+                self._pwd = password
+                # success
+                return self._pwd
+            except Exception as e:
+                QtWidgets.QMessageBox.critical(self, "Invalid password", str(e))
+
+
 class Link(QtWidgets.QPushButton):
     def __init__(self, text="", parent=None):
         super().__init__(text, parent)
@@ -45,7 +106,7 @@ class Link(QtWidgets.QPushButton):
         self.setSizePolicy(size_policy)
 
 
-class AvaProofWidget(QtWidgets.QWidget):
+class AvaProofWidget(CachedWalletPasswordWidget):
     def __init__(
         self,
         utxos: List[dict],
@@ -58,7 +119,7 @@ class AvaProofWidget(QtWidgets.QWidget):
         :param utxos:  List of UTXOs to be used as stakes
         :param parent:
         """
-        super().__init__(parent)
+        CachedWalletPasswordWidget.__init__(self, wallet, parent=parent)
         # This is enough width to show a whole compressed pubkey.
         self.setMinimumWidth(750)
         # Enough height to show the entire proof without scrolling.
@@ -67,7 +128,6 @@ class AvaProofWidget(QtWidgets.QWidget):
         self.utxos = utxos
         self.excluded_utxos: List[dict] = []
         self.wallet = wallet
-        self._pwd = None
 
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
@@ -98,7 +158,7 @@ class AvaProofWidget(QtWidgets.QWidget):
         self.timestamp_widget = QtWidgets.QDoubleSpinBox()
         self.timestamp_widget.setDecimals(0)
         # date range: genesis block to Wed Jun 09 3554 16:53:20 GMT
-        self.timestamp_widget.setRange(1231006505, 50 ** 10)
+        self.timestamp_widget.setRange(1231006505, 50**10)
         self.timestamp_widget.setSingleStep(86400)
         self.timestamp_widget.setToolTip(
             "POSIX time, seconds since 1970-01-01T00:00:00"
@@ -205,19 +265,9 @@ class AvaProofWidget(QtWidgets.QWidget):
         Return it in WIF format, or return an empty string on failure (pwd dialog
         cancelled).
         """
-        # For now, we always suggest a deterministic key that can be derived from the
-        # seed phrase but is not used for receive addresses or change addresses (use
-        # BIP44 change_index 2, which is not used afaik).
-        #
-        # TODO: implement proof management, don't reuse a key that is already
-        #       used by another registered proof (increment index as needed)
-        privkey_index = (2, 0)
-
         wif_pk = ""
-        if self.wallet.has_password():
-            self._prompt_password()
-        if not self.wallet.has_password() or self._pwd is not None:
-            wif_pk = self.wallet.export_private_key_for_index(privkey_index, self._pwd)
+        if not self.wallet.has_password() or self.pwd is not None:
+            wif_pk = get_privkey_suggestion(self.wallet, key_index=0, pwd=self.pwd)
         return wif_pk
 
     def on_datetime_changed(self, dt: QtCore.QDateTime):
@@ -239,26 +289,6 @@ class AvaProofWidget(QtWidgets.QWidget):
             pubkey_str = master_pub.to_hex()
             self.master_pubkey_view.setText(pubkey_str)
 
-    def _prompt_password(self) -> bool:
-        """Open a dialog to ask for the wallet password, and set self._pwd
-        accordingly.
-        Keep asking until the user provides the correct pwd or clicks cancel.
-        Return false if the pwd dialog is cancelled (self._pwd then remains None)
-        """
-        assert self._pwd is None and self.wallet.has_password()
-        while self.wallet.has_password():
-            password = PasswordDialog(parent=self).run()
-            if password is None:
-                break
-            try:
-                self.wallet.check_password(password)
-                self._pwd = password
-                break
-            except Exception as e:
-                QtWidgets.QMessageBox.critical(self, "Invalid password", str(e))
-                continue
-        return self._pwd is not None
-
     def _on_generate_clicked(self):
         proof = self._build()
         if proof is not None:
@@ -277,13 +307,11 @@ class AvaProofWidget(QtWidgets.QWidget):
         self.generate_dg_button.setEnabled(proof is not None)
 
     def _build(self) -> Optional[str]:
-        if self._pwd is None and self.wallet.has_password():
-            success = self._prompt_password()
-            if not success:
-                self.proof_display.setText(
-                    '<p style="color:red;">Password dialog cancelled!</p>'
-                )
-                return
+        if self.wallet.has_password() and self.pwd is None:
+            self.proof_display.setText(
+                '<p style="color:red;">Password dialog cancelled!</p>'
+            )
+            return
 
         master_wif = self.master_key_edit.text()
         if not is_private_key(master_wif):
@@ -317,7 +345,7 @@ class AvaProofWidget(QtWidgets.QWidget):
             if not isinstance(utxo["address"], Address):
                 # utxo loaded from JSON file (serialized)
                 address = Address.from_string(address)
-            priv_key = self.wallet.export_private_key(address, self._pwd)
+            priv_key = self.wallet.export_private_key(address, self.pwd)
             proofbuilder.add_utxo(
                 txid=UInt256.from_hex(utxo["prevout_hash"]),
                 vout=utxo["prevout_n"],
