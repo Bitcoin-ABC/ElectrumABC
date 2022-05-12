@@ -3581,7 +3581,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         Alternatively, this dialog can be opened from the proof building dialog. It is
         then prefilled with the correct data (except the delegated public key).
         """
-        dialog = AvaDelegationDialog(parent=self)
+        dialog = AvaDelegationDialog(self.wallet, parent=self)
         dialog.show()
 
     def export_bip38_dialog(self):

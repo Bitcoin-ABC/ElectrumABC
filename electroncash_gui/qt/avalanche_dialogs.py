@@ -24,6 +24,14 @@ if TYPE_CHECKING:
     from electroncash.wallet import Deterministic_Wallet
 
 
+# We generate a few deterministic private keys to pre-fill some widgets, so the user
+# does not need to use an external tool or a dummy wallet to generate keys.
+# TODO: don't always use the same keys, increment the index as needed (requires saving
+#       the index or the generated keys to the wallet file)
+_PROOF_MASTER_KEY_INDEX = 0
+_DELEGATED_KEY_INDEX = 1
+
+
 def get_privkey_suggestion(
     wallet: Deterministic_Wallet,
     key_index: int = 0,
@@ -267,7 +275,9 @@ class AvaProofWidget(CachedWalletPasswordWidget):
         """
         wif_pk = ""
         if not self.wallet.has_password() or self.pwd is not None:
-            wif_pk = get_privkey_suggestion(self.wallet, key_index=0, pwd=self.pwd)
+            wif_pk = get_privkey_suggestion(
+                self.wallet, key_index=_PROOF_MASTER_KEY_INDEX, pwd=self.pwd
+            )
         return wif_pk
 
     def on_datetime_changed(self, dt: QtCore.QDateTime):
@@ -379,7 +389,7 @@ class AvaProofWidget(CachedWalletPasswordWidget):
 
     def open_dg_dialog(self):
         if self.dg_dialog is None:
-            self.dg_dialog = AvaDelegationDialog(self)
+            self.dg_dialog = AvaDelegationDialog(self.wallet, self.pwd, self)
         self.dg_dialog.set_proof(self.proof_display.toPlainText())
         self.dg_dialog.set_master(self.master_key_edit.text())
         self.dg_dialog.show()
@@ -412,13 +422,16 @@ class AvaProofDialog(QtWidgets.QDialog):
         self.dismiss_button.clicked.connect(self.reject)
 
 
-class AvaDelegationWidget(QtWidgets.QWidget):
-    def __init__(self, parent: QtWidgets.QWidget = None):
-        super().__init__(parent)
-        self.setMinimumWidth(600)
+class AvaDelegationWidget(CachedWalletPasswordWidget):
+    def __init__(
+        self,
+        wallet: Deterministic_Wallet,
+        pwd: Optional[str] = None,
+        parent: Optional[QtWidgets.QWidget] = None,
+    ):
+        super().__init__(wallet, pwd, parent)
+        self.setMinimumWidth(750)
         self.setMinimumHeight(580)
-
-        self._pwd = None
 
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
@@ -462,9 +475,13 @@ class AvaDelegationWidget(QtWidgets.QWidget):
         layout.addSpacing(10)
 
         layout.addWidget(QtWidgets.QLabel("Delegated public key"))
+        delegated_key_layout = QtWidgets.QHBoxLayout()
         self.pubkey_edit = QtWidgets.QLineEdit()
         self.pubkey_edit.setToolTip("The public key to delegate the proof to.")
-        layout.addWidget(self.pubkey_edit)
+        delegated_key_layout.addWidget(self.pubkey_edit)
+        generate_key_button = QtWidgets.QPushButton("Generate key")
+        delegated_key_layout.addWidget(generate_key_button)
+        layout.addLayout(delegated_key_layout)
         layout.addSpacing(10)
 
         self.generate_button = QtWidgets.QPushButton("Generate delegation")
@@ -475,6 +492,7 @@ class AvaDelegationWidget(QtWidgets.QWidget):
         layout.addWidget(self.dg_display)
 
         # Signals
+        generate_key_button.clicked.connect(self.on_generate_key_clicked)
         self.generate_button.clicked.connect(self.on_generate_clicked)
 
     def set_proof(self, proof_hex: str):
@@ -482,6 +500,29 @@ class AvaDelegationWidget(QtWidgets.QWidget):
 
     def set_master(self, master_wif: str):
         self.delegator_key_edit.setText(master_wif)
+
+    def on_generate_key_clicked(self):
+        """Open a dialog to show a private/public key pair to be used as delegated key.
+        Fill the delegated public key widget with the resulting public key.
+        """
+        wif_pk = ""
+        if not self.wallet.has_password() or self.pwd is not None:
+            wif_pk = get_privkey_suggestion(
+                self.wallet,
+                key_index=_DELEGATED_KEY_INDEX,
+                pwd=self.pwd,
+            )
+        if not wif_pk:
+            # This should only happen if the pwd dialog was cancelled
+            self.pubkey_edit.setText("")
+            return
+        QtWidgets.QMessageBox.information(
+            self,
+            "Delegated key",
+            f"Please save the following private key:<br><b>{wif_pk}</b><br><br>"
+            f"You will need it to use your delegation with a Bitcoin ABC node.",
+        )
+        self.pubkey_edit.setText(Key.from_wif(wif_pk).get_pubkey().to_hex())
 
     def on_generate_clicked(self):
         dg_hex = self._build()
@@ -568,13 +609,18 @@ class AvaDelegationWidget(QtWidgets.QWidget):
 
 
 class AvaDelegationDialog(QtWidgets.QDialog):
-    def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
+    def __init__(
+        self,
+        wallet: Deterministic_Wallet,
+        pwd: Optional[str] = None,
+        parent: Optional[QtWidgets.QWidget] = None,
+    ):
         super().__init__(parent)
         self.setWindowTitle("Build avalanche delegation")
 
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
-        self.dg_widget = AvaDelegationWidget(self)
+        self.dg_widget = AvaDelegationWidget(wallet, pwd, parent)
         layout.addWidget(self.dg_widget)
 
         buttons_layout = QtWidgets.QHBoxLayout()
