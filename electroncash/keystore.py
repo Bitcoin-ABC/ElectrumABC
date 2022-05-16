@@ -500,7 +500,7 @@ class Old_KeyStore(Deterministic_KeyStore):
         )
 
     @classmethod
-    def get_pubkey_from_mpk(self, mpk, for_change, n):
+    def get_pubkey_from_mpk(self, mpk, for_change, n) -> str:
         z = self.get_sequence(mpk, for_change, n)
         master_public_key = ecdsa.VerifyingKey.from_string(
             bytes.fromhex(mpk), curve=SECP256k1
@@ -511,7 +511,7 @@ class Old_KeyStore(Deterministic_KeyStore):
         )
         return "04" + bh2u(public_key2.to_string())
 
-    def derive_pubkey(self, for_change, n):
+    def derive_pubkey(self, for_change, n) -> str:
         return self.get_pubkey_from_mpk(self.mpk, for_change, n)
 
     def get_private_key_from_stretched_exponent(self, for_change, n, secexp):

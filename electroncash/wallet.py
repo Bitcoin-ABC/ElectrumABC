@@ -572,10 +572,6 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         assert not isinstance(address, str)
         raise Exception("Address {} not found".format(address))
 
-    def get_public_keys(self, address):
-        sequence = self.get_address_index(address)
-        return self.get_pubkeys(*sequence)
-
     def add_unverified_tx(self, tx_hash, tx_height):
         with self.lock:
             if tx_height == 0 and tx_hash in self.verified_tx:
@@ -3023,6 +3019,11 @@ class Deterministic_Wallet(Abstract_Wallet):
     def get_seed(self, password):
         return self.keystore.get_seed(password)
 
+    @abstractmethod
+    def get_public_keys(self, address: Address) -> List[str]:
+        """Get a list of public keys (as hexadecimal strings)"""
+        pass
+
     def change_gap_limit(self, value):
         '''This method is not called in the code, it is kept for console use'''
         with self.lock:
@@ -3158,7 +3159,7 @@ class Simple_Deterministic_Wallet(Simple_Wallet, Deterministic_Wallet):
             xtype = 'standard'
         self.txin_type = 'p2pkh' if xtype == 'standard' else xtype
 
-    def get_pubkey(self, c, i):
+    def get_pubkey(self, c, i) -> str:
         return self.derive_pubkeys(c, i)
 
     def get_public_keys(self, address):
@@ -3174,7 +3175,7 @@ class Simple_Deterministic_Wallet(Simple_Wallet, Deterministic_Wallet):
     def get_master_public_key(self):
         return self.keystore.get_master_public_key()
 
-    def derive_pubkeys(self, c, i):
+    def derive_pubkeys(self, c, i) -> str:
         return self.keystore.derive_pubkey(c, i)
 
 
@@ -3193,6 +3194,10 @@ class Multisig_Wallet(Deterministic_Wallet):
         self.wallet_type = storage.get('wallet_type')
         self.m, self.n = multisig_type(self.wallet_type)
         Deterministic_Wallet.__init__(self, storage)
+
+    def get_public_keys(self, address):
+        sequence = self.get_address_index(address)
+        return self.get_pubkeys(*sequence)
 
     def get_pubkeys(self, c, i):
         return self.derive_pubkeys(c, i)
