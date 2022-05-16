@@ -2,7 +2,7 @@ import unittest
 from unittest import mock
 
 from .. import keystore, mnemo, storage, wallet
-from ..address import Address
+from ..address import Address, PublicKey
 
 
 class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
@@ -123,6 +123,21 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
             w.get_change_addresses()[0],
             Address.from_string("1GG5bVeWgAp5XW7JLCphse14QaC4qiHyWn"),
         )
+
+        expected_auxiliary_keys = [
+            "L2ETdaLkdB8ZV6k95X776wRBGJgFGMurfi35EY2DdaJHfzaVieWg",
+            "KxmCxRaEg5RvqbyiLJgpFnosfykDWzbMgz6T34HsjQSZ99BbYFiV",
+        ]
+        AUX_INDEX = 2
+        for idx, wif_key in enumerate(expected_auxiliary_keys):
+            self.assertEqual(
+                w.export_private_key_for_index((AUX_INDEX, idx), None),
+                wif_key,
+            )
+            self.assertEqual(
+                w.get_auxiliary_pubkey_index(PublicKey.from_WIF_privkey(wif_key), None),
+                idx,
+            )
 
     @mock.patch.object(storage.WalletStorage, "_write")
     def test_electrum_multisig_seed_standard(self, mock_write):

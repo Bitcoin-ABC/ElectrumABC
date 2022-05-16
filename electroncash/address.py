@@ -23,6 +23,7 @@
 # SOFTWARE.
 
 # Many of the functions in this file are copied from ElectrumX
+from __future__ import annotations
 
 import hashlib
 import struct
@@ -165,9 +166,9 @@ class PublicKey(namedtuple("PublicKeyTuple", "pubkey")):
         raise ValueError('invalid private key')
 
     @classmethod
-    def from_WIF_privkey(cls, WIF_privkey):
-        '''Create a compressed or uncompressed public key from a private
-        key.'''
+    def from_WIF_privkey(cls, WIF_privkey) -> PublicKey:
+        """Create a compressed or uncompressed public key from a private
+        key."""
         privkey, compressed = cls.privkey_from_WIF_privkey(WIF_privkey)
         ec_key = EC_KEY(privkey)
         return cls.from_pubkey(ec_key.GetPubKey(compressed))

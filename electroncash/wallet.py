@@ -524,7 +524,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         of is_mine below is sufficient."""
         self._recv_address_set_cached, self._change_address_set_cached = frozenset(), frozenset()
 
-    def is_mine(self, address):
+    def is_mine(self, address: Address) -> bool:
         """Note this method assumes that the entire address set is
         composed of self.get_change_addresses() + self.get_receiving_addresses().
         In subclasses, if that is not the case -- REIMPLEMENT this method!"""
@@ -550,7 +550,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         return (address in self._recv_address_set_cached
                 or address in self._change_address_set_cached)
 
-    def is_change(self, address):
+    def is_change(self, address: Address) -> bool:
         assert not isinstance(address, str)
         ca = self.get_change_addresses()
         if len(ca) != len(self._change_address_set_cached):
@@ -3137,6 +3137,21 @@ class Deterministic_Wallet(Abstract_Wallet):
         """
         pk, compressed = self.keystore.get_private_key(index, password)
         return bitcoin.serialize_privkey(pk, compressed, self.txin_type)
+
+    def get_auxiliary_pubkey_index(self, key: PublicKey, password) -> Optional[int]:
+        """Return an index for an auxiliary public key. These are the keys on the
+        BIP 44 path that uses change index = 2, for keys that are guaranteed to not
+        be used for addresses. Return None if the public key is not mine.
+        """
+        # For now, we expect that only index 0 (proof master key) and 1 (delegated key)
+        # are in use. In the future, if more keys are needed (multiple proofs or
+        # delegations for instance), it is possible to add data to the wallet file to
+        # store used keys the way it is done for addresses.
+        for index in [0, 1]:
+            wif = self.export_private_key_for_index((2, index), password)
+            if PublicKey.from_WIF_privkey(wif) == key:
+                return index
+        return None
 
 
 class Simple_Deterministic_Wallet(Simple_Wallet, Deterministic_Wallet):
