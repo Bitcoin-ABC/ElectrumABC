@@ -349,7 +349,9 @@ class PassphraseDialog(WindowModalDialog):
             self.setWindowModality(Qt.ApplicationModal)
 
         OK_button = OkButton(self)
-        self.playout = PasswordLayout(wallet, msg, PW_PASSPHRASE, OK_button, permit_empty=permit_empty)
+        self.playout = PasswordLayout(
+            msg, PW_PASSPHRASE, OK_button, wallet, permit_empty=permit_empty,
+        )
         self.setWindowTitle(title)
         vbox = QtWidgets.QVBoxLayout(self)
         vbox.addLayout(self.playout.layout())
