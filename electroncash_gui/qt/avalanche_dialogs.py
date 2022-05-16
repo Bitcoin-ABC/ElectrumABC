@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, List, Optional
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+from electroncash import address
 from electroncash.address import Address, AddressError
 from electroncash.avalanche.delegation import (
     Delegation,
@@ -492,6 +493,7 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
         layout.addWidget(self.dg_display)
 
         # Signals
+        self.dg_edit.textChanged.connect(self.on_delegation_pasted)
         generate_key_button.clicked.connect(self.on_generate_key_clicked)
         self.generate_button.clicked.connect(self.on_generate_clicked)
 
@@ -500,6 +502,28 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
 
     def set_master(self, master_wif: str):
         self.delegator_key_edit.setText(master_wif)
+
+    def on_delegation_pasted(self):
+        """Deserialize the delegation to be used as a base delegation to which a level
+        is to be added. Find the delegated pubkey and check whether this is an auxiliary
+        key from this wallet. If it is, prefill the Delegator key field with the private
+        key.
+        """
+        try:
+            dg = Delegation.from_hex(self.dg_edit.toPlainText())
+        except DeserializationError:
+            return
+        dg_pubkey = dg.get_delegated_public_key()
+        # Mind the type difference between PublicKey returned by
+        # Delegation.get_delegated_public_key and PublicKey used by Wallet.
+        idx = self.wallet.get_auxiliary_pubkey_index(
+            address.PublicKey.from_pubkey(dg_pubkey.keydata),
+            self.pwd,
+        )
+        if idx is not None:
+            self.delegator_key_edit.setText(
+                self.wallet.export_private_key_for_index((2, idx), self.pwd)
+            )
 
     def on_generate_key_clicked(self):
         """Open a dialog to show a private/public key pair to be used as delegated key.
