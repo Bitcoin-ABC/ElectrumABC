@@ -159,7 +159,7 @@ class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
         # Add the uaccess tag. On most distros this is all that is needed for users to access USB devices
         line_format += ', TAG+="uaccess"'
 
-        ids_set = self.device_manager.recognised_hardware.union(self.ADDITIONAL_HARDWARE_IDS)
+        ids_set = self.device_manager.get_recognized_hardware().union(self.ADDITIONAL_HARDWARE_IDS)
         lines = [line_format.format(ids[0], ids[1]) for ids in ids_set]
         return f'# {PROJECT_NAME} hardware wallet rules file\n' + '\n'.join(lines) + '\n'
 

@@ -35,7 +35,7 @@ import sys
 import threading
 import time
 import traceback
-from typing import Any, Union, TYPE_CHECKING, Tuple, Dict, Iterable, List
+from typing import Any, Union, Set, TYPE_CHECKING, Tuple, Dict, Iterable, List
 from warnings import warn
 import zipimport
 
@@ -797,6 +797,9 @@ class DeviceMgr(ThreadJob):
             with self._scan_lock:
                 return func(self, *args, **kwargs)
         return func_wrapper
+
+    def get_recognized_hardware(self) -> Set[Tuple[int, int]]:
+        return set(self._recognised_hardware.keys())
 
     def thread_jobs(self):
         # Thread job to handle device timeouts
