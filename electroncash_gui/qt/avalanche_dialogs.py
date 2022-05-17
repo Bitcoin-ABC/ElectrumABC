@@ -274,6 +274,8 @@ class AvaProofWidget(CachedWalletPasswordWidget):
         Return it in WIF format, or return an empty string on failure (pwd dialog
         cancelled).
         """
+        if not self.wallet.is_deterministic() or not self.wallet.can_export():
+            return ""
         wif_pk = ""
         if not self.wallet.has_password() or self.pwd is not None:
             wif_pk = get_privkey_suggestion(
@@ -529,6 +531,8 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
         """Open a dialog to show a private/public key pair to be used as delegated key.
         Fill the delegated public key widget with the resulting public key.
         """
+        if not self.wallet.is_deterministic() or not self.wallet.can_export():
+            return
         wif_pk = ""
         if not self.wallet.has_password() or self.pwd is not None:
             wif_pk = get_privkey_suggestion(

@@ -545,7 +545,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.password_menu.setEnabled(self.wallet.may_have_password())
         self.import_privkey_menu.setVisible(self.wallet.can_import_privkey())
         self.import_address_menu.setVisible(self.wallet.can_import_address())
-        self.show_aux_keys_menu.setVisible(self.wallet.is_deterministic())
+        self.show_aux_keys_menu.setVisible(
+            self.wallet.is_deterministic() and self.wallet.can_export()
+        )
         self.export_menu.setEnabled(self.wallet.can_export())
 
     def warn_if_watching_only(self):
@@ -4085,7 +4087,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     @protected
     def show_auxiliary_keys(self, password):
-        if not self.wallet.is_deterministic():
+        if not self.wallet.is_deterministic() or not self.wallet.can_export():
             return
         wif0 = self.wallet.export_private_key_for_index((2, 0), password)
         wif1 = self.wallet.export_private_key_for_index((2, 1), password)
