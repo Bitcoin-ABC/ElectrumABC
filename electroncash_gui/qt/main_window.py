@@ -58,7 +58,7 @@ from electroncash import keystore, get_config
 from electroncash import networks
 from electroncash import paymentrequest
 from electroncash import util, bitcoin, commands, cashacct
-from electroncash.address import Address
+from electroncash.address import Address, PublicKey
 from electroncash.bitcoin import TYPE_ADDRESS
 from electroncash.constants import PROJECT_NAME, REPOSITORY_URL, CURRENCY, SCRIPT_NAME
 from electroncash.contacts import Contact
@@ -545,6 +545,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.password_menu.setEnabled(self.wallet.may_have_password())
         self.import_privkey_menu.setVisible(self.wallet.can_import_privkey())
         self.import_address_menu.setVisible(self.wallet.can_import_address())
+        self.show_aux_keys_menu.setVisible(self.wallet.is_deterministic())
         self.export_menu.setEnabled(self.wallet.can_export())
 
     def warn_if_watching_only(self):
@@ -679,17 +680,18 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         wallet_menu = menubar.addMenu(_("&Wallet"))
         wallet_menu.addAction(_("&Information"), self.show_master_public_keys, QKeySequence("Ctrl+I"))
         wallet_menu.addSeparator()
-        self.password_menu = wallet_menu.addAction(_("&Password") + "...", self.change_password_dialog)
+        self.password_menu = wallet_menu.addAction(_("&Password"), self.change_password_dialog)
         self.seed_menu = wallet_menu.addAction(_("&Seed"), self.show_seed_dialog)
         self.private_keys_menu = wallet_menu.addMenu(_("Private Keys"))
-        self.private_keys_menu.addAction(_("&Sweep") + "...", self.sweep_key_dialog)
-        self.import_privkey_menu = self.private_keys_menu.addAction(_("&Import") + "...", self.do_import_privkey)
+        self.private_keys_menu.addAction(_("&Sweep"), self.sweep_key_dialog)
+        self.import_privkey_menu = self.private_keys_menu.addAction(_("&Import"), self.do_import_privkey)
         self.export_menu = self.private_keys_menu.addMenu(_("&Export"))
-        self.export_menu.addAction(_("&WIF Plaintext") + "...", self.export_privkeys_dialog)
-        self.export_menu.addAction(_("&BIP38 Encrypted") + "...", self.export_bip38_dialog)
-        self.import_address_menu = wallet_menu.addAction(_("Import addresses") + "...", self.import_addresses)
+        self.export_menu.addAction(_("&WIF Plaintext"), self.export_privkeys_dialog)
+        self.export_menu.addAction(_("&BIP38 Encrypted"), self.export_bip38_dialog)
+        self.import_address_menu = wallet_menu.addAction(_("Import addresses"), self.import_addresses)
+        self.show_aux_keys_menu = wallet_menu.addAction(_("Show auxiliary keys"), self.show_auxiliary_keys)
         wallet_menu.addSeparator()
-        self._rebuild_history_action = wallet_menu.addAction(_("&Rebuild History") + "...", self.rebuild_history)
+        self._rebuild_history_action = wallet_menu.addAction(_("&Rebuild History"), self.rebuild_history)
         self._scan_beyond_gap_action = wallet_menu.addAction(_("Scan &More Addresses..."), self.scan_beyond_gap)
         self._scan_beyond_gap_action.setEnabled(bool(self.wallet.is_deterministic() and self.network))
         wallet_menu.addSeparator()
@@ -4080,6 +4082,29 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 return addr
             return ''
         self._do_import(title, msg, import_addr)
+
+    @protected
+    def show_auxiliary_keys(self, password):
+        if not self.wallet.is_deterministic():
+            return
+        wif0 = self.wallet.export_private_key_for_index((2, 0), password)
+        wif1 = self.wallet.export_private_key_for_index((2, 1), password)
+        pub0 = PublicKey.from_WIF_privkey(wif0)
+        pub1 = PublicKey.from_WIF_privkey(wif1)
+        QtWidgets.QMessageBox.information(
+            self,
+            "Auxiliary keys",
+            f"These keys are not used to generate addresses and can be used for other "
+            f"purposes.<br><br>"
+            f"<b>Do not share your private keys with anyone!</b><br><br><br>"
+            f"First auxiliary key (used for avalanche proofs):<br>"
+            f"<ul><li>Private key: <b>{wif0}</b></li>"
+            f"<li>Public key: <b>{pub0.to_ui_string()}</b></li></ul><br>"
+            f"Second auxiliary key (used for avalanche delegations):<br>"
+            f"<ul><li>Private key: <b>{wif1}</b></li>"
+            f"<li>Public key: <b>{pub1.to_ui_string()}</b></li></ul><br>",
+        )
+
 
     @protected
     def do_import_privkey(self, password):
