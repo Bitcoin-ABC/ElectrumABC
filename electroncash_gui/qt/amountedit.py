@@ -79,6 +79,10 @@ class AmountEdit(MyLineEdit):
         except (ValueError, ArithmeticError):
             return None
 
+    def set_base_unit(self, base_unit: str):
+        self.base_unit = base_unit
+        self.update()
+
 
 class XECAmountEdit(AmountEdit):
     def __init__(self, decimal_point: int, is_int=False, parent=None):
