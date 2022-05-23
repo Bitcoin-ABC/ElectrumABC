@@ -11,6 +11,7 @@ files: |
         electroncash_gui/qt/avalanche_dialogs.py|
         electroncash_gui/qt/consolidate_coins_dialog.py|
         electroncash_gui/qt/exception_window.py|
+        electroncash_gui/qt/invoice_dialog.py|
         electroncash_gui/qt/multi_transactions_dialog.py|
         electroncash_gui/qt/sign_verify_dialog.py
     )$
