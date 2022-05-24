@@ -174,7 +174,28 @@ class CoingeckoAPI2(ExchangeRateAPI):
         self.keys = ["market_data", "current_price", f"{currency.lower()}"]
 
 
-APIS: List[Type[ExchangeRateAPI]] = [CoingeckoAPI1, CoingeckoAPI2]
+class BinanceUSDT(ExchangeRateAPI):
+    def __init__(self, currency: str):
+        super().__init__(currency)
+        self.url = "https://api.binance.com/api/v3/avgPrice?symbol=XECUSDT"
+        self.format = APIDataFormat.JSON
+        self.keys = ["price"]
+
+
+class BinanceBUSD(ExchangeRateAPI):
+    def __init__(self, currency: str):
+        super().__init__(currency)
+        self.url = "https://api.binance.com/api/v3/avgPrice?symbol=XECBUSD"
+        self.format = APIDataFormat.JSON
+        self.keys = ["price"]
+
+
+APIS: List[Type[ExchangeRateAPI]] = [
+    CoingeckoAPI1,
+    CoingeckoAPI2,
+    BinanceUSDT,
+    BinanceBUSD,
+]
 
 
 class ExchangeRateAPIWidget(QtWidgets.QWidget):
