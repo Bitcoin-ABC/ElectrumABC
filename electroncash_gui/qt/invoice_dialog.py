@@ -24,9 +24,12 @@
 # SOFTWARE.
 from __future__ import annotations
 
+import json
 from typing import List, Optional, Type
 
 from PyQt5 import QtCore, QtWidgets
+
+from electroncash.address import Address, AddressError
 
 
 class InvoiceDialog(QtWidgets.QDialog):
@@ -50,16 +53,85 @@ class InvoiceDialog(QtWidgets.QDialog):
         layout.addSpacing(10)
 
         layout.addStretch(1)
+        buttons_layout = QtWidgets.QHBoxLayout()
+        layout.addLayout(buttons_layout)
+
+        self.save_button = QtWidgets.QPushButton("Save invoice")
+        buttons_layout.addWidget(self.save_button)
+        self.load_button = QtWidgets.QPushButton("Load invoice")
+        buttons_layout.addWidget(self.load_button)
 
         # Trigger callback to init widgets
         self._on_currency_changed(self.amount_currency_edit.get_currency())
 
         # signals
         self.amount_currency_edit.currencyChanged.connect(self._on_currency_changed)
+        self.save_button.clicked.connect(self._on_save_clicked)
+        self.load_button.clicked.connect(self._on_load_clicked)
 
     def _on_currency_changed(self, currency: str):
         self.exchange_rate_widget.setVisible(currency.lower() != "xec")
         self.exchange_rate_widget.set_currency(currency)
+
+    def _on_save_clicked(self):
+        filename, _selected_filter = QtWidgets.QFileDialog.getSaveFileName(
+            self,
+            "Save invoice to file",
+            filter="JSON file (*.json);;All files (*)",
+        )
+
+        if not filename:
+            return
+
+        params_dict = self.get_params_dict()
+        if not params_dict:
+            return
+
+        with open(filename, "w") as f:
+            json.dump(self.get_params_dict(), f)
+
+    def get_payment_address(self) -> str:
+        address_string = self.address_edit.text().strip()
+        try:
+            Address.from_string(address_string)
+        except AddressError:
+            QtWidgets.QMessageBox.critical(
+                self, "Invalid payment address", "Unable to decode payement address"
+            )
+            return ""
+        return address_string
+
+    def get_params_dict(self) -> dict:
+        payment_address = self.get_payment_address()
+        if not payment_address:
+            return {}
+
+        currency = self.amount_currency_edit.get_currency()
+
+        out = {
+            "invoice": {
+                "address": payment_address,
+                "amount": self.amount_currency_edit.get_amount_as_string(),
+                "currency": currency,
+            }
+        }
+        if currency.lower() == "xec":
+            return out
+
+        if self.exchange_rate_widget.is_fixed_rate():
+            out["invoice"][
+                "exchangeRate"
+            ] = self.exchange_rate_widget.get_exchange_rate()
+            return out
+
+        out["invoice"]["exchangeRateAPI"] = {
+            "url": self.exchange_rate_widget.api_widget.get_url(),
+            "keys": self.exchange_rate_widget.api_widget.get_keys(),
+        }
+        return out
+
+    def _on_load_clicked(self):
+        pass
 
 
 class AmountCurrencyEdit(QtWidgets.QWidget):
@@ -90,6 +162,9 @@ class AmountCurrencyEdit(QtWidgets.QWidget):
 
     def get_currency(self) -> str:
         return self.currency_edit.currentText()
+
+    def get_amount_as_string(self) -> str:
+        return f"{self.amount_edit.value():.2f}"
 
 
 class ExchangeRateWidget(QtWidgets.QWidget):
@@ -142,6 +217,12 @@ class ExchangeRateWidget(QtWidgets.QWidget):
 
     def _on_api_rate_clicked(self, is_checked: bool):
         self.api_widget.setVisible(is_checked)
+
+    def is_fixed_rate(self) -> bool:
+        return self.fixed_rate_rb.isChecked()
+
+    def get_exchange_rate(self) -> str:
+        return f"{self.rate_edit.value():.8f}"
 
 
 class ExchangeRateAPI:
@@ -232,6 +313,12 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
             return
         api = APIS[index](self._currency)
         self.keys_edit.setText(", ".join(api.keys))
+
+    def get_url(self) -> str:
+        return self.request_url_edit.currentText()
+
+    def get_keys(self) -> List[str]:
+        return [k.strip() for k in self.keys_edit.text().split(",")]
 
 
 if __name__ == "__main__":
