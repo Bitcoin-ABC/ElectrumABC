@@ -287,12 +287,13 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
         self.keys_edit = QtWidgets.QLineEdit()
         layout.addWidget(self.keys_edit)
 
+        # signals
+        self.request_url_edit.currentIndexChanged.connect(self._on_api_url_selected)
+
         # Default state
         self._currency: str = ""
         self.set_currency("USD")
-
-        # signals
-        self.request_url_edit.currentIndexChanged.connect(self._on_api_url_selected)
+        self.request_url_edit.setCurrentIndex(0)
 
     def set_currency(self, currency: str):
         self._currency = currency
