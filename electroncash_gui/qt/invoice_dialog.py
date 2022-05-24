@@ -190,7 +190,7 @@ class ExchangeRateWidget(QtWidgets.QWidget):
 
         api_rate_layout = QtWidgets.QVBoxLayout()
         layout.addLayout(api_rate_layout)
-        self.api_rate_rb = QtWidgets.QRadioButton(_("Fetch the rate at payment time"))
+        self.api_rate_rb = QtWidgets.QRadioButton(_("Fetch rate at payment time"))
         api_rate_layout.addWidget(self.api_rate_rb)
 
         self.api_widget = ExchangeRateAPIWidget()
@@ -285,6 +285,12 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
 
         layout.addWidget(QtWidgets.QLabel(_("Keys")))
         self.keys_edit = QtWidgets.QLineEdit()
+        self.keys_edit.setToolTip(
+            _(
+                "Comma separated list of JSON keys used to find the exchange rate in the "
+                "data sent by the API."
+            )
+        )
         layout.addWidget(self.keys_edit)
 
         # signals
