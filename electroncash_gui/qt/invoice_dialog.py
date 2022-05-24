@@ -88,7 +88,7 @@ class InvoiceDialog(QtWidgets.QDialog):
             return
 
         with open(filename, "w") as f:
-            json.dump(self.get_params_dict(), f)
+            json.dump(self.get_params_dict(), f, indent=4)
 
     def get_payment_address(self) -> str:
         address_string = self.address_edit.text().strip()
@@ -279,10 +279,6 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
         self.request_url_edit = QtWidgets.QComboBox()
         self.request_url_edit.setEditable(True)
         layout.addWidget(self.request_url_edit)
-
-        layout.addWidget(QtWidgets.QLabel("Data format"))
-        data_format_layout = QtWidgets.QHBoxLayout()
-        layout.addLayout(data_format_layout)
 
         layout.addWidget(QtWidgets.QLabel("Keys"))
         self.keys_edit = QtWidgets.QLineEdit()
