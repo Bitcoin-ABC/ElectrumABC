@@ -30,6 +30,7 @@ from typing import List, Optional, Type
 from PyQt5 import QtCore, QtWidgets
 
 from electroncash.address import Address, AddressError
+from electroncash.i18n import _
 
 
 class InvoiceDialog(QtWidgets.QDialog):
@@ -39,7 +40,7 @@ class InvoiceDialog(QtWidgets.QDialog):
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
 
-        layout.addWidget(QtWidgets.QLabel("Payment address"))
+        layout.addWidget(QtWidgets.QLabel(_("Payment address")))
         self.address_edit = QtWidgets.QLineEdit()
         layout.addWidget(self.address_edit)
         layout.addSpacing(10)
@@ -56,9 +57,9 @@ class InvoiceDialog(QtWidgets.QDialog):
         buttons_layout = QtWidgets.QHBoxLayout()
         layout.addLayout(buttons_layout)
 
-        self.save_button = QtWidgets.QPushButton("Save invoice")
+        self.save_button = QtWidgets.QPushButton(_("Save invoice"))
         buttons_layout.addWidget(self.save_button)
-        self.load_button = QtWidgets.QPushButton("Load invoice")
+        self.load_button = QtWidgets.QPushButton(_("Load invoice"))
         buttons_layout.addWidget(self.load_button)
 
         # Trigger callback to init widgets
@@ -76,7 +77,7 @@ class InvoiceDialog(QtWidgets.QDialog):
     def _on_save_clicked(self):
         filename, _selected_filter = QtWidgets.QFileDialog.getSaveFileName(
             self,
-            "Save invoice to file",
+            _("Save invoice to file"),
             filter="JSON file (*.json);;All files (*)",
         )
 
@@ -96,7 +97,9 @@ class InvoiceDialog(QtWidgets.QDialog):
             Address.from_string(address_string)
         except AddressError:
             QtWidgets.QMessageBox.critical(
-                self, "Invalid payment address", "Unable to decode payement address"
+                self,
+                _("Invalid payment address"),
+                _("Unable to decode payement address"),
             )
             return ""
         return address_string
@@ -143,7 +146,7 @@ class AmountCurrencyEdit(QtWidgets.QWidget):
         self.setLayout(layout)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        layout.addWidget(QtWidgets.QLabel("Amount"))
+        layout.addWidget(QtWidgets.QLabel(_("Amount")))
         amount_layout = QtWidgets.QHBoxLayout()
         self.amount_edit = QtWidgets.QDoubleSpinBox()
         self.amount_edit.setStepType(QtWidgets.QAbstractSpinBox.AdaptiveDecimalStepType)
@@ -174,10 +177,10 @@ class ExchangeRateWidget(QtWidgets.QWidget):
         self.setLayout(layout)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        layout.addWidget(QtWidgets.QLabel("Exchange rate"))
+        layout.addWidget(QtWidgets.QLabel(_("Exchange rate")))
         fixed_rate_layout = QtWidgets.QHBoxLayout()
         layout.addLayout(fixed_rate_layout)
-        self.fixed_rate_rb = QtWidgets.QRadioButton("Fixed rate")
+        self.fixed_rate_rb = QtWidgets.QRadioButton(_("Fixed rate"))
         fixed_rate_layout.addWidget(self.fixed_rate_rb)
         self.rate_edit = QtWidgets.QDoubleSpinBox()
         self.rate_edit.setDecimals(8)
@@ -187,7 +190,7 @@ class ExchangeRateWidget(QtWidgets.QWidget):
 
         api_rate_layout = QtWidgets.QVBoxLayout()
         layout.addLayout(api_rate_layout)
-        self.api_rate_rb = QtWidgets.QRadioButton("Fetch the rate at payment time")
+        self.api_rate_rb = QtWidgets.QRadioButton(_("Fetch the rate at payment time"))
         api_rate_layout.addWidget(self.api_rate_rb)
 
         self.api_widget = ExchangeRateAPIWidget()
@@ -212,7 +215,7 @@ class ExchangeRateWidget(QtWidgets.QWidget):
         self.rate_edit.setValue(1.0)
 
     def set_currency(self, currency: str):
-        self.fixed_rate_rb.setText(f"Fixed rate ({currency}/XEC)")
+        self.fixed_rate_rb.setText(_("Fixed rate ") + f"({currency}/XEC)")
         self.api_widget.set_currency(currency)
 
     def _on_api_rate_clicked(self, is_checked: bool):
@@ -275,12 +278,12 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
 
-        layout.addWidget(QtWidgets.QLabel("Request URL"))
+        layout.addWidget(QtWidgets.QLabel(_("Request URL")))
         self.request_url_edit = QtWidgets.QComboBox()
         self.request_url_edit.setEditable(True)
         layout.addWidget(self.request_url_edit)
 
-        layout.addWidget(QtWidgets.QLabel("Keys"))
+        layout.addWidget(QtWidgets.QLabel(_("Keys")))
         self.keys_edit = QtWidgets.QLineEdit()
         layout.addWidget(self.keys_edit)
 
