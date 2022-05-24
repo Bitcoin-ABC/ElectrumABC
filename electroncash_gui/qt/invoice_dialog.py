@@ -24,7 +24,6 @@
 # SOFTWARE.
 from __future__ import annotations
 
-import enum
 from typing import List, Optional, Type
 
 from PyQt5 import QtCore, QtWidgets
@@ -145,16 +144,10 @@ class ExchangeRateWidget(QtWidgets.QWidget):
         self.api_widget.setVisible(is_checked)
 
 
-class APIDataFormat(enum.Enum):
-    JSON = 1
-    YAML = 2
-
-
 class ExchangeRateAPI:
     def __init__(self, currency: str):
         self._currency = currency
         self.url: str = ""
-        self.format: APIDataFormat = APIDataFormat.JSON
         self.keys: List[str] = []
 
 
@@ -162,7 +155,6 @@ class CoingeckoAPI1(ExchangeRateAPI):
     def __init__(self, currency: str):
         super().__init__(currency)
         self.url = f"https://api.coingecko.com/api/v3/simple/price?ids=ecash&vs_currencies={currency.lower()}"
-        self.format = APIDataFormat.JSON
         self.keys = ["ecash", f"{currency.lower()}"]
 
 
@@ -170,7 +162,6 @@ class CoingeckoAPI2(ExchangeRateAPI):
     def __init__(self, currency: str):
         super().__init__(currency)
         self.url = "https://api.coingecko.com/api/v3/coins/ecash?localization=False&sparkline=false"
-        self.format = APIDataFormat.JSON
         self.keys = ["market_data", "current_price", f"{currency.lower()}"]
 
 
@@ -178,7 +169,6 @@ class BinanceUSDT(ExchangeRateAPI):
     def __init__(self, currency: str):
         super().__init__(currency)
         self.url = "https://api.binance.com/api/v3/avgPrice?symbol=XECUSDT"
-        self.format = APIDataFormat.JSON
         self.keys = ["price"]
 
 
@@ -186,7 +176,6 @@ class BinanceBUSD(ExchangeRateAPI):
     def __init__(self, currency: str):
         super().__init__(currency)
         self.url = "https://api.binance.com/api/v3/avgPrice?symbol=XECBUSD"
-        self.format = APIDataFormat.JSON
         self.keys = ["price"]
 
 
@@ -214,11 +203,6 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
         data_format_layout = QtWidgets.QHBoxLayout()
         layout.addLayout(data_format_layout)
 
-        self.json_rb = QtWidgets.QRadioButton("JSON")
-        data_format_layout.addWidget(self.json_rb)
-        self.yaml_rb = QtWidgets.QRadioButton("YAML")
-        data_format_layout.addWidget(self.yaml_rb)
-
         layout.addWidget(QtWidgets.QLabel("Keys"))
         self.keys_edit = QtWidgets.QLineEdit()
         layout.addWidget(self.keys_edit)
@@ -226,7 +210,6 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
         # Default state
         self._currency: str = ""
         self.set_currency("USD")
-        self.json_rb.setChecked(True)
 
         # signals
         self.request_url_edit.currentIndexChanged.connect(self._on_api_url_selected)
@@ -249,10 +232,6 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
             return
         api = APIS[index](self._currency)
         self.keys_edit.setText(", ".join(api.keys))
-        if api.format == APIDataFormat.JSON:
-            self.json_rb.setChecked(True)
-        else:
-            self.yaml_rb.setChecked(True)
 
 
 if __name__ == "__main__":
