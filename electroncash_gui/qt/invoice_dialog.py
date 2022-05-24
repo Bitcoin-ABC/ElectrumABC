@@ -26,7 +26,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 
 class InvoiceDialog(QtWidgets.QDialog):
@@ -41,6 +41,33 @@ class InvoiceDialog(QtWidgets.QDialog):
         layout.addWidget(self.address_edit)
         layout.addSpacing(10)
 
+        self.amount_currency_edit = AmountCurrencyEdit()
+        layout.addWidget(self.amount_currency_edit)
+        layout.addSpacing(10)
+
+        self.exchange_rate_widget = ExchangeRateWidget()
+        layout.addWidget(self.exchange_rate_widget)
+        layout.addSpacing(10)
+
+        # Trigger callback to init widgets
+        self._on_currency_changed(self.amount_currency_edit.get_currency())
+
+        # signals
+        self.amount_currency_edit.currencyChanged.connect(self._on_currency_changed)
+
+    def _on_currency_changed(self, currency: str):
+        self.exchange_rate_widget.setVisible(currency.lower() != "xec")
+        self.exchange_rate_widget.setCurrency(currency)
+
+
+class AmountCurrencyEdit(QtWidgets.QWidget):
+    currencyChanged = QtCore.pyqtSignal(str)
+
+    def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
+        super().__init__(parent)
+        layout = QtWidgets.QVBoxLayout()
+        self.setLayout(layout)
+
         layout.addWidget(QtWidgets.QLabel("Amount"))
         amount_layout = QtWidgets.QHBoxLayout()
         self.amount_edit = QtWidgets.QDoubleSpinBox()
@@ -54,18 +81,22 @@ class InvoiceDialog(QtWidgets.QDialog):
         self.currency_edit.setCurrentText("XEC")
         self.currency_edit.setEditable(True)
         amount_layout.addWidget(self.currency_edit)
-
         layout.addLayout(amount_layout)
-        layout.addSpacing(10)
 
-        self.exchange_rate_widget = QtWidgets.QWidget()
-        self.exchange_rate_widget.setVisible(
-            self.currency_edit.currentText().lower() != "xec"
-        )
-        rate_layout = QtWidgets.QVBoxLayout()
-        self.exchange_rate_widget.setLayout(rate_layout)
+        self.currency_edit.currentTextChanged.connect(self.currencyChanged.emit)
+
+    def get_currency(self) -> str:
+        return self.currency_edit.currentText()
+
+
+class ExchangeRateWidget(QtWidgets.QWidget):
+    def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
+        super().__init__(parent)
+        layout = QtWidgets.QVBoxLayout()
+        self.setLayout(layout)
+
         fixed_rate_layout = QtWidgets.QHBoxLayout()
-        rate_layout.addLayout(fixed_rate_layout)
+        layout.addLayout(fixed_rate_layout)
         self.fixed_rate_rb = QtWidgets.QRadioButton("Fixed rate")
         fixed_rate_layout.addWidget(self.fixed_rate_rb)
         self.rate_edit = QtWidgets.QDoubleSpinBox()
@@ -75,15 +106,7 @@ class InvoiceDialog(QtWidgets.QDialog):
         self.rate_edit.setValue(1.0)
         fixed_rate_layout.addWidget(self.rate_edit)
 
-        layout.addWidget(self.exchange_rate_widget)
-
-        self._on_currency_changed(self.currency_edit.currentText())
-
-        # signals
-        self.currency_edit.currentTextChanged.connect(self._on_currency_changed)
-
-    def _on_currency_changed(self, currency: str):
-        self.exchange_rate_widget.setVisible(currency.lower() != "xec")
+    def setCurrency(self, currency: str):
         self.fixed_rate_rb.setText(f"Fixed rate ({currency}/XEC)")
 
 
