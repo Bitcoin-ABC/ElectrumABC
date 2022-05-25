@@ -147,6 +147,9 @@ class InvoiceDialog(QtWidgets.QDialog):
         if not filename:
             return
 
+        self.load_from_file(filename)
+
+    def load_from_file(self, filename: str):
         failed_decoding = False
         with open(filename, "r") as f:
             try:
@@ -182,6 +185,9 @@ class InvoiceDialog(QtWidgets.QDialog):
             url = invoice["exchangeRateAPI"].get("url") or ""
             keys = invoice["exchangeRateAPI"].get("keys") or []
             self.exchange_rate_widget.set_api_rate_params(url, keys)
+
+    def set_address(self, address: Address):
+        self.address_edit.setText(address.to_ui_string())
 
 
 class AmountCurrencyEdit(QtWidgets.QWidget):
