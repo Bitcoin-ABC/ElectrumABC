@@ -45,6 +45,11 @@ class InvoiceDialog(QtWidgets.QDialog):
         layout.addWidget(self.address_edit)
         layout.addSpacing(10)
 
+        layout.addWidget(QtWidgets.QLabel(_("Label")))
+        self.label_edit = QtWidgets.QLineEdit()
+        layout.addWidget(self.label_edit)
+        layout.addSpacing(10)
+
         self.amount_currency_edit = AmountCurrencyEdit()
         layout.addWidget(self.amount_currency_edit)
         layout.addSpacing(10)
@@ -114,6 +119,7 @@ class InvoiceDialog(QtWidgets.QDialog):
         out = {
             "invoice": {
                 "address": payment_address,
+                "label": self.label_edit.text(),
                 "amount": self.amount_currency_edit.get_amount_as_string(),
                 "currency": currency,
             }
@@ -157,6 +163,7 @@ class InvoiceDialog(QtWidgets.QDialog):
             return
         invoice = data["invoice"]
         self.address_edit.setText(invoice.get("address") or "")
+        self.label_edit.setText(invoice.get("label") or "")
         self.amount_currency_edit.set_amount(invoice.get("amount") or "0")
         self.amount_currency_edit.set_currency(invoice.get("currency") or "XEC")
         if "exchangeRate" in invoice:
