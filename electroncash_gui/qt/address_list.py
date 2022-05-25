@@ -43,6 +43,7 @@ from electroncash.wallet import Multisig_Wallet
 
 from . import cashacctqt
 from .consolidate_coins_dialog import ConsolidateCoinsWizard
+from .invoice_dialog import InvoiceDialog
 from .util import (
     MONOSPACE_FONT,
     ColorScheme,
@@ -170,7 +171,7 @@ class AddressList(MyTreeWidget):
                     # recurse, do leaves first
                     restore_expanded_items(it, expanded_item_names)
                     old = bool(it.isExpanded())
-                    new = bool(item_path(it) in expanded_item_names)
+                    new = item_path(it) in expanded_item_names
                     if old != new:
                         it.setExpanded(new)
 
@@ -395,6 +396,10 @@ class AddressList(MyTreeWidget):
                 # self.parent.receive_at(addr). This is because the recieve tab
                 # now strongly enforces no-address-reuse. See #1552.
                 a.setDisabled(True)
+            a = menu.addAction(
+                _("Request payment (via invoice file)"),
+                lambda: self.create_invoice(addr),
+            )
             if self.wallet.can_export():
                 menu.addAction(
                     _("Private key"), lambda: self.parent.show_private_key(addr)
@@ -629,4 +634,9 @@ class AddressList(MyTreeWidget):
 
     def _open_consolidate_coins_dialog(self, addr):
         d = ConsolidateCoinsWizard(addr, self.parent.wallet, self.parent, parent=self)
+        d.exec_()
+
+    def create_invoice(self, address: Address):
+        d = InvoiceDialog(self)
+        d.set_address(address)
         d.exec_()
