@@ -25,11 +25,22 @@
 # SOFTWARE.
 from __future__ import annotations
 
+import contextlib
+import json
 from collections import defaultdict
 from enum import IntEnum
-import json
 from functools import wraps
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING, List
+
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor, QFont
+
+from electroncash.address import Address
+from electroncash.bitcoin import COINBASE_MATURITY
+from electroncash.constants import PROOF_DUST_THRESHOLD
+from electroncash.i18n import _
+from electroncash.plugins import run_hook
 
 from .avalanche_dialogs import AvaProofDialog
 from .consolidate_coins_dialog import ConsolidateCoinsWizard
@@ -41,58 +52,70 @@ from .util import (
     rate_limited,
 )
 
-from electroncash.address import Address
-from electroncash.bitcoin import COINBASE_MATURITY
-from electroncash.constants import PROOF_DUST_THRESHOLD
-from electroncash.i18n import _
-from electroncash.plugins import run_hook
-
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor, QFont
-from PyQt5 import QtWidgets
-
 if TYPE_CHECKING:
     from .main_window import ElectrumWindow
 
 
 class UTXOList(MyTreeWidget):
     class Col(IntEnum):
-        '''Column numbers. This is to make code in on_update easier to read.
+        """Column numbers. This is to make code in on_update easier to read.
         If you modify these, make sure to modify the column header names in
-        the MyTreeWidget constructor.'''
+        the MyTreeWidget constructor."""
+
         address = 0
-        label   = 1
-        amount  = 2
-        height  = 3
+        label = 1
+        amount = 2
+        height = 3
         output_point = 4
+
     class DataRoles(IntEnum):
-        '''Data roles. Again, to make code in on_update easier to read.'''
-        name         = Qt.UserRole + 0
+        """Data roles. Again, to make code in on_update easier to read."""
+
+        name = Qt.UserRole + 0
         frozen_flags = Qt.UserRole + 1
-        address      = Qt.UserRole + 2
-        cash_account = Qt.UserRole + 3  # this may not always be there for a particular item
-        slp_token    = Qt.UserRole + 4  # this is either a tuple of (token_id, qty) or None
+        address = Qt.UserRole + 2
+        # this may not always be there for a particular item
+        cash_account = Qt.UserRole + 3
+        # this is either a tuple of (token_id, qty) or None
+        slp_token = Qt.UserRole + 4
 
     filter_columns = [Col.address, Col.label]
-    default_sort = MyTreeWidget.SortSpec(Col.amount, Qt.DescendingOrder)  # sort by amount, descending
+    # sort by amount, descending
+    default_sort = MyTreeWidget.SortSpec(Col.amount, Qt.DescendingOrder)
 
     def __init__(self, main_window: ElectrumWindow):
-        columns = [ _('Address'), _('Label'), _('Amount'), _('Height'), _('Output point') ]
-        MyTreeWidget.__init__(self, main_window, self.create_menu, columns,
-                              stretch_column = UTXOList.Col.label,
-                              deferred_updates = True, save_sort_settings = True)
+        columns = [
+            _("Address"),
+            _("Label"),
+            _("Amount"),
+            _("Height"),
+            _("Output point"),
+        ]
+        MyTreeWidget.__init__(
+            self,
+            main_window,
+            self.create_menu,
+            columns,
+            stretch_column=UTXOList.Col.label,
+            deferred_updates=True,
+            save_sort_settings=True,
+        )
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.setSortingEnabled(True)
         self.main_window = main_window
         self.wallet = main_window.wallet
-        main_window.ca_address_default_changed_signal.connect(self._ca_on_address_default_change)
+        main_window.ca_address_default_changed_signal.connect(
+            self._ca_on_address_default_change
+        )
         main_window.gui_object.addr_fmt_changed.connect(self.update)
-        self.utxos = list()
+        self.utxos = []
         # cache some values to avoid constructing Qt objects for every pass through self.on_update (this is important for large wallets)
         self.monospaceFont = QFont(MONOSPACE_FONT)
-        self.lightBlue = QColor('lightblue') if not ColorScheme.dark_scheme else QColor('blue')
+        self.lightBlue = (
+            QColor("lightblue") if not ColorScheme.dark_scheme else QColor("blue")
+        )
         self.blue = ColorScheme.BLUE.as_color(True)
-        self.cyanBlue = QColor('#3399ff')
+        self.cyanBlue = QColor("#3399ff")
         self.slpBG = ColorScheme.SLPGREEN.as_color(True)
         self.immatureColor = ColorScheme.BLUE.as_color(False)
         self.output_point_prefix_text = columns[self.Col.output_point]
@@ -101,28 +124,32 @@ class UTXOList(MyTreeWidget):
 
     def clean_up(self):
         self.cleaned_up = True
-        try: self.main_window.ca_address_default_changed_signal.disconnect(self._ca_on_address_default_change)
-        except TypeError: pass
-        try: self.main_window.gui_object.addr_fmt_changed.disconnect(self.update)
-        except TypeError: pass
+        with contextlib.suppress(TypeError):
+            self.main_window.ca_address_default_changed_signal.disconnect(
+                self._ca_on_address_default_change
+            )
+        with contextlib.suppress(TypeError):
+            self.main_window.gui_object.addr_fmt_changed.disconnect(self.update)
 
     def if_not_dead(func):
-        '''Boilerplate: Check if cleaned up, and if so, don't execute method'''
+        """Boilerplate: Check if cleaned up, and if so, don't execute method"""
+
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             if self.cleaned_up or not self.wallet or not self.parent:
                 return
             else:
                 func(self, *args, **kwargs)
+
         return wrapper
 
     def get_name(self, x):
-        return x.get('prevout_hash') + ":%d"%x.get('prevout_n')
+        return x.get("prevout_hash") + f':{x.get("prevout_n")}'
 
     def get_name_short(self, x):
-        return x.get('prevout_hash')[:10] + '...' + ":%d"%x.get('prevout_n')
+        return x.get("prevout_hash")[:10] + "..." + f':{x.get("prevout_n")}'
 
-    @rate_limited(1.0, ts_after=True) # performance tweak -- limit updates to no more than oncer per second
+    @rate_limited(1.0, ts_after=True)
     def update(self):
         if self.cleaned_up:
             # short-cut return if window was closed and wallet is stopped
@@ -131,8 +158,9 @@ class UTXOList(MyTreeWidget):
 
     @if_not_dead
     def on_update(self):
-        local_maturity_height = (self.wallet.get_local_height()+1) - COINBASE_MATURITY
-        prev_selection = self.get_selected() # cache previous selection, if any
+        local_maturity_height = (self.wallet.get_local_height() + 1) - COINBASE_MATURITY
+        # cache previous selection, if any
+        prev_selection = self.get_selected()
         self.clear()
         ca_by_addr = defaultdict(list)
         if self.show_cash_accounts:
@@ -143,52 +171,63 @@ class UTXOList(MyTreeWidget):
                 ca_by_addr[info.address].append(info)
                 del info
             for ca_list in ca_by_addr.values():
-                ca_list.sort(key=lambda info: ((info.number or 0), str(info.collision_hash)))  # sort the ca_lists by number, required by cashacct.get_address_default
-                del ca_list  # reference still exists inside ca_by_addr dict, this is just deleted here because we re-use this name below.
+                # sort the ca_lists by number, required by cashacct.get_address_default
+                ca_list.sort(
+                    key=lambda info: ((info.number or 0), str(info.collision_hash))
+                )
             del addr_set  # clean-up. We don't want the below code to ever depend on the existence of this cell.
         else:
             self.utxos = self.wallet.get_utxos(exclude_slp=False)
         for x in self.utxos:
-            address = x['address']
+            address = x["address"]
             address_text = address.to_ui_string()
             ca_info = None
             ca_list = ca_by_addr.get(address)
             tool_tip0 = None
             if ca_list:
                 ca_info = self.wallet.cashacct.get_address_default(ca_list)
-                address_text = f'{ca_info.emoji} {address_text}'  # prepend the address emoji char
+                address_text = (
+                    f"{ca_info.emoji} {address_text}"  # prepend the address emoji char
+                )
                 tool_tip0 = self.wallet.cashacct.fmt_info(ca_info, emoji=True)
-            height = x['height']
-            is_immature = x['coinbase'] and height > local_maturity_height
+            height = x["height"]
+            is_immature = x["coinbase"] and height > local_maturity_height
             name = self.get_name(x)
             name_short = self.get_name_short(x)
-            label = self.wallet.get_label(x['prevout_hash'])
-            amount = self.main_window.format_amount(x['value'], is_diff=False, whitespaces=True)
-            utxo_item = SortableTreeWidgetItem([address_text, label, amount,
-                                                str(height), name_short])
+            label = self.wallet.get_label(x["prevout_hash"])
+            amount = self.main_window.format_amount(
+                x["value"], is_diff=False, whitespaces=True
+            )
+            utxo_item = SortableTreeWidgetItem(
+                [address_text, label, amount, str(height), name_short]
+            )
             if label:
-                utxo_item.setToolTip(1, label)  # just in case it doesn't fit horizontally, we also provide it as a tool tip where hopefully it won't be elided
+                # just in case it doesn't fit horizontally, we also provide it as a tool tip
+                utxo_item.setToolTip(1, label)
             if tool_tip0:
                 utxo_item.setToolTip(0, tool_tip0)
-            utxo_item.setToolTip(4, name)  # just in case they like to see lots of hex digits :)
-            utxo_item.DataRole = Qt.UserRole+100 # set this here to avoid sorting based on Qt.UserRole+1
+            # just in case they like to see lots of hex digits :)
+            utxo_item.setToolTip(4, name)
+            # set this here to avoid sorting based on Qt.UserRole+1
+            utxo_item.DataRole = Qt.UserRole + 100
             utxo_item.setFont(0, self.monospaceFont)
             utxo_item.setFont(2, self.monospaceFont)
             utxo_item.setFont(4, self.monospaceFont)
             utxo_item.setData(0, self.DataRoles.name, name)
             a_frozen = self.wallet.is_frozen(address)
-            c_frozen = x['is_frozen_coin']
-            toolTipMisc = ''
-            slp_token = x['slp_token']
+            c_frozen = x["is_frozen_coin"]
+            toolTipMisc = ""
+            slp_token = x["slp_token"]
             if is_immature:
                 for colNum in range(self.columnCount()):
                     if colNum == self.Col.label:
-                        continue  # don't color the label column
+                        # don't color the label column
+                        continue
                     utxo_item.setForeground(colNum, self.immatureColor)
-                toolTipMisc = _('Coin is not yet mature')
+                toolTipMisc = _("Coin is not yet mature")
             elif slp_token:
                 utxo_item.setBackground(0, self.slpBG)
-                toolTipMisc = _('Coin contains an SLP token')
+                toolTipMisc = _("Coin contains an SLP token")
             elif a_frozen and not c_frozen:
                 # address is frozen, coin is not frozen
                 # emulate the "Look" off the address_list .py's frozen entry
@@ -204,7 +243,16 @@ class UTXOList(MyTreeWidget):
                 utxo_item.setForeground(0, self.cyanBlue)
                 toolTipMisc = _("Coin & Address are frozen")
             # save the address-level-frozen and coin-level-frozen flags to the data item for retrieval later in create_menu() below.
-            utxo_item.setData(0, self.DataRoles.frozen_flags, "{}{}{}{}".format(("a" if a_frozen else ""), ("c" if c_frozen else ""), ("s" if slp_token else ""), ("i" if is_immature else "")))
+            utxo_item.setData(
+                0,
+                self.DataRoles.frozen_flags,
+                "{}{}{}{}".format(
+                    ("a" if a_frozen else ""),
+                    ("c" if c_frozen else ""),
+                    ("s" if slp_token else ""),
+                    ("i" if is_immature else ""),
+                ),
+            )
             # store the address
             utxo_item.setData(0, self.DataRoles.address, address)
             # store the ca_info for this address -- if any
@@ -218,7 +266,7 @@ class UTXOList(MyTreeWidget):
             self.addChild(utxo_item)
             if name in prev_selection:
                 # NB: This needs to be here after the item is added to the widget. See #979.
-                utxo_item.setSelected(True) # restore previous selection
+                utxo_item.setSelected(True)  # restore previous selection
         self._update_utxo_count_display(len(self.utxos))
 
     def _update_utxo_count_display(self, num_utxos: int):
@@ -230,37 +278,49 @@ class UTXOList(MyTreeWidget):
                 output_point_text = self.output_point_prefix_text
             headerItem.setText(self.Col.output_point, output_point_text)
 
-
     def get_selected(self):
-        return { x.data(0, self.DataRoles.name) : x.data(0, self.DataRoles.frozen_flags) # dict of "name" -> frozen flags string (eg: "ac")
-                for x in self.selectedItems() }
+        return {
+            x.data(0, self.DataRoles.name): x.data(0, self.DataRoles.frozen_flags)
+            for x in self.selectedItems()
+        }
 
     @if_not_dead
     def create_menu(self, position):
         menu = QtWidgets.QMenu()
         selected = self.get_selected()
+
         def create_menu_inner():
             if not selected:
                 return
             coins = list(filter(lambda x: self.get_name(x) in selected, self.utxos))
             if not coins:
                 return
-            spendable_coins = list(filter(lambda x: not selected.get(self.get_name(x), ''), coins))
+            spendable_coins = list(
+                filter(lambda x: not selected.get(self.get_name(x), ""), coins)
+            )
             # Unconditionally add the "Spend" option but leave it disabled if there are no spendable_coins
-            spend_action = menu.addAction(_("Spend"), lambda: self.main_window.spend_coins(spendable_coins))
+            spend_action = menu.addAction(
+                _("Spend"), lambda: self.main_window.spend_coins(spendable_coins)
+            )
             spend_action.setEnabled(bool(spendable_coins))
             menu.addAction(_("Export coin details"), lambda: self.dump_utxo(coins))
-            avaproof_action = menu.addAction(_("Build avalanche proof"), lambda: self.build_avaproof(coins))
+            avaproof_action = menu.addAction(
+                _("Build avalanche proof"), lambda: self.build_avaproof(coins)
+            )
             if not self.wallet.is_schnorr_possible() or self.wallet.is_watching_only():
                 avaproof_action.setEnabled(False)
                 avaproof_action.setToolTip(
-                    _("Cannot build avalanche proof for hardware, multisig or "
-                      "watch-only wallet (Schnorr signature is required)."))
+                    _(
+                        "Cannot build avalanche proof for hardware, multisig or "
+                        "watch-only wallet (Schnorr signature is required)."
+                    )
+                )
             elif any(c["height"] <= 0 for c in coins):
                 # A block height is required when serializing a stake.
                 avaproof_action.setEnabled(False)
                 avaproof_action.setToolTip(
-                    _("Cannot build avalanche proof with unconfirmed coins"))
+                    _("Cannot build avalanche proof with unconfirmed coins")
+                )
 
             if len(selected) == 1:
                 # "Copy ..."
@@ -280,48 +340,90 @@ class UTXOList(MyTreeWidget):
                     # Determine the "alt copy text" "Legacy Address" or "Cash Address"
                     copy_text = addr.to_ui_string()
                     if Address.FMT_UI == Address.FMT_LEGACY:
-                        alt_copy_text, alt_column_title = addr.to_full_string(Address.FMT_CASHADDR), _('Cash Address')
+                        alt_copy_text, alt_column_title = addr.to_full_string(
+                            Address.FMT_CASHADDR
+                        ), _("Cash Address")
                     else:
-                        alt_copy_text, alt_column_title = addr.to_full_string(Address.FMT_LEGACY), _('Legacy Address')
+                        alt_copy_text, alt_column_title = addr.to_full_string(
+                            Address.FMT_LEGACY
+                        ), _("Legacy Address")
                     ca_info = item.data(0, self.DataRoles.cash_account)  # may be None
                 else:
                     copy_text = item.text(col)
                 if copy_text:
-                    copy_text = copy_text.strip()  # make sure formatted amount is not whitespaced
-                menu.addAction(_("Copy {}").format(column_title), lambda: QtWidgets.QApplication.instance().clipboard().setText(copy_text))
+                    copy_text = copy_text.strip()
+                menu.addAction(
+                    _("Copy {}").format(column_title),
+                    lambda: QtWidgets.QApplication.instance()
+                    .clipboard()
+                    .setText(copy_text),
+                )
                 if alt_copy_text and alt_column_title:
-                    menu.addAction(_("Copy {}").format(alt_column_title), lambda: QtWidgets.QApplication.instance().clipboard().setText(alt_copy_text))
+                    menu.addAction(
+                        _("Copy {}").format(alt_column_title),
+                        lambda: QtWidgets.QApplication.instance()
+                        .clipboard()
+                        .setText(alt_copy_text),
+                    )
                 if ca_info:
-                    self.wallet.cashacct.fmt_info(ca_info)  # paranoia: pre-cache minimal chash (may go out to network)
-                    menu.addAction(_("Copy Cash Account"), lambda: self.wallet and QtWidgets.QApplication.instance().clipboard().setText(self.wallet.cashacct.fmt_info(ca_info, emoji=True)))
+                    # paranoia: pre-cache minimal chash (may go out to network)
+                    self.wallet.cashacct.fmt_info(ca_info)
+                    menu.addAction(
+                        _("Copy Cash Account"),
+                        lambda: self.wallet
+                        and QtWidgets.QApplication.instance()
+                        .clipboard()
+                        .setText(self.wallet.cashacct.fmt_info(ca_info, emoji=True)),
+                    )
 
                 # single selection, offer them the "Details" option and also coin/address "freeze" status, if any
-                txid = list(selected.keys())[0].split(':')[0]
+                txid = list(selected.keys())[0].split(":")[0]
                 frozen_flags = list(selected.values())[0]
                 tx = self.wallet.transactions.get(txid)
                 if tx:
                     label = self.wallet.get_label(txid) or None
-                    menu.addAction(_("Details"), lambda: self.main_window.show_transaction(tx, label))
-                act = None
+                    menu.addAction(
+                        _("Details"),
+                        lambda: self.main_window.show_transaction(tx, label),
+                    )
                 needsep = True
-                if 'c' in frozen_flags:
+                if "c" in frozen_flags:
                     menu.addSeparator()
                     menu.addAction(_("Coin is frozen"), lambda: None).setEnabled(False)
-                    menu.addAction(_("Unfreeze Coin"), lambda: self.set_frozen_coins(list(selected.keys()), False))
+                    menu.addAction(
+                        _("Unfreeze Coin"),
+                        lambda: self.set_frozen_coins(list(selected.keys()), False),
+                    )
                     menu.addSeparator()
                     needsep = False
                 else:
-                    menu.addAction(_("Freeze Coin"), lambda: self.set_frozen_coins(list(selected.keys()), True))
-                if 'a' in frozen_flags:
-                    if needsep: menu.addSeparator()
-                    menu.addAction(_("Address is frozen"), lambda: None).setEnabled(False)
-                    menu.addAction(_("Unfreeze Address"), lambda: self.set_frozen_addresses_for_coins(list(selected.keys()), False))
+                    menu.addAction(
+                        _("Freeze Coin"),
+                        lambda: self.set_frozen_coins(list(selected.keys()), True),
+                    )
+                if "a" in frozen_flags:
+                    if needsep:
+                        menu.addSeparator()
+                    menu.addAction(_("Address is frozen"), lambda: None).setEnabled(
+                        False
+                    )
+                    menu.addAction(
+                        _("Unfreeze Address"),
+                        lambda: self.set_frozen_addresses_for_coins(
+                            list(selected.keys()), False
+                        ),
+                    )
                 else:
-                    menu.addAction(_("Freeze Address"), lambda: self.set_frozen_addresses_for_coins(list(selected.keys()), True))
+                    menu.addAction(
+                        _("Freeze Address"),
+                        lambda: self.set_frozen_addresses_for_coins(
+                            list(selected.keys()), True
+                        ),
+                    )
                 if not spend_action.isEnabled():
                     if slp_token:
                         spend_action.setText(_("SLP Token: Spend Locked"))
-                    elif 'i' in frozen_flags:  # immature coinbase
+                    elif "i" in frozen_flags:
                         spend_action.setText(_("Immature Coinbase: Spend Locked"))
                 menu.addAction(
                     "Consolidate coins for address",
@@ -330,27 +432,45 @@ class UTXOList(MyTreeWidget):
             else:
                 # multi-selection
                 menu.addSeparator()
-                if any(['c' not in flags for flags in selected.values()]):
+                if any(["c" not in flags for flags in selected.values()]):
                     # they have some coin-level non-frozen in the selection, so add the menu action "Freeze coins"
-                    menu.addAction(_("Freeze Coins"), lambda: self.set_frozen_coins(list(selected.keys()), True))
-                if any(['c' in flags for flags in selected.values()]):
+                    menu.addAction(
+                        _("Freeze Coins"),
+                        lambda: self.set_frozen_coins(list(selected.keys()), True),
+                    )
+                if any(["c" in flags for flags in selected.values()]):
                     # they have some coin-level frozen in the selection, so add the menu action "Unfreeze coins"
-                    menu.addAction(_("Unfreeze Coins"), lambda: self.set_frozen_coins(list(selected.keys()), False))
-                if any(['a' not in flags for flags in selected.values()]):
+                    menu.addAction(
+                        _("Unfreeze Coins"),
+                        lambda: self.set_frozen_coins(list(selected.keys()), False),
+                    )
+                if any(["a" not in flags for flags in selected.values()]):
                     # they have some address-level non-frozen in the selection, so add the menu action "Freeze addresses"
-                    menu.addAction(_("Freeze Addresses"), lambda: self.set_frozen_addresses_for_coins(list(selected.keys()), True))
-                if any(['a' in flags for flags in selected.values()]):
+                    menu.addAction(
+                        _("Freeze Addresses"),
+                        lambda: self.set_frozen_addresses_for_coins(
+                            list(selected.keys()), True
+                        ),
+                    )
+                if any(["a" in flags for flags in selected.values()]):
                     # they have some address-level frozen in the selection, so add the menu action "Unfreeze addresses"
-                    menu.addAction(_("Unfreeze Addresses"), lambda: self.set_frozen_addresses_for_coins(list(selected.keys()), False))
+                    menu.addAction(
+                        _("Unfreeze Addresses"),
+                        lambda: self.set_frozen_addresses_for_coins(
+                            list(selected.keys()), False
+                        ),
+                    )
 
         create_menu_inner()
 
-        run_hook('utxo_list_context_menu_setup', self, menu, selected)
+        run_hook("utxo_list_context_menu_setup", self, menu, selected)
 
         # add optional toggle actions
         menu.addSeparator()
+
         def toggle():
             self.show_cash_accounts = not self.show_cash_accounts
+
         a = menu.addAction(_("Show Cash Accounts"), toggle)
         a.setCheckable(True)
         a.setChecked(self.show_cash_accounts)
@@ -371,7 +491,7 @@ class UTXOList(MyTreeWidget):
         for utxo in self.utxos:
             name = self.get_name(utxo)
             if name in coins:
-                addrs.add(utxo['address'])
+                addrs.add(utxo["address"])
         if addrs:
             self.main_window.set_frozen_state(list(addrs), b)
 
@@ -384,9 +504,10 @@ class UTXOList(MyTreeWidget):
         for i in range(child_count):
             item = root.child(i)
             try:
-                txid = item.data(0, self.DataRoles.name).split(':', 1)[0]
+                txid = item.data(0, self.DataRoles.name).split(":", 1)[0]
             except IndexError:
-                continue # name is iinvalid. should be txid:prevout_n
+                # name is iinvalid. should be txid:prevout_n
+                continue
             label = self.wallet.get_label(txid)
             item.setText(1, label)
 
@@ -396,18 +517,18 @@ class UTXOList(MyTreeWidget):
 
     @property
     def show_cash_accounts(self):
-        return bool(self.wallet.storage.get('utxo_list_show_cash_accounts', False))
+        return bool(self.wallet.storage.get("utxo_list_show_cash_accounts", False))
 
     @show_cash_accounts.setter
     def show_cash_accounts(self, b):
         b = bool(b)
         was = self.show_cash_accounts
         if was != b:
-            self.wallet.storage.put('utxo_list_show_cash_accounts', b)
+            self.wallet.storage.put("utxo_list_show_cash_accounts", b)
             self.update()
 
     def dump_utxo(self, utxos: List[dict]):
-        """Dump utxo to a file """
+        """Dump utxo to a file"""
         if not len(utxos):
             return
 
@@ -415,24 +536,26 @@ class UTXOList(MyTreeWidget):
         utxos_for_json = []
         for utxo in utxos:
             utxo_for_json = utxo.copy()
-            utxo_for_json["address"] = utxo["address"].to_full_string(Address.FMT_CASHADDR_BCH)
+            utxo_for_json["address"] = utxo["address"].to_full_string(
+                Address.FMT_CASHADDR_BCH
+            )
             utxos_for_json.append(utxo_for_json)
 
         fileName, _filter = QtWidgets.QFileDialog.getSaveFileName(
-            self, "Save UTXOs to file",
-            filter="JSON files (*.json); All files (*)")
+            self, "Save UTXOs to file", filter="JSON files (*.json); All files (*)"
+        )
         if not fileName:
             return
         if not fileName.endswith(".json") and not fileName.endswith(".JSON"):
-            fileName += '.json'
-        with open(fileName, 'w') as outfile:
+            fileName += ".json"
+        with open(fileName, "w") as outfile:
             json.dump(utxos_for_json, outfile)
 
     def _open_consolidate_coins_dialog(self, addr):
         d = ConsolidateCoinsWizard(addr, self.wallet, self.main_window, parent=self)
         d.exec_()
 
-    def build_avaproof(self,  utxos: List[dict]):
+    def build_avaproof(self, utxos: List[dict]):
         """Open a dialog to generate an Avalanche proof using the coins as
         stakes.
         """
@@ -446,7 +569,7 @@ class UTXOList(MyTreeWidget):
             utxos,
             wallet=self.wallet,
             receive_address=self.main_window.receive_address,
-            parent=self
+            parent=self,
         )
         dialog.exec_()
 
@@ -464,13 +587,13 @@ class StakeDustThresholdMessageBox(QtWidgets.QMessageBox):
         self.setIcon(QtWidgets.QMessageBox.Warning)
         self.setWindowTitle(_("Coins below the stake dust threshold"))
         self.setText(
-            _("The value of one or more coins is below the 1,000,000 XEC stake "
-              "minimum threshold. The generated proof will be invalid.")
+            _(
+                "The value of one or more coins is below the 1,000,000 XEC stake "
+                "minimum threshold. The generated proof will be invalid."
+            )
         )
 
-        self.setStandardButtons(
-            QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel
-        )
+        self.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
         ok_button = self.button(QtWidgets.QMessageBox.Ok)
         ok_button.setText(_("Continue, I'm just testing"))
 
