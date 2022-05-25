@@ -73,7 +73,7 @@ class InvoiceDialog(QtWidgets.QDialog):
         # signals
         self.amount_currency_edit.currencyChanged.connect(self._on_currency_changed)
         self.save_button.clicked.connect(self._on_save_clicked)
-        self.load_button.clicked.connect(self._on_load_clicked)
+        self.load_button.clicked.connect(self.open_file_and_load_invoice)
 
     def _on_currency_changed(self, currency: str):
         self.exchange_rate_widget.setVisible(currency.lower() != "xec")
@@ -137,7 +137,7 @@ class InvoiceDialog(QtWidgets.QDialog):
         out["invoice"]["exchangeRateAPI"] = {"url": url, "keys": keys}
         return out
 
-    def _on_load_clicked(self):
+    def open_file_and_load_invoice(self):
         filename, _selected_filter = QtWidgets.QFileDialog.getOpenFileName(
             self,
             _("Load invoice from file"),
