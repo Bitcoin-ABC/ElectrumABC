@@ -25,7 +25,7 @@
 from __future__ import annotations
 
 import json
-from typing import List, Optional, Type
+from typing import List, Optional, Tuple, Type
 
 from PyQt5 import QtCore, QtWidgets
 
@@ -124,17 +124,57 @@ class InvoiceDialog(QtWidgets.QDialog):
         if self.exchange_rate_widget.is_fixed_rate():
             out["invoice"][
                 "exchangeRate"
-            ] = self.exchange_rate_widget.get_exchange_rate()
+            ] = f"{self.exchange_rate_widget.get_fixed_rate():.8f}"
             return out
 
-        out["invoice"]["exchangeRateAPI"] = {
-            "url": self.exchange_rate_widget.api_widget.get_url(),
-            "keys": self.exchange_rate_widget.api_widget.get_keys(),
-        }
+        url, keys = self.exchange_rate_widget.get_api_rate_params()
+        out["invoice"]["exchangeRateAPI"] = {"url": url, "keys": keys}
         return out
 
     def _on_load_clicked(self):
-        pass
+        filename, _selected_filter = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            _("Load invoice from file"),
+            filter="JSON file (*.json);;All files (*)",
+        )
+
+        if not filename:
+            return
+
+        failed_decoding = False
+        with open(filename, "r") as f:
+            try:
+                data = json.load(f)
+            except json.JSONDecodeError:
+                failed_decoding = True
+
+        if failed_decoding or "invoice" not in data:
+            QtWidgets.QMessageBox.critical(
+                self,
+                _("Failed to load invoice"),
+                _("Unable to decode JSON data for invoice") + f" {filename}",
+            )
+            return
+        invoice = data["invoice"]
+        self.address_edit.setText(invoice.get("address") or "")
+        self.amount_currency_edit.set_amount(invoice.get("amount") or "0")
+        self.amount_currency_edit.set_currency(invoice.get("currency") or "XEC")
+        if "exchangeRate" in invoice:
+            rate = float(invoice["exchangeRate"])
+            self.exchange_rate_widget.set_fixed_rate(rate)
+            if "exchangeRateAPI" in invoice:
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    _("Ambiguous exchange rate specifications"),
+                    _(
+                        "This invoice specifies both a fixed exchange rate and an "
+                        "exchange rate API. Ignoring the API and using the fixed rate."
+                    ),
+                )
+        elif "exchangeRateAPI" in invoice:
+            url = invoice["exchangeRateAPI"].get("url") or ""
+            keys = invoice["exchangeRateAPI"].get("keys") or []
+            self.exchange_rate_widget.set_api_rate_params(url, keys)
 
 
 class AmountCurrencyEdit(QtWidgets.QWidget):
@@ -166,8 +206,14 @@ class AmountCurrencyEdit(QtWidgets.QWidget):
     def get_currency(self) -> str:
         return self.currency_edit.currentText()
 
+    def set_currency(self, currency: str):
+        return self.currency_edit.setCurrentText(currency)
+
     def get_amount_as_string(self) -> str:
         return f"{self.amount_edit.value():.2f}"
+
+    def set_amount(self, amount: str):
+        return self.amount_edit.setValue(float(amount))
 
 
 class ExchangeRateWidget(QtWidgets.QWidget):
@@ -224,8 +270,20 @@ class ExchangeRateWidget(QtWidgets.QWidget):
     def is_fixed_rate(self) -> bool:
         return self.fixed_rate_rb.isChecked()
 
-    def get_exchange_rate(self) -> str:
-        return f"{self.rate_edit.value():.8f}"
+    def set_fixed_rate(self, rate: float):
+        self.fixed_rate_rb.setChecked(True)
+        self.rate_edit.setValue(rate)
+
+    def get_fixed_rate(self) -> float:
+        return self.rate_edit.value()
+
+    def get_api_rate_params(self) -> Tuple[str, List[str]]:
+        return self.api_widget.get_url(), self.api_widget.get_keys()
+
+    def set_api_rate_params(self, url: str, keys: List[str]):
+        self.api_rate_rb.setChecked(True)
+        self.api_widget.set_url(url)
+        self.api_widget.set_keys(keys)
 
 
 class ExchangeRateAPI:
@@ -323,8 +381,14 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
     def get_url(self) -> str:
         return self.request_url_edit.currentText()
 
+    def set_url(self, url: str):
+        return self.request_url_edit.setCurrentText(url)
+
     def get_keys(self) -> List[str]:
         return [k.strip() for k in self.keys_edit.text().split(",")]
+
+    def set_keys(self, keys: List[str]):
+        return self.keys_edit.setText(", ".join(keys))
 
 
 if __name__ == "__main__":
