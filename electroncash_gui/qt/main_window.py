@@ -85,6 +85,7 @@ from .qrtextedit import ShowQRTextEdit, ScanQRTextEdit
 from .sign_verify_dialog import SignVerifyDialog
 from .transaction_dialog import show_transaction
 from .fee_slider import FeeSlider
+from .invoice_dialog import InvoiceDialog
 from .multi_transactions_dialog import MultiTransactionsDialog
 from .popup_widget import ShowPopupLabel, KillPopupLabel
 from . import cashacctqt
@@ -759,6 +760,12 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         raw_transaction_menu.addAction(_("From &QR Code") + "...", self.read_tx_from_qrcode)
         raw_transaction_menu.addAction(_("From &Multiple files") + "...", self.do_process_from_multiple_files)
         self.raw_transaction_menu = raw_transaction_menu
+
+        invoice_menu = tools_menu.addMenu(_("&Invoice"))
+        invoice_menu.addAction(_("Create new invoice"), self.do_create_invoice)
+        invoice_menu.addAction(_("Load and edit invoice"), self.do_load_edit_invoice)
+        invoice_menu.addAction(_("Load and pay invoice"), self.do_load_pay_invoice)
+
         tools_menu.addSeparator()
         avaproof_action = tools_menu.addAction(
             "Build avalanche proof from coins file", self.build_avalanche_proof
@@ -1177,7 +1184,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         grid.setSpacing(8)
         grid.setColumnStretch(3, 1)
 
-        self.receive_address = None
+        self.receive_address: Optional[Address] = None
         self.receive_address_e = ButtonsLineEdit()
         self.receive_address_e.addCopyButton()
         self.receive_address_e.setReadOnly(True)
@@ -1518,7 +1525,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.request_list.setCurrentItem(None)  # We want the current item to always reflect what's in the UI. So if new, clear selection.
         self.receive_message_e.setFocus(1)
 
-    def set_receive_address(self, addr):
+    def set_receive_address(self, addr: Address):
         self.receive_address = addr
         self.receive_message_e.setText('')
         self.receive_opreturn_rawhex_cb.setChecked(False)
@@ -3535,6 +3542,19 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 return
             tx = Transaction(r, sign_schnorr=self.wallet.is_schnorr_enabled())  # note that presumably the tx is already signed if it comes from blockchain so this sign_schnorr parameter is superfluous, but here to satisfy my OCD -Calin
             self.show_transaction(tx, tx_desc=tx_desc)
+
+    def do_create_invoice(self):
+        d = InvoiceDialog(self)
+        d.set_address(self.receive_address)
+        d.exec_()
+
+    def do_load_edit_invoice(self):
+        d = InvoiceDialog(self)
+        d.open_file_and_load_invoice()
+        d.exec_()
+
+    def do_load_pay_invoice(self):
+        pass    # TODO
 
     def build_avalanche_proof(self):
         """Open a dialog to build an avalanche proof from coins metadata

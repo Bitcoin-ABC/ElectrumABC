@@ -36,6 +36,8 @@ from electroncash.i18n import _
 class InvoiceDialog(QtWidgets.QDialog):
     def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
         super().__init__(parent)
+        self.setMinimumWidth(650)
+        self.setMinimumHeight(520)
 
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
@@ -402,10 +404,3 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
 
     def set_keys(self, keys: List[str]):
         return self.keys_edit.setText(", ".join(keys))
-
-
-if __name__ == "__main__":
-    app = QtWidgets.QApplication([])
-    w = InvoiceDialog()
-    w.show()
-    app.exec_()
