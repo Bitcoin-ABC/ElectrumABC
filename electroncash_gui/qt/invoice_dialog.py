@@ -155,29 +155,22 @@ class InvoiceDialog(QtWidgets.QDialog):
         self.load_from_file(filename)
 
     def load_from_file(self, filename: str):
+        error = None
         with open(filename, "r") as f:
             try:
                 data = json.load(f)
-            except json.JSONDecodeError as e:
-                QtWidgets.QMessageBox.critical(
-                    self,
-                    _("Failed to load invoice"),
-                    _("Unable to decode JSON data for invoice")
-                    + f" {filename}.\n\n"
-                    + _("The following error was raised:")
-                    + f"{type(e).__name__}: {e}",
-                )
-                return
-        try:
-            invoice = Invoice.from_dict(data)
-        except InvoiceDataError as e:
+                invoice = Invoice.from_dict(data)
+            except (json.JSONDecodeError, InvoiceDataError) as e:
+                error = e
+
+        if error is not None:
             QtWidgets.QMessageBox.critical(
                 self,
                 _("Failed to load invoice"),
                 _("Unable to decode JSON data for invoice")
                 + f" {filename}.\n\n"
                 + _("The following error was raised:\n\n")
-                + f"{type(e).__name__}: {e}",
+                + f"{type(error).__name__}: {error}",
             )
             return
 
