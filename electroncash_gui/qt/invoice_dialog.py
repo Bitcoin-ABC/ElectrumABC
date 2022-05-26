@@ -25,7 +25,8 @@
 from __future__ import annotations
 
 import json
-from typing import List, Optional, Tuple, Type
+from dataclasses import dataclass
+from typing import List, Optional, Sequence, Tuple
 
 from PyQt5 import QtCore, QtWidgets
 
@@ -301,46 +302,45 @@ class ExchangeRateWidget(QtWidgets.QWidget):
         self.api_widget.set_keys(keys)
 
 
+@dataclass
 class ExchangeRateAPI:
-    def __init__(self, currency: str):
-        self._currency = currency
-        self.url: str = ""
-        self.keys: List[str] = []
+    url: str
+    keys: Sequence[str]
+
+    def get_url(self, currency: str) -> str:
+        """Get request url with occurrences of ${cur} and %CUR% replaced with
+        respectively lower case or upper case currency symbol.
+        """
+        url = self.url.replace("%cur%", currency.lower())
+        return url.replace("%CUR%", currency.upper())
+
+    def get_keys(self, currency: str) -> List[str]:
+        """Get keys with occurrences of %cur% and %CUR% replaced with
+        respectively lower case or upper case currency symbol.
+        """
+        return [
+            k.replace("%cur%", currency.lower()).replace("%CUR%", currency.upper())
+            for k in self.keys
+        ]
 
 
-class CoingeckoAPI1(ExchangeRateAPI):
-    def __init__(self, currency: str):
-        super().__init__(currency)
-        self.url = f"https://api.coingecko.com/api/v3/simple/price?ids=ecash&vs_currencies={currency.lower()}"
-        self.keys = ["ecash", f"{currency.lower()}"]
-
-
-class CoingeckoAPI2(ExchangeRateAPI):
-    def __init__(self, currency: str):
-        super().__init__(currency)
-        self.url = "https://api.coingecko.com/api/v3/coins/ecash?localization=False&sparkline=false"
-        self.keys = ["market_data", "current_price", f"{currency.lower()}"]
-
-
-class BinanceUSDT(ExchangeRateAPI):
-    def __init__(self, currency: str):
-        super().__init__(currency)
-        self.url = "https://api.binance.com/api/v3/avgPrice?symbol=XECUSDT"
-        self.keys = ["price"]
-
-
-class BinanceBUSD(ExchangeRateAPI):
-    def __init__(self, currency: str):
-        super().__init__(currency)
-        self.url = "https://api.binance.com/api/v3/avgPrice?symbol=XECBUSD"
-        self.keys = ["price"]
-
-
-APIS: List[Type[ExchangeRateAPI]] = [
-    CoingeckoAPI1,
-    CoingeckoAPI2,
-    BinanceUSDT,
-    BinanceBUSD,
+APIS: List[ExchangeRateAPI] = [
+    ExchangeRateAPI(
+        "https://api.coingecko.com/api/v3/simple/price?ids=ecash&vs_currencies=%cur%",
+        ["ecash", "%cur%"],
+    ),
+    ExchangeRateAPI(
+        "https://api.coingecko.com/api/v3/coins/ecash?localization=False&sparkline=false",
+        ["market_data", "current_price", "%cur%"],
+    ),
+    ExchangeRateAPI(
+        "https://api.binance.com/api/v3/avgPrice?symbol=XECUSDT",
+        ["price"],
+    ),
+    ExchangeRateAPI(
+        "https://api.binance.com/api/v3/avgPrice?symbol=XECBUSD",
+        ["price"],
+    ),
 ]
 
 
@@ -379,19 +379,15 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
         # Update currency part of preset URLs while remembering selection
         index = self.request_url_edit.currentIndex()
         self.request_url_edit.clear()
-        apis: List[ExchangeRateAPI] = []
-        for api_class in APIS:
-            api = api_class(currency)
-            self.request_url_edit.addItem(api.url)
-            apis.append(api)
+        for api in APIS:
+            self.request_url_edit.addItem(api.get_url(currency))
         self.request_url_edit.setCurrentIndex(index)
 
     def _on_api_url_selected(self, index: int):
         if index < 0:
             self.keys_edit.clear()
             return
-        api = APIS[index](self._currency)
-        self.keys_edit.setText(", ".join(api.keys))
+        self.keys_edit.setText(", ".join(APIS[index].get_keys(self._currency)))
 
     def get_url(self) -> str:
         return self.request_url_edit.currentText()
