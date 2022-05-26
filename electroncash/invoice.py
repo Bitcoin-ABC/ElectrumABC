@@ -24,9 +24,11 @@
 # SOFTWARE.
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Sequence, Union
+from urllib.request import urlopen
 
 from .address import Address, AddressError
 
@@ -128,3 +130,58 @@ class APIExchangeRate:
 
     def to_dict(self) -> Dict[str, Union[str, List[str]]]:
         return {"url": self.url, "keys": self.keys}
+
+
+@dataclass
+class ExchangeRateAPI:
+    url: str
+    keys: Sequence[str]
+
+    def get_url(self, currency: str) -> str:
+        """Get request url with occurrences of ${cur} and %CUR% replaced with
+        respectively lower case or upper case currency symbol.
+        """
+        url = self.url.replace("%cur%", currency.lower())
+        return url.replace("%CUR%", currency.upper())
+
+    def get_keys(self, currency: str) -> List[str]:
+        """Get keys with occurrences of %cur% and %CUR% replaced with
+        respectively lower case or upper case currency symbol.
+        """
+        return [
+            k.replace("%cur%", currency.lower()).replace("%CUR%", currency.upper())
+            for k in self.keys
+        ]
+
+    def get_exchange_rate(self, currency: str) -> float:
+        url = self.get_url(currency)
+        keys = self.get_keys(currency)
+
+        with urlopen(url) as response:
+            body = response.read()
+            json_data = json.loads(body)
+
+        next_node = json_data
+        for k in keys:
+            next_node = next_node[k]
+        return float(next_node)
+
+
+APIS: List[ExchangeRateAPI] = [
+    ExchangeRateAPI(
+        "https://api.coingecko.com/api/v3/simple/price?ids=ecash&vs_currencies=%cur%",
+        ["ecash", "%cur%"],
+    ),
+    ExchangeRateAPI(
+        "https://api.coingecko.com/api/v3/coins/ecash?localization=False&sparkline=false",
+        ["market_data", "current_price", "%cur%"],
+    ),
+    ExchangeRateAPI(
+        "https://api.binance.com/api/v3/avgPrice?symbol=XECUSDT",
+        ["price"],
+    ),
+    ExchangeRateAPI(
+        "https://api.binance.com/api/v3/avgPrice?symbol=XECBUSD",
+        ["price"],
+    ),
+]
