@@ -28,6 +28,7 @@ import json
 from dataclasses import dataclass
 from typing import List, Optional, Sequence, Tuple
 
+import requests
 from PyQt5 import QtCore, QtWidgets
 
 from electroncash.address import Address, AddressError
@@ -133,7 +134,7 @@ class InvoiceDialog(QtWidgets.QDialog):
         if self.exchange_rate_widget.is_fixed_rate():
             out["invoice"][
                 "exchangeRate"
-            ] = f"{self.exchange_rate_widget.get_fixed_rate():.8f}"
+            ] = f"{self.exchange_rate_widget.get_fixed_rate():.10f}"
             return out
 
         url, keys = self.exchange_rate_widget.get_api_rate_params()
@@ -245,7 +246,7 @@ class ExchangeRateWidget(QtWidgets.QWidget):
         self.fixed_rate_rb = QtWidgets.QRadioButton(_("Fixed rate"))
         fixed_rate_layout.addWidget(self.fixed_rate_rb)
         self.rate_edit = QtWidgets.QDoubleSpinBox()
-        self.rate_edit.setDecimals(8)
+        self.rate_edit.setDecimals(10)
         self.rate_edit.setRange(10**-8, 10**100)
         self.rate_edit.setStepType(QtWidgets.QAbstractSpinBox.AdaptiveDecimalStepType)
         fixed_rate_layout.addWidget(self.rate_edit)
@@ -323,6 +324,17 @@ class ExchangeRateAPI:
             for k in self.keys
         ]
 
+    def get_exchange_rate(self, currency: str) -> float:
+        url = self.get_url(currency)
+        keys = self.get_keys(currency)
+
+        json_data = requests.get(url).json()
+
+        next_node = json_data
+        for k in keys:
+            next_node = next_node[k]
+        return float(next_node)
+
 
 APIS: List[ExchangeRateAPI] = [
     ExchangeRateAPI(
@@ -366,8 +378,12 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
         )
         layout.addWidget(self.keys_edit)
 
+        self.test_api_button = QtWidgets.QPushButton(_("Test API"))
+        layout.addWidget(self.test_api_button, alignment=QtCore.Qt.AlignLeft)
+
         # signals
         self.request_url_edit.currentIndexChanged.connect(self._on_api_url_selected)
+        self.test_api_button.clicked.connect(self._on_test_api_clicked)
 
         # Default state
         self._currency: str = ""
@@ -400,3 +416,22 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
 
     def set_keys(self, keys: List[str]):
         return self.keys_edit.setText(", ".join(keys))
+
+    def _on_test_api_clicked(self):
+        api = ExchangeRateAPI(self.get_url(), self.get_keys())
+        try:
+            rate = api.get_exchange_rate(self._currency)
+        except (KeyError, requests.exceptions.RequestException) as e:
+            QtWidgets.QMessageBox.critical(
+                self,
+                "Error fetching exchange rate",
+                f"Unable to fetch the XEC/{self._currency} exchange rate using the "
+                f"specified API parameters.\n\nThe error message was:\n\n{e}",
+            )
+            return
+
+        QtWidgets.QMessageBox.information(
+            self,
+            "Exchange rate",
+            f"The XEC/{self._currency} exchange rate is {rate:.10f}",
+        )
