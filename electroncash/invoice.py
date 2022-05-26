@@ -37,6 +37,10 @@ class InvoiceDataError(Exception):
     pass
 
 
+class InvoiceLoadFromFileError(Exception):
+    pass
+
+
 class Invoice:
     def __init__(
         self,
@@ -50,8 +54,8 @@ class Invoice:
         self.amount = amount
         self.currency = currency
         self.label = label
-        if currency.lower() != "xec":
-            assert exchange_rate is not None
+        if currency.lower() != "xec" and exchange_rate is None:
+            raise InvoiceDataError("No exchange rate specified for non-XEC amount.")
         self.exchange_rate = exchange_rate
 
     def to_dict(self) -> dict:
@@ -68,10 +72,10 @@ class Invoice:
             return out
 
         if isinstance(self.exchange_rate, FixedExchangeRate):
-            out["exchangeRate"] = self.exchange_rate.to_string()
+            out["invoice"]["exchangeRate"] = self.exchange_rate.to_string()
             return out
 
-        out["exchangeRateAPI"] = self.exchange_rate.to_dict()
+        out["invoice"]["exchangeRateAPI"] = self.exchange_rate.to_dict()
         return out
 
     @classmethod
@@ -114,6 +118,21 @@ class Invoice:
             exchange_rate=rate,
         )
 
+    @classmethod
+    def from_file(cls, filename: str) -> Invoice:
+        with open(filename, "r") as f:
+            data = json.load(f)
+        return Invoice.from_dict(data)
+
+    def get_xec_amount(self) -> Decimal:
+        if self.exchange_rate is None:
+            assert self.currency.lower() == "xec"
+            return self.amount
+
+        rate = self.exchange_rate.get_exchange_rate()
+        assert rate != 0
+        return self.amount / rate
+
 
 @dataclass
 class FixedExchangeRate:
@@ -121,6 +140,9 @@ class FixedExchangeRate:
 
     def to_string(self) -> str:
         return str(self.rate)
+
+    def get_exchange_rate(self) -> Decimal:
+        return self.rate
 
 
 @dataclass
@@ -135,7 +157,7 @@ class ExchangeRateApi:
     def to_dict(self) -> Dict[str, Union[str, List[str]]]:
         return {"url": self.url, "keys": self.keys}
 
-    def get_exchange_rate(self) -> float:
+    def get_exchange_rate(self) -> Decimal:
         with urlopen(self.url) as response:
             body = response.read()
             json_data = json.loads(body)
@@ -143,7 +165,7 @@ class ExchangeRateApi:
         next_node = json_data
         for k in self.keys:
             next_node = next_node[k]
-        return float(next_node)
+        return Decimal(next_node)
 
 
 @dataclass
@@ -175,7 +197,7 @@ class MultiCurrencyExchangeRateApi:
             for k in self.keys
         ]
 
-    def get_exchange_rate(self, currency: str) -> float:
+    def get_exchange_rate(self, currency: str) -> Decimal:
         url = self.get_url(currency)
         keys = self.get_keys(currency)
 

@@ -155,23 +155,8 @@ class InvoiceDialog(QtWidgets.QDialog):
         self.load_from_file(filename)
 
     def load_from_file(self, filename: str):
-        error = None
-        with open(filename, "r") as f:
-            try:
-                data = json.load(f)
-                invoice = Invoice.from_dict(data)
-            except (json.JSONDecodeError, InvoiceDataError) as e:
-                error = e
-
-        if error is not None:
-            QtWidgets.QMessageBox.critical(
-                self,
-                _("Failed to load invoice"),
-                _("Unable to decode JSON data for invoice")
-                + f" {filename}.\n\n"
-                + _("The following error was raised:\n\n")
-                + f"{type(error).__name__}: {error}",
-            )
+        invoice = load_invoice_from_file_and_show_error_message(filename, parent=self)
+        if invoice is None:
             return
 
         self.address_edit.setText(invoice.address.to_ui_string())
@@ -389,3 +374,22 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
     def clear(self):
         self.set_currency("USD")
         self.request_url_edit.setCurrentIndex(0)
+
+
+def load_invoice_from_file_and_show_error_message(
+    filename: str,
+    parent: Optional[QtWidgets.QWidget],
+) -> Optional[Invoice]:
+    try:
+        invoice = Invoice.from_file(filename)
+    except (json.JSONDecodeError, InvoiceDataError) as e:
+        QtWidgets.QMessageBox.critical(
+            parent,
+            _("Failed to load invoice"),
+            _("Unable to decode JSON data for invoice")
+            + f" {filename}.\n\n"
+            + _("The following error was raised:\n\n")
+            + f"{type(e).__name__}: {e}",
+        )
+        return
+    return invoice

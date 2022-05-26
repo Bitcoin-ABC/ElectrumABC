@@ -85,7 +85,10 @@ from .qrtextedit import ShowQRTextEdit, ScanQRTextEdit
 from .sign_verify_dialog import SignVerifyDialog
 from .transaction_dialog import show_transaction
 from .fee_slider import FeeSlider
-from .invoice_dialog import InvoiceDialog
+from .invoice_dialog import (
+    InvoiceDialog,
+    load_invoice_from_file_and_show_error_message,
+)
 from .multi_transactions_dialog import MultiTransactionsDialog
 from .popup_widget import ShowPopupLabel, KillPopupLabel
 from . import cashacctqt
@@ -3554,7 +3557,31 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         d.exec_()
 
     def do_load_pay_invoice(self):
-        pass    # TODO
+        filename, _selected_filter = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            _("Load invoice from file"),
+            filter="JSON file (*.json);;All files (*)",
+        )
+
+        if not filename:
+            return
+
+        invoice = load_invoice_from_file_and_show_error_message(filename, self)
+        if invoice is None:
+            return
+        QtWidgets.QMessageBox.warning(
+            self,
+            _("Paying invoice"),
+            _("You are about to use the experimental 'Pay Invoice' feature. Please "
+              "review the XEC amount carefully and make sure the applied exchange rate "
+              "was sensible before sending.")
+        )
+        self.show_send_tab()
+        self.payto_e.setText(invoice.address.to_ui_string())
+        self.amount_e.setText(str(invoice.get_xec_amount()))
+        self.message_e.setText(invoice.label)
+        # signal to set fee
+        self.amount_e.textEdited.emit("")
 
     def build_avalanche_proof(self):
         """Open a dialog to build an avalanche proof from coins metadata
