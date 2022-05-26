@@ -13,6 +13,7 @@ from .test_consolidate import suite as test_consolidate_suite
 from .test_dnssec import TestDnsSec
 from .test_import_electroncash_data import TestImportECData
 from .test_interface import TestInterface
+from .test_invoice import TestInvoice
 from .test_mnemonic import suite as test_mnemonic_suite
 from .test_paymentrequests import Test_PaymentRequests
 from .test_schnorr import suite as test_schnorr_suite
@@ -42,6 +43,7 @@ def suite():
     test_suite.addTest(loadTests(TestDnsSec))
     test_suite.addTest(loadTests(TestImportECData))
     test_suite.addTest(loadTests(TestInterface))
+    test_suite.addTest(loadTests(TestInvoice))
     test_suite.addTest(test_mnemonic_suite())
     test_suite.addTest(loadTests(Test_PaymentRequests))
     test_suite.addTest(test_schnorr_suite())

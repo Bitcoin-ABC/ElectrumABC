@@ -37,10 +37,6 @@ class InvoiceDataError(Exception):
     pass
 
 
-class InvoiceLoadFromFileError(Exception):
-    pass
-
-
 class Invoice:
     def __init__(
         self,
