@@ -3568,12 +3568,13 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         invoice = load_invoice_from_file_and_show_error_message(filename, self)
         xec_amount = invoice.get_xec_amount()
+        amount_str = format_satoshis_plain(int(xec_amount * 100), self.decimal_point)
         computed_rate = invoice.amount / xec_amount
         if invoice is None:
             return
         self.show_send_tab()
         self.payto_e.setText(invoice.address.to_ui_string())
-        self.amount_e.setText(str(xec_amount))
+        self.amount_e.setText(amount_str)
         self.message_e.setText(invoice.label)
         # signal to set fee
         self.amount_e.textEdited.emit("")
@@ -3584,10 +3585,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             _("You are about to use the experimental 'Pay Invoice' feature. Please "
               "review the XEC amount carefully before sending the transaction.") +
             f"\n\nAddress: {invoice.address.to_ui_string()}"
-            f"\n\nAmount: {xec_amount}"
+            f"\n\nAmount ({self.base_unit()}): {amount_str}"
             f"\n\nLabel: {invoice.label}"
             f"\n\nInvoice currency: {invoice.currency}"
-            f"\n\nExchange rate ({invoice.currency}/XEC): {1 if invoice.exchange_rate is None else computed_rate}"
+            f"\n\nExchange rate ({invoice.currency}/XEC): "
+            f"{1 if invoice.exchange_rate is None else computed_rate:.10f}"
         )
 
     def build_avalanche_proof(self):
