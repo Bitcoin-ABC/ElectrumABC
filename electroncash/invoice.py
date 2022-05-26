@@ -44,7 +44,7 @@ class Invoice:
         amount: Decimal,
         label: str = "",
         currency: str = "XEC",
-        exchange_rate: Optional[Union[FixedExchangeRate, APIExchangeRate]] = None,
+        exchange_rate: Optional[Union[FixedExchangeRate, ExchangeRateApi]] = None,
     ):
         self.address = address
         self.amount = amount
@@ -101,7 +101,7 @@ class Invoice:
         if "exchangeRate" in invoice:
             rate = FixedExchangeRate(Decimal(invoice["exchangeRate"]))
         elif "exchangeRateAPI" in invoice:
-            rate = APIExchangeRate(
+            rate = ExchangeRateApi(
                 url=invoice["exchangeRateAPI"].get("url") or "",
                 keys=invoice["exchangeRateAPI"].get("keys") or [],
             )
@@ -124,21 +124,43 @@ class FixedExchangeRate:
 
 
 @dataclass
-class APIExchangeRate:
+class ExchangeRateApi:
+    """Data defining an API call to fetch an exchange rate.
+    The data return by the url is assumed to be JSON, and the keys are used in the
+    JSON data to find the node containing the exchange rate."""
+
     url: str
     keys: List[str]
 
     def to_dict(self) -> Dict[str, Union[str, List[str]]]:
         return {"url": self.url, "keys": self.keys}
 
+    def get_exchange_rate(self) -> float:
+        with urlopen(self.url) as response:
+            body = response.read()
+            json_data = json.loads(body)
+
+        next_node = json_data
+        for k in self.keys:
+            next_node = next_node[k]
+        return float(next_node)
+
 
 @dataclass
-class ExchangeRateAPI:
+class MultiCurrencyExchangeRateApi:
+    """This object is similar to APIExchangeRate, with the notable difference
+    that both the URL and keys can contain a placeholder string for a currency symbol
+    (USD, EUR...).
+    The supported placeholders are "%cur%" and "%CUR%". They are to be replaced
+    respectively by the lowercase (usd, eur...) and uppercase (USD, EUR...) currency
+    symbols.
+    """
+
     url: str
     keys: Sequence[str]
 
     def get_url(self, currency: str) -> str:
-        """Get request url with occurrences of ${cur} and %CUR% replaced with
+        """Get request url with occurrences of %cur% and %CUR% replaced with
         respectively lower case or upper case currency symbol.
         """
         url = self.url.replace("%cur%", currency.lower())
@@ -157,30 +179,23 @@ class ExchangeRateAPI:
         url = self.get_url(currency)
         keys = self.get_keys(currency)
 
-        with urlopen(url) as response:
-            body = response.read()
-            json_data = json.loads(body)
-
-        next_node = json_data
-        for k in keys:
-            next_node = next_node[k]
-        return float(next_node)
+        return ExchangeRateApi(url, keys).get_exchange_rate()
 
 
-APIS: List[ExchangeRateAPI] = [
-    ExchangeRateAPI(
+APIS: List[MultiCurrencyExchangeRateApi] = [
+    MultiCurrencyExchangeRateApi(
         "https://api.coingecko.com/api/v3/simple/price?ids=ecash&vs_currencies=%cur%",
         ["ecash", "%cur%"],
     ),
-    ExchangeRateAPI(
+    MultiCurrencyExchangeRateApi(
         "https://api.coingecko.com/api/v3/coins/ecash?localization=False&sparkline=false",
         ["market_data", "current_price", "%cur%"],
     ),
-    ExchangeRateAPI(
+    MultiCurrencyExchangeRateApi(
         "https://api.binance.com/api/v3/avgPrice?symbol=XECUSDT",
         ["price"],
     ),
-    ExchangeRateAPI(
+    MultiCurrencyExchangeRateApi(
         "https://api.binance.com/api/v3/avgPrice?symbol=XECBUSD",
         ["price"],
     ),

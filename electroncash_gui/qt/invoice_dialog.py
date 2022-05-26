@@ -36,11 +36,11 @@ from electroncash.address import Address, AddressError
 from electroncash.i18n import _
 from electroncash.invoice import (
     APIS,
-    APIExchangeRate,
-    ExchangeRateAPI,
+    ExchangeRateApi,
     FixedExchangeRate,
     Invoice,
     InvoiceDataError,
+    MultiCurrencyExchangeRateApi,
 )
 
 
@@ -278,16 +278,16 @@ class ExchangeRateWidget(QtWidgets.QWidget):
     def is_fixed_rate(self) -> bool:
         return self.fixed_rate_rb.isChecked()
 
-    def get_rate(self) -> Union[FixedExchangeRate, APIExchangeRate]:
+    def get_rate(self) -> Union[FixedExchangeRate, ExchangeRateApi]:
         if self.is_fixed_rate():
             return FixedExchangeRate(Decimal(f"{self.rate_edit.value():.10f}"))
-        return APIExchangeRate(self.api_widget.get_url(), self.api_widget.get_keys())
+        return ExchangeRateApi(self.api_widget.get_url(), self.api_widget.get_keys())
 
-    def set_rate(self, exchange_rate: Union[FixedExchangeRate, APIExchangeRate]):
+    def set_rate(self, exchange_rate: Union[FixedExchangeRate, ExchangeRateApi]):
         if isinstance(exchange_rate, FixedExchangeRate):
             self.fixed_rate_rb.setChecked(True)
             self.rate_edit.setValue(float(exchange_rate.rate))
-        elif isinstance(exchange_rate, APIExchangeRate):
+        elif isinstance(exchange_rate, ExchangeRateApi):
             self.api_rate_rb.setChecked(True)
             self.api_widget.set_url(exchange_rate.url)
             self.api_widget.set_keys(exchange_rate.keys)
@@ -360,7 +360,7 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
         return self.keys_edit.setText(", ".join(keys))
 
     def _on_test_api_clicked(self):
-        api = ExchangeRateAPI(self.get_url(), self.get_keys())
+        api = MultiCurrencyExchangeRateApi(self.get_url(), self.get_keys())
         try:
             rate = api.get_exchange_rate(self._currency)
         except (
