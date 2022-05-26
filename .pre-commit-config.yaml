@@ -4,6 +4,7 @@ files: |
         electroncash/avalanche/.*py|
         electroncash/consolidate.py|
         electroncash/constants.py|
+        electroncash/invoice.py|
         electroncash/keystore.py|
         electroncash/uint256.py|
         electroncash_gui/qt/address_list.py|
