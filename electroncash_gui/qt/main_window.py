@@ -3567,21 +3567,28 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             return
 
         invoice = load_invoice_from_file_and_show_error_message(filename, self)
+        xec_amount = invoice.get_xec_amount()
+        computed_rate = invoice.amount / xec_amount
         if invoice is None:
             return
+        self.show_send_tab()
+        self.payto_e.setText(invoice.address.to_ui_string())
+        self.amount_e.setText(str(xec_amount))
+        self.message_e.setText(invoice.label)
+        # signal to set fee
+        self.amount_e.textEdited.emit("")
+
         QtWidgets.QMessageBox.warning(
             self,
             _("Paying invoice"),
             _("You are about to use the experimental 'Pay Invoice' feature. Please "
-              "review the XEC amount carefully and make sure the applied exchange rate "
-              "was sensible before sending.")
+              "review the XEC amount carefully before sending the transaction.") +
+            f"\n\nAddress: {invoice.address.to_ui_string()}"
+            f"\n\nAmount: {xec_amount}"
+            f"\n\nLabel: {invoice.label}"
+            f"\n\nInvoice currency: {invoice.currency}"
+            f"\n\nExchange rate ({invoice.currency}/XEC): {1 if invoice.exchange_rate is None else computed_rate}"
         )
-        self.show_send_tab()
-        self.payto_e.setText(invoice.address.to_ui_string())
-        self.amount_e.setText(str(invoice.get_xec_amount()))
-        self.message_e.setText(invoice.label)
-        # signal to set fee
-        self.amount_e.textEdited.emit("")
 
     def build_avalanche_proof(self):
         """Open a dialog to build an avalanche proof from coins metadata

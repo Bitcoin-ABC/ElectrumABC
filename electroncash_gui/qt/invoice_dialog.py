@@ -49,6 +49,7 @@ class InvoiceDialog(QtWidgets.QDialog):
         super().__init__(parent)
         self.setMinimumWidth(650)
         self.setMinimumHeight(520)
+        self.setWindowTitle(_("Create or modify an invoice"))
 
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
