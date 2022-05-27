@@ -25,6 +25,27 @@ transactions as expected.
 
 # Release notes
 
+## Release 5.1.1
+
+- Use a fallback ripemd160 implementation to compute addresses when OpenSSL does
+  not have ripemd160, which is no longer available by default in OpenSSL 3.0 (#200).
+- Fix the pay-to-many feature, broken since Electrum ABC 5.0.4 (#202).
+- Add a tool for users to generate a deterministic delegated private key (#203).
+- Fix an error when showing the password dialog before exporting BIP38 keys (#205).
+- Automatically prefill the delegator key when adding a delegation level if the
+  key is owned by the wallet (#206).
+- Add a wallet menu to show the auxiliary keys used for avalanche keys (#206).
+- Fix the udev installer tool, broken in Electrum ABC 5.1.0 (#208).
+- Add a tool to create, edit and pay invoices, with support for XEC amounts and
+  other currencies. The invoice creator can define a fixed exchange rate or specify
+  an API url for the payer to fetch the exchange rate at payment time (#209).
+- Improve the text contrast in the amount widgets when using the dark theme (#210).
+- Electron Cash backports:
+  - Improvements to build scripts.
+  - Sort same block transactions to show received funds before spent funds, and thus
+    avoid displaying intermediate negative balances (#204).
+
+
 ## Release 5.1.0
 
 - Add tools to build avalanche proofs and avalanche proof delegations (#88).
