@@ -211,8 +211,6 @@ class ElectrumGui(QtCore.QObject, PrintError):
         self.nd = None
         self._last_active_window = None  # we remember the last activated ElectrumWindow as a Weak.ref
         Address.set_address_format(self.get_config_addr_format())
-        # Dark Theme -- ideally set this before any widgets are created.
-        self.set_dark_theme_if_needed()
         # /
         # Wallet Password Cache
         # wallet -> (password, QTimer) map for some plugins (like CashShuffle)
@@ -239,10 +237,9 @@ class ElectrumGui(QtCore.QObject, PrintError):
             self._start_auto_update_timer(first_run=True)
         self.app.focusChanged.connect(self.on_focus_change)  # track last window the user interacted with
         self.shutdown_signal.connect(self.close, QtCore.Qt.QueuedConnection)
+
+        self.set_dark_theme_if_needed()
         run_hook('init_qt', self)
-        # We did this once already in the set_dark_theme call, but we do this
-        # again here just in case some plugin modified the color scheme.
-        ColorScheme.update_from_widget(QtWidgets.QWidget())
 
         self._check_and_warn_qt_version()
 
