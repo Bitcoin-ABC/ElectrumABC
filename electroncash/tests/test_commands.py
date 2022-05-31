@@ -1,7 +1,9 @@
+import os
 import unittest
+from contextlib import redirect_stderr
 from decimal import Decimal as PyDecimal
 
-from ..commands import Commands
+from ..commands import Commands, get_parser
 
 
 class TestCommands(unittest.TestCase):
@@ -56,5 +58,36 @@ class TestCommands(unittest.TestCase):
         )
 
 
+class TestArgParser(unittest.TestCase):
+    def setUp(self) -> None:
+        self.parser = get_parser()
+
+    def test_global_options(self):
+        args_no_command = self.parser.parse_args(["-w", "/path/to/wallet", "--verbose"])
+        self.assertEqual(args_no_command.wallet_path, "/path/to/wallet")
+        self.assertTrue(args_no_command.verbose)
+        self.assertEqual(args_no_command.cmd, None)
+
+        args_with_command = self.parser.parse_args(["-w", "/path/to/wallet", "history"])
+        self.assertEqual(args_with_command.wallet_path, "/path/to/wallet")
+        self.assertEqual(args_with_command.cmd, "history")
+
+        # global options must be before any command or subparser
+        with open(os.devnull, "w") as null, redirect_stderr(null):
+            with self.assertRaises(SystemExit):
+                self.parser.parse_args(["history", "-w", "/path/to/wallet"])
+
+            with self.assertRaises(SystemExit):
+                self.parser.parse_args(["gui", "-w", "/path/to/wallet"])
+
+
+def suite():
+    test_suite = unittest.TestSuite()
+    loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
+    test_suite.addTest(loadTests(TestCommands))
+    test_suite.addTest(loadTests(TestArgParser))
+    return test_suite
+
+
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(defaultTest="suite")

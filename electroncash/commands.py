@@ -980,19 +980,16 @@ def get_parser():
         # explicitly enabled on macOS! (see gui/qt/__init__.py)
         parser_gui.add_argument("--qt_disable_highdpi", action="store_true", dest="qt_disable_highdpi", default=None, help="(Linux & Windows only) If using Qt gui, disable high DPI scaling")
     add_network_options(parser_gui)
-    add_global_options(parser_gui)
     # daemon
     parser_daemon = subparsers.add_parser('daemon', help="Run Daemon")
     parser_daemon.add_argument("subcommand", nargs='?', help="start, stop, status, load_wallet, close_wallet. Other commands may be added by plugins.")
     parser_daemon.add_argument("subargs", nargs='*', metavar='arg', help="additional arguments (used by plugins)")
     #parser_daemon.set_defaults(func=run_daemon)
     add_network_options(parser_daemon)
-    add_global_options(parser_daemon)
     # commands
     for cmdname in sorted(known_commands.keys()):
         cmd = known_commands[cmdname]
         p = subparsers.add_parser(cmdname, help=cmd.help, description=cmd.description)
-        add_global_options(p)
         if cmdname == 'restore':
             p.add_argument("-o", "--offline", action="store_true", dest="offline", default=False, help="Run offline")
         for optname, default in zip(cmd.options, cmd.defaults):

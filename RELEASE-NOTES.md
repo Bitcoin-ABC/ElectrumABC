@@ -25,6 +25,11 @@ transactions as expected.
 
 # Release notes
 
+## Current master
+
+- Change command line usage to enforce specifying global options before command name.
+
+
 ## Release 5.1.1
 
 - Use a fallback ripemd160 implementation to compute addresses when OpenSSL does

@@ -8,7 +8,7 @@ from .test_bitcoin import suite as test_bitcoin_suite
 from .test_blockchain import TestBlockchain
 from .test_cashacct import TestCashAccounts
 from .test_cashaddrenc import TestCashAddrAddress
-from .test_commands import TestCommands
+from .test_commands import suite as test_commands_suite
 from .test_consolidate import suite as test_consolidate_suite
 from .test_dnssec import TestDnsSec
 from .test_import_electroncash_data import TestImportECData
@@ -38,7 +38,7 @@ def suite():
     test_suite.addTest(loadTests(TestBlockchain))
     test_suite.addTest(loadTests(TestCashAccounts))
     test_suite.addTest(loadTests(TestCashAddrAddress))
-    test_suite.addTest(loadTests(TestCommands))
+    test_suite.addTest(test_commands_suite())
     test_suite.addTest(test_consolidate_suite())
     test_suite.addTest(loadTests(TestDnsSec))
     test_suite.addTest(loadTests(TestImportECData))
