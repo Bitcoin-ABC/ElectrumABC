@@ -216,6 +216,11 @@ class Ledger_Client(HardwareClientBase):
                 # based on docs 0x6f00 might be a more general error, hence we also compare message to be sure
                 raise Exception(_('Invalid channel.') + '\n' +
                                 _('Please make sure that \'Browser support\' is disabled on your {}.').format(self.device)) from e
+            if e.sw == 0x6702:
+                # This happens with firmware/BTC/BCH apps > 2.0.2 when the user didn't
+                # open the BCH app
+                raise Exception(_('Open the BCH app') + '\n' +
+                                _('Please make sure that the BCH app is open on your device.')) from e
             raise e
 
     def checkDevice(self):
