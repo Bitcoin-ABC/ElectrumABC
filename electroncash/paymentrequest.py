@@ -25,13 +25,13 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import hashlib
-import sys
 import time
 import traceback
 import json
 import requests
 import urllib.parse
 import dateutil.parser
+import sys
 import threading
 import zlib
 from collections import namedtuple
@@ -49,10 +49,11 @@ from . import rsakey
 
 from .address import Address, PublicKey
 from .bitcoin import TYPE_ADDRESS
-from .constants import PROJECT_NAME, XEC
+from .constants import PROJECT_NAME, PROJECT_NAME_NO_SPACES, XEC
 from .util import print_error, bh2u, bfh, PrintError
 from .util import FileImportFailed, FileImportFailedEncrypted
 from .transaction import Transaction
+from .version import PACKAGE_VERSION
 
 def _(message): return message
 
@@ -73,8 +74,18 @@ pr_tooltips = {
 
 del _
 
-REQUEST_HEADERS = {'Accept': 'application/bitcoincash-paymentrequest', 'User-Agent': 'Electron-Cash'}
-ACK_HEADERS = {'Content-Type':'application/bitcoincash-payment','Accept':'application/bitcoincash-paymentack','User-Agent':'Electron-Cash'}
+# e.g. "ElectrumABC/5.1.1
+USER_AGENT = f"{PROJECT_NAME_NO_SPACES}/{PACKAGE_VERSION}"
+
+REQUEST_HEADERS = {
+    'Accept': 'application/ecash-paymentrequest',
+    'User-Agent': USER_AGENT
+}
+ACK_HEADERS = {
+    'Content-Type': 'application/ecash-payment',
+    'Accept': 'application/ecash-paymentack',
+    'User-Agent': USER_AGENT
+}
 
 ca_path = requests.certs.where()
 ca_list = None
@@ -102,10 +113,10 @@ def get_payment_request(url):
             try:
                 response = requests.request('GET', url, headers=REQUEST_HEADERS)
                 response.raise_for_status()
-                # Guard against `bitcoincash:`-URIs with invalid payment request URLs
+                # Guard against `ecash:`-URIs with invalid payment request URLs
                 if "Content-Type" not in response.headers \
-                or response.headers["Content-Type"] != "application/bitcoincash-paymentrequest":
-                    error = "payment URL not pointing to a bitcoincash payment request handling server"
+                or response.headers["Content-Type"] != "application/ecash-paymentrequest":
+                    error = "payment URL not pointing to a ecash payment request handling server"
                 else:
                     data = response.content
                 print_error('fetched payment request', url, len(response.content))
@@ -615,9 +626,7 @@ class PaymentRequest_BitPay20(PaymentRequest, PrintError):
     ''' Work-alike to the existing BIP70 PaymentRequest class.
     Wraps payment requests based on the new BitPay 2.0 JSON API.'''
 
-    # Extra headers we attach to requests we send to BitPay, so they may
-    # track us as a 'partner' (we actually get a small amount of revenue this way).
-    HEADERS = {'User-Agent': f'{PROJECT_NAME}'}
+    HEADERS = {'User-Agent': USER_AGENT}
 
     Details = namedtuple('BitPay20Details', 'outputs, memo, payment_url, time, expires, network, currency, required_fee_rate')
 
