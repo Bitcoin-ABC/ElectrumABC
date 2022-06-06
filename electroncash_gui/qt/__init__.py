@@ -606,10 +606,8 @@ class ElectrumGui(QtCore.QObject, PrintError):
             wallet = self.daemon.load_wallet(path, None)
         except BaseException as e:
             traceback.print_exc(file=sys.stdout)
-            d = QtWidgets.QMessageBox(
-                QtWidgets.QMessageBox.Warning, _('Error'),
-                _('Cannot load wallet') + ' (1):\n' + str(e))
-            d.exec_()
+            QtWidgets.QMessageBox.warning(
+                None, _('Error'), _('Cannot load wallet') + ' (1):\n' + str(e))
             # if app is starting, still let wizard to appear
             if not app_is_starting:
                 return
@@ -632,28 +630,25 @@ class ElectrumGui(QtCore.QObject, PrintError):
             if not self.windows:
                 self.warn_if_no_secp()
 
-            for w in self.windows:
-                if w.wallet.storage.path == wallet.storage.path:
-                    w.bring_to_top()
+            for window in self.windows:
+                if window.wallet.storage.path == wallet.storage.path:
+                    window.bring_to_top()
                     return
-            w = self._create_window_for_wallet(wallet)
+            window = self._create_window_for_wallet(wallet)
         except BaseException as e:
             traceback.print_exc(file=sys.stdout)
-            d = QtWidgets.QMessageBox(
-                QtWidgets.QMessageBox.Warning, _('Error'),
-                _('Cannot create window for wallet:') + '\n' + str(e)
+            QtWidgets.QMessageBox.warning(
+                None, _('Error'), _('Cannot create window for wallet:') + '\n' + str(e)
             )
-            d.exec_()
             return
 
         if uri:
-            w.pay_to_URI(uri)
-        w.bring_to_top()
-        w.setWindowState(w.windowState() & ~QtCore.Qt.WindowMinimized | QtCore.Qt.WindowActive)
+            window.pay_to_URI(uri)
+        window.bring_to_top()
+        window.setWindowState(window.windowState() & ~QtCore.Qt.WindowMinimized | QtCore.Qt.WindowActive)
 
-        # this will activate the window
-        w.activateWindow()
-        return w
+        window.activateWindow()
+        return window
 
     def _start_wizard_to_select_or_create_wallet(self, path) -> Optional[Abstract_Wallet]:
         wizard = InstallWizard(self.config, self.app, self.plugins)
