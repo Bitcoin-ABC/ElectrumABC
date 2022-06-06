@@ -24,6 +24,7 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
 
 import gc
 import os
@@ -32,7 +33,7 @@ import signal
 import sys
 import threading
 import traceback
-from typing import Callable, Optional
+from typing import Callable, Optional, TYPE_CHECKING
 
 try:
     import PyQt5
@@ -93,6 +94,11 @@ from .util import (
     finalization_print_error,
     print_error,
 )
+
+if TYPE_CHECKING:
+    from electroncash.daemon import Daemon
+    from electroncash.plugins import Plugins
+    from electroncash.simple_config import SimpleConfig
 
 
 def _pre_and_post_app_setup(config) -> Callable[[], None]:
@@ -176,7 +182,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
 
     instance = None
 
-    def __init__(self, config, daemon, plugins):
+    def __init__(self, config: SimpleConfig, daemon: Daemon, plugins: Plugins):
         super(__class__, self).__init__() # QtCore.QObject init
         assert __class__.instance is None, "ElectrumGui is a singleton, yet an instance appears to already exist! FIXME!"
         __class__.instance = self

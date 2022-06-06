@@ -23,6 +23,7 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
 
 import copy
 import csv
@@ -50,7 +51,7 @@ from PyQt5 import QtWidgets
 from collections import OrderedDict
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
 from functools import partial
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
 import electroncash.constants
 import electroncash.web as web
@@ -134,6 +135,9 @@ try:
 except ImportError as e:
     pass  # we tried to pre-load it, failure is ok; camera just won't be available
 
+if TYPE_CHECKING:
+    from . import ElectrumGui
+
 
 class StatusBarButton(QtWidgets.QPushButton):
     def __init__(self, icon, tooltip, func):
@@ -201,7 +205,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     status_icon_dict = dict()  # app-globel cache of "status_*" -> QIcon instances (for update_status() speedup)
 
-    def __init__(self, gui_object, wallet: Abstract_Wallet):
+    def __init__(self, gui_object: ElectrumGui, wallet: Abstract_Wallet):
         QtWidgets.QMainWindow.__init__(self)
 
         self.gui_object = gui_object

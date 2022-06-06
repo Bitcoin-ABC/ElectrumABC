@@ -1,4 +1,6 @@
 # -*- mode: python3 -*-
+from __future__ import annotations
+
 import os
 import random
 import sys
@@ -6,7 +8,7 @@ import tempfile
 import time
 import threading
 import traceback
-from typing import Tuple, Optional
+from typing import Tuple, Optional, TYPE_CHECKING
 
 from PyQt5.QtCore import QEventLoop, QRect, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon, QPainter, QPalette, QPen
@@ -42,6 +44,11 @@ from .util import (
     char_width_in_lineedit,
     destroyed_print_error,
 )
+
+if TYPE_CHECKING:
+    from electroncash.plugins import Plugins
+    from electroncash.simple_config import SimpleConfig
+
 
 MSG_ENTER_PASSWORD = _("Choose a password to encrypt your wallet keys.") + '\n'\
                      + _("Leave this field empty if you want to disable encryption.")
@@ -118,7 +125,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
 
     accept_signal = pyqtSignal()
 
-    def __init__(self, config, app, plugins):
+    def __init__(self, config: SimpleConfig, app: QtWidgets.QApplication, plugins: Plugins):
         BaseWizard.__init__(self, config)
         QtWidgets.QDialog.__init__(self, None)
         self.setWindowTitle(f'{PROJECT_NAME}  -  ' + _('Install Wizard'))
