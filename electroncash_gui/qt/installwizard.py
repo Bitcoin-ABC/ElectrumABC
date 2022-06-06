@@ -49,6 +49,8 @@ if TYPE_CHECKING:
     from electroncash.plugins import Plugins
     from electroncash.simple_config import SimpleConfig
 
+    from . import ElectrumGui
+
 
 MSG_ENTER_PASSWORD = _("Choose a password to encrypt your wallet keys.") + '\n'\
                      + _("Leave this field empty if you want to disable encryption.")
@@ -125,12 +127,20 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
 
     accept_signal = pyqtSignal()
 
-    def __init__(self, config: SimpleConfig, app: QtWidgets.QApplication, plugins: Plugins):
+    def __init__(
+        self,
+        config: SimpleConfig,
+        app: QtWidgets.QApplication,
+        plugins: Plugins,
+        *,
+        gui_object: ElectrumGui
+    ):
         BaseWizard.__init__(self, config)
         QtWidgets.QDialog.__init__(self, None)
         self.setWindowTitle(f'{PROJECT_NAME}  -  ' + _('Install Wizard'))
         self.app = app
         self.config = config
+        self.gui_thread = gui_object.gui_thread
         # Set for base base class
         self.plugins = plugins
         self.setMinimumSize(600, 400)

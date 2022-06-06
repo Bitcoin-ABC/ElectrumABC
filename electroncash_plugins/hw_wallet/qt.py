@@ -28,7 +28,7 @@ from __future__ import annotations
 
 from functools import partial
 import threading
-from typing import TYPE_CHECKING, Union, Optional, Callable, Any
+from typing import TYPE_CHECKING, Union, Optional
 
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtGui import QIcon
@@ -314,10 +314,9 @@ class QtPluginBase(object):
         return device_id
 
     def show_settings_dialog(self, window: ElectrumWindow, keystore: Hardware_KeyStore):
-        try:
+        def connect():
             device_id = self.choose_device(window, keystore)
-        except:
-            window.on_error(sys.exc_info())
+        keystore.thread.add(connect)
 
     def create_handler(
         self, window:  Union[ElectrumWindow, InstallWizard]

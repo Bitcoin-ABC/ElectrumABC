@@ -42,6 +42,7 @@ CHARACTER_RECOVERY = (
     "Press ENTER or the Seed Entered button once the last word in your "
     "seed is auto-completed.")
 
+
 class CharacterButton(QtWidgets.QPushButton):
     def __init__(self, text=None):
         QtWidgets.QPushButton.__init__(self, text)
@@ -206,9 +207,15 @@ class QtPlugin(QtPluginBase):
                 menu.addAction(_("Show on {}").format(device_name), show_address)
 
     def show_settings_dialog(self, window, keystore):
-        device_id = self.choose_device(window, keystore)
-        if device_id:
-            SettingsDialog(window, self, keystore, device_id).exec_()
+        def connect():
+            device_id = self.choose_device(window, keystore)
+            return device_id
+
+        def show_dialog(device_id):
+            if device_id:
+                SettingsDialog(window, self, keystore, device_id).exec_()
+
+        keystore.thread.add(connect, on_success=show_dialog)
 
     def request_trezor_init_settings(self, wizard, method, device):
         vbox = QtWidgets.QVBoxLayout()

@@ -35,6 +35,7 @@ from electroncash.util import finalization_print_error
 from electroncash.address import OpCodes, Script
 
 if TYPE_CHECKING:
+    import threading
     from electroncash.base_wizard import BaseWizard
     from electroncash.keystore import Hardware_KeyStore
     from electroncash.wallet import Abstract_Wallet
@@ -211,6 +212,11 @@ class HardwareHandlerBase:
         if self.win is not None:
             if hasattr(self.win, 'wallet'):
                 return self.win.wallet
+
+    def get_gui_thread(self) -> Optional[threading.Thread]:
+        if self.win is not None:
+            if hasattr(self.win, 'gui_thread'):
+                return self.win.gui_thread
 
     def update_status(self, paired: bool) -> None:
         pass
