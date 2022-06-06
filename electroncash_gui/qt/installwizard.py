@@ -90,19 +90,20 @@ class CosignWidget(QtWidgets.QWidget):
 def wizard_dialog(func):
     def func_wrapper(*args, **kwargs):
         run_next = kwargs['run_next']
-        wizard = args[0]
+        wizard: InstallWizard = args[0]
         wizard.back_button.setText(_('Back') if wizard.can_go_back() else _('Cancel'))
         try:
             out = func(*args, **kwargs)
+            if type(out) is not tuple:
+                out = (out, )
+            run_next(*out)
         except GoBack:
-            wizard.go_back() if wizard.can_go_back() else wizard.close()
-            return
-        except UserCancelled:
-            return
-
-        if type(out) is not tuple:
-            out = (out,)
-        run_next(*out)
+            if wizard.can_go_back():
+                wizard.go_back()
+                return
+            else:
+                wizard.close()
+                raise
     return func_wrapper
 
 
