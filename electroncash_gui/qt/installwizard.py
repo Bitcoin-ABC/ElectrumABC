@@ -301,6 +301,8 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
                             _('If you use a passphrase, make sure it is correct.'))
                         self.reset_stack()
                         return self.select_storage(path, get_wallet_from_daemon)
+                    except (UserCancelled, GoBack):
+                        raise
                     except BaseException as e:
                         traceback.print_exc(file=sys.stdout)
                         QtWidgets.QMessageBox.information(None, _('Error'), str(e))
