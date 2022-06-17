@@ -44,7 +44,7 @@ from collections import defaultdict, namedtuple
 from enum import Enum, auto
 from typing import ItemsView, List, Optional, Set, Tuple, Union, ValuesView
 
-from .constants import DUST_THRESHOLD
+from .constants import DUST_THRESHOLD, XEC
 from .i18n import ngettext
 from .util import (NotEnoughFunds, ExcessiveFee, PrintError,
                    UserCancelled, InvalidPassword, multisig_type, profiler,
@@ -1503,7 +1503,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         return h2
 
     def export_history(self, domain=None, from_timestamp=None, to_timestamp=None, fx=None,
-                       show_addresses=False, decimal_point=8,
+                       show_addresses=False, decimal_point: int = XEC.decimals,
                        *, fee_calc_timeout=10.0, download_inputs=False,
                        progress_callback=None):
         ''' Export history. Used by RPC & GUI.
