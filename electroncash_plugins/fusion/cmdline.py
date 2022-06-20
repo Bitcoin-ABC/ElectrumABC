@@ -123,3 +123,12 @@ class Plugin(FusionPlugin):
 
                 network.tor_controller.status_changed.append(on_status)
                 network.tor_controller.set_enabled(True)
+
+    @daemon_command
+    def fusion_status(self, daemon: Daemon, config: SimpleConfig):
+        """Print a table showing the status for all fusions."""
+        print("Wallet                    Status          Status Extra")
+        for fusion in reversed(self.get_all_fusions()):
+            wname = fusion.target_wallet.diagnostic_name()
+            status, status_ext = fusion.status
+            print(f"{wname:<25.25} {status:<15.15} {status_ext}")
