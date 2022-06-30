@@ -38,7 +38,6 @@ from PyQt5.QtGui import QColor, QFont
 
 from electroncash.address import Address
 from electroncash.bitcoin import COINBASE_MATURITY
-from electroncash.constants import PROOF_DUST_THRESHOLD
 from electroncash.i18n import _
 from electroncash.plugins import run_hook
 
@@ -559,12 +558,6 @@ class UTXOList(MyTreeWidget):
         """Open a dialog to generate an Avalanche proof using the coins as
         stakes.
         """
-        if any(u["value"] < PROOF_DUST_THRESHOLD for u in utxos):
-            warning_dialog = StakeDustThresholdMessageBox(self)
-            warning_dialog.exec_()
-            if warning_dialog.has_cancelled():
-                return
-
         dialog = AvaProofDialog(
             utxos,
             wallet=self.wallet,
@@ -577,28 +570,3 @@ class UTXOList(MyTreeWidget):
         # storage.
         self.update()
         self.main_window.update_fee()
-
-
-class StakeDustThresholdMessageBox(QtWidgets.QMessageBox):
-    """QMessageBox question dialog with custom buttons."""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setIcon(QtWidgets.QMessageBox.Warning)
-        self.setWindowTitle(_("Coins below the stake dust threshold"))
-        self.setText(
-            _(
-                "The value of one or more coins is below the 1,000,000 XEC stake "
-                "minimum threshold. The generated proof will be invalid."
-            )
-        )
-
-        self.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
-        ok_button = self.button(QtWidgets.QMessageBox.Ok)
-        ok_button.setText(_("Continue, I'm just testing"))
-
-        self.cancel_button = self.button(QtWidgets.QMessageBox.Cancel)
-        self.setEscapeButton(self.cancel_button)
-
-    def has_cancelled(self) -> bool:
-        return self.clickedButton() == self.cancel_button

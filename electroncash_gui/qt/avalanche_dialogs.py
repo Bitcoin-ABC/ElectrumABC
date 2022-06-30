@@ -424,6 +424,25 @@ class AvaProofDialog(QtWidgets.QDialog):
         self.ok_button.clicked.connect(self.accept)
         self.dismiss_button.clicked.connect(self.reject)
 
+        self._do_execute: bool = self.check_utxos(utxos)
+
+    def check_utxos(self, utxos: List[dict]) -> bool:
+        """Check utxos are usable for avalanche proofs.
+        If they aren't, and the user has not acknowledged that he want to build the
+        proof anyway, return False.
+        """
+        if any(u["value"] < PROOF_DUST_THRESHOLD for u in utxos):
+            warning_dialog = StakeDustThresholdMessageBox(self)
+            warning_dialog.exec_()
+            if warning_dialog.has_cancelled():
+                return False
+        return True
+
+    def exec_(self) -> int:
+        if self._do_execute:
+            return super().exec_()
+        return QtWidgets.QDialog.Rejected
+
 
 class AvaDelegationWidget(CachedWalletPasswordWidget):
     def __init__(
@@ -666,3 +685,28 @@ class AvaDelegationDialog(QtWidgets.QDialog):
 
     def set_master(self, master_wif: str):
         self.dg_widget.set_master(master_wif)
+
+
+class StakeDustThresholdMessageBox(QtWidgets.QMessageBox):
+    """QMessageBox question dialog with custom buttons."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setIcon(QtWidgets.QMessageBox.Warning)
+        self.setWindowTitle(_("Coins below the stake dust threshold"))
+        self.setText(
+            _(
+                "The value of one or more coins is below the 1,000,000 XEC stake "
+                "minimum threshold. The generated proof will be invalid."
+            )
+        )
+
+        self.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
+        ok_button = self.button(QtWidgets.QMessageBox.Ok)
+        ok_button.setText(_("Continue, I'm just testing"))
+
+        self.cancel_button = self.button(QtWidgets.QMessageBox.Cancel)
+        self.setEscapeButton(self.cancel_button)
+
+    def has_cancelled(self) -> bool:
+        return self.clickedButton() == self.cancel_button
