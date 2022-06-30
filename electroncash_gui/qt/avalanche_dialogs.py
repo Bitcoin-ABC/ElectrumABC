@@ -15,7 +15,7 @@ from electroncash.avalanche.primitives import Key, PublicKey
 from electroncash.avalanche.proof import LimitedProofId, Proof, ProofBuilder
 from electroncash.avalanche.serialize import DeserializationError
 from electroncash.bitcoin import is_private_key
-from electroncash.constants import PROOF_DUST_THRESHOLD
+from electroncash.constants import PROOF_DUST_THRESHOLD, STAKE_UTXO_CONFIRMATIONS
 from electroncash.i18n import _
 from electroncash.uint256 import UInt256
 
@@ -214,6 +214,7 @@ class AvaProofWidget(CachedWalletPasswordWidget):
             0, QtWidgets.QHeaderView.Stretch
         )
         layout.addWidget(self.utxos_wigdet)
+        tip = wallet.get_local_height()
         for i, utxo in enumerate(utxos):
             txid_item = QtWidgets.QTableWidgetItem(utxo["prevout_hash"])
             self.utxos_wigdet.setItem(i, 0, txid_item)
@@ -233,6 +234,7 @@ class AvaProofWidget(CachedWalletPasswordWidget):
             self.utxos_wigdet.setItem(i, 2, amount_item)
 
             height_item = QtWidgets.QTableWidgetItem(str(utxo["height"]))
+            utxo_validity_height = utxo["height"] + STAKE_UTXO_CONFIRMATIONS
             if utxo["height"] <= 0:
                 # TODO: make the height cell editable, for users to fill the block
                 #       height manually.
@@ -242,6 +244,16 @@ class AvaProofWidget(CachedWalletPasswordWidget):
                         "Unconfirmed coins will not be included because the height of the"
                         "block for each coin is required to generate the proof."
                     )
+                )
+            elif utxo_validity_height > tip:
+                height_item.setForeground(QtGui.QColor("orange"))
+                height_item.setToolTip(
+                    _(
+                        f"UTXOs with less than {STAKE_UTXO_CONFIRMATIONS} "
+                        "confirmations cannot be used as stake proofs."
+                    )
+                    + f"\nCurrent known block height is {tip}.\nYour proof will be "
+                    f"valid after block {utxo_validity_height}."
                 )
             self.utxos_wigdet.setItem(i, 3, height_item)
 

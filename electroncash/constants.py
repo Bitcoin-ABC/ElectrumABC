@@ -43,7 +43,7 @@ class Unit:
         return self.ticker
 
     def unit_to_satoshis(self, amount: Decimal) -> int:
-        return int((amount * 10 ** self.decimals).quantize(Decimal("1")))
+        return int((amount * 10**self.decimals).quantize(Decimal("1")))
 
 
 SAT = Unit("sats", 0)
@@ -80,3 +80,6 @@ The unit is satoshis.
 
 PROOF_DUST_THRESHOLD: int = XEC.unit_to_satoshis(Decimal("1_000_000.00"))
 """Lowest amount in satoshis that can be used as stake in a proof."""
+
+STAKE_UTXO_CONFIRMATIONS: int = 2016
+"""Minimum number of confirmations for a utxo to be used as a stake in a proof."""
