@@ -96,14 +96,16 @@ class Plugin(FusionPlugin):
                     continue
             wallets_to_fuse.append(WalletToFuse(name, wallet, password))
 
+        ret = ""
         for w in wallets_to_fuse:
-            print(f"adding wallet {w.name} to Cash Fusion")
+            ret += f"adding wallet {w.name} to Cash Fusion\n"
             super().add_wallet(w.wallet, w.password)
             super().enable_autofusing(w.wallet, w.password)
 
         if self.tor_port_good is None:
-            print("Enabling tor for Cash Fusion")
+            ret += "Enabling tor for Cash Fusion\n"
             self._enable_tor(daemon)
+        return ret
 
     def _enable_tor(self, daemon: Daemon):
         if self.active and self.tor_port_good is None:
@@ -119,7 +121,10 @@ class Plugin(FusionPlugin):
                         # remove the callback immediately
                         network.tor_controller.status_changed.remove(on_status)
                     if controller.status != controller.Status.STARTED:
-                        print("There was an error starting the Tor client")
+                        # OSError can happen when printing from a daemon command
+                        # after the terminal in which the deamon was started was closed.
+                        with suppress(OSError):
+                            print("There was an error starting the Tor client")
 
                 network.tor_controller.status_changed.append(on_status)
                 network.tor_controller.set_enabled(True)
@@ -127,8 +132,9 @@ class Plugin(FusionPlugin):
     @daemon_command
     def fusion_status(self, daemon: Daemon, config: SimpleConfig):
         """Print a table showing the status for all fusions."""
-        print("Wallet                    Status          Status Extra")
+        ret = "Wallet                    Status          Status Extra\n"
         for fusion in reversed(self.get_all_fusions()):
             wname = fusion.target_wallet.diagnostic_name()
             status, status_ext = fusion.status
-            print(f"{wname:<25.25} {status:<15.15} {status_ext}")
+            ret += f"{wname:<25.25} {status:<15.15} {status_ext}\n"
+        return ret
