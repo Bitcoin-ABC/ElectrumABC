@@ -639,4 +639,4 @@ class AddressList(MyTreeWidget):
     def create_invoice(self, address: Address):
         d = InvoiceDialog(self)
         d.set_address(address)
-        d.exec_()
+        d.show()

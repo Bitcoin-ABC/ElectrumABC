@@ -3553,12 +3553,12 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     def do_create_invoice(self):
         d = InvoiceDialog(self)
         d.set_address(self.receive_address)
-        d.exec_()
+        d.show()
 
     def do_load_edit_invoice(self):
         d = InvoiceDialog(self)
         d.open_file_and_load_invoice()
-        d.exec_()
+        d.show()
 
     def do_load_pay_invoice(self):
         filename, _selected_filter = QtWidgets.QFileDialog.getOpenFileName(
