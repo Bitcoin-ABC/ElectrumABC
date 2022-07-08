@@ -94,9 +94,18 @@ class InvoiceDialog(QtWidgets.QDialog):
         self.exchange_rate_widget.set_currency(currency)
 
     def _on_save_clicked(self):
+        default_filename = str(self.amount_currency_edit.get_amount())
+        default_filename += self.amount_currency_edit.get_currency()
+        ecashaddr = self.get_payment_address()
+        if ecashaddr is not None:
+            # checksum
+            default_filename += "-" + ecashaddr.to_cashaddr()[-8:]
+        default_filename += ".json"
+
         filename, _selected_filter = QtWidgets.QFileDialog.getSaveFileName(
             self,
             _("Save invoice to file"),
+            default_filename,
             filter="JSON file (*.json);;All files (*)",
         )
 
@@ -109,6 +118,8 @@ class InvoiceDialog(QtWidgets.QDialog):
 
         with open(filename, "w") as f:
             json.dump(invoice.to_dict(), f, indent=4)
+            # hide dialog after saving
+            self.accept()
 
     def get_payment_address(self) -> Optional[Address]:
         address_string = self.address_edit.text().strip()
