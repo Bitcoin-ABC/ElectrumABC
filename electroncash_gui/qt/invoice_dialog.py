@@ -27,7 +27,7 @@ from __future__ import annotations
 import json
 from decimal import Decimal
 from http.client import InvalidURL
-from typing import List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 from urllib.error import URLError
 
 from PyQt5 import QtCore, QtWidgets
@@ -43,9 +43,14 @@ from electroncash.invoice import (
     MultiCurrencyExchangeRateApi,
 )
 
+if TYPE_CHECKING:
+    from electroncash.exchange_rate import FxThread
+
 
 class InvoiceDialog(QtWidgets.QDialog):
-    def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
+    def __init__(
+        self, parent: Optional[QtWidgets.QWidget] = None, fx: Optional[FxThread] = None
+    ):
         super().__init__(parent)
         self.setMinimumWidth(650)
         self.setMinimumHeight(520)
@@ -64,7 +69,7 @@ class InvoiceDialog(QtWidgets.QDialog):
         layout.addWidget(self.label_edit)
         layout.addSpacing(10)
 
-        self.amount_currency_edit = AmountCurrencyEdit()
+        self.amount_currency_edit = AmountCurrencyEdit(fx=fx)
         layout.addWidget(self.amount_currency_edit)
         layout.addSpacing(10)
 
@@ -187,8 +192,13 @@ class InvoiceDialog(QtWidgets.QDialog):
 class AmountCurrencyEdit(QtWidgets.QWidget):
     currencyChanged = QtCore.pyqtSignal(str)
 
-    def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
+    def __init__(
+        self, parent: Optional[QtWidgets.QWidget] = None, fx: Optional[FxThread] = None
+    ):
         super().__init__(parent)
+
+        self.fx = fx
+
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -206,9 +216,14 @@ class AmountCurrencyEdit(QtWidgets.QWidget):
         self.currency_edit.setCurrentText("XEC")
         self.currency_edit.setEditable(True)
         amount_layout.addWidget(self.currency_edit)
+
+        self.fiat_amount_label = QtWidgets.QLabel()
+        amount_layout.addWidget(self.fiat_amount_label)
         layout.addLayout(amount_layout)
 
+        self.amount_edit.valueChanged.connect(self._on_amount_changed)
         self.currency_edit.currentTextChanged.connect(self.currencyChanged.emit)
+        self.currencyChanged.connect(self._on_currency_changed)
 
     def get_currency(self) -> str:
         return self.currency_edit.currentText()
@@ -221,6 +236,20 @@ class AmountCurrencyEdit(QtWidgets.QWidget):
 
     def set_amount(self, amount: Decimal):
         return self.amount_edit.setValue(float(amount))
+
+    def _on_currency_changed(self, cur: str):
+        self.fiat_amount_label.setVisible(cur.lower() == "xec" and self.fx is not None)
+        self._on_amount_changed(self.amount_edit.value())
+
+    def _on_amount_changed(self, value: float):
+        if self.fx is None or self.get_currency().lower() != "xec":
+            return
+
+        fiat_cur = self.fx.get_currency()
+        fiat_amount = self.fx.ccy_amount_str(
+            Decimal(value) * self.fx.exchange_rate(), False
+        )
+        self.fiat_amount_label.setText(f"{fiat_amount} {fiat_cur}")
 
 
 class ExchangeRateWidget(QtWidgets.QWidget):

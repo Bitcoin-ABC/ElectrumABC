@@ -3551,12 +3551,12 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.show_transaction(tx, tx_desc=tx_desc)
 
     def do_create_invoice(self):
-        d = InvoiceDialog(self)
+        d = InvoiceDialog(self, self.fx)
         d.set_address(self.receive_address)
         d.show()
 
     def do_load_edit_invoice(self):
-        d = InvoiceDialog(self)
+        d = InvoiceDialog(self, self.fx)
         d.open_file_and_load_invoice()
         d.show()
 

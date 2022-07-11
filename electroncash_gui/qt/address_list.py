@@ -637,6 +637,6 @@ class AddressList(MyTreeWidget):
         d.exec_()
 
     def create_invoice(self, address: Address):
-        d = InvoiceDialog(self)
+        d = InvoiceDialog(self, self.parent.fx)
         d.set_address(address)
         d.show()
