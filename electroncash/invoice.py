@@ -46,6 +46,8 @@ class Invoice:
         label: str = "",
         currency: str = "XEC",
         exchange_rate: Optional[Union[FixedExchangeRate, ExchangeRateApi]] = None,
+        payee_address: str = "",
+        payer_address: str = "",
     ):
         self.address = address
         self.amount = amount
@@ -55,6 +57,8 @@ class Invoice:
         if currency.lower() != "xec" and exchange_rate is None:
             raise InvoiceDataError("No exchange rate specified for non-XEC amount.")
         self.exchange_rate = exchange_rate
+        self.payee_address = payee_address
+        self.payer_address = payer_address
 
     def to_dict(self) -> dict:
         out = {
@@ -64,6 +68,8 @@ class Invoice:
                 "label": self.label,
                 "amount": str(self.amount),
                 "currency": self.currency,
+                "payee": self.payee_address,
+                "payer": self.payer_address,
             }
         }
 
@@ -116,6 +122,8 @@ class Invoice:
             label=invoice.get("label", ""),
             currency=currency,
             exchange_rate=rate,
+            payee_address=invoice.get("payee", ""),
+            payer_address=invoice.get("payer", ""),
         )
 
     @classmethod

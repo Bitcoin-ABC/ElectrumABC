@@ -53,11 +53,22 @@ class InvoiceDialog(QtWidgets.QDialog):
     ):
         super().__init__(parent)
         self.setMinimumWidth(650)
-        self.setMinimumHeight(520)
+        self.setMinimumHeight(750)
         self.setWindowTitle(_("Create or modify an invoice"))
 
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
+
+        addresses_sublayout = QtWidgets.QHBoxLayout()
+
+        self.payee_address_edit = PostalAddressWidget("Company/payee address")
+        addresses_sublayout.addWidget(self.payee_address_edit)
+
+        self.payer_address_edit = PostalAddressWidget("Customer/payer address")
+        addresses_sublayout.addWidget(self.payer_address_edit)
+
+        layout.addLayout(addresses_sublayout)
+        layout.addSpacing(10)
 
         layout.addWidget(QtWidgets.QLabel(_("Payment address")))
         self.address_edit = QtWidgets.QLineEdit()
@@ -110,8 +121,9 @@ class InvoiceDialog(QtWidgets.QDialog):
         self.exchange_rate_widget.set_currency(currency)
 
     def _on_save_clicked(self):
-        default_filename = self.id_edit.text().strip().replace(" ", "_")
-        default_filename += "-" + str(self.amount_currency_edit.get_amount())
+        invoice_id = self.id_edit.text().strip().replace(" ", "_")
+        default_filename = (invoice_id + "-") if invoice_id else ""
+        default_filename += str(self.amount_currency_edit.get_amount())
         default_filename += self.amount_currency_edit.get_currency()
         ecashaddr = self.get_payment_address()
         if ecashaddr is not None:
@@ -170,6 +182,8 @@ class InvoiceDialog(QtWidgets.QDialog):
             label=self.label_edit.text(),
             currency=currency,
             exchange_rate=rate,
+            payee_address=self.payee_address_edit.get_text(),
+            payer_address=self.payer_address_edit.get_text(),
         )
 
     def open_file_and_load_invoice(self):
@@ -198,6 +212,8 @@ class InvoiceDialog(QtWidgets.QDialog):
             self.exchange_rate_widget.set_rate(invoice.exchange_rate)
         else:
             self.exchange_rate_widget.clear()
+        self.payee_address_edit.set_text(invoice.payee_address)
+        self.payer_address_edit.set_text(invoice.payer_address)
 
     def set_address(self, address: Address):
         self.address_edit.setText(address.to_ui_string())
@@ -429,6 +445,33 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
     def clear(self):
         self.set_currency("USD")
         self.request_url_edit.setCurrentIndex(0)
+
+
+class PostalAddressWidget(QtWidgets.QWidget):
+    """A simple widget for entering the company address or the customer address."""
+
+    def __init__(
+        self, label="Customer address", parent: Optional[QtWidgets.QWidget] = None
+    ):
+        super().__init__(parent)
+        self.setFixedHeight(150)
+
+        layout = QtWidgets.QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
+
+        layout.addWidget(QtWidgets.QLabel(label))
+
+        self.address_text_edit = QtWidgets.QTextEdit()
+        self.address_text_edit.setAcceptRichText(False)
+        self.address_text_edit.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
+        layout.addWidget(self.address_text_edit)
+
+    def get_text(self) -> str:
+        return self.address_text_edit.toPlainText()
+
+    def set_text(self, text: str):
+        return self.address_text_edit.setPlainText(text)
 
 
 def load_invoice_from_file_and_show_error_message(

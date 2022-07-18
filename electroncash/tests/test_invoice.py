@@ -12,6 +12,8 @@ from ..invoice import (
 
 class TestInvoice(unittest.TestCase):
     def test_xec_amount(self):
+        payee = "My company\n123 Road Street\nTownsville NH 12345"
+        payer = "Herr Doktor Überweisung\nLindenstraße 42\nD-77977 Rust"
         invoice = Invoice.from_dict(
             {
                 "invoice": {
@@ -20,6 +22,8 @@ class TestInvoice(unittest.TestCase):
                     "currency": "XEC",
                     "amount": "1337.42",
                     "label": "spam",
+                    "payee": payee,
+                    "payer": payer,
                 }
             }
         )
@@ -33,6 +37,8 @@ class TestInvoice(unittest.TestCase):
         )
         self.assertEqual(invoice.get_xec_amount(), Decimal("1337.42"))
         self.assertIsNone(invoice.exchange_rate)
+        self.assertEqual(invoice.payee_address, payee)
+        self.assertEqual(invoice.payer_address, payer)
 
     def test_fixed_exchange_rate(self):
         invoice = Invoice.from_dict(
