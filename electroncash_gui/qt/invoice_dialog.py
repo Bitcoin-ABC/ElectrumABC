@@ -64,6 +64,17 @@ class InvoiceDialog(QtWidgets.QDialog):
         layout.addWidget(self.address_edit)
         layout.addSpacing(10)
 
+        layout.addWidget(QtWidgets.QLabel(_("Invoice ID")))
+        self.id_edit = QtWidgets.QLineEdit()
+        self.id_edit.setToolTip(
+            _(
+                "Invoice identifier or invoice number. This should be a unique identifier, "
+                "preferably a string without white-spaces or exotic unicode characters."
+            )
+        )
+        layout.addWidget(self.id_edit, alignment=QtCore.Qt.AlignLeft)
+        layout.addSpacing(10)
+
         layout.addWidget(QtWidgets.QLabel(_("Label")))
         self.label_edit = QtWidgets.QLineEdit()
         layout.addWidget(self.label_edit)
@@ -99,7 +110,8 @@ class InvoiceDialog(QtWidgets.QDialog):
         self.exchange_rate_widget.set_currency(currency)
 
     def _on_save_clicked(self):
-        default_filename = str(self.amount_currency_edit.get_amount())
+        default_filename = self.id_edit.text().strip().replace(" ", "_")
+        default_filename += "-" + str(self.amount_currency_edit.get_amount())
         default_filename += self.amount_currency_edit.get_currency()
         ecashaddr = self.get_payment_address()
         if ecashaddr is not None:
@@ -154,6 +166,7 @@ class InvoiceDialog(QtWidgets.QDialog):
         return Invoice(
             address=payment_address,
             amount=self.amount_currency_edit.get_amount(),
+            id_=self.id_edit.text().strip(),
             label=self.label_edit.text(),
             currency=currency,
             exchange_rate=rate,
@@ -177,6 +190,7 @@ class InvoiceDialog(QtWidgets.QDialog):
             return
 
         self.address_edit.setText(invoice.address.to_ui_string())
+        self.id_edit.setText(invoice.id)
         self.label_edit.setText(invoice.label)
         self.amount_currency_edit.set_amount(invoice.amount)
         self.amount_currency_edit.set_currency(invoice.currency)

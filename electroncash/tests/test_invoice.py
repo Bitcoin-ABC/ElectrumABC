@@ -16,6 +16,7 @@ class TestInvoice(unittest.TestCase):
             {
                 "invoice": {
                     "address": "ecash:qzdf44zy632zk4etztvmaqav0y2cest4evtph9jyf4",
+                    "id": "foo#123",
                     "currency": "XEC",
                     "amount": "1337.42",
                     "label": "spam",
@@ -23,6 +24,7 @@ class TestInvoice(unittest.TestCase):
             }
         )
         self.assertEqual(invoice.label, "spam")
+        self.assertEqual(invoice.id, "foo#123")
         self.assertEqual(invoice.currency, "XEC")
         self.assertEqual(invoice.amount, Decimal("1337.42"))
         self.assertEqual(
@@ -38,6 +40,7 @@ class TestInvoice(unittest.TestCase):
                 "invoice": {
                     "address": "ecash:qzdf44zy632zk4etztvmaqav0y2cest4evtph9jyf4",
                     "currency": "CHF",
+                    "id": "foo#123",
                     "amount": "42.1",
                     "label": "spam",
                     "exchangeRate": "0.5",
@@ -45,6 +48,7 @@ class TestInvoice(unittest.TestCase):
             }
         )
         self.assertEqual(invoice.label, "spam")
+        self.assertEqual(invoice.id, "foo#123")
         self.assertEqual(invoice.currency, "CHF")
         self.assertEqual(invoice.amount, Decimal("42.1"))
         self.assertEqual(
@@ -63,6 +67,7 @@ class TestInvoice(unittest.TestCase):
                     "address": "ecash:qzdf44zy632zk4etztvmaqav0y2cest4evtph9jyf4",
                     "currency": "NOK",
                     "amount": "42.1",
+                    "id": "foo#123",
                     "label": "spam",
                     "exchangeRateAPI": {
                         "url": "foo",
@@ -72,6 +77,7 @@ class TestInvoice(unittest.TestCase):
             }
         )
         self.assertEqual(invoice.label, "spam")
+        self.assertEqual(invoice.id, "foo#123")
         self.assertEqual(invoice.currency, "NOK")
         self.assertEqual(invoice.amount, Decimal("42.1"))
         self.assertEqual(

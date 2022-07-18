@@ -42,6 +42,7 @@ class Invoice:
         self,
         address: Address,
         amount: Decimal,
+        id_: str = "",
         label: str = "",
         currency: str = "XEC",
         exchange_rate: Optional[Union[FixedExchangeRate, ExchangeRateApi]] = None,
@@ -50,6 +51,7 @@ class Invoice:
         self.amount = amount
         self.currency = currency
         self.label = label
+        self.id = id_
         if currency.lower() != "xec" and exchange_rate is None:
             raise InvoiceDataError("No exchange rate specified for non-XEC amount.")
         self.exchange_rate = exchange_rate
@@ -58,6 +60,7 @@ class Invoice:
         out = {
             "invoice": {
                 "address": self.address.to_ui_string(),
+                "id": self.id,
                 "label": self.label,
                 "amount": str(self.amount),
                 "currency": self.currency,
@@ -109,6 +112,7 @@ class Invoice:
         return Invoice(
             address=address,
             amount=Decimal(invoice.get("amount", "0.")),
+            id_=invoice.get("id", ""),
             label=invoice.get("label", ""),
             currency=currency,
             exchange_rate=rate,
