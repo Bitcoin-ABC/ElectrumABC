@@ -2308,13 +2308,15 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                 conf = max(local_height - tx_height + 1, 0)
             else:
                 conf = 0
-            l.append((conf, v))
+            l.append((conf, v, txid))
+        tx_hashes = []
         vsum = 0
-        for conf, v in reversed(sorted(l)):
+        for conf, v, tx_hash in reversed(sorted(l)):
             vsum += v
+            tx_hashes.append(tx_hash)
             if vsum >= amount:
-                return True, conf
-        return False, None
+                return True, conf, tx_hashes
+        return False, None, []
 
     def has_payment_request(self, addr):
         ''' Returns True iff Address addr has any extant payment requests
@@ -2375,7 +2377,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             expiration = 0
         conf = None
         if amount:
-            paid, conf = self.get_payment_status(address, amount)
+            paid, conf, _ = self.get_payment_status(address, amount)
             if not paid:
                 status = PR_UNPAID
             elif conf == 0:
