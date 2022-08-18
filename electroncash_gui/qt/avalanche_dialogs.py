@@ -18,6 +18,7 @@ from electroncash.bitcoin import is_private_key
 from electroncash.constants import PROOF_DUST_THRESHOLD, STAKE_UTXO_CONFIRMATIONS
 from electroncash.i18n import _
 from electroncash.uint256 import UInt256
+from electroncash.util import format_satoshis
 
 from .password_dialog import PasswordDialog
 
@@ -227,8 +228,8 @@ class AvaProofWidget(CachedWalletPasswordWidget):
                 amount_item.setForeground(QtGui.QColor("red"))
                 amount_item.setToolTip(
                     _(
-                        "The minimum threshold for a coin in an avalanche proof is "
-                        "1,000,000 XEC."
+                        f"The minimum threshold for a coin in an avalanche proof is "
+                        f"{format_satoshis(PROOF_DUST_THRESHOLD)} XEC."
                     )
                 )
             self.utxos_wigdet.setItem(i, 2, amount_item)
@@ -708,8 +709,8 @@ class StakeDustThresholdMessageBox(QtWidgets.QMessageBox):
         self.setWindowTitle(_("Coins below the stake dust threshold"))
         self.setText(
             _(
-                "The value of one or more coins is below the 1,000,000 XEC stake "
-                "minimum threshold. The generated proof will be invalid."
+                f"The value of one or more coins is below the {format_satoshis(PROOF_DUST_THRESHOLD)} XEC stake "
+                f"minimum threshold. The generated proof will be invalid."
             )
         )
 
