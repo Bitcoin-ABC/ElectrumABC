@@ -298,20 +298,20 @@ class TestAvalancheProofFromHex(unittest.TestCase):
         self.assertEqual(proof.master_pub, PublicKey.from_hex(pubkey_hex))
         self.assertEqual(proof.limitedid, LimitedProofId.from_hex(expected_limited_id1))
         self.assertEqual(proof.proofid, ProofId.from_hex(expected_proofid1))
-        self.assertEqual(proof.stakes[0].stake.utxo.txid, utxos[0]["txid"])
-        self.assertEqual(proof.stakes[0].stake.utxo.n, utxos[0]["vout"])
-        self.assertEqual(proof.stakes[0].stake.amount, utxos[0]["amount"])
-        self.assertEqual(proof.stakes[0].stake.height, utxos[0]["height"])
-        self.assertFalse(proof.stakes[0].stake.is_coinbase)
+        self.assertEqual(proof.signed_stakes[0].stake.utxo.txid, utxos[0]["txid"])
+        self.assertEqual(proof.signed_stakes[0].stake.utxo.n, utxos[0]["vout"])
+        self.assertEqual(proof.signed_stakes[0].stake.amount, utxos[0]["amount"])
+        self.assertEqual(proof.signed_stakes[0].stake.height, utxos[0]["height"])
+        self.assertFalse(proof.signed_stakes[0].stake.is_coinbase)
         self.assertEqual(
-            proof.stakes[0].stake.pubkey,
+            proof.signed_stakes[0].stake.pubkey,
             PublicKey.from_hex(
                 "04d0de0aaeaefad02b8bdc8a01a1b8b11c696bd3d66a2c5f10780d95b7df42645cd852"
                 "28a6fb29940e858e7e55842ae2bd115d1ed7cc0e82d934e929c97648cb0a"
             ),
         )
         self.assertEqual(
-            proof.stakes[0].sig,
+            proof.signed_stakes[0].sig,
             base64.b64decode(
                 "vZdAyFoFp9VDw9MBJz15/3BUdYV54wzAXN/hrKM3St/lUQS0Cf/OSi8Z2KWYHV8MebI+2s"
                 "czUqsomKyoknAoJQ==".encode("ascii")

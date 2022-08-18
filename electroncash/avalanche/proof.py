@@ -152,7 +152,7 @@ class Proof(SerializableObject):
         """int64"""
         self.master_pub: PublicKey = master_pub
         """Master public key"""
-        self.stakes: List[SignedStake] = signed_stakes
+        self.signed_stakes: List[SignedStake] = signed_stakes
         """List of signed stakes sorted by their stake ID."""
         self.payout_script_pubkey: bytes = payout_script_pubkey
         self.signature: bytes = signature
@@ -169,7 +169,7 @@ class Proof(SerializableObject):
     def serialize(self) -> bytes:
         p = struct.pack("<Qq", self.sequence, self.expiration_time)
         p += self.master_pub.serialize()
-        p += serialize_sequence(self.stakes)
+        p += serialize_sequence(self.signed_stakes)
         p += serialize_blob(self.payout_script_pubkey)
         p += self.signature
         return p
