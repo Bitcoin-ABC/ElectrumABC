@@ -229,6 +229,52 @@ class TestAvalancheProofBuilder(unittest.TestCase):
             expected_proofid2,
         )
 
+    def test_adding_stakes_to_proof(self):
+        key = Key.from_wif("L4J6gEE4wL9ji2EQbzS5dPMTTsw8LRvcMst1Utij4e3X5ccUSdqW")
+        proofbuilder = ProofBuilder(
+            sequence=0,
+            expiration_time=1670827913,
+            master=key,
+            payout_script_pubkey=bytes.fromhex(
+                "76a9149a9ad444d4542b572b12d9be83ac79158cc175cb88ac"
+            ),
+        )
+        proofbuilder.add_utxo(
+            txid=UInt256.from_hex(
+                "37424bda9a405b59e7d4f61a4c154cea5ee34e445f3daa6033b64c70355f1e0b"
+            ),
+            vout=0,
+            amount=3291110545,
+            height=700000,
+            wif_privkey="KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM",
+            is_coinbase=False,
+        )
+        proof = proofbuilder.build()
+
+        self.assertEqual(
+            proof.to_hex(),
+            "000000000000000089cf96630000000021023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3010b1e5f35704cb63360aa3d5f444ee35eea4c154c1af6d4e7595b409ada4b423700000000915c2ac400000000c05c15002102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680b8d717142339f0baf0c8099bafd6491d42e73f7224cacf1daa20a2aeb7b4b3fa68a362bfed33bf20ec1c08452e6ad5536fec3e1198d839d64c2e0e6fe25afaa61976a9149a9ad444d4542b572b12d9be83ac79158cc175cb88acc768803afa6a4662bab4199535122b4a8c7fb9889f1fe77043d8ecd43ad04c5cf07e602e47b68deaac1bbdc7c170ad57c38aa47e5a5d23cac011c15ed31bbc54",
+        )
+
+        # create a new builder from this proof, add more stakes
+        proofbuilder_add_stakes = ProofBuilder.from_proof(proof, key)
+        proofbuilder_add_stakes.add_utxo(
+            txid=UInt256.from_hex(
+                "300cbba81ef40a6d269be1e931ccb58c074ace4a9b06cc0f2a2c9bf1e176ede4"
+            ),
+            vout=1,
+            amount=2866370216,
+            height=700001,
+            is_coinbase=False,
+            wif_privkey="KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM",
+        )
+        proof = proofbuilder_add_stakes.build()
+
+        self.assertEqual(
+            proof.to_hex(),
+            "000000000000000089cf96630000000021023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde302e4ed76e1f19b2c2a0fcc069b4ace4a078cb5cc31e9e19b266d0af41ea8bb0c3001000000a856d9aa00000000c25c15002102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce68089bf7f0f956b084160d505dcd8b375499ffad816d1c76c8b13ac92d1ef3c5c3ecb6ee6c094ef790fb93f6711955c48f2cf098750427808c9e2aab77ee1b8de110b1e5f35704cb63360aa3d5f444ee35eea4c154c1af6d4e7595b409ada4b423700000000915c2ac400000000c05c15002102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680b8d717142339f0baf0c8099bafd6491d42e73f7224cacf1daa20a2aeb7b4b3fa68a362bfed33bf20ec1c08452e6ad5536fec3e1198d839d64c2e0e6fe25afaa61976a9149a9ad444d4542b572b12d9be83ac79158cc175cb88acec2623216b901037fb780e3d2a06f982bbe36d87be7adc82e83ebfc1f3c4eff6262577cfa9f72d18570dc5cdf9bf96676700abdb3d8f4bc989c975870ab8cbb7",
+        )
+
 
 class TestAvalancheProofFromHex(unittest.TestCase):
     def test_proofid(self):

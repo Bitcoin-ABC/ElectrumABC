@@ -223,6 +223,24 @@ class ProofBuilder:
         Adding stakes through :meth:`add_utxo` takes care of the sorting.
         """
 
+    @classmethod
+    def from_proof(cls, proof: Proof, master: Key) -> ProofBuilder:
+        """Create a proof builder using the data from an existing proof.
+        This is useful for adding more stakes to it.
+
+        The provided master private key must match the proof's master public key,
+        because changing the key would invalidate previous signed stakes.
+        """
+        if master.get_pubkey() != proof.master_pub:
+            raise KeyError(
+                "The provided private key does not match the proof's master public key."
+            )
+        builder = cls(
+            proof.sequence, proof.expiration_time, master, proof.payout_script_pubkey
+        )
+        builder.signed_stakes = proof.signed_stakes
+        return builder
+
     def add_utxo(self, txid: UInt256, vout, amount, height, wif_privkey, is_coinbase):
         """
 
