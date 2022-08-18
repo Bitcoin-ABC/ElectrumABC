@@ -136,17 +136,6 @@ class SignedStake(SerializableObject):
         return SignedStake(stake, sig)
 
 
-class StakeSigner:
-    def __init__(self, stake, key):
-        self.stake: Stake = stake
-        self.key: Key = key
-
-    def sign(self, commitment: bytes) -> SignedStake:
-        return SignedStake(
-            self.stake, self.key.sign_schnorr(self.stake.get_hash(commitment))
-        )
-
-
 class Proof(SerializableObject):
     def __init__(
         self,
@@ -221,12 +210,16 @@ class ProofBuilder:
         self.expiration_time = expiration_time
         """int64"""
         self.master: Key = master
-        """Master public key"""
+        """Master private key"""
         self.master_pub = master.get_pubkey()
         self.payout_script_pubkey = payout_script_pubkey
 
-        self.stake_signers: List[StakeSigner] = []
-        """List of stake signers sorted by stake ID.
+        self.stake_commitment = sha256d(
+            struct.pack("<q", self.expiration_time) + self.master_pub.serialize()
+        )
+
+        self.signed_stakes: List[SignedStake] = []
+        """List of signed stakes sorted by stake ID.
         Adding stakes through :meth:`add_utxo` takes care of the sorting.
         """
 
@@ -235,45 +228,40 @@ class ProofBuilder:
 
         :param str txid: Transaction hash (hex str)
         :param int vout: Output index for this utxo in the transaction.
-        :param float amount: Amount in satoshis
+        :param int amount: Amount in satoshis
         :param int height: Block height containing this transaction
         :param str wif_privkey: Private key unlocking this UTXO (in WIF format)
         :param bool is_coinbase: Is the coin UTXO a coinbase UTXO
         :return:
         """
         _txin_type, deser_privkey, compressed = deserialize_privkey(wif_privkey)
-        privkey = Key(deser_privkey, compressed)
+        key = Key(deser_privkey, compressed)
 
         utxo = COutPoint(txid, vout)
-        stake = Stake(utxo, amount, height, privkey.get_pubkey(), is_coinbase)
+        stake = Stake(utxo, amount, height, key.get_pubkey(), is_coinbase)
+        sig = key.sign_schnorr(stake.get_hash(self.stake_commitment))
 
-        self.stake_signers.append(StakeSigner(stake, privkey))
+        self.signed_stakes.append(SignedStake(stake, sig))
 
         # Enforce a unique sorting for stakes in a proof. The sorting key is a UInt256.
         # See UInt256.compare for the specifics about sorting these objects.
-        self.stake_signers.sort(key=lambda ss: ss.stake.stake_id)
+        self.signed_stakes.sort(key=lambda ss: ss.stake.stake_id)
 
     def build(self) -> Proof:
         ltd_id = LimitedProofId.build(
             self.sequence,
             self.expiration_time,
-            [signer.stake for signer in self.stake_signers],
+            [ss.stake for ss in self.signed_stakes],
             self.payout_script_pubkey,
         )
 
         signature = self.master.sign_schnorr(ltd_id.serialize())
 
-        stake_commitment_data = (
-            struct.pack("<q", self.expiration_time) + self.master_pub.serialize()
-        )
-        stake_commitment = sha256d(stake_commitment_data)
-        signed_stakes = [signer.sign(stake_commitment) for signer in self.stake_signers]
-
         return Proof(
             self.sequence,
             self.expiration_time,
             self.master_pub,
-            signed_stakes,
+            self.signed_stakes,
             self.payout_script_pubkey,
             signature,
         )
