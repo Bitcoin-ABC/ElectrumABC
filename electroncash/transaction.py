@@ -29,6 +29,8 @@ import warnings
 import ecdsa
 import hashlib
 
+from typing import Tuple, Union
+
 # Note: The deserialization code originally comes from ABE.
 
 from .util import print_error, profiler
@@ -275,7 +277,11 @@ def parse_redeemScript(s):
                                               for p in pubkeys])
     return m, n, x_pubkeys, pubkeys, redeemScript
 
-def get_address_from_output_script(_bytes):
+
+def get_address_from_output_script(
+    _bytes: bytes
+) -> Tuple[int, Union[Address, PublicKey, ScriptOutput]]:
+    """Return the type of the output and the address"""
     scriptlen = len(_bytes)
 
     if scriptlen == 23 and _bytes.startswith(P2SH_prefix) and _bytes.endswith(P2SH_suffix):

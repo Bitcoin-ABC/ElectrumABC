@@ -1,6 +1,7 @@
 import base64
 import unittest
 
+from ..address import Address
 from ..avalanche.delegation import (
     Delegation,
     DelegationBuilder,
@@ -11,6 +12,7 @@ from ..avalanche.delegation import (
 from ..avalanche.primitives import Key, PublicKey
 from ..avalanche.proof import LimitedProofId, Proof, ProofBuilder, ProofId
 from ..avalanche.serialize import DeserializationError
+from ..transaction import get_address_from_output_script
 from ..uint256 import UInt256
 
 master = Key.from_wif("Kwr371tjA9u2rFSMZjTNun2PXXP3WPZu2afRHTcta6KxEUdm1vEw")
@@ -291,6 +293,35 @@ class TestAvalancheProofBuilder(unittest.TestCase):
             proof.to_hex(),
             "000000000000000089cf96630000000021023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde302e4ed76e1f19b2c2a0fcc069b4ace4a078cb5cc31e9e19b266d0af41ea8bb0c3001000000a856d9aa00000000c25c15002102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce68089bf7f0f956b084160d505dcd8b375499ffad816d1c76c8b13ac92d1ef3c5c3ecb6ee6c094ef790fb93f6711955c48f2cf098750427808c9e2aab77ee1b8de110b1e5f35704cb63360aa3d5f444ee35eea4c154c1af6d4e7595b409ada4b423700000000915c2ac400000000c05c15002102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680b8d717142339f0baf0c8099bafd6491d42e73f7224cacf1daa20a2aeb7b4b3fa68a362bfed33bf20ec1c08452e6ad5536fec3e1198d839d64c2e0e6fe25afaa61976a9149a9ad444d4542b572b12d9be83ac79158cc175cb88acec2623216b901037fb780e3d2a06f982bbe36d87be7adc82e83ebfc1f3c4eff6262577cfa9f72d18570dc5cdf9bf96676700abdb3d8f4bc989c975870ab8cbb7",
         )
+
+    def test_payout_address_script(self):
+        """Test that the proof builder generates the expected script for an address"""
+
+        # This script was generated using Bitcoin ABC's decodeavalancheproof RPC
+        # on a proof build with the buildavalancheproof RPC using
+        # ADDRESS_ECREG_UNSPENDABLE as the payout address
+        payout_script_pubkey = bytes.fromhex(
+            "76a914000000000000000000000000000000000000000088ac"
+        )
+        # Sanity check
+        _txout_type, addr = get_address_from_output_script(payout_script_pubkey)
+        self.assertEqual(
+            addr.to_ui_string(), "ecash:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqs7ratqfx"
+        )
+
+        pb = ProofBuilder(
+            sequence=0,
+            expiration_time=1670827913,
+            master=master2,
+            payout_script_pubkey=payout_script_pubkey,
+        )
+        proof = pb.build()
+
+        addr = Address.from_string(
+            "ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt",
+            support_arbitrary_prefix=True,
+        )
+        self.assertEqual(addr.to_script(), proof.payout_script_pubkey)
 
 
 class TestAvalancheProofFromHex(unittest.TestCase):
