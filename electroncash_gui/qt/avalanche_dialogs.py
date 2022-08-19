@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING, List, Optional
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -221,6 +222,9 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         )
         layout.addWidget(self.utxos_wigdet)
 
+        self.add_coins_button = QtWidgets.QPushButton("Add coins")
+        layout.addWidget(self.add_coins_button, alignment=QtCore.Qt.AlignLeft)
+
         self.generate_button = QtWidgets.QPushButton("Generate proof")
         layout.addWidget(self.generate_button)
         self.generate_button.clicked.connect(self._on_generate_clicked)
@@ -238,6 +242,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.calendar.dateTimeChanged.connect(self.on_datetime_changed)
         self.timestamp_widget.valueChanged.connect(self.on_timestamp_changed)
         self.master_key_edit.textChanged.connect(self.update_master_pubkey)
+        self.add_coins_button.clicked.connect(self.on_add_coins_clicked)
         self.generate_dg_button.clicked.connect(self.open_dg_dialog)
 
         # Init widgets
@@ -325,6 +330,21 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         was_blocked = self.blockSignals(True)
         self.calendar.setDateTime(QtCore.QDateTime.fromSecsSinceEpoch(timestamp))
         self.blockSignals(was_blocked)
+
+    def on_add_coins_clicked(self):
+        fileName, __ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            "Select the file containing the data for coins to be used as stakes",
+            filter="JSON (*.json);;All files (*)",
+        )
+
+        if not fileName:
+            return
+        with open(fileName, "r", encoding="utf-8") as f:
+            utxos = json.load(f)
+        if utxos is None:
+            return
+        self.add_utxos(utxos)
 
     def update_master_pubkey(self, master_wif: str):
         if is_private_key(master_wif):
