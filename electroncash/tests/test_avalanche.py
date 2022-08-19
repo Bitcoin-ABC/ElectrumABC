@@ -147,8 +147,25 @@ class TestAvalancheProofBuilder(unittest.TestCase):
         proof = proofbuilder.build()
         self.assertEqual(proof.to_hex(), expected_proof_hex)
 
+        self.assertEqual(proofbuilder.stake_commitment, proof.stake_commitment)
+
         self.assertEqual(proof.limitedid, expected_limited_proofid)
         self.assertEqual(proof.proofid, expected_proofid)
+
+        self.assertTrue(proof.verify_master_signature())
+        for ss in proof.signed_stakes:
+            self.assertTrue(ss.verify_signature(proof.stake_commitment))
+
+        proof.signature = 64 * b"\0"
+        self.assertFalse(proof.verify_master_signature())
+        for ss in proof.signed_stakes:
+            self.assertTrue(ss.verify_signature(proof.stake_commitment))
+
+        ss = proof.signed_stakes[0]
+        ss.sig = 64 * b"\0"
+        self.assertFalse(ss.verify_signature(proof.stake_commitment))
+        for ss in proof.signed_stakes[1:]:
+            self.assertTrue(ss.verify_signature(proof.stake_commitment))
 
     def test_1_stake(self):
         self._test(

@@ -135,6 +135,11 @@ class SignedStake(SerializableObject):
         sig = stream.read(64)
         return SignedStake(stake, sig)
 
+    def verify_signature(self, commitment: bytes):
+        return self.stake.pubkey.verify_schnorr(
+            self.sig, self.stake.get_hash(commitment)
+        )
+
 
 class Proof(SerializableObject):
     def __init__(
@@ -166,6 +171,10 @@ class Proof(SerializableObject):
         )
         self.proofid = self.limitedid.compute_proof_id(master_pub)
 
+        self.stake_commitment: bytes = sha256d(
+            struct.pack("<q", self.expiration_time) + self.master_pub.serialize()
+        )
+
     def serialize(self) -> bytes:
         p = struct.pack("<Qq", self.sequence, self.expiration_time)
         p += self.master_pub.serialize()
@@ -194,6 +203,11 @@ class Proof(SerializableObject):
             signed_stakes,
             payout_pubkey,
             signature,
+        )
+
+    def verify_master_signature(self) -> bool:
+        return self.master_pub.verify_schnorr(
+            self.signature, self.limitedid.serialize()
         )
 
 
