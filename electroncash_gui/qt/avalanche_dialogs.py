@@ -346,7 +346,6 @@ class AvaProofWidget(CachedWalletPasswordWidget):
         except AddressError as e:
             QtWidgets.QMessageBox.critical(self, "Invalid payout address", str(e))
             return
-        payout_script = payout_address.to_script()
 
         if self.wallet.has_password() and self.pwd is None:
             self.proof_display.setText(
@@ -358,7 +357,7 @@ class AvaProofWidget(CachedWalletPasswordWidget):
             sequence=self.sequence_sb.value(),
             expiration_time=self.calendar.dateTime().toSecsSinceEpoch(),
             master=master,
-            payout_script_pubkey=payout_script,
+            payout_address=payout_address,
         )
 
         self.excluded_utxos = []

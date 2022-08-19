@@ -40,8 +40,12 @@ from .serialize import (
     write_compact_size,
 )
 
+# We redefine private key and public key objects because the ones used in the rest
+# of the codebase are messy.
+
 
 class PublicKey(SerializableObject):
+    # fixme: merge with address.PublicKey or us a different name for one of the classes
     def __init__(self, keydata):
         self.keydata: bytes = keydata
 

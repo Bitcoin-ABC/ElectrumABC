@@ -32,10 +32,11 @@ from __future__ import annotations
 
 import struct
 from io import BytesIO
-from typing import List
+from typing import TYPE_CHECKING, List, Union
 
 from ..bitcoin import Hash as sha256d
 from ..bitcoin import deserialize_privkey
+from ..transaction import get_address_from_output_script
 from ..uint256 import UInt256
 from .primitives import COutPoint, Key, PublicKey
 from .serialize import (
@@ -46,6 +47,10 @@ from .serialize import (
     serialize_blob,
     serialize_sequence,
 )
+
+if TYPE_CHECKING:
+    from .. import address
+    from ..address import Address, ScriptOutput
 
 
 class Stake(SerializableObject):
@@ -210,6 +215,10 @@ class Proof(SerializableObject):
             self.signature, self.limitedid.serialize()
         )
 
+    def get_payout_address(self) -> Union[Address, ScriptOutput, address.PublicKey]:
+        _txout_type, addr = get_address_from_output_script(self.payout_script_pubkey)
+        return addr
+
 
 class ProofBuilder:
     def __init__(
@@ -217,7 +226,7 @@ class ProofBuilder:
         sequence: int,
         expiration_time: int,
         master: Key,
-        payout_script_pubkey: bytes = b"",
+        payout_address: Union[Address, ScriptOutput, address.PublicKey],
     ):
         self.sequence = sequence
         """uint64"""
@@ -226,7 +235,8 @@ class ProofBuilder:
         self.master: Key = master
         """Master private key"""
         self.master_pub = master.get_pubkey()
-        self.payout_script_pubkey = payout_script_pubkey
+        self.payout_address = payout_address
+        self.payout_script_pubkey = payout_address.to_script()
 
         self.stake_commitment = sha256d(
             struct.pack("<q", self.expiration_time) + self.master_pub.serialize()
@@ -250,7 +260,7 @@ class ProofBuilder:
                 "The provided private key does not match the proof's master public key."
             )
         builder = cls(
-            proof.sequence, proof.expiration_time, master, proof.payout_script_pubkey
+            proof.sequence, proof.expiration_time, master, proof.get_payout_address()
         )
         builder.signed_stakes = proof.signed_stakes
         return builder

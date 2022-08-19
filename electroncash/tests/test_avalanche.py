@@ -1,7 +1,8 @@
 import base64
 import unittest
 
-from ..address import Address
+from .. import address
+from ..address import Address, ScriptOutput
 from ..avalanche.delegation import (
     Delegation,
     DelegationBuilder,
@@ -53,8 +54,8 @@ sequence2 = 5502932407561118921
 expiration2 = 5658701220890886376
 master2 = Key.from_wif("L4J6gEE4wL9ji2EQbzS5dPMTTsw8LRvcMst1Utij4e3X5ccUSdqW")
 # master_pub2 = "023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3"
-payout_script_pubkey_hex = (
-    "21038439233261789dd340bdc1450172d9c671b72ee8c0b2736ed2a3a250760897fdac"
+payout_pubkey = address.PublicKey(
+    bytes.fromhex("038439233261789dd340bdc1450172d9c671b72ee8c0b2736ed2a3a250760897fd")
 )
 utxos2 = [
     {
@@ -126,7 +127,7 @@ class TestAvalancheProofBuilder(unittest.TestCase):
         sequence,
         expiration,
         utxos,
-        payout_script_pubkey,
+        payout_address,
         expected_proof_hex,
         expected_limited_proofid,
         expected_proofid,
@@ -135,7 +136,7 @@ class TestAvalancheProofBuilder(unittest.TestCase):
             sequence=sequence,
             expiration_time=expiration,
             master=master_key,
-            payout_script_pubkey=payout_script_pubkey,
+            payout_address=payout_address,
         )
         for utxo in utxos:
             proofbuilder.add_utxo(
@@ -175,7 +176,7 @@ class TestAvalancheProofBuilder(unittest.TestCase):
             42,
             1699999999,
             utxos,
-            b"",
+            ScriptOutput.from_string(""),
             expected_proof1,
             # The following proofid and limited id were obtained by passing
             # the previous serialized proof to `bitcoin-cli decodeavalancheproof`
@@ -206,7 +207,7 @@ class TestAvalancheProofBuilder(unittest.TestCase):
                     "privatekey": "KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM",
                 },
             ],
-            bytes.fromhex("76a914f8172c51efbf34413a308a030fd4b164c5bfcd8f88ac"),
+            Address.from_string("ecash:qrupwtz3a7lngsf6xz9qxr75k9jvt07d3uexmwmpqy"),
             "d97587e6c882615796011ec8f9a7b1c621023beefdde700a6bc02036335b4df141c8b"
             "c67bb05a971f5ac2745fd683797dde30169a79ff23e1d58c64afad42ad81cffe53967"
             "e16beb692fc5776bb442c79c5d91de00cf21804712806594010038e168a32102449fb"
@@ -230,7 +231,7 @@ class TestAvalancheProofBuilder(unittest.TestCase):
             sequence2,
             expiration2,
             utxos2,
-            bytes.fromhex(payout_script_pubkey_hex),
+            payout_pubkey,
             expected_proof2,
             expected_limited_id2,
             expected_proofid2,
@@ -242,7 +243,7 @@ class TestAvalancheProofBuilder(unittest.TestCase):
             sequence2,
             expiration2,
             utxos2[::-1],
-            bytes.fromhex(payout_script_pubkey_hex),
+            payout_pubkey,
             expected_proof2,
             expected_limited_id2,
             expected_proofid2,
@@ -254,8 +255,8 @@ class TestAvalancheProofBuilder(unittest.TestCase):
             sequence=0,
             expiration_time=1670827913,
             master=key,
-            payout_script_pubkey=bytes.fromhex(
-                "76a9149a9ad444d4542b572b12d9be83ac79158cc175cb88ac"
+            payout_address=Address.from_string(
+                "ecash:qzdf44zy632zk4etztvmaqav0y2cest4evtph9jyf4"
             ),
         )
         proofbuilder.add_utxo(
@@ -313,15 +314,16 @@ class TestAvalancheProofBuilder(unittest.TestCase):
             sequence=0,
             expiration_time=1670827913,
             master=master2,
-            payout_script_pubkey=payout_script_pubkey,
+            payout_address=addr,
         )
         proof = pb.build()
 
-        addr = Address.from_string(
+        script = Address.from_string(
             "ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt",
             support_arbitrary_prefix=True,
-        )
-        self.assertEqual(addr.to_script(), proof.payout_script_pubkey)
+        ).to_script()
+        self.assertEqual(script, proof.payout_script_pubkey)
+        self.assertEqual(addr, proof.get_payout_address())
 
 
 class TestAvalancheProofFromHex(unittest.TestCase):
@@ -414,9 +416,7 @@ class TestAvalancheProofFromHex(unittest.TestCase):
         self.assertEqual(proof.payout_script_pubkey, b"")
 
         proof2 = Proof.from_hex(expected_proof2)
-        self.assertEqual(
-            proof2.payout_script_pubkey, bytes.fromhex(payout_script_pubkey_hex)
-        )
+        self.assertEqual(proof2.payout_script_pubkey, payout_pubkey.to_script())
 
     def test_raises_deserializationerror(self):
         with self.assertRaises(DeserializationError):
