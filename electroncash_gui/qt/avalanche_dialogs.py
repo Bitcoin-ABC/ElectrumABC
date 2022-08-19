@@ -237,7 +237,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
 
         # Init widgets
         now = QtCore.QDateTime.currentDateTime()
-        self.calendar.setDateTime(now.addYears(1))
+        self.calendar.setDateTime(now.addYears(3))
         self.dg_dialog = None
         self.update_master_pubkey(self.master_key_edit.text())
 
