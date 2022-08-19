@@ -151,16 +151,20 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         expiration_layout = QtWidgets.QHBoxLayout()
         layout.addLayout(expiration_layout)
 
-        expiration_left_sublayout = QtWidgets.QVBoxLayout()
-        expiration_layout.addLayout(expiration_left_sublayout)
-        expiration_left_sublayout.addWidget(QtWidgets.QLabel("Expiration date"))
+        self.expiration_checkbox = QtWidgets.QCheckBox("Enable proof expiration")
+        self.expiration_checkbox.setChecked(True)
+        expiration_layout.addWidget(self.expiration_checkbox)
+
+        expiration_date_sublayout = QtWidgets.QVBoxLayout()
+        expiration_layout.addLayout(expiration_date_sublayout)
+        expiration_date_sublayout.addWidget(QtWidgets.QLabel("Expiration date"))
         self.calendar = QtWidgets.QDateTimeEdit()
         self.calendar.setToolTip("Date and time at which the proof will expire")
-        expiration_left_sublayout.addWidget(self.calendar)
+        expiration_date_sublayout.addWidget(self.calendar)
 
-        expiration_right_sublayout = QtWidgets.QVBoxLayout()
-        expiration_layout.addLayout(expiration_right_sublayout)
-        expiration_right_sublayout.addWidget(
+        expiration_timestamp_sublayout = QtWidgets.QVBoxLayout()
+        expiration_layout.addLayout(expiration_timestamp_sublayout)
+        expiration_timestamp_sublayout.addWidget(
             QtWidgets.QLabel("Expiration POSIX timestamp")
         )
         # Use a QDoubleSpinbox with precision set to 0 decimals, because
@@ -173,7 +177,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.timestamp_widget.setToolTip(
             "POSIX time, seconds since 1970-01-01T00:00:00"
         )
-        expiration_right_sublayout.addWidget(self.timestamp_widget)
+        expiration_timestamp_sublayout.addWidget(self.timestamp_widget)
         layout.addSpacing(10)
 
         layout.addWidget(QtWidgets.QLabel("Master private key (WIF)"))
@@ -230,6 +234,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         layout.addWidget(self.generate_dg_button)
 
         # Connect signals
+        self.expiration_checkbox.toggled.connect(self.on_expiration_cb_toggled)
         self.calendar.dateTimeChanged.connect(self.on_datetime_changed)
         self.timestamp_widget.valueChanged.connect(self.on_timestamp_changed)
         self.master_key_edit.textChanged.connect(self.update_master_pubkey)
@@ -304,6 +309,10 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             )
         return wif_pk
 
+    def on_expiration_cb_toggled(self, is_checked: bool):
+        self.timestamp_widget.setEnabled(is_checked)
+        self.calendar.setEnabled(is_checked)
+
     def on_datetime_changed(self, dt: QtCore.QDateTime):
         """Set the timestamp from a QDateTime"""
         was_blocked = self.blockSignals(True)
@@ -360,10 +369,14 @@ class AvaProofEditor(CachedWalletPasswordWidget):
                 '<p style="color:red;">Password dialog cancelled!</p>'
             )
             return
-
+        expiration_time = (
+            0
+            if not self.expiration_checkbox.isChecked()
+            else self.calendar.dateTime().toSecsSinceEpoch()
+        )
         proofbuilder = ProofBuilder(
             sequence=self.sequence_sb.value(),
-            expiration_time=self.calendar.dateTime().toSecsSinceEpoch(),
+            expiration_time=expiration_time,
             master=master,
             payout_address=payout_address,
         )
