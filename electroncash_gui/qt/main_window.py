@@ -3628,8 +3628,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             utxos = json.load(f)
         if utxos is None:
             return
-        dialog = AvaProofDialog(utxos, self.wallet, self.receive_address, parent=self)
-        dialog.exec_()
+        dialog = AvaProofDialog(self.wallet, self.receive_address, parent=self)
+        if dialog.add_utxos(utxos):
+            dialog.exec_()
 
         # Update the coins' frozen state.
         self.utxo_list.update()

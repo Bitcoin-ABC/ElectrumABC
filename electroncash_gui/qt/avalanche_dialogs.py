@@ -116,7 +116,7 @@ class Link(QtWidgets.QPushButton):
         self.setSizePolicy(size_policy)
 
 
-class AvaProofWidget(CachedWalletPasswordWidget):
+class AvaProofEditor(CachedWalletPasswordWidget):
     def __init__(
         self,
         wallet: Deterministic_Wallet,
@@ -421,7 +421,6 @@ class AvaProofWidget(CachedWalletPasswordWidget):
 class AvaProofDialog(QtWidgets.QDialog):
     def __init__(
         self,
-        utxos: List[dict],
         wallet: Deterministic_Wallet,
         receive_address: Optional[Address] = None,
         parent: Optional[QtWidgets.QWidget] = None,
@@ -431,8 +430,7 @@ class AvaProofDialog(QtWidgets.QDialog):
 
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
-        self.proof_widget = AvaProofWidget(wallet, receive_address, self)
-        self.proof_widget.add_utxos(utxos)
+        self.proof_widget = AvaProofEditor(wallet, receive_address, self)
         layout.addWidget(self.proof_widget)
 
         buttons_layout = QtWidgets.QHBoxLayout()
@@ -445,11 +443,15 @@ class AvaProofDialog(QtWidgets.QDialog):
         self.ok_button.clicked.connect(self.accept)
         self.dismiss_button.clicked.connect(self.reject)
 
-        self._do_execute: bool = self.check_utxos(utxos)
+    def add_utxos(self, utxos: List[dict]) -> bool:
+        if not self.check_utxos(utxos):
+            return False
+        self.proof_widget.add_utxos(utxos)
+        return True
 
     def check_utxos(self, utxos: List[dict]) -> bool:
         """Check utxos are usable for avalanche proofs.
-        If they aren't, and the user has not acknowledged that he want to build the
+        If they aren't, and the user has not acknowledged that he wants to build the
         proof anyway, return False.
         """
         if any(u["value"] < PROOF_DUST_THRESHOLD for u in utxos):
@@ -458,11 +460,6 @@ class AvaProofDialog(QtWidgets.QDialog):
             if warning_dialog.has_cancelled():
                 return False
         return True
-
-    def exec_(self) -> int:
-        if self._do_execute:
-            return super().exec_()
-        return QtWidgets.QDialog.Rejected
 
 
 class AvaDelegationWidget(CachedWalletPasswordWidget):

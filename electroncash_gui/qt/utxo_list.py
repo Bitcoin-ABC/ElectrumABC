@@ -559,14 +559,14 @@ class UTXOList(MyTreeWidget):
         stakes.
         """
         dialog = AvaProofDialog(
-            utxos,
             wallet=self.wallet,
             receive_address=self.main_window.receive_address,
             parent=self,
         )
-        dialog.exec_()
+        if dialog.add_utxos(utxos):
+            dialog.exec_()
 
-        # Update the coins' frozen state in the GUI in case the dialog updated it in
-        # storage.
+        # Update the coins' frozen state in the GUI in case the proof editor updated it
+        # in storage.
         self.update()
         self.main_window.update_fee()
