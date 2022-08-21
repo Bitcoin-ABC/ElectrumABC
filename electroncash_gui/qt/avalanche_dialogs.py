@@ -12,14 +12,21 @@ from electroncash.avalanche.delegation import (
     DelegationBuilder,
     WrongDelegatorKeyError,
 )
-from electroncash.avalanche.primitives import Key, PublicKey
-from electroncash.avalanche.proof import LimitedProofId, Proof, ProofBuilder
+from electroncash.avalanche.primitives import COutPoint, Key, PublicKey
+from electroncash.avalanche.proof import (
+    LimitedProofId,
+    Proof,
+    ProofBuilder,
+    SignedStake,
+    Stake,
+)
 from electroncash.avalanche.serialize import DeserializationError
 from electroncash.bitcoin import is_private_key
 from electroncash.constants import PROOF_DUST_THRESHOLD, STAKE_UTXO_CONFIRMATIONS
 from electroncash.i18n import _
 from electroncash.uint256 import UInt256
 from electroncash.util import format_satoshis
+from electroncash.wallet import AddressNotFoundError
 
 from .password_dialog import PasswordDialog
 
@@ -137,6 +144,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
 
         self.utxos: List[dict] = []
         self.unconfirmed_utxos: List[dict] = []
+        self.receive_address = receive_address
 
         self.wallet = wallet
 
@@ -187,8 +195,6 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             "Private key that controls the proof. This is the key that signs the "
             "delegation or signs the avalanche votes."
         )
-        # Suggest a private key to the user. He can change it if he wants.
-        self.master_key_edit.setText(self._get_privkey_suggestion())
         layout.addWidget(self.master_key_edit)
         layout.addSpacing(10)
 
@@ -205,8 +211,6 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.payout_addr_edit.setToolTip(
             "Address to which staking rewards could be sent, in the future"
         )
-        if receive_address is not None:
-            self.payout_addr_edit.setText(receive_address.to_ui_string())
         layout.addWidget(self.payout_addr_edit)
         layout.addSpacing(10)
 
@@ -222,7 +226,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         )
         layout.addWidget(self.utxos_wigdet)
 
-        self.add_coins_button = QtWidgets.QPushButton("Add coins")
+        self.add_coins_button = QtWidgets.QPushButton("Add coins from file")
         layout.addWidget(self.add_coins_button, alignment=QtCore.Qt.AlignLeft)
 
         self.generate_button = QtWidgets.QPushButton("Generate proof")
@@ -237,6 +241,10 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.generate_dg_button.setEnabled(False)
         layout.addWidget(self.generate_dg_button)
 
+        self.load_proof_button = QtWidgets.QPushButton("Load proof")
+        self.load_proof_button.setToolTip("Load a proof from a .proof file.")
+        layout.addWidget(self.load_proof_button, alignment=QtCore.Qt.AlignLeft)
+
         # Connect signals
         self.expiration_checkbox.toggled.connect(self.on_expiration_cb_toggled)
         self.calendar.dateTimeChanged.connect(self.on_datetime_changed)
@@ -244,12 +252,33 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.master_key_edit.textChanged.connect(self.update_master_pubkey)
         self.add_coins_button.clicked.connect(self.on_add_coins_clicked)
         self.generate_dg_button.clicked.connect(self.open_dg_dialog)
+        self.load_proof_button.clicked.connect(self.on_load_proof_clicked)
 
         # Init widgets
+        self.dg_dialog = None
+        self.init_data()
+
+    def init_data(self):
+        # Clear internal state
+        self.utxos.clear()
+        self.unconfirmed_utxos.clear()
+
+        self.sequence_sb.setValue(0)
+
+        # Set a default expiration date
+        self.expiration_checkbox.setChecked(True)
         now = QtCore.QDateTime.currentDateTime()
         self.calendar.setDateTime(now.addYears(3))
-        self.dg_dialog = None
-        self.update_master_pubkey(self.master_key_edit.text())
+
+        self.master_pubkey_view.setText("")
+        # Suggest a private key to the user. He can change it if he wants.
+        self.master_key_edit.setText(self._get_privkey_suggestion())
+
+        if self.receive_address is not None:
+            self.payout_addr_edit.setText(self.receive_address.to_ui_string())
+
+        self.utxos_wigdet.clearContents()
+        self.proof_display.setText("")
 
     def add_utxos(self, utxos: List[dict]):
         previous_utxo_count = len(self.utxos)
@@ -346,6 +375,74 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             return
         self.add_utxos(utxos)
 
+    def on_load_proof_clicked(self):
+        reply = QtWidgets.QMessageBox.question(
+            self,
+            "Overwrite current proof data",
+            "Loading a proof will overwrite all data. Do you confirm?",
+            defaultButton=QtWidgets.QMessageBox.Yes,
+        )
+        if reply != QtWidgets.QMessageBox.Yes:
+            return
+        fileName, __ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            "Select the proof file",
+            filter="Avalanche proof (*.proof);;All files (*)",
+        )
+        if not fileName:
+            return
+        with open(fileName, "r") as f:
+            proof_hex = f.read().strip()
+        # TODO: catch all possible proof & hex format errors
+        self.load_proof(Proof.from_hex(proof_hex))
+
+    def load_proof(self, proof: Proof):
+        known_keys = []
+        if self._get_privkey_suggestion():
+            known_keys.append(self._get_privkey_suggestion())
+        if is_private_key(self.master_key_edit.text()):
+            known_keys.append(self.master_key_edit.text())
+        self.init_data()
+
+        self.sequence_sb.setValue(proof.sequence)
+        if proof.expiration_time <= 0:
+            self.expiration_checkbox.setChecked(False)
+        else:
+            self.timestamp_widget.setValue(proof.expiration_time)
+
+        for wif_key in known_keys:
+            if Key.from_wif(wif_key).get_pubkey() == proof.master_pub:
+                self.master_key_edit.setText(wif_key)
+                break
+        else:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Missing private key",
+                "Unable to guess private key associated with this proof's public key. "
+                "Please fill it manually.",
+            )
+        self.master_pubkey_view.setText(proof.master_pub.to_hex())
+        utxos = []
+        for ss in proof.signed_stakes:
+            ss.verify_signature(proof.stake_commitment)
+            utxos.append(
+                {
+                    "address": Address.from_pubkey(ss.stake.pubkey.keydata),
+                    "prevout_hash": ss.stake.utxo.txid.get_hex(),
+                    "prevout_n": ss.stake.utxo.n,
+                    "value": ss.stake.amount,
+                    "height": ss.stake.height,
+                    "coinbase": ss.stake.is_coinbase,
+                    "stake_signature": ss.sig,
+                    "pubkey": ss.stake.pubkey.to_hex(),
+                }
+            )
+
+        self.add_utxos(utxos)
+        self.proof_display.setText(
+            f'<p style="color:black;"><b>{proof.to_hex()}</b></p>'
+        )
+
     def update_master_pubkey(self, master_wif: str):
         if is_private_key(master_wif):
             master_pub = Key.from_wif(master_wif).get_pubkey()
@@ -411,15 +508,44 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             if not isinstance(utxo["address"], Address):
                 # utxo loaded from JSON file (serialized)
                 address = Address.from_string(address)
-            priv_key = self.wallet.export_private_key(address, self.pwd)
-            proofbuilder.add_utxo(
-                txid=UInt256.from_hex(utxo["prevout_hash"]),
-                vout=utxo["prevout_n"],
-                amount=utxo["value"],
-                height=utxo["height"],
-                wif_privkey=priv_key,
-                is_coinbase=utxo["coinbase"],
-            )
+            txid = UInt256.from_hex(utxo["prevout_hash"])
+
+            if utxo.get("stake_signature") is None:
+                # Unsigned stake: utxo must belong to this wallet
+                try:
+                    priv_key = self.wallet.export_private_key(address, self.pwd)
+                except AddressNotFoundError:
+                    QtWidgets.QMessageBox.critical(
+                        self,
+                        _("Missing key or signature"),
+                        f'UTXO {utxo["prevout_hash"]}:{utxo["prevout_n"]} with address '
+                        f"{address.to_ui_string()} does not belong to this wallet.",
+                    )
+                    return
+
+                proofbuilder.add_utxo(
+                    txid=txid,
+                    vout=utxo["prevout_n"],
+                    amount=utxo["value"],
+                    height=utxo["height"],
+                    wif_privkey=priv_key,
+                    is_coinbase=utxo["coinbase"],
+                )
+            else:
+                # Signed stake loaded from an existing proof
+                assert utxo.get("pubkey") is not None
+                proofbuilder.add_signed_stake(
+                    SignedStake(
+                        Stake(
+                            COutPoint(txid, utxo["prevout_n"]),
+                            amount=utxo["value"],
+                            height=utxo["height"],
+                            pubkey=PublicKey.from_hex(utxo["pubkey"]),
+                            is_coinbase=utxo["coinbase"],
+                        ),
+                        utxo["stake_signature"],
+                    )
+                )
 
         num_utxos_in_proof = len(self.utxos) - len(self.unconfirmed_utxos)
         if num_utxos_in_proof <= 0:

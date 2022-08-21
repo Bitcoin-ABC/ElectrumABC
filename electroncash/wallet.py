@@ -94,6 +94,10 @@ from .i18n import _
 DEFAULT_CONFIRMED_ONLY = False
 
 
+class AddressNotFoundError(Exception):
+    """Exception used for Address errors."""
+
+
 def sweep_preparations(privkeys, network, imax=100):
     class InputsMaxxed(Exception):
         pass
@@ -570,7 +574,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         except ValueError:
             pass
         assert not isinstance(address, str)
-        raise Exception("Address {} not found".format(address))
+        raise AddressNotFoundError("Address {} not found".format(address))
 
     def add_unverified_tx(self, tx_hash, tx_height):
         with self.lock:
