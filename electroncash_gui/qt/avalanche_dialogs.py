@@ -528,8 +528,8 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         proofbuilder = ProofBuilder(
             sequence=self.sequence_sb.value(),
             expiration_time=expiration_time,
-            master=master,
             payout_address=payout_address,
+            master=master,
         )
 
         for ss in self.stakes:

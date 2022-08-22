@@ -32,7 +32,7 @@ from __future__ import annotations
 
 import struct
 from io import BytesIO
-from typing import TYPE_CHECKING, List, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from ..bitcoin import Hash as sha256d
 from ..transaction import get_address_from_output_script
@@ -224,16 +224,24 @@ class ProofBuilder:
         self,
         sequence: int,
         expiration_time: int,
-        master: Key,
         payout_address: Union[Address, ScriptOutput, address.PublicKey],
+        master: Optional[Key] = None,
+        master_pub: Optional[PublicKey] = None,
     ):
         self.sequence = sequence
         """uint64"""
         self.expiration_time = expiration_time
         """int64"""
-        self.master: Key = master
-        """Master private key"""
-        self.master_pub = master.get_pubkey()
+        self.master: Optional[Key] = master
+        """Master private key. If not specified, the proof signature will be invalid."""
+        if self.master is not None:
+            if master_pub is not None and self.master.get_pubkey() != master_pub:
+                raise RuntimeError("Mismatching master and master_pub")
+            self.master_pub = self.master.get_pubkey()
+        elif master_pub is not None:
+            self.master_pub = master_pub
+        else:
+            raise RuntimeError("One of master or master_pub must be specified")
         self.payout_address = payout_address
         self.payout_script_pubkey = payout_address.to_script()
 
@@ -247,19 +255,24 @@ class ProofBuilder:
         """
 
     @classmethod
-    def from_proof(cls, proof: Proof, master: Key) -> ProofBuilder:
+    def from_proof(cls, proof: Proof, master: Optional[Key] = None) -> ProofBuilder:
         """Create a proof builder using the data from an existing proof.
         This is useful for adding more stakes to it.
 
         The provided master private key must match the proof's master public key,
         because changing the key would invalidate previous signed stakes.
+
+        If no master key is provided, the generated proof will have an invalid
+        signature.
         """
-        if master.get_pubkey() != proof.master_pub:
-            raise KeyError(
-                "The provided private key does not match the proof's master public key."
-            )
+        if master is not None and master.get_pubkey() != proof.master_pub:
+            raise KeyError("Mismatching master and master_pub")
         builder = cls(
-            proof.sequence, proof.expiration_time, master, proof.get_payout_address()
+            proof.sequence,
+            proof.expiration_time,
+            proof.get_payout_address(),
+            master,
+            proof.master_pub,
         )
         builder.signed_stakes = proof.signed_stakes
         return builder
@@ -301,7 +314,11 @@ class ProofBuilder:
             self.payout_script_pubkey,
         )
 
-        signature = self.master.sign_schnorr(ltd_id.serialize())
+        if self.master is not None:
+            signature = self.master.sign_schnorr(ltd_id.serialize())
+        else:
+            # We cannot sign the proof
+            signature = b"\0" * 64
 
         return Proof(
             self.sequence,

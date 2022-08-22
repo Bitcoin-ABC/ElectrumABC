@@ -135,8 +135,8 @@ class TestAvalancheProofBuilder(unittest.TestCase):
         proofbuilder = ProofBuilder(
             sequence=sequence,
             expiration_time=expiration,
-            master=master_key,
             payout_address=payout_address,
+            master=master_key,
         )
         for utxo in utxos:
             key = Key.from_wif(utxo["privatekey"])
@@ -258,10 +258,10 @@ class TestAvalancheProofBuilder(unittest.TestCase):
         proofbuilder = ProofBuilder(
             sequence=0,
             expiration_time=1670827913,
-            master=masterkey,
             payout_address=Address.from_string(
                 "ecash:qzdf44zy632zk4etztvmaqav0y2cest4evtph9jyf4"
             ),
+            master=masterkey,
         )
         txid = UInt256.from_hex(
             "37424bda9a405b59e7d4f61a4c154cea5ee34e445f3daa6033b64c70355f1e0b"
@@ -283,6 +283,7 @@ class TestAvalancheProofBuilder(unittest.TestCase):
             proof.to_hex(),
             "000000000000000089cf96630000000021023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3010b1e5f35704cb63360aa3d5f444ee35eea4c154c1af6d4e7595b409ada4b423700000000915c2ac400000000c05c15002102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680b8d717142339f0baf0c8099bafd6491d42e73f7224cacf1daa20a2aeb7b4b3fa68a362bfed33bf20ec1c08452e6ad5536fec3e1198d839d64c2e0e6fe25afaa61976a9149a9ad444d4542b572b12d9be83ac79158cc175cb88acc768803afa6a4662bab4199535122b4a8c7fb9889f1fe77043d8ecd43ad04c5cf07e602e47b68deaac1bbdc7c170ad57c38aa47e5a5d23cac011c15ed31bbc54",
         )
+        self.assertTrue(proof.verify_master_signature())
 
         # create a new builder from this proof, add more stakes
         proofbuilder_add_stakes = ProofBuilder.from_proof(proof, masterkey)
@@ -307,6 +308,49 @@ class TestAvalancheProofBuilder(unittest.TestCase):
             "000000000000000089cf96630000000021023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde302e4ed76e1f19b2c2a0fcc069b4ace4a078cb5cc31e9e19b266d0af41ea8bb0c3001000000a856d9aa00000000c25c15002102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce68089bf7f0f956b084160d505dcd8b375499ffad816d1c76c8b13ac92d1ef3c5c3ecb6ee6c094ef790fb93f6711955c48f2cf098750427808c9e2aab77ee1b8de110b1e5f35704cb63360aa3d5f444ee35eea4c154c1af6d4e7595b409ada4b423700000000915c2ac400000000c05c15002102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680b8d717142339f0baf0c8099bafd6491d42e73f7224cacf1daa20a2aeb7b4b3fa68a362bfed33bf20ec1c08452e6ad5536fec3e1198d839d64c2e0e6fe25afaa61976a9149a9ad444d4542b572b12d9be83ac79158cc175cb88acec2623216b901037fb780e3d2a06f982bbe36d87be7adc82e83ebfc1f3c4eff6262577cfa9f72d18570dc5cdf9bf96676700abdb3d8f4bc989c975870ab8cbb7",
         )
 
+    def test_without_master_private_key(self):
+        masterkey = Key.from_wif("L4J6gEE4wL9ji2EQbzS5dPMTTsw8LRvcMst1Utij4e3X5ccUSdqW")
+        master_pub = masterkey.get_pubkey()
+        proofbuilder = ProofBuilder(
+            sequence=0,
+            expiration_time=1670827913,
+            payout_address=Address.from_string(
+                "ecash:qzdf44zy632zk4etztvmaqav0y2cest4evtph9jyf4"
+            ),
+            master_pub=master_pub,
+        )
+        txid = UInt256.from_hex(
+            "37424bda9a405b59e7d4f61a4c154cea5ee34e445f3daa6033b64c70355f1e0b"
+        )
+        key = Key.from_wif("KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM")
+        proofbuilder.sign_and_add_stake(
+            Stake(
+                COutPoint(txid, 0),
+                amount=3291110545,
+                height=700000,
+                pubkey=key.get_pubkey(),
+                is_coinbase=False,
+            ),
+            key,
+        )
+        proof = proofbuilder.build()
+
+        # Same proof as the first one in test_adding_stakes_to_proof
+        expected_hex = "000000000000000089cf96630000000021023beefdde700a6bc02036335b4df141c8bc67bb05a971f5ac2745fd683797dde3010b1e5f35704cb63360aa3d5f444ee35eea4c154c1af6d4e7595b409ada4b423700000000915c2ac400000000c05c15002102449fb5237efe8f647d32e8b64f06c22d1d40368eaca2a71ffc6a13ecc8bce680b8d717142339f0baf0c8099bafd6491d42e73f7224cacf1daa20a2aeb7b4b3fa68a362bfed33bf20ec1c08452e6ad5536fec3e1198d839d64c2e0e6fe25afaa61976a9149a9ad444d4542b572b12d9be83ac79158cc175cb88acc768803afa6a4662bab4199535122b4a8c7fb9889f1fe77043d8ecd43ad04c5cf07e602e47b68deaac1bbdc7c170ad57c38aa47e5a5d23cac011c15ed31bbc54"
+        expected_hex_no_sig = expected_hex[:-128] + 64 * "00"
+        self.assertEqual(proof.to_hex(), expected_hex_no_sig)
+        self.assertFalse(proof.verify_master_signature())
+
+        proofbuilder = ProofBuilder.from_proof(proof)
+        proof_from_proof_no_master = proofbuilder.build()
+        self.assertEqual(proof_from_proof_no_master.to_hex(), expected_hex_no_sig)
+        self.assertFalse(proof_from_proof_no_master.verify_master_signature())
+
+        proofbuilder = ProofBuilder.from_proof(proof, masterkey)
+        proof_from_proof_with_master = proofbuilder.build()
+        self.assertEqual(proof_from_proof_with_master.to_hex(), expected_hex)
+        self.assertTrue(proof_from_proof_with_master.verify_master_signature())
+
     def test_payout_address_script(self):
         """Test that the proof builder generates the expected script for an address"""
 
@@ -323,10 +367,7 @@ class TestAvalancheProofBuilder(unittest.TestCase):
         )
 
         pb = ProofBuilder(
-            sequence=0,
-            expiration_time=1670827913,
-            master=master2,
-            payout_address=addr,
+            sequence=0, expiration_time=1670827913, payout_address=addr, master=master2
         )
         proof = pb.build()
 
