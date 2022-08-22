@@ -10,8 +10,8 @@ from ..avalanche.delegation import (
     Level,
     WrongDelegatorKeyError,
 )
-from ..avalanche.primitives import Key, PublicKey
-from ..avalanche.proof import LimitedProofId, Proof, ProofBuilder, ProofId
+from ..avalanche.primitives import COutPoint, Key, PublicKey
+from ..avalanche.proof import LimitedProofId, Proof, ProofBuilder, ProofId, Stake
 from ..avalanche.serialize import DeserializationError
 from ..transaction import get_address_from_output_script
 from ..uint256 import UInt256
@@ -139,13 +139,17 @@ class TestAvalancheProofBuilder(unittest.TestCase):
             payout_address=payout_address,
         )
         for utxo in utxos:
-            proofbuilder.add_utxo(
-                txid=utxo["txid"],
-                vout=utxo["vout"],
-                amount=utxo["amount"],
-                height=utxo["height"],
-                wif_privkey=utxo["privatekey"],
-                is_coinbase=utxo["iscoinbase"],
+            key = Key.from_wif(utxo["privatekey"])
+
+            proofbuilder.sign_and_add_stake(
+                Stake(
+                    COutPoint(utxo["txid"], utxo["vout"]),
+                    utxo["amount"],
+                    utxo["height"],
+                    key.get_pubkey(),
+                    utxo["iscoinbase"],
+                ),
+                key,
             )
         proof = proofbuilder.build()
         self.assertEqual(proof.to_hex(), expected_proof_hex)
@@ -250,24 +254,28 @@ class TestAvalancheProofBuilder(unittest.TestCase):
         )
 
     def test_adding_stakes_to_proof(self):
-        key = Key.from_wif("L4J6gEE4wL9ji2EQbzS5dPMTTsw8LRvcMst1Utij4e3X5ccUSdqW")
+        masterkey = Key.from_wif("L4J6gEE4wL9ji2EQbzS5dPMTTsw8LRvcMst1Utij4e3X5ccUSdqW")
         proofbuilder = ProofBuilder(
             sequence=0,
             expiration_time=1670827913,
-            master=key,
+            master=masterkey,
             payout_address=Address.from_string(
                 "ecash:qzdf44zy632zk4etztvmaqav0y2cest4evtph9jyf4"
             ),
         )
-        proofbuilder.add_utxo(
-            txid=UInt256.from_hex(
-                "37424bda9a405b59e7d4f61a4c154cea5ee34e445f3daa6033b64c70355f1e0b"
+        txid = UInt256.from_hex(
+            "37424bda9a405b59e7d4f61a4c154cea5ee34e445f3daa6033b64c70355f1e0b"
+        )
+        key = Key.from_wif("KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM")
+        proofbuilder.sign_and_add_stake(
+            Stake(
+                COutPoint(txid, 0),
+                amount=3291110545,
+                height=700000,
+                pubkey=key.get_pubkey(),
+                is_coinbase=False,
             ),
-            vout=0,
-            amount=3291110545,
-            height=700000,
-            wif_privkey="KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM",
-            is_coinbase=False,
+            key,
         )
         proof = proofbuilder.build()
 
@@ -277,16 +285,20 @@ class TestAvalancheProofBuilder(unittest.TestCase):
         )
 
         # create a new builder from this proof, add more stakes
-        proofbuilder_add_stakes = ProofBuilder.from_proof(proof, key)
-        proofbuilder_add_stakes.add_utxo(
-            txid=UInt256.from_hex(
-                "300cbba81ef40a6d269be1e931ccb58c074ace4a9b06cc0f2a2c9bf1e176ede4"
+        proofbuilder_add_stakes = ProofBuilder.from_proof(proof, masterkey)
+        txid = UInt256.from_hex(
+            "300cbba81ef40a6d269be1e931ccb58c074ace4a9b06cc0f2a2c9bf1e176ede4"
+        )
+        key = Key.from_wif("KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM")
+        proofbuilder_add_stakes.sign_and_add_stake(
+            Stake(
+                COutPoint(txid, 1),
+                amount=2866370216,
+                height=700001,
+                pubkey=key.get_pubkey(),
+                is_coinbase=False,
             ),
-            vout=1,
-            amount=2866370216,
-            height=700001,
-            is_coinbase=False,
-            wif_privkey="KydYrKDNsVnY5uhpLyC4UmazuJvUjNoKJhEEv9f1mdK1D5zcnMSM",
+            key,
         )
         proof = proofbuilder_add_stakes.build()
 

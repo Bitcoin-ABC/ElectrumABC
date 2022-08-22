@@ -35,7 +35,6 @@ from io import BytesIO
 from typing import TYPE_CHECKING, List, Union
 
 from ..bitcoin import Hash as sha256d
-from ..bitcoin import deserialize_privkey
 from ..transaction import get_address_from_output_script
 from ..uint256 import UInt256
 from .primitives import COutPoint, Key, PublicKey
@@ -277,11 +276,13 @@ class ProofBuilder:
         :param bool is_coinbase: Is the coin UTXO a coinbase UTXO
         :return:
         """
-        _txin_type, deser_privkey, compressed = deserialize_privkey(wif_privkey)
-        key = Key(deser_privkey, compressed)
-
+        key = Key.from_wif(wif_privkey)
         utxo = COutPoint(txid, vout)
-        stake = Stake(utxo, amount, height, key.get_pubkey(), is_coinbase)
+        self.sign_and_add_stake(
+            Stake(utxo, amount, height, key.get_pubkey(), is_coinbase), key
+        )
+
+    def sign_and_add_stake(self, stake: Stake, key: Key):
         self.add_signed_stake(
             SignedStake(stake, key.sign_schnorr(stake.get_hash(self.stake_commitment)))
         )
