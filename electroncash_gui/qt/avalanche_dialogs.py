@@ -143,7 +143,6 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.setMinimumHeight(680)
 
         self.utxos: List[dict] = []
-        self.unconfirmed_utxos: List[dict] = []
         self.receive_address = receive_address
 
         self.wallet = wallet
@@ -261,7 +260,6 @@ class AvaProofEditor(CachedWalletPasswordWidget):
     def init_data(self):
         # Clear internal state
         self.utxos.clear()
-        self.unconfirmed_utxos.clear()
 
         self.sequence_sb.setValue(0)
 
@@ -281,12 +279,19 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.proof_display.setText("")
 
     def add_utxos(self, utxos: List[dict]):
+        unconfirmed_utxos: List[dict] = []
+
         previous_utxo_count = len(self.utxos)
         self.utxos += utxos
         self.utxos_wigdet.setRowCount(len(self.utxos))
 
         tip = self.wallet.get_local_height()
         for i, utxo in enumerate(utxos):
+            height = utxo["height"]
+            if height <= 0:
+                unconfirmed_utxos.append(utxo)
+                continue
+
             row_index = previous_utxo_count + i
             txid_item = QtWidgets.QTableWidgetItem(utxo["prevout_hash"])
             self.utxos_wigdet.setItem(row_index, 0, txid_item)
@@ -305,19 +310,9 @@ class AvaProofEditor(CachedWalletPasswordWidget):
                 )
             self.utxos_wigdet.setItem(row_index, 2, amount_item)
 
-            height_item = QtWidgets.QTableWidgetItem(str(utxo["height"]))
-            utxo_validity_height = utxo["height"] + STAKE_UTXO_CONFIRMATIONS
-            if utxo["height"] <= 0:
-                # TODO: make the height cell editable, for users to fill the block
-                #       height manually.
-                height_item.setForeground(QtGui.QColor("red"))
-                height_item.setToolTip(
-                    _(
-                        "Unconfirmed coins will not be included because the height of the"
-                        "block for each coin is required to generate the proof."
-                    )
-                )
-            elif utxo_validity_height > tip:
+            height_item = QtWidgets.QTableWidgetItem(str(height))
+            utxo_validity_height = height + STAKE_UTXO_CONFIRMATIONS
+            if utxo_validity_height > tip:
                 height_item.setForeground(QtGui.QColor("orange"))
                 height_item.setToolTip(
                     _(
@@ -328,6 +323,14 @@ class AvaProofEditor(CachedWalletPasswordWidget):
                     f"valid after block {utxo_validity_height}."
                 )
             self.utxos_wigdet.setItem(row_index, 3, height_item)
+
+        if unconfirmed_utxos:
+            QtWidgets.QMessageBox.warning(
+                self,
+                _("Excluded coins"),
+                f"{len(unconfirmed_utxos)} coins have been ignored because they are "
+                f"unconfirmed or do not have a block height specified.",
+            )
 
     def _get_privkey_suggestion(self) -> str:
         """Get a private key to pre-fill the master key field.
@@ -461,9 +464,8 @@ class AvaProofEditor(CachedWalletPasswordWidget):
                 "accidentally spending them?",
                 defaultButton=QtWidgets.QMessageBox.Yes,
             )
-            utxos_to_freeze = [u for u in self.utxos if u not in self.unconfirmed_utxos]
             if reply == QtWidgets.QMessageBox.Yes:
-                self.wallet.set_frozen_coin_state(utxos_to_freeze, freeze=True)
+                self.wallet.set_frozen_coin_state(self.utxos, freeze=True)
         self.generate_dg_button.setEnabled(proof is not None)
 
     def _build(self) -> Optional[str]:
@@ -498,12 +500,8 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             payout_address=payout_address,
         )
 
-        self.unconfirmed_utxos = []
         for utxo in self.utxos:
-            if utxo["height"] <= 0:
-                # ignore unconfirmed coins
-                self.unconfirmed_utxos.append(utxo)
-                continue
+            assert utxo["height"] <= 0
             address = utxo["address"]
             if not isinstance(utxo["address"], Address):
                 # utxo loaded from JSON file (serialized)
@@ -546,18 +544,6 @@ class AvaProofEditor(CachedWalletPasswordWidget):
                         utxo["stake_signature"],
                     )
                 )
-
-        if len(self.unconfirmed_utxos) > 0:
-            QtWidgets.QMessageBox.warning(
-                self,
-                _("Excluded stakes"),
-                f"{len(self.unconfirmed_utxos)}"
-                + " "
-                + _(
-                    "coins have been excluded from the proof because they are "
-                    "unconfirmed or do not have a block height specified."
-                ),
-            )
 
         return proofbuilder.build().to_hex()
 
