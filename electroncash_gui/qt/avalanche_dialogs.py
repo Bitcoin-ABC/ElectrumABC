@@ -503,11 +503,19 @@ class AvaProofEditor(CachedWalletPasswordWidget):
     def _build(self) -> Optional[str]:
         master_wif = self.master_key_edit.text()
         if not is_private_key(master_wif):
-            QtWidgets.QMessageBox.critical(
-                self, "Invalid private key", "Could not parse private key."
+            reply = QtWidgets.QMessageBox.question(
+                self,
+                "Invalid private key",
+                "Could not parse private key. Do you want to generate a proof with an "
+                "invalid signature anyway?",
             )
-            return
-        master = Key.from_wif(master_wif)
+            if reply != QtWidgets.QMessageBox.Yes:
+                return
+            master = None
+            master_pub = PublicKey.from_hex(self.master_pubkey_view.text())
+        else:
+            master = Key.from_wif(master_wif)
+            master_pub = None
 
         try:
             payout_address = Address.from_string(self.payout_addr_edit.text())
@@ -530,6 +538,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             expiration_time=expiration_time,
             payout_address=payout_address,
             master=master,
+            master_pub=master_pub,
         )
 
         for ss in self.stakes:
