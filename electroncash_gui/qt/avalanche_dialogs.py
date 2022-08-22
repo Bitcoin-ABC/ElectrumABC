@@ -547,14 +547,6 @@ class AvaProofEditor(CachedWalletPasswordWidget):
                     )
                 )
 
-        num_utxos_in_proof = len(self.utxos) - len(self.unconfirmed_utxos)
-        if num_utxos_in_proof <= 0:
-            QtWidgets.QMessageBox.critical(
-                self,
-                _("No valid stake"),
-                _("No valid stake left after excluding unconfirmed coins."),
-            )
-            return
         if len(self.unconfirmed_utxos) > 0:
             QtWidgets.QMessageBox.warning(
                 self,
