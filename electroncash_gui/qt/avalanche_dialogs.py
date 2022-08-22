@@ -208,8 +208,19 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         )
         layout.addWidget(self.utxos_wigdet)
 
+        stakes_button_layout = QtWidgets.QHBoxLayout()
+        layout.addLayout(stakes_button_layout)
+
         self.add_coins_button = QtWidgets.QPushButton("Add coins from file")
-        layout.addWidget(self.add_coins_button, alignment=QtCore.Qt.AlignLeft)
+        stakes_button_layout.addWidget(self.add_coins_button)
+
+        self.merge_stakes_button = QtWidgets.QPushButton("Merge stakes from proof")
+        self.merge_stakes_button.setToolTip(
+            "Add stakes from an existing proof. The proof master key and expiration "
+            "time must exactly match when merging proofs, or else the stake signatures "
+            "will be invalid."
+        )
+        stakes_button_layout.addWidget(self.merge_stakes_button)
 
         self.generate_button = QtWidgets.QPushButton("Generate proof")
         layout.addWidget(self.generate_button)
@@ -241,6 +252,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.timestamp_widget.valueChanged.connect(self.on_timestamp_changed)
         self.master_key_edit.textChanged.connect(self.update_master_pubkey)
         self.add_coins_button.clicked.connect(self.on_add_coins_clicked)
+        self.merge_stakes_button.clicked.connect(self.on_merge_stakes_clicked)
         self.generate_dg_button.clicked.connect(self.open_dg_dialog)
         self.load_proof_button.clicked.connect(self.on_load_proof_clicked)
         self.save_proof_button.clicked.connect(self.on_save_proof_clicked)
@@ -404,14 +416,29 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             "Select the file containing the data for coins to be used as stakes",
             filter="JSON (*.json);;All files (*)",
         )
-
         if not fileName:
             return
+
         with open(fileName, "r", encoding="utf-8") as f:
             utxos = json.load(f)
         if utxos is None:
             return
         self.add_utxos(utxos)
+
+    def on_merge_stakes_clicked(self):
+        fileName, __ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            "Select the proof file for merging stakes",
+            filter="Avalanche proof (*.proof);;All files (*)",
+        )
+        if not fileName:
+            return
+
+        with open(fileName, "r", encoding="utf-8") as f:
+            proof_hex = f.read()
+
+        # TODO: catch possible decoding, format, hex ... errors
+        self.add_stakes(Proof.from_hex(proof_hex).signed_stakes)
 
     def on_load_proof_clicked(self):
         reply = QtWidgets.QMessageBox.question(
