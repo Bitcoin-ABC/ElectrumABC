@@ -775,7 +775,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         tools_menu.addSeparator()
         avaproof_action = tools_menu.addAction(
-            "Build avalanche proof from coins file", self.build_avalanche_proof
+            "Avalanche proof editor", self.open_proof_editor
         )
         tools_menu.addAction(
             "Build avalanche delegation", self.build_avalanche_delegation
@@ -3596,41 +3596,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             f"{1 if invoice.exchange_rate is None else computed_rate:.10f}"
         )
 
-    def build_avalanche_proof(self):
-        """Open a dialog to build an avalanche proof from coins metadata
-        loaded from a file. The coins must belong to this wallet, and the
-        wallet must be capable of exporting private keys for the coins
-        (no hardware wallet, no watchonly wallet...)
-
-        This tools is meant to be used with an offline wallet, after exporting
-        the UTXOs from the corresponding watch-only or hardware wallet.
-
-        The typical workflow is:
-
-         - on the hot (online) wallet, go to the "Coins" tab, select one or
-           multiple coins you want to use as Avalanche stakes, then
-           right-click on a selected coin an select "Export coins details"
-         - save the file to disk, then transfer it to the offline computer
-         - restore the wallet from seed on the offline computer
-         - select "Build avalanche proof" in the tools menu, and load
-           the .json file containing the coin details
-         - in the new dialog, specify all required parameters (proof sequence
-           number, expiration timestamp, master public key), then click the
-           "Generate proof" button
-        """
-        fileName = self.getOpenFileName(
-            "Select the file containing the data for coins to be used as stakes",
-            "JSON (*.json);;All files (*)"
-        )
-        if not fileName:
-            return
-        with open(fileName, "r", encoding='utf-8') as f:
-            utxos = json.load(f)
-        if utxos is None:
-            return
+    def open_proof_editor(self):
         dialog = AvaProofDialog(self.wallet, self.receive_address, parent=self)
-        if dialog.add_utxos(utxos):
-            dialog.exec_()
+        dialog.exec_()
 
     def build_avalanche_delegation(self):
         """
