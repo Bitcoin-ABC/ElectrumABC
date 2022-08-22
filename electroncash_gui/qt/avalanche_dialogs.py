@@ -112,27 +112,6 @@ class CachedWalletPasswordWidget(QtWidgets.QWidget):
                 QtWidgets.QMessageBox.critical(self, "Invalid password", str(e))
 
 
-class Link(QtWidgets.QPushButton):
-    def __init__(self, text="", parent=None):
-        super().__init__(text, parent)
-        stylesheet = """
-            QPushButton {
-                color: blue;
-                border: none;
-                font-weight: bold;
-                font-size: 14px;
-                text-align: center;
-            }
-            QPushButton:disabled {
-                color: gray;
-            }
-            """
-        self.setStyleSheet(stylesheet)
-        size_policy = QtWidgets.QSizePolicy()
-        size_policy.setHorizontalPolicy(QtWidgets.QSizePolicy.Fixed)
-        self.setSizePolicy(size_policy)
-
-
 class AvaProofEditor(CachedWalletPasswordWidget):
     def __init__(
         self,
@@ -240,13 +219,21 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.proof_display.setReadOnly(True)
         layout.addWidget(self.proof_display)
 
-        self.generate_dg_button = Link("Generate a delegation for this proof")
-        self.generate_dg_button.setEnabled(False)
-        layout.addWidget(self.generate_dg_button)
+        proof_buttons_layout = QtWidgets.QHBoxLayout()
+        layout.addLayout(proof_buttons_layout)
 
         self.load_proof_button = QtWidgets.QPushButton("Load proof")
         self.load_proof_button.setToolTip("Load a proof from a .proof file.")
-        layout.addWidget(self.load_proof_button, alignment=QtCore.Qt.AlignLeft)
+        proof_buttons_layout.addWidget(self.load_proof_button)
+
+        self.save_proof_button = QtWidgets.QPushButton("Save proof")
+        self.save_proof_button.setToolTip("Save this proof to a .proof file.")
+        self.save_proof_button.setEnabled(False)
+        proof_buttons_layout.addWidget(self.save_proof_button)
+
+        self.generate_dg_button = QtWidgets.QPushButton("Generate a delegation")
+        self.generate_dg_button.setEnabled(False)
+        proof_buttons_layout.addWidget(self.generate_dg_button)
 
         # Connect signals
         self.expiration_checkbox.toggled.connect(self.on_expiration_cb_toggled)
@@ -256,6 +243,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.add_coins_button.clicked.connect(self.on_add_coins_clicked)
         self.generate_dg_button.clicked.connect(self.open_dg_dialog)
         self.load_proof_button.clicked.connect(self.on_load_proof_clicked)
+        self.save_proof_button.clicked.connect(self.on_save_proof_clicked)
 
         # Init widgets
         self.dg_dialog = None
@@ -446,6 +434,9 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         # TODO: catch all possible proof & hex format errors
         self.load_proof(Proof.from_hex(proof_hex))
 
+        self.generate_dg_button.setEnabled(True)
+        self.save_proof_button.setEnabled(True)
+
     def load_proof(self, proof: Proof):
         known_keys = []
         if self._get_privkey_suggestion():
@@ -479,6 +470,23 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             f'<p style="color:black;"><b>{proof.to_hex()}</b></p>'
         )
 
+    def on_save_proof_clicked(self):
+        if not self.proof_display.toPlainText():
+            raise AssertionError(
+                "No proof to be saved. The save button should not be enabled."
+            )
+        proof = Proof.from_hex(self.proof_display.toPlainText())
+        fileName, __ = QtWidgets.QFileDialog.getSaveFileName(
+            self,
+            "Save proof to file",
+            f"{proof.proofid.get_hex()[:8]}.proof",
+            filter="Avalanche proof (*.proof);;All files (*)",
+        )
+        if not fileName:
+            return
+        with open(fileName, "w") as f:
+            f.write(proof.to_hex())
+
     def update_master_pubkey(self, master_wif: str):
         if is_private_key(master_wif):
             master_pub = Key.from_wif(master_wif).get_pubkey()
@@ -490,6 +498,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         if proof is not None:
             self.proof_display.setText(f'<p style="color:black;"><b>{proof}</b></p>')
         self.generate_dg_button.setEnabled(proof is not None)
+        self.save_proof_button.setEnabled(proof is not None)
 
     def _build(self) -> Optional[str]:
         master_wif = self.master_key_edit.text()
