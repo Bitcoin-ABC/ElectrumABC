@@ -244,7 +244,7 @@ class ProofBuilder:
 
         self.signed_stakes: List[SignedStake] = []
         """List of signed stakes sorted by stake ID.
-        Adding stakes through :meth:`add_utxo` takes care of the sorting.
+        Adding stakes through :meth:`add_signed_stake` takes care of the sorting.
         """
 
     @classmethod
@@ -266,7 +266,8 @@ class ProofBuilder:
         return builder
 
     def add_utxo(self, txid: UInt256, vout, amount, height, wif_privkey, is_coinbase):
-        """
+        """This method builds the :class:`Stake`, signs the stake using the private key,
+        and then forwards the data to meth:`add_signed_stake`.
 
         :param str txid: Transaction hash (hex str)
         :param int vout: Output index for this utxo in the transaction.
@@ -281,10 +282,12 @@ class ProofBuilder:
 
         utxo = COutPoint(txid, vout)
         stake = Stake(utxo, amount, height, key.get_pubkey(), is_coinbase)
-        sig = key.sign_schnorr(stake.get_hash(self.stake_commitment))
+        self.add_signed_stake(
+            SignedStake(stake, key.sign_schnorr(stake.get_hash(self.stake_commitment)))
+        )
 
-        self.signed_stakes.append(SignedStake(stake, sig))
-
+    def add_signed_stake(self, ss: SignedStake):
+        self.signed_stakes.append(ss)
         # Enforce a unique sorting for stakes in a proof. The sorting key is a UInt256.
         # See UInt256.compare for the specifics about sorting these objects.
         self.signed_stakes.sort(key=lambda ss: ss.stake.stake_id)
