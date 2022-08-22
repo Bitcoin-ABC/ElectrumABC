@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, List, Optional
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -32,6 +33,14 @@ from .password_dialog import PasswordDialog
 
 if TYPE_CHECKING:
     from electroncash.wallet import Deterministic_Wallet
+
+
+@dataclass
+class StakeAndKey:
+    """Class storing a stake waiting to be signed (waiting for the stake commitment)"""
+
+    stake: stake
+    key: Key
 
 
 # We generate a few deterministic private keys to pre-fill some widgets, so the user
@@ -131,18 +140,13 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         receive_address: Optional[Address] = None,
         parent: QtWidgets.QWidget = None,
     ):
-        """
-
-        :param utxos:  List of UTXOs to be used as stakes
-        :param parent:
-        """
         CachedWalletPasswordWidget.__init__(self, wallet, parent=parent)
         # This is enough width to show a whole compressed pubkey.
         self.setMinimumWidth(750)
         # Enough height to show the entire proof without scrolling.
         self.setMinimumHeight(680)
 
-        self.utxos: List[dict] = []
+        self.stakes: List[Union[SignedStake, StakeAndKey]] = []
         self.receive_address = receive_address
 
         self.wallet = wallet
@@ -259,7 +263,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
 
     def init_data(self):
         # Clear internal state
-        self.utxos.clear()
+        self.stakes.clear()
 
         self.sequence_sb.setValue(0)
 
@@ -279,28 +283,79 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.proof_display.setText("")
 
     def add_utxos(self, utxos: List[dict]):
-        unconfirmed_utxos: List[dict] = []
-
-        previous_utxo_count = len(self.utxos)
-        self.utxos += utxos
-        self.utxos_wigdet.setRowCount(len(self.utxos))
-
-        tip = self.wallet.get_local_height()
-        for i, utxo in enumerate(utxos):
+        """Add UTXOs from a list of dict objects, such as stored internally by
+        the wallet or loaded from a JSON file. These UTXOs must belong to the current
+        wallet, as they are not yet signed.
+        They must also be confirmed (i.e. have a block height number).
+        """
+        unconfirmed_count = 0
+        stakes = []
+        for utxo in utxos:
             height = utxo["height"]
             if height <= 0:
-                unconfirmed_utxos.append(utxo)
+                unconfirmed_count += 1
                 continue
 
+            address = utxo["address"]
+            if not isinstance(utxo["address"], Address):
+                # utxo loaded from JSON file (serialized)
+                address = Address.from_string(address)
+            txid = UInt256.from_hex(utxo["prevout_hash"])
+
+            try:
+                wif_key = self.wallet.export_private_key(address, self.pwd)
+                key = Key.from_wif(wif_key)
+            except AddressNotFoundError:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    _("Missing key or signature"),
+                    f'UTXO {utxo["prevout_hash"]}:{utxo["prevout_n"]} with address '
+                    f"{address.to_ui_string()} does not belong to this wallet.",
+                )
+                return
+
+            stakes.append(
+                StakeAndKey(
+                    Stake(
+                        COutPoint(txid, utxo["prevout_n"]),
+                        amount=utxo["value"],
+                        height=utxo["height"],
+                        pubkey=key.get_pubkey(),
+                        is_coinbase=utxo["coinbase"],
+                    ),
+                    key,
+                )
+            )
+
+        if unconfirmed_count:
+            QtWidgets.QMessageBox.warning(
+                self,
+                _("Excluded coins"),
+                f"{unconfirmed_count} coins have been ignored because they are "
+                f"unconfirmed or do not have a block height specified.",
+            )
+
+        self.add_stakes(stakes)
+
+    def add_stakes(self, stakes: List[Union[SignedStake, StakeAndKey]]):
+        previous_utxo_count = len(self.stakes)
+        self.stakes += stakes
+        self.utxos_wigdet.setRowCount(len(self.stakes))
+
+        tip = self.wallet.get_local_height()
+        for i, ss in enumerate(stakes):
+            stake = ss.stake
+            height = stake.height
+
             row_index = previous_utxo_count + i
-            txid_item = QtWidgets.QTableWidgetItem(utxo["prevout_hash"])
+            txid_item = QtWidgets.QTableWidgetItem(stake.utxo.txid.get_hex())
             self.utxos_wigdet.setItem(row_index, 0, txid_item)
 
-            vout_item = QtWidgets.QTableWidgetItem(str(utxo["prevout_n"]))
+            vout_item = QtWidgets.QTableWidgetItem(str(stake.utxo.n))
             self.utxos_wigdet.setItem(row_index, 1, vout_item)
 
-            amount_item = QtWidgets.QTableWidgetItem(str(utxo["value"]))
-            if utxo["value"] < PROOF_DUST_THRESHOLD:
+            amount_item = QtWidgets.QTableWidgetItem(str(stake.amount))
+            if stake.amount < PROOF_DUST_THRESHOLD:
                 amount_item.setForeground(QtGui.QColor("red"))
                 amount_item.setToolTip(
                     _(
@@ -323,14 +378,6 @@ class AvaProofEditor(CachedWalletPasswordWidget):
                     f"valid after block {utxo_validity_height}."
                 )
             self.utxos_wigdet.setItem(row_index, 3, height_item)
-
-        if unconfirmed_utxos:
-            QtWidgets.QMessageBox.warning(
-                self,
-                _("Excluded coins"),
-                f"{len(unconfirmed_utxos)} coins have been ignored because they are "
-                f"unconfirmed or do not have a block height specified.",
-            )
 
     def _get_privkey_suggestion(self) -> str:
         """Get a private key to pre-fill the master key field.
@@ -413,6 +460,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         else:
             self.timestamp_widget.setValue(proof.expiration_time)
 
+        self.master_key_edit.setText("")
         for wif_key in known_keys:
             if Key.from_wif(wif_key).get_pubkey() == proof.master_pub:
                 self.master_key_edit.setText(wif_key)
@@ -425,23 +473,8 @@ class AvaProofEditor(CachedWalletPasswordWidget):
                 "Please fill it manually.",
             )
         self.master_pubkey_view.setText(proof.master_pub.to_hex())
-        utxos = []
-        for ss in proof.signed_stakes:
-            ss.verify_signature(proof.stake_commitment)
-            utxos.append(
-                {
-                    "address": Address.from_pubkey(ss.stake.pubkey.keydata),
-                    "prevout_hash": ss.stake.utxo.txid.get_hex(),
-                    "prevout_n": ss.stake.utxo.n,
-                    "value": ss.stake.amount,
-                    "height": ss.stake.height,
-                    "coinbase": ss.stake.is_coinbase,
-                    "stake_signature": ss.sig,
-                    "pubkey": ss.stake.pubkey.to_hex(),
-                }
-            )
+        self.add_stakes(proof.signed_stakes)
 
-        self.add_utxos(utxos)
         self.proof_display.setText(
             f'<p style="color:black;"><b>{proof.to_hex()}</b></p>'
         )
@@ -456,16 +489,6 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         proof = self._build()
         if proof is not None:
             self.proof_display.setText(f'<p style="color:black;"><b>{proof}</b></p>')
-            reply = QtWidgets.QMessageBox.question(
-                self,
-                "Freeze coins",
-                "Spending coins that are used as stakes in a proof will invalidate "
-                "the proof. Do you want to freeze the corresponding coins to avoid "
-                "accidentally spending them?",
-                defaultButton=QtWidgets.QMessageBox.Yes,
-            )
-            if reply == QtWidgets.QMessageBox.Yes:
-                self.wallet.set_frozen_coin_state(self.utxos, freeze=True)
         self.generate_dg_button.setEnabled(proof is not None)
 
     def _build(self) -> Optional[str]:
@@ -500,50 +523,11 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             payout_address=payout_address,
         )
 
-        for utxo in self.utxos:
-            assert utxo["height"] <= 0
-            address = utxo["address"]
-            if not isinstance(utxo["address"], Address):
-                # utxo loaded from JSON file (serialized)
-                address = Address.from_string(address)
-            txid = UInt256.from_hex(utxo["prevout_hash"])
-
-            if utxo.get("stake_signature") is None:
-                # Unsigned stake: utxo must belong to this wallet
-                try:
-                    priv_key = self.wallet.export_private_key(address, self.pwd)
-                except AddressNotFoundError:
-                    QtWidgets.QMessageBox.critical(
-                        self,
-                        _("Missing key or signature"),
-                        f'UTXO {utxo["prevout_hash"]}:{utxo["prevout_n"]} with address '
-                        f"{address.to_ui_string()} does not belong to this wallet.",
-                    )
-                    return
-
-                proofbuilder.add_utxo(
-                    txid=txid,
-                    vout=utxo["prevout_n"],
-                    amount=utxo["value"],
-                    height=utxo["height"],
-                    wif_privkey=priv_key,
-                    is_coinbase=utxo["coinbase"],
-                )
+        for ss in self.stakes:
+            if isinstance(ss, StakeAndKey):
+                proofbuilder.sign_and_add_stake(ss.stake, ss.key)
             else:
-                # Signed stake loaded from an existing proof
-                assert utxo.get("pubkey") is not None
-                proofbuilder.add_signed_stake(
-                    SignedStake(
-                        Stake(
-                            COutPoint(txid, utxo["prevout_n"]),
-                            amount=utxo["value"],
-                            height=utxo["height"],
-                            pubkey=PublicKey.from_hex(utxo["pubkey"]),
-                            is_coinbase=utxo["coinbase"],
-                        ),
-                        utxo["stake_signature"],
-                    )
-                )
+                proofbuilder.add_signed_stake(ss)
 
         return proofbuilder.build().to_hex()
 

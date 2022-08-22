@@ -3632,10 +3632,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         if dialog.add_utxos(utxos):
             dialog.exec_()
 
-        # Update the coins' frozen state.
-        self.utxo_list.update()
-        self.update_fee()
-
     def build_avalanche_delegation(self):
         """
         Open a dialog to build an avalanche delegation.
