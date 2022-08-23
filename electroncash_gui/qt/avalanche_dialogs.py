@@ -488,7 +488,8 @@ class AvaProofEditor(CachedWalletPasswordWidget):
                 self,
                 "Missing private key",
                 "Unable to guess private key associated with this proof's public key. "
-                "Please fill it manually.",
+                "You can fill it manually if you know it, or leave it blank if you "
+                "just want to sign your stakes, ",
             )
         self.master_pubkey_view.setText(proof.master_pub.to_hex())
         self.add_stakes(proof.signed_stakes)
@@ -530,16 +531,24 @@ class AvaProofEditor(CachedWalletPasswordWidget):
     def _build(self) -> Optional[str]:
         master_wif = self.master_key_edit.text()
         if not is_private_key(master_wif):
-            reply = QtWidgets.QMessageBox.question(
+            try:
+                master_pub = PublicKey.from_hex(self.master_pubkey_view.text())
+            except DeserializationError:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "No valid master key",
+                    "You need to specify either a master private key or a master "
+                    "public key before generate a proof.",
+                )
+                return
+            QtWidgets.QMessageBox.warning(
                 self,
                 "Invalid private key",
-                "Could not parse private key. Do you want to generate a proof with an "
-                "invalid signature anyway?",
+                "Unable to parse private key. The generated proof will not be signed. "
+                "This is OK if you just intend to sign your stakes and sign the proof "
+                "later in a master wallet.",
             )
-            if reply != QtWidgets.QMessageBox.Yes:
-                return
             master = None
-            master_pub = PublicKey.from_hex(self.master_pubkey_view.text())
         else:
             master = Key.from_wif(master_wif)
             master_pub = None
