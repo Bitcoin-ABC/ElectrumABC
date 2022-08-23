@@ -520,26 +520,11 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         )
 
     def on_load_proof_clicked(self):
-        reply = QtWidgets.QMessageBox.question(
-            self,
-            "Overwrite current proof data",
-            "Loading a proof will overwrite all data. Do you confirm?",
-            defaultButton=QtWidgets.QMessageBox.Yes,
-        )
-        if reply != QtWidgets.QMessageBox.Yes:
+        d = LoadProofDialog(self)
+        if not d.exec_():
             return
-        fileName, __ = QtWidgets.QFileDialog.getOpenFileName(
-            self,
-            "Select the proof file",
-            filter="Avalanche proof (*.proof);;All files (*)",
-        )
-        if not fileName:
-            return
-        with open(fileName, "r") as f:
-            proof_hex = f.read().strip()
-        # TODO: catch all possible proof & hex format errors
-        self.load_proof(Proof.from_hex(proof_hex))
 
+        self.load_proof(d.proof)
         self.generate_dg_button.setEnabled(True)
         self.save_proof_button.setEnabled(True)
 
@@ -711,6 +696,67 @@ class AvaProofDialog(QtWidgets.QDialog):
         return True
 
 
+class LoadProofDialog(QtWidgets.QDialog):
+    def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
+        super().__init__(parent)
+        self.setWindowTitle("Load an existing proof")
+
+        self.proof: Optional[Proof] = None
+
+        layout = QtWidgets.QVBoxLayout()
+        self.setLayout(layout)
+
+        layout.addWidget(
+            QtWidgets.QLabel('Paste a hexadecimal proof or click "Load from file"')
+        )
+
+        self.proof_edit = QtWidgets.QTextEdit()
+        self.proof_edit.setAcceptRichText(False)
+        layout.addWidget(self.proof_edit)
+
+        self.load_from_file_button = QtWidgets.QPushButton("Load from file")
+        layout.addWidget(self.load_from_file_button)
+
+        buttons_layout = QtWidgets.QHBoxLayout()
+        layout.addLayout(buttons_layout)
+
+        self.ok_button = QtWidgets.QPushButton("OK")
+        self.ok_button.setEnabled(False)
+        buttons_layout.addWidget(self.ok_button)
+        self.cancel_button = QtWidgets.QPushButton("Cancel")
+        buttons_layout.addWidget(self.cancel_button)
+
+        self.load_from_file_button.clicked.connect(self.on_load_from_file_clicked)
+        self.ok_button.clicked.connect(self.accept)
+        self.cancel_button.clicked.connect(self.reject)
+        self.proof_edit.textChanged.connect(self.on_proof_text_changed)
+
+    def on_load_from_file_clicked(self):
+        proof_hex = self.load_from_file()
+        if proof_hex:
+            self.proof_edit.setText(proof_hex)
+
+    def load_from_file(self) -> Optional[str]:
+        fileName, __ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            "Select the proof file",
+            filter="Avalanche proof (*.proof);;All files (*)",
+        )
+        if not fileName:
+            return
+        with open(fileName, "r") as f:
+            proof_hex = f.read().strip()
+        return proof_hex
+
+    def on_proof_text_changed(self):
+        try:
+            self.proof = Proof.from_hex(self.proof_edit.toPlainText())
+        except DeserializationError:
+            self.proof = None
+
+        self.ok_button.setEnabled(self.proof is not None)
+
+
 class AvaDelegationWidget(CachedWalletPasswordWidget):
     def __init__(
         self,
@@ -724,6 +770,9 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
 
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
+
+        self.load_proof_button = QtWidgets.QPushButton("Load proof from file")
+        layout.addWidget(self.load_proof_button)
 
         self.tab_widget = QtWidgets.QTabWidget()
         layout.addWidget(self.tab_widget)
@@ -781,6 +830,7 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
         layout.addWidget(self.dg_display)
 
         # Signals
+        self.load_proof_button.clicked.connect(self.on_load_proof_clicked)
         self.dg_edit.textChanged.connect(self.on_delegation_pasted)
         generate_key_button.clicked.connect(self.on_generate_key_clicked)
         self.generate_button.clicked.connect(self.on_generate_clicked)
@@ -790,6 +840,19 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
 
     def set_master(self, master_wif: str):
         self.delegator_key_edit.setText(master_wif)
+
+    def on_load_proof_clicked(self):
+        fileName, __ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            "Select the proof file",
+            filter="Avalanche proof (*.proof);;All files (*)",
+        )
+        if not fileName:
+            return
+        with open(fileName, "r") as f:
+            proof_hex = f.read().strip()
+        self.set_proof(proof_hex)
+        self.tab_widget.setCurrentWidget(self.proof_edit)
 
     def on_delegation_pasted(self):
         """Deserialize the delegation to be used as a base delegation to which a level
