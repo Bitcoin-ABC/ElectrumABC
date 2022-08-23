@@ -210,7 +210,9 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.master_key_edit = QtWidgets.QLineEdit()
         self.master_key_edit.setToolTip(
             "Private key that controls the proof. This is the key that signs the "
-            "delegation or signs the avalanche votes."
+            "delegation or signs the avalanche votes. The suggested key (if any) is "
+            "derived from the wallet's seed, on the (change_index, key_index) = (2, 0) "
+            "index."
         )
         layout.addWidget(self.master_key_edit)
         layout.addSpacing(10)
@@ -896,6 +898,8 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
         QtWidgets.QMessageBox.information(
             self,
             "Delegated key",
+            f"This key is derived from the change_index = 2 branch of this wallet's "
+            f"derivation path.<br><br>"
             f"Please save the following private key:<br><b>{wif_pk}</b><br><br>"
             f"You will need it to use your delegation with a Bitcoin ABC node.",
         )
