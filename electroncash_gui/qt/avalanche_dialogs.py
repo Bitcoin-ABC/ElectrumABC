@@ -22,7 +22,11 @@ from electroncash.avalanche.proof import (
     SignedStake,
     Stake,
 )
-from electroncash.avalanche.serialize import DeserializationError
+from electroncash.avalanche.serialize import (
+    DeserializationError,
+    serialize_blob,
+    write_compact_size,
+)
 from electroncash.bitcoin import is_private_key
 from electroncash.constants import PROOF_DUST_THRESHOLD, STAKE_UTXO_CONFIRMATIONS
 from electroncash.i18n import _
@@ -63,6 +67,7 @@ def proof_to_rich_text(proof: Proof) -> str:
     """
     p = struct.pack("<Qq", proof.sequence, proof.expiration_time)
     p += proof.master_pub.serialize()
+    p += write_compact_size(len(proof.signed_stakes))
     rich_text = colored_text(p.hex(), TextColor.NEUTRAL)
 
     for ss in proof.signed_stakes:
@@ -72,7 +77,9 @@ def proof_to_rich_text(proof: Proof) -> str:
         else:
             rich_text += colored_text(ss.sig.hex(), TextColor.BAD_STAKE_SIG)
 
-    rich_text += colored_text(proof.payout_script_pubkey.hex(), TextColor.NEUTRAL)
+    rich_text += colored_text(
+        serialize_blob(proof.payout_script_pubkey).hex(), TextColor.NEUTRAL
+    )
     if proof.verify_master_signature():
         return rich_text + colored_text(proof.signature.hex(), TextColor.GOOD_SIG)
     return rich_text + colored_text(proof.signature.hex(), TextColor.BAD_SIG)
@@ -495,6 +502,9 @@ class AvaProofEditor(CachedWalletPasswordWidget):
 
     def displayProof(self, proof: Proof):
         self.proof_display.setText(proof_to_rich_text(proof))
+        assert proof.to_hex() == self.proof_display.toPlainText()
+
+        # Update status bar below actual proof display
         if proof.verify_master_signature():
             self.master_sig_status_label.setText(
                 colored_text("✅ Valid", TextColor.GOOD_SIG)
