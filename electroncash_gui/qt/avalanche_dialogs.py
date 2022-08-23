@@ -601,13 +601,10 @@ class AvaProofDialog(QtWidgets.QDialog):
 
         buttons_layout = QtWidgets.QHBoxLayout()
         layout.addLayout(buttons_layout)
-        self.ok_button = QtWidgets.QPushButton("OK")
-        buttons_layout.addWidget(self.ok_button)
-        self.dismiss_button = QtWidgets.QPushButton("Dismiss")
-        buttons_layout.addWidget(self.dismiss_button)
+        self.close_button = QtWidgets.QPushButton("Close")
+        buttons_layout.addWidget(self.close_button)
 
-        self.ok_button.clicked.connect(self.accept)
-        self.dismiss_button.clicked.connect(self.reject)
+        self.close_button.clicked.connect(self.accept)
 
     def add_utxos(self, utxos: List[dict]) -> bool:
         if not self.check_utxos(utxos):
@@ -856,13 +853,10 @@ class AvaDelegationDialog(QtWidgets.QDialog):
 
         buttons_layout = QtWidgets.QHBoxLayout()
         layout.addLayout(buttons_layout)
-        self.ok_button = QtWidgets.QPushButton("OK")
-        buttons_layout.addWidget(self.ok_button)
-        self.dismiss_button = QtWidgets.QPushButton("Dismiss")
-        buttons_layout.addWidget(self.dismiss_button)
+        self.close_button = QtWidgets.QPushButton("Close")
+        buttons_layout.addWidget(self.close_button)
 
-        self.ok_button.clicked.connect(self.accept)
-        self.dismiss_button.clicked.connect(self.reject)
+        self.close_button.clicked.connect(self.accept)
 
     def set_proof(self, proof_hex: str):
         self.dg_widget.set_proof(proof_hex)
