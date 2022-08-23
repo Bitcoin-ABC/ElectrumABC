@@ -578,10 +578,16 @@ class AvaProofEditor(CachedWalletPasswordWidget):
                 "No proof to be saved. The save button should not be enabled."
             )
         proof = Proof.from_hex(self.proof_display.toPlainText())
+
+        default_filename = f"{proof.proofid.get_hex()[:8]}"
+        if not proof.verify_master_signature():
+            default_filename += "-unsigned"
+        default_filename += ".proof"
+
         fileName, __ = QtWidgets.QFileDialog.getSaveFileName(
             self,
             "Save proof to file",
-            f"{proof.proofid.get_hex()[:8]}.proof",
+            default_filename,
             filter="Avalanche proof (*.proof);;All files (*)",
         )
         if not fileName:
