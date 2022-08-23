@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import struct
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Optional, Union
 
@@ -41,6 +42,40 @@ class StakeAndKey:
 
     stake: stake
     key: Key
+
+
+class TextColor:
+    NEUTRAL = "black"
+    GOOD_SIG = "darkgreen"
+    BAD_SIG = "darkred"
+    GOOD_STAKE_SIG = "blue"
+    BAD_STAKE_SIG = "darkmagenta"
+
+
+def colored_text(text: str, color: str) -> str:
+    return f"<b><font color='{color}'>{text}</font></b>"
+
+
+def proof_to_rich_text(proof: Proof) -> str:
+    """
+    Return a proof hex as a colored html string. Colors are used to indicate the
+    validity of stake signatures and of the master signature.
+    """
+    p = struct.pack("<Qq", proof.sequence, proof.expiration_time)
+    p += proof.master_pub.serialize()
+    rich_text = colored_text(p.hex(), TextColor.NEUTRAL)
+
+    for ss in proof.signed_stakes:
+        rich_text += colored_text(ss.stake.to_hex(), TextColor.NEUTRAL)
+        if ss.verify_signature(proof.stake_commitment):
+            rich_text += colored_text(ss.sig.hex(), TextColor.GOOD_STAKE_SIG)
+        else:
+            rich_text += colored_text(ss.sig.hex(), TextColor.BAD_STAKE_SIG)
+
+    rich_text += colored_text(proof.payout_script_pubkey.hex(), TextColor.NEUTRAL)
+    if proof.verify_master_signature():
+        return rich_text + colored_text(proof.signature.hex(), TextColor.GOOD_SIG)
+    return rich_text + colored_text(proof.signature.hex(), TextColor.BAD_SIG)
 
 
 # We generate a few deterministic private keys to pre-fill some widgets, so the user
@@ -230,6 +265,18 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.proof_display.setReadOnly(True)
         layout.addWidget(self.proof_display)
 
+        proof_status_layout = QtWidgets.QHBoxLayout()
+        layout.addLayout(proof_status_layout)
+
+        master_sig_status_header_label = QtWidgets.QLabel("Master signature: ")
+        proof_status_layout.addWidget(master_sig_status_header_label)
+        self.master_sig_status_label = QtWidgets.QLabel("")
+        proof_status_layout.addWidget(self.master_sig_status_label)
+        stake_sigs_status_header_label = QtWidgets.QLabel("Stake signatures: ")
+        proof_status_layout.addWidget(stake_sigs_status_header_label)
+        self.stake_sigs_status_label = QtWidgets.QLabel("")
+        proof_status_layout.addWidget(self.stake_sigs_status_label)
+
         proof_buttons_layout = QtWidgets.QHBoxLayout()
         layout.addLayout(proof_buttons_layout)
 
@@ -281,6 +328,8 @@ class AvaProofEditor(CachedWalletPasswordWidget):
 
         self.utxos_wigdet.clearContents()
         self.proof_display.setText("")
+        self.master_sig_status_label.clear()
+        self.stake_sigs_status_label.clear()
 
     def add_utxos(self, utxos: List[dict]):
         """Add UTXOs from a list of dict objects, such as stored internally by
@@ -440,6 +489,36 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         # TODO: catch possible decoding, format, hex ... errors
         self.add_stakes(Proof.from_hex(proof_hex).signed_stakes)
 
+        self._on_generate_clicked()
+
+    def displayProof(self, proof: Proof):
+        self.proof_display.setText(proof_to_rich_text(proof))
+        if proof.verify_master_signature():
+            self.master_sig_status_label.setText(
+                colored_text("✅ Valid", TextColor.GOOD_SIG)
+            )
+        else:
+            self.master_sig_status_label.setText(
+                colored_text("❌ Invalid", TextColor.BAD_SIG)
+            )
+
+        good_count, bad_count = 0, 0
+        for ss in proof.signed_stakes:
+            if ss.verify_signature(proof.stake_commitment):
+                good_count += 1
+            else:
+                bad_count += 1
+        text = ""
+        if good_count:
+            text = colored_text(f"{good_count} good", TextColor.GOOD_STAKE_SIG)
+        if bad_count:
+            if text:
+                text += "; "
+            text += colored_text(f"{bad_count} bad", TextColor.BAD_STAKE_SIG)
+        self.stake_sigs_status_label.setText(
+            text or colored_text("No stakes", TextColor.NEUTRAL)
+        )
+
     def on_load_proof_clicked(self):
         reply = QtWidgets.QMessageBox.question(
             self,
@@ -494,9 +573,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.master_pubkey_view.setText(proof.master_pub.to_hex())
         self.add_stakes(proof.signed_stakes)
 
-        self.proof_display.setText(
-            f'<p style="color:black;"><b>{proof.to_hex()}</b></p>'
-        )
+        self.displayProof(proof)
 
     def on_save_proof_clicked(self):
         if not self.proof_display.toPlainText():
@@ -524,11 +601,11 @@ class AvaProofEditor(CachedWalletPasswordWidget):
     def _on_generate_clicked(self):
         proof = self._build()
         if proof is not None:
-            self.proof_display.setText(f'<p style="color:black;"><b>{proof}</b></p>')
+            self.displayProof(proof)
         self.generate_dg_button.setEnabled(proof is not None)
         self.save_proof_button.setEnabled(proof is not None)
 
-    def _build(self) -> Optional[str]:
+    def _build(self) -> Optional[Proof]:
         master_wif = self.master_key_edit.text()
         if not is_private_key(master_wif):
             try:
@@ -583,7 +660,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             else:
                 proofbuilder.add_signed_stake(ss)
 
-        return proofbuilder.build().to_hex()
+        return proofbuilder.build()
 
     def open_dg_dialog(self):
         if self.dg_dialog is None:
