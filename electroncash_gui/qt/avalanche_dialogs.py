@@ -360,6 +360,19 @@ class AvaProofEditor(CachedWalletPasswordWidget):
                 address = Address.from_string(address)
             txid = UInt256.from_hex(utxo["prevout_hash"])
 
+            # derive addresses as needed (if this is an offline wallet, it may not
+            # have derived addresses beyond the initial gap limit at index 20)
+            addr_index = utxo.get("address_index")
+            if addr_index is not None:
+                for_change = addr_index[0] == 1
+                num_addresses = (
+                    len(self.wallet.change_addresses)
+                    if for_change
+                    else len(self.wallet.receiving_addresses)
+                )
+                for _i in range(num_addresses, addr_index[1] + 1):
+                    self.wallet.create_new_address(for_change)
+
             try:
                 wif_key = self.wallet.export_private_key(address, self.pwd)
                 key = Key.from_wif(wif_key)
