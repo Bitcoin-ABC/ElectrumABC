@@ -531,13 +531,13 @@ class UTXOList(MyTreeWidget):
         if not len(utxos):
             return
 
-        # serialize the Address
+        # serialize the Address and add the address index
         utxos_for_json = []
         for utxo in utxos:
             utxo_for_json = utxo.copy()
-            utxo_for_json["address"] = utxo["address"].to_full_string(
-                Address.FMT_CASHADDR_BCH
-            )
+            addr = utxo["address"]
+            utxo_for_json["address"] = addr.to_full_string(Address.FMT_CASHADDR_BCH)
+            utxo_for_json["address_index"] = self.wallet.get_address_index(addr)
             utxos_for_json.append(utxo_for_json)
 
         fileName, _filter = QtWidgets.QFileDialog.getSaveFileName(
