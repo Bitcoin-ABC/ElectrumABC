@@ -20,11 +20,11 @@ class TestBCDataStream(unittest.TestCase):
             1,
             252,
             253,
-            2 ** 16 - 1,
-            2 ** 16,
-            2 ** 32 - 1,
-            2 ** 32,
-            2 ** 64 - 1,
+            2**16 - 1,
+            2**16,
+            2**32 - 1,
+            2**32,
+            2**64 - 1,
         ]
         for v in values:
             s.write_compact_size(v)

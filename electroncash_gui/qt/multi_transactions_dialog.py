@@ -97,7 +97,7 @@ class MultiTransactionsWidget(QtWidgets.QWidget, MessageBoxMixin):
 
         self.num_tx_label.setText(f"Number of transactions: <b>{len(transactions)}</b>")
 
-        sats_per_unit = 10 ** XEC.decimals
+        sats_per_unit = 10**XEC.decimals
         sum_in_value, sum_out_value, sum_fees = 0, 0, 0
         self.transactions_table.setRowCount(len(transactions))
         self.transactions_table.setHorizontalHeaderLabels(self._horiz_header_labels)
