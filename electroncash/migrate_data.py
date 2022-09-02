@@ -4,6 +4,9 @@ to the Electrum ABC data path if it does not already exists.
 The first time a user runs this program, if he already uses Electron Cash,
 he should be able to see all his BCH wallets and have some of the
 settings imported.
+
+This module also handles updating the config file when default config parameters are
+changed.
 """
 import glob
 import logging
@@ -214,6 +217,11 @@ def update_config():
         for fname in glob.glob(os.path.join(get_user_dir(), "cache", "CoinGecko_*")):
             _logger.info(f"Deleting exchange cache data {fname}")
             safe_rm(fname)
+
+    # Change default block explorer to e.cash
+    if tuple(config_version) <= (5, 1, 4) and "block_explorer" in config:
+        _logger.info("Updating the block explorer to the new default explorer.e.cash")
+        config["block_explorer"] = "eCash"
 
     # update version number, to avoid doing this again for this version
     config["latest_version_used"] = VERSION_TUPLE
