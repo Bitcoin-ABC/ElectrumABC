@@ -94,10 +94,15 @@ class BeCash(BlockchainExplorer):
     url_base = "https://explorer.be.cash"
 
 
-DEFAULT_EXPLORER = BitcoinABC
+class ECash(BlockchainExplorer):
+    name = "eCash"
+    url_base = "https://explorer.e.cash"
+
+
+DEFAULT_EXPLORER = ECash
 
 mainnet_block_explorers = {explorer.name: explorer for explorer in
-                           [Blockchair, ViaWallet, BitcoinABC, BeCash]}
+                           [ECash, Blockchair, ViaWallet, BitcoinABC, BeCash]}
 
 DEFAULT_EXPLORER_TESTNET = BitcoinABCTestnet
 
