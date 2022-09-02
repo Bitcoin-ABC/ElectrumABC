@@ -29,16 +29,14 @@ import re
 import shutil
 import sys
 import threading
-from typing import Dict, Union
 import urllib
+from typing import Dict, Union
 
+from . import bitcoin, cashacct, networks
 from .address import Address
-from . import bitcoin
 from .constants import WHITELISTED_PREFIXES
-from . import networks
-from .util import format_satoshis_plain, bh2u, bfh, print_error, do_in_main_thread
-from . import cashacct
 from .i18n import _
+from .util import bfh, bh2u, do_in_main_thread, format_satoshis_plain, print_error
 
 
 class ExplorerUrlParts(enum.Enum):
@@ -101,8 +99,10 @@ class ECash(BlockchainExplorer):
 
 DEFAULT_EXPLORER = ECash
 
-mainnet_block_explorers = {explorer.name: explorer for explorer in
-                           [ECash, Blockchair, ViaWallet, BitcoinABC, BeCash]}
+mainnet_block_explorers = {
+    explorer.name: explorer
+    for explorer in [ECash, Blockchair, ViaWallet, BitcoinABC, BeCash]
+}
 
 DEFAULT_EXPLORER_TESTNET = BitcoinABCTestnet
 
@@ -122,7 +122,7 @@ def BE_default_explorer() -> BlockchainExplorer:
 
 
 def BE_name_from_config(config) -> str:
-    return config.get('block_explorer', BE_default_explorer().name)
+    return config.get("block_explorer", BE_default_explorer().name)
 
 
 def BE_URL(config, kind: ExplorerUrlParts, item: Union[str, Address]) -> str:
@@ -143,74 +143,91 @@ def BE_URL(config, kind: ExplorerUrlParts, item: Union[str, Address]) -> str:
 def BE_sorted_list():
     return sorted(BE_info())
 
+
 def _strip_cashacct_str(s: str) -> str:
-    '''Strips emojis and ';' characters from a cashacct string
-    of the form name#number[.123]'''
-    return cashacct.CashAcct.strip_emoji(s).replace(';', '').strip()
+    """Strips emojis and ';' characters from a cashacct string
+    of the form name#number[.123]"""
+    return cashacct.CashAcct.strip_emoji(s).replace(";", "").strip()
+
 
 def create_URI(addr, amount, message, *, op_return=None, op_return_raw=None, net=None):
     is_cashacct = bool(isinstance(addr, str) and cashacct.CashAcct.parse_string(addr))
     if not isinstance(addr, Address) and not is_cashacct:
         return ""
     if op_return is not None and op_return_raw is not None:
-        raise ValueError('Must specify exactly one of op_return or op_return_hex as kwargs to create_URI')
+        raise ValueError(
+            "Must specify exactly one of op_return or op_return_hex as kwargs to create_URI"
+        )
     if is_cashacct:
         scheme, path = cashacct.URI_SCHEME, _strip_cashacct_str(addr)
     else:
         scheme, path = addr.to_URI_components(net=net)
     query = []
     if amount:
-        query.append(f'amount={format_satoshis_plain(amount, 2)}')
+        query.append(f"amount={format_satoshis_plain(amount, 2)}")
     if message:
-        query.append('message=%s'%urllib.parse.quote(message))
+        query.append(f"message={urllib.parse.quote(message)}")
     if op_return:
-        query.append(f'op_return={str(op_return)}')
+        query.append(f"op_return={str(op_return)}")
     if op_return_raw:
-        query.append(f'op_return_raw={str(op_return_raw)}')
-    p = urllib.parse.ParseResult(scheme=scheme,
-                                 netloc='', path=path, params='',
-                                 query='&'.join(query), fragment='')
+        query.append(f"op_return_raw={str(op_return_raw)}")
+    p = urllib.parse.ParseResult(
+        scheme=scheme,
+        netloc="",
+        path=path,
+        params="",
+        query="&".join(query),
+        fragment="",
+    )
     return urllib.parse.urlunparse(p)
 
+
 def urlencode(s):
-    ''' URL Encode; encodes a url or a uri fragment by %-quoting special chars'''
+    """URL Encode; encodes a url or a uri fragment by %-quoting special chars"""
     return urllib.parse.quote(s)
 
+
 def urldecode(url):
-    ''' Inverse of urlencode '''
+    """Inverse of urlencode"""
     return urllib.parse.unquote(url)
 
-def parseable_schemes(net = None) -> tuple:
+
+def parseable_schemes(net=None) -> tuple:
     if net is None:
         net = networks.net
-    return tuple(WHITELISTED_PREFIXES) + (cashacct.URI_SCHEME, )
+    return tuple(WHITELISTED_PREFIXES) + (cashacct.URI_SCHEME,)
+
 
 class ExtraParametersInURIWarning(RuntimeWarning):
-    ''' Raised by parse_URI to indicate the parsing succeeded but that
+    """Raised by parse_URI to indicate the parsing succeeded but that
     extra parameters were encountered when parsing.
     args[0] is the function return value (dict of parsed args).
-    args[1:] are the URL parameters that were not understood (unknown params)'''
+    args[1:] are the URL parameters that were not understood (unknown params)"""
+
 
 class DuplicateKeyInURIError(RuntimeError):
-    ''' Raised on duplicate param keys in URI.
+    """Raised on duplicate param keys in URI.
     args[0] is a translated error message suitable for the UI
-    args[1:] is the list of duplicate keys. '''
+    args[1:] is the list of duplicate keys."""
+
 
 class BadSchemeError(RuntimeError):
-    ''' Raised if the scheme is bad/unknown for a URI. '''
+    """Raised if the scheme is bad/unknown for a URI."""
+
 
 class BadURIParameter(ValueError):
-    ''' Raised if:
-            - 'amount' is not numeric,
-            - 'address' is invalid
-            - bad cashacct string,
-            - 'time' or 'exp' are not ints
+    """Raised if:
+        - 'amount' is not numeric,
+        - 'address' is invalid
+        - bad cashacct string,
+        - 'time' or 'exp' are not ints
 
-        args[0] is the bad argument name e.g. 'amount'
-        args[1] is the underlying Exception that was raised (if any, may be missing). '''
+    args[0] is the bad argument name e.g. 'amount'
+    args[1] is the underlying Exception that was raised (if any, may be missing)."""
+
 
 def parse_URI(uri, on_pr=None, *, net=None, strict=False, on_exc=None):
-    """ If strict=True, may raise ExtraParametersInURIWarning (see docstring
+    """If strict=True, may raise ExtraParametersInURIWarning (see docstring
     above).
 
     on_pr - a callable that will run in the context of a daemon thread if this
@@ -229,111 +246,140 @@ def parse_URI(uri, on_pr=None, *, net=None, strict=False, on_exc=None):
     May raise BadSchemeError if unknown scheme.
     May raise Exception subclass on other misc. failure.
 
-    Returns a dict of uri_param -> value on success """
+    Returns a dict of uri_param -> value on success"""
     if net is None:
         net = networks.net
-    if ':' not in uri:
+    if ":" not in uri:
         # Test it's valid
         Address.from_string(uri, net=net)
-        return {'address': uri}
+        return {"address": uri}
 
-    u = urllib.parse.urlparse(uri, allow_fragments=False)  # allow_fragments=False allows for cashacct:name#number URIs
+    u = urllib.parse.urlparse(
+        uri, allow_fragments=False
+    )  # allow_fragments=False allows for cashacct:name#number URIs
     # The scheme always comes back in lower case
     accept_schemes = parseable_schemes(net=net)
     if u.scheme not in accept_schemes:
-        raise BadSchemeError(_("Not a {schemes} URI").format(schemes=str(accept_schemes)))
+        raise BadSchemeError(
+            _("Not a {schemes} URI").format(schemes=str(accept_schemes))
+        )
     address = u.path
 
     is_cashacct = u.scheme == cashacct.URI_SCHEME
 
     # python for android fails to parse query
-    if address.find('?') > 0:
-        address, query = u.path.split('?')
+    if address.find("?") > 0:
+        address, query = u.path.split("?")
         pq = urllib.parse.parse_qs(query, keep_blank_values=True)
     else:
         pq = urllib.parse.parse_qs(u.query, keep_blank_values=True)
 
     for k, v in pq.items():
         if len(v) != 1:
-            raise DuplicateKeyInURIError(_('Duplicate key in URI'), k)
+            raise DuplicateKeyInURIError(_("Duplicate key in URI"), k)
 
     out = {k: v[0] for k, v in pq.items()}
     if address:
         if is_cashacct:
-            if '%' in address:
+            if "%" in address:
                 # on macOS and perhaps other platforms the '#' character may
                 # get passed-in as a '%23' if opened from a link or from
                 # some other source.  The below call is safe and won't raise.
                 address = urldecode(address)
             if not cashacct.CashAcct.parse_string(address):
-                raise BadURIParameter('address', ValueError(_("{acct_name} is not a valid cashacct string").format(acct_name=address)))
+                raise BadURIParameter(
+                    "address",
+                    ValueError(
+                        _("{acct_name} is not a valid cashacct string").format(
+                            acct_name=address
+                        )
+                    ),
+                )
             address = _strip_cashacct_str(address)
         else:
             # validate
-            try: Address.from_string(address, net=net)
-            except Exception as e: raise BadURIParameter('address', e) from e
-        out['address'] = address
+            try:
+                Address.from_string(address, net=net)
+            except Exception as e:
+                raise BadURIParameter("address", e) from e
+        out["address"] = address
 
-    if 'amount' in out:
+    if "amount" in out:
         try:
-            am = out['amount']
-            m = re.match(r'([0-9.]+)X([0-9]{2})', am)
+            am = out["amount"]
+            m = re.match(r"([0-9.]+)X([0-9]{2})", am)
             if m:
                 k = int(m.group(2)) - 2
                 amount = decimal.Decimal(m.group(1)) * int(pow(10, k))
             else:
                 amount = decimal.Decimal(am) * int(bitcoin.CASH)
-            out['amount'] = int(amount)
+            out["amount"] = int(amount)
         except (ValueError, decimal.InvalidOperation, TypeError) as e:
-            raise BadURIParameter('amount', e) from e
+            raise BadURIParameter("amount", e) from e
 
-    if strict and 'memo' in out and 'message' in out:
+    if strict and "memo" in out and "message" in out:
         # these two args are equivalent and cannot both appear together
-        raise DuplicateKeyInURIError(_('Duplicate key in URI'), 'memo', 'message')
-    elif 'message' in out:
-        out['memo'] = out['message']
-    elif 'memo' in out:
-        out['message'] = out['memo']
-    if 'time' in out:
-        try: out['time'] = int(out['time'])
-        except ValueError as e: raise BadURIParameter('time', e) from e
-    if 'exp' in out:
-        try: out['exp'] = int(out['exp'])
-        except ValueError as e: raise BadURIParameter('exp', e) from e
-    if 'sig' in out:
-        try: out['sig'] = bh2u(bitcoin.base_decode(out['sig'], None, base=58))
-        except Exception as e: raise BadURIParameter('sig', e) from e
-    if 'op_return_raw' in out and 'op_return' in out:
+        raise DuplicateKeyInURIError(_("Duplicate key in URI"), "memo", "message")
+    elif "message" in out:
+        out["memo"] = out["message"]
+    elif "memo" in out:
+        out["message"] = out["memo"]
+    if "time" in out:
+        try:
+            out["time"] = int(out["time"])
+        except ValueError as e:
+            raise BadURIParameter("time", e) from e
+    if "exp" in out:
+        try:
+            out["exp"] = int(out["exp"])
+        except ValueError as e:
+            raise BadURIParameter("exp", e) from e
+    if "sig" in out:
+        try:
+            out["sig"] = bh2u(bitcoin.base_decode(out["sig"], None, base=58))
+        except Exception as e:
+            raise BadURIParameter("sig", e) from e
+    if "op_return_raw" in out and "op_return" in out:
         if strict:
             # these two args cannot both appear together
-            raise DuplicateKeyInURIError(_('Duplicate key in URI'), 'op_return', 'op_return_raw')
-        del out['op_return_raw']  # if not strict, just pick 1 and delete the other
+            raise DuplicateKeyInURIError(
+                _("Duplicate key in URI"), "op_return", "op_return_raw"
+            )
+        del out["op_return_raw"]  # if not strict, just pick 1 and delete the other
 
-    if 'op_return_raw' in out:
+    if "op_return_raw" in out:
         # validate op_return_raw arg
-        try: bfh(out['op_return_raw'])
-        except Exception as e: raise BadURIParameter('op_return_raw', e) from e
+        try:
+            bfh(out["op_return_raw"])
+        except Exception as e:
+            raise BadURIParameter("op_return_raw", e) from e
 
-    r = out.get('r')
-    sig = out.get('sig')
-    name = out.get('name')
+    r = out.get("r")
+    sig = out.get("sig")
+    name = out.get("name")
     is_pr = bool(r or (name and sig))
 
     if is_pr and is_cashacct:
-        raise ValueError(_("'{uri_scheme}' payment requests are not currently supported").format(uri_scheme=cashacct.URI_SCHEME))
+        raise ValueError(
+            _("'{uri_scheme}' payment requests are not currently supported").format(
+                uri_scheme=cashacct.URI_SCHEME
+            )
+        )
 
     if on_pr and is_pr:
+
         def get_payment_request_thread():
             from . import paymentrequest as pr
+
             try:
                 if name and sig:
                     s = pr.serialize_request(out).SerializeToString()
                     request = pr.PaymentRequest(s)
                 else:
                     request = pr.get_payment_request(r)
-            except:
-                ''' May happen if the values in the request are such
-                that they cannot be serialized to a protobuf. '''
+            except Exception:
+                """May happen if the values in the request are such
+                that they cannot be serialized to a protobuf."""
                 einfo = sys.exc_info()
                 print_error("Error processing payment request:", str(einfo[1]))
                 if on_exc:
@@ -345,28 +391,43 @@ def parse_URI(uri, on_pr=None, *, net=None, strict=False, on_exc=None):
                 # expecting this, so we will leave the original code here where
                 # it runs in the daemon thread context. :/
                 on_pr(request)
+
         t = threading.Thread(target=get_payment_request_thread, daemon=True)
         t.start()
     if strict:
-        accept_keys = {'r', 'sig', 'name', 'address', 'amount', 'label', 'message', 'memo', 'op_return', 'op_return_raw', 'time', 'exp'}
+        accept_keys = {
+            "r",
+            "sig",
+            "name",
+            "address",
+            "amount",
+            "label",
+            "message",
+            "memo",
+            "op_return",
+            "op_return_raw",
+            "time",
+            "exp",
+        }
         extra_keys = set(out.keys()) - accept_keys
         if extra_keys:
             raise ExtraParametersInURIWarning(out, *tuple(extra_keys))
     return out
 
+
 def check_www_dir(rdir):
     if not os.path.exists(rdir):
         os.mkdir(rdir)
-    index = os.path.join(rdir, 'index.html')
+    index = os.path.join(rdir, "index.html")
     if not os.path.exists(index):
         print_error("copying index.html")
-        src = os.path.join(os.path.dirname(__file__), 'www', 'index.html')
+        src = os.path.join(os.path.dirname(__file__), "www", "index.html")
         shutil.copy(src, index)
     files = [
         "https://code.jquery.com/jquery-1.9.1.min.js",
         "https://raw.githubusercontent.com/davidshimjs/qrcodejs/master/qrcode.js",
         "https://code.jquery.com/ui/1.10.3/jquery-ui.js",
-        "https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css"
+        "https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css",
     ]
     for URL in files:
         path = urllib.parse.urlsplit(URL).path
