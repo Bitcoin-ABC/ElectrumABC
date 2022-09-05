@@ -681,7 +681,7 @@ class AvaProofDialog(QtWidgets.QDialog):
         parent: Optional[QtWidgets.QWidget] = None,
     ):
         super().__init__(parent)
-        self.setWindowTitle("Avalanche proof editor")
+        self.setWindowTitle(f"Avalanche proof editor - {wallet.basename()}")
 
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
