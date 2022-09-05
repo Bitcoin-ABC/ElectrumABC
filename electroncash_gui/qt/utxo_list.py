@@ -536,7 +536,7 @@ class UTXOList(MyTreeWidget):
         for utxo in utxos:
             utxo_for_json = utxo.copy()
             addr = utxo["address"]
-            utxo_for_json["address"] = addr.to_full_string(Address.FMT_CASHADDR_BCH)
+            utxo_for_json["address"] = addr.to_full_string(Address.FMT_CASHADDR)
             utxo_for_json["address_index"] = self.wallet.get_address_index(addr)
             utxos_for_json.append(utxo_for_json)
 
