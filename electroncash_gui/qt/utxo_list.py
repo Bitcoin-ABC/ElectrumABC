@@ -564,4 +564,4 @@ class UTXOList(MyTreeWidget):
             parent=self,
         )
         if dialog.add_utxos(utxos):
-            dialog.exec_()
+            dialog.show()

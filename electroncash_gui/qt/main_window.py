@@ -3598,7 +3598,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     def open_proof_editor(self):
         dialog = AvaProofDialog(self.wallet, self.receive_address, parent=self)
-        dialog.exec_()
+        dialog.show()
 
     def build_avalanche_delegation(self):
         """
