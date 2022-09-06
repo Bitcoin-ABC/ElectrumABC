@@ -783,15 +783,19 @@ class LoadProofDialog(QtWidgets.QDialog):
             return
         with open(fileName, "r") as f:
             proof_hex = f.read().strip()
-        return proof_hex
+        if self.try_to_decode_proof(proof_hex):
+            self.accept()
 
     def on_proof_text_changed(self):
+        self.try_to_decode_proof(self.proof_edit.toPlainText())
+        self.ok_button.setEnabled(self.proof is not None)
+
+    def try_to_decode_proof(self, proof_hex) -> bool:
         try:
-            self.proof = Proof.from_hex(self.proof_edit.toPlainText())
+            self.proof = Proof.from_hex(proof_hex)
         except DeserializationError:
             self.proof = None
-
-        self.ok_button.setEnabled(self.proof is not None)
+        return self.proof is not None
 
 
 class AvaDelegationWidget(CachedWalletPasswordWidget):
