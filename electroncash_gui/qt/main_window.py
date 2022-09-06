@@ -775,10 +775,10 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         tools_menu.addSeparator()
         avaproof_action = tools_menu.addAction(
-            "Avalanche proof editor", self.open_proof_editor
+            "Avalanche Proof Editor", self.open_proof_editor
         )
         tools_menu.addAction(
-            "Build avalanche delegation", self.build_avalanche_delegation
+            "Build Avalanche Delegation", self.build_avalanche_delegation
         )
         if self.wallet.is_watching_only() or not self.wallet.is_schnorr_possible():
             avaproof_action.setEnabled(False)
