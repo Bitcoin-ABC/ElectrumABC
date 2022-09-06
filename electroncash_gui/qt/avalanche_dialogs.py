@@ -681,7 +681,7 @@ class AvaProofDialog(QtWidgets.QDialog):
         parent: Optional[QtWidgets.QWidget] = None,
     ):
         super().__init__(parent)
-        self.setWindowTitle(f"Avalanche proof editor - {wallet.basename()}")
+        self.setWindowTitle(f"Avalanche Proof Editor - {wallet.basename()}")
 
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
@@ -1013,7 +1013,7 @@ class AvaDelegationDialog(QtWidgets.QDialog):
         parent: Optional[QtWidgets.QWidget] = None,
     ):
         super().__init__(parent)
-        self.setWindowTitle("Build avalanche delegation")
+        self.setWindowTitle("Build Avalanche Delegation")
 
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
