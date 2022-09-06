@@ -30,6 +30,7 @@ from electroncash.avalanche.serialize import (
 from electroncash.bitcoin import is_private_key
 from electroncash.constants import PROOF_DUST_THRESHOLD, STAKE_UTXO_CONFIRMATIONS
 from electroncash.i18n import _
+from electroncash.transaction import get_address_from_output_script
 from electroncash.uint256 import UInt256
 from electroncash.util import format_satoshis
 from electroncash.wallet import AddressNotFoundError
@@ -581,6 +582,11 @@ class AvaProofEditor(CachedWalletPasswordWidget):
                 "just want to sign your stakes, ",
             )
         self.master_pubkey_view.setText(proof.master_pub.to_hex())
+
+        _txout_type, addr = get_address_from_output_script(proof.payout_script_pubkey)
+        # note: this will work even if the "addr" is not an address (PublicKey or
+        # ScriptOutput), but the proof generation currently only supports addresses
+        self.payout_addr_edit.setText(addr.to_ui_string())
         self.add_stakes(proof.signed_stakes)
 
         self.displayProof(proof)
