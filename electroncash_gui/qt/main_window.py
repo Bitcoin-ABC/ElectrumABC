@@ -699,7 +699,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.export_menu.addAction(_("&WIF Plaintext"), self.export_privkeys_dialog)
         self.export_menu.addAction(_("&BIP38 Encrypted"), self.export_bip38_dialog)
         self.import_address_menu = wallet_menu.addAction(_("Import addresses"), self.import_addresses)
-        self.show_aux_keys_menu = wallet_menu.addAction(_("Show auxiliary keys"), self.show_auxiliary_keys)
+        self.show_aux_keys_menu = wallet_menu.addAction(_("Show Auxiliary Keys"), self.show_auxiliary_keys)
         wallet_menu.addSeparator()
         self._rebuild_history_action = wallet_menu.addAction(_("&Rebuild History"), self.rebuild_history)
         self._scan_beyond_gap_action = wallet_menu.addAction(_("Scan &More Addresses..."), self.scan_beyond_gap)
@@ -4114,24 +4114,25 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     def show_auxiliary_keys(self, password):
         if not self.wallet.is_deterministic() or not self.wallet.can_export():
             return
-        wif0 = self.wallet.export_private_key_for_index((2, 0), password)
-        wif1 = self.wallet.export_private_key_for_index((2, 1), password)
-        pub0 = PublicKey.from_WIF_privkey(wif0)
-        pub1 = PublicKey.from_WIF_privkey(wif1)
-        QtWidgets.QMessageBox.information(
-            self,
-            "Auxiliary keys",
+        infomsg = (
             f"These keys are not used to generate addresses and can be used for other "
-            f"purposes.<br><br>"
-            f"<b>Do not share your private keys with anyone!</b><br><br><br>"
-            f"First auxiliary key (used for avalanche proofs):<br>"
-            f"<ul><li>Private key: <b>{wif0}</b></li>"
-            f"<li>Public key: <b>{pub0.to_ui_string()}</b></li></ul><br>"
-            f"Second auxiliary key (used for avalanche delegations):<br>"
-            f"<ul><li>Private key: <b>{wif1}</b></li>"
-            f"<li>Public key: <b>{pub1.to_ui_string()}</b></li></ul><br>",
+            f"purposes, such as building Avalanche Proofs and Delegations.<br><br>"
+            f"<b>Do not share your private keys with anyone!</b><br>"
+            f"<ul>"
         )
-
+        for i in range(10):
+            wif = self.wallet.export_private_key_for_index((2, i), password)
+            pub = PublicKey.from_WIF_privkey(wif)
+            infomsg += (
+                f"<li>Key {i}:"
+                f"  <ul>"
+                f"    <li>Private key: <b>{wif}</b></li>"
+                f"    <li>Public key: <b>{pub.to_ui_string()}</b></li>"
+                f"  </ul>"
+                f"</li>"
+            )
+        infomsg += f"</ul><br>"
+        QtWidgets.QMessageBox.information(self, "Auxiliary Keys", infomsg)
 
     @protected
     def do_import_privkey(self, password):
