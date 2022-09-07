@@ -25,6 +25,17 @@ transactions as expected.
 
 # Release notes
 
+## Release 5.1.5
+
+- Change default block explorer to explorer.e.cash (#231).
+- Automatically derive new keys and addresses beyond the gap limit as needed when
+  signing stakes in an offline wallet (#232).
+- Make the Proof Editor window non-modal (#233).
+- Bugfix: update the payout address when loading a Proof in the Proof Editor (#234).
+- Electron Cash backport:
+  - Fix text alignment in address list (Electron-Cash#2477).
+
+
 ## Release 5.1.4
 
 - Improvements to the invoice tool (#224):
@@ -45,6 +56,7 @@ transactions as expected.
 - Electron Cash backports (#230):
   - Update Tor to version 0.4.7.10 with a patch for static linking.
   - Update wine docker to ubuntu 22.04.
+
 
 ## Release 5.1.3
 
