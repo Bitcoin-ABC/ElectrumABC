@@ -24,7 +24,7 @@ from electroncash.uint256 import UInt256
 from electroncash.wallet import AddressNotFoundError, Deterministic_Wallet
 
 from .delegation_editor import AvaDelegationDialog
-from .util import CachedWalletPasswordWidget, get_privkey_suggestion
+from .util import CachedWalletPasswordWidget, get_auxiliary_privkey
 
 PROOF_MASTER_KEY_INDEX = 0
 
@@ -379,7 +379,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             return ""
         wif_pk = ""
         if not self.wallet.has_password() or self.pwd is not None:
-            wif_pk = get_privkey_suggestion(
+            wif_pk = get_auxiliary_privkey(
                 self.wallet, key_index=PROOF_MASTER_KEY_INDEX, pwd=self.pwd
             )
         return wif_pk

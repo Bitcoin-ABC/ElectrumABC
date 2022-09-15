@@ -4,12 +4,15 @@ from typing import Optional
 
 from PyQt5 import QtWidgets
 
+from electroncash.address import PublicKey
+from electroncash.bitcoin import is_private_key
 from electroncash.wallet import Deterministic_Wallet
 
 from ..password_dialog import PasswordDialog
+from ..util import ButtonsLineEdit
 
 
-def get_privkey_suggestion(
+def get_auxiliary_privkey(
     wallet: Deterministic_Wallet,
     key_index: int = 0,
     pwd: Optional[str] = None,
@@ -68,3 +71,126 @@ class CachedWalletPasswordWidget(QtWidgets.QWidget):
                 return self._pwd
             except Exception as e:
                 QtWidgets.QMessageBox.critical(self, "Invalid password", str(e))
+
+
+class KeyWidget(QtWidgets.QWidget):
+    """A widget to view a private key - public key pair"""
+
+    def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
+        super().__init__(parent)
+
+        layout = QtWidgets.QVBoxLayout()
+        self.setLayout(layout)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        layout.addWidget(QtWidgets.QLabel("Private key"))
+        self.privkey_view = ButtonsLineEdit()
+        self.privkey_view.setReadOnly(True)
+        self.privkey_view.addCopyButton()
+        layout.addWidget(self.privkey_view)
+
+        layout.addWidget(QtWidgets.QLabel("Public key"))
+        self.pubkey_view = ButtonsLineEdit()
+        self.pubkey_view.setReadOnly(True)
+        self.pubkey_view.addCopyButton()
+        layout.addWidget(self.pubkey_view)
+
+    def setPrivkey(self, wif_privkey: str):
+        assert is_private_key(wif_privkey)
+        self.privkey_view.setText(wif_privkey)
+        pub = PublicKey.from_WIF_privkey(wif_privkey)
+        self.pubkey_view.setText(pub.to_ui_string())
+
+
+class AuxiliaryKeysWidget(CachedWalletPasswordWidget):
+    """A widget to show private-public key pairs derived from the BIP44 change_index 2
+    derivation path.
+    """
+
+    def __init__(
+        self,
+        wallet: Deterministic_Wallet,
+        pwd: Optional[str] = None,
+        parent: Optional[QtWidgets.QWidget] = None,
+        additional_info: Optional[str] = None,
+    ):
+        super().__init__(wallet, pwd, parent)
+
+        layout = QtWidgets.QVBoxLayout()
+        self.setLayout(layout)
+
+        info_label = QtWidgets.QLabel(
+            "These keys are not used to generate addresses and can be used for other "
+            "purposes, such as building Avalanche Proofs and Delegations.<br><br>"
+            "They are derived from the change_index = 2 branch of this wallet's "
+            "derivation path.<br><br>"
+            "<b>Do not share your private keys with anyone!</b><br>"
+        )
+        info_label.setWordWrap(True)
+        layout.addWidget(info_label)
+        if additional_info is not None:
+            info_label2 = QtWidgets.QLabel(additional_info)
+            info_label2.setWordWrap(True)
+            layout.addWidget(info_label2)
+
+        index_layout = QtWidgets.QHBoxLayout()
+        layout.addLayout(index_layout)
+
+        index_layout.addWidget(QtWidgets.QLabel("Key index"))
+        self.index_spinbox = QtWidgets.QSpinBox()
+        self.index_spinbox.setRange(0, 1000)
+        index_layout.addWidget(self.index_spinbox)
+        index_layout.addStretch(1)
+
+        self.key_widget = KeyWidget()
+        layout.addWidget(self.key_widget)
+
+        self.set_index(self.index_spinbox.value())
+        self.index_spinbox.valueChanged.connect(self.set_index)
+
+    def set_index(self, index: int):
+        wif_key = get_auxiliary_privkey(self.wallet, index, self.pwd)
+        self.key_widget.setPrivkey(wif_key)
+
+        was_blocked = self.index_spinbox.blockSignals(True)
+        self.index_spinbox.setValue(index)
+        self.index_spinbox.blockSignals(was_blocked)
+
+    def get_wif_private_key(self) -> str:
+        return self.key_widget.privkey_view.text()
+
+    def get_hex_public_key(self) -> str:
+        return self.key_widget.pubkey_view.text()
+
+
+class AuxiliaryKeysDialog(QtWidgets.QDialog):
+    def __init__(
+        self,
+        wallet: Deterministic_Wallet,
+        pwd: Optional[str] = None,
+        parent: QtWidgets.QWidget = None,
+        additional_info: Optional[str] = None,
+    ):
+        super().__init__(parent)
+        self.setWindowTitle("Auxiliary keys")
+        self.setMinimumWidth(650)
+
+        layout = QtWidgets.QVBoxLayout()
+        self.setLayout(layout)
+
+        self.aux_keys_widget = AuxiliaryKeysWidget(wallet, pwd, self, additional_info)
+        layout.addWidget(self.aux_keys_widget)
+
+        self.ok_button = QtWidgets.QPushButton("OK")
+        layout.addWidget(self.ok_button)
+
+        self.ok_button.clicked.connect(self.accept)
+
+    def set_index(self, index: int):
+        self.aux_keys_widget.set_index(index)
+
+    def get_hex_public_key(self) -> str:
+        return self.aux_keys_widget.get_hex_public_key()
+
+    def get_wif_private_key(self) -> str:
+        return self.aux_keys_widget.get_wif_private_key()

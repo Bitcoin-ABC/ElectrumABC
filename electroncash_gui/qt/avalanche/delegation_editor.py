@@ -16,9 +16,7 @@ from electroncash.avalanche.serialize import DeserializationError
 from electroncash.bitcoin import is_private_key
 from electroncash.wallet import Deterministic_Wallet
 
-from .util import CachedWalletPasswordWidget, get_privkey_suggestion
-
-DELEGATED_KEY_INDEX = 1
+from .util import AuxiliaryKeysDialog, CachedWalletPasswordWidget
 
 
 class AvaDelegationWidget(CachedWalletPasswordWidget):
@@ -146,26 +144,15 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
         """
         if not self.wallet.is_deterministic() or not self.wallet.can_export():
             return
-        wif_pk = ""
-        if not self.wallet.has_password() or self.pwd is not None:
-            wif_pk = get_privkey_suggestion(
-                self.wallet,
-                key_index=DELEGATED_KEY_INDEX,
-                pwd=self.pwd,
-            )
-        if not wif_pk:
-            # This should only happen if the pwd dialog was cancelled
-            self.pubkey_edit.setText("")
-            return
-        QtWidgets.QMessageBox.information(
-            self,
-            "Delegated key",
-            f"This key is derived from the change_index = 2 branch of this wallet's "
-            f"derivation path.<br><br>"
-            f"Please save the following private key:<br><b>{wif_pk}</b><br><br>"
-            f"You will need it to use your delegation with a Bitcoin ABC node.",
+        additional_info = (
+            "Please save the private key. You will need it to use your delegation with "
+            "a Bitcoin ABC node."
         )
-        self.pubkey_edit.setText(Key.from_wif(wif_pk).get_pubkey().to_hex())
+        d = AuxiliaryKeysDialog(self.wallet, self.pwd, self, additional_info)
+        d.set_index(1)
+        d.exec_()
+
+        self.pubkey_edit.setText(d.get_hex_public_key())
 
     def on_generate_clicked(self):
         dg_hex = self._build()

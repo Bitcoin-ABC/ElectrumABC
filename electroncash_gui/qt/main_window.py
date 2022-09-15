@@ -82,6 +82,7 @@ from electroncash.wallet import Abstract_Wallet, Multisig_Wallet, sweep_preparat
 from .amountedit import AmountEdit, XECAmountEdit, MyLineEdit, XECSatsByteEdit
 from .avalanche.delegation_editor import AvaDelegationDialog
 from .avalanche.proof_editor import AvaProofDialog
+from .avalanche.util import AuxiliaryKeysDialog
 from .qrcodewidget import QRCodeWidget, QRDialog
 from .qrtextedit import ShowQRTextEdit, ScanQRTextEdit
 from .sign_verify_dialog import SignVerifyDialog
@@ -4115,25 +4116,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     def show_auxiliary_keys(self, password):
         if not self.wallet.is_deterministic() or not self.wallet.can_export():
             return
-        infomsg = (
-            f"These keys are not used to generate addresses and can be used for other "
-            f"purposes, such as building Avalanche Proofs and Delegations.<br><br>"
-            f"<b>Do not share your private keys with anyone!</b><br>"
-            f"<ul>"
-        )
-        for i in range(10):
-            wif = self.wallet.export_private_key_for_index((2, i), password)
-            pub = PublicKey.from_WIF_privkey(wif)
-            infomsg += (
-                f"<li>Key {i}:"
-                f"  <ul>"
-                f"    <li>Private key: <b>{wif}</b></li>"
-                f"    <li>Public key: <b>{pub.to_ui_string()}</b></li>"
-                f"  </ul>"
-                f"</li>"
-            )
-        infomsg += f"</ul><br>"
-        QtWidgets.QMessageBox.information(self, "Auxiliary Keys", infomsg)
+
+        d = AuxiliaryKeysDialog(self.wallet, password, self)
+        d.show()
 
     @protected
     def do_import_privkey(self, password):
