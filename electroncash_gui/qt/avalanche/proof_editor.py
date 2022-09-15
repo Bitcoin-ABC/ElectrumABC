@@ -175,6 +175,9 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         )
         layout.addWidget(self.utxos_wigdet)
 
+        self.total_amount_label = QtWidgets.QLabel("Total amount:")
+        layout.addWidget(self.total_amount_label)
+
         stakes_button_layout = QtWidgets.QHBoxLayout()
         layout.addLayout(stakes_button_layout)
 
@@ -259,6 +262,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             self.payout_addr_edit.setText(self.receive_address.to_ui_string())
 
         self.utxos_wigdet.clearContents()
+        self.total_amount_label.setText("Total amount:")
         self.proof_display.setText("")
         self.master_sig_status_label.clear()
         self.stake_sigs_status_label.clear()
@@ -373,6 +377,13 @@ class AvaProofEditor(CachedWalletPasswordWidget):
                     f"valid after block {utxo_validity_height}."
                 )
             self.utxos_wigdet.setItem(row_index, 3, height_item)
+
+        total_amount_sats = 0
+        for s in self.stakes:
+            total_amount_sats += s.stake.amount
+        self.total_amount_label.setText(
+            f"Total amount: <b>{format_satoshis(total_amount_sats)} XEC</b>"
+        )
 
     def _get_privkey_suggestion(self) -> str:
         """Get a private key to pre-fill the master key field.
