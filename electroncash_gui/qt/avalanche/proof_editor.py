@@ -167,6 +167,9 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         )
         self.utxos_wigdet.verticalHeader().setVisible(False)
         self.utxos_wigdet.setSelectionMode(QtWidgets.QTableWidget.NoSelection)
+        # This is a simple global way to make the table read-only, without having to
+        # set flags on each individual item.
+        self.utxos_wigdet.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
         self.utxos_wigdet.horizontalHeader().setSectionResizeMode(
             0, QtWidgets.QHeaderView.Stretch
         )
