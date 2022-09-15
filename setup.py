@@ -184,6 +184,7 @@ setup(
         'electroncash.utils',
         'electroncash_gui',
         'electroncash_gui.qt',
+        'electroncash_gui.qt.avalanche',
         'electroncash_gui.qt.qrreader',
         'electroncash_gui.qt.utils',
         'electroncash_gui.qt.utils.darkdetect',

@@ -41,7 +41,7 @@ from electroncash.bitcoin import COINBASE_MATURITY
 from electroncash.i18n import _
 from electroncash.plugins import run_hook
 
-from .avalanche_dialogs import AvaProofDialog
+from .avalanche.proof_editor import AvaProofDialog
 from .consolidate_coins_dialog import ConsolidateCoinsWizard
 from .util import (
     MONOSPACE_FONT,

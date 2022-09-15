@@ -10,7 +10,7 @@ files: |
         electroncash/web.py|
         electroncash_gui/qt/address_list.py|
         electroncash_gui/qt/amountedit.py|
-        electroncash_gui/qt/avalanche_dialogs.py|
+        electroncash_gui/qt/avalanche/.*py|
         electroncash_gui/qt/consolidate_coins_dialog.py|
         electroncash_gui/qt/exception_window.py|
         electroncash_gui/qt/invoice_dialog.py|

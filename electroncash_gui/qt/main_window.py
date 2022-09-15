@@ -80,7 +80,8 @@ from electroncash.wallet import Abstract_Wallet, Multisig_Wallet, sweep_preparat
 
 
 from .amountedit import AmountEdit, XECAmountEdit, MyLineEdit, XECSatsByteEdit
-from .avalanche_dialogs import AvaDelegationDialog, AvaProofDialog
+from .avalanche.delegation_editor import AvaDelegationDialog
+from .avalanche.proof_editor import AvaProofDialog
 from .qrcodewidget import QRCodeWidget, QRDialog
 from .qrtextedit import ShowQRTextEdit, ScanQRTextEdit
 from .sign_verify_dialog import SignVerifyDialog

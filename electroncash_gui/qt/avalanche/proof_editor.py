@@ -3,25 +3,14 @@ from __future__ import annotations
 import json
 import struct
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import List, Optional, Union
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from electroncash import address
+from electroncash import format_satoshis
 from electroncash.address import Address, AddressError
-from electroncash.avalanche.delegation import (
-    Delegation,
-    DelegationBuilder,
-    WrongDelegatorKeyError,
-)
 from electroncash.avalanche.primitives import COutPoint, Key, PublicKey
-from electroncash.avalanche.proof import (
-    LimitedProofId,
-    Proof,
-    ProofBuilder,
-    SignedStake,
-    Stake,
-)
+from electroncash.avalanche.proof import Proof, ProofBuilder, SignedStake, Stake
 from electroncash.avalanche.serialize import (
     DeserializationError,
     serialize_blob,
@@ -32,20 +21,19 @@ from electroncash.constants import PROOF_DUST_THRESHOLD, STAKE_UTXO_CONFIRMATION
 from electroncash.i18n import _
 from electroncash.transaction import get_address_from_output_script
 from electroncash.uint256 import UInt256
-from electroncash.util import format_satoshis
-from electroncash.wallet import AddressNotFoundError
+from electroncash.wallet import AddressNotFoundError, Deterministic_Wallet
 
-from .password_dialog import PasswordDialog
+from .delegation_editor import AvaDelegationDialog
+from .util import CachedWalletPasswordWidget, get_privkey_suggestion
 
-if TYPE_CHECKING:
-    from electroncash.wallet import Deterministic_Wallet
+PROOF_MASTER_KEY_INDEX = 0
 
 
 @dataclass
 class StakeAndKey:
     """Class storing a stake waiting to be signed (waiting for the stake commitment)"""
 
-    stake: stake
+    stake: Stake
     key: Key
 
 
@@ -84,75 +72,6 @@ def proof_to_rich_text(proof: Proof) -> str:
     if proof.verify_master_signature():
         return rich_text + colored_text(proof.signature.hex(), TextColor.GOOD_SIG)
     return rich_text + colored_text(proof.signature.hex(), TextColor.BAD_SIG)
-
-
-# We generate a few deterministic private keys to pre-fill some widgets, so the user
-# does not need to use an external tool or a dummy wallet to generate keys.
-# TODO: don't always use the same keys, increment the index as needed (requires saving
-#       the index or the generated keys to the wallet file)
-_PROOF_MASTER_KEY_INDEX = 0
-_DELEGATED_KEY_INDEX = 1
-
-
-def get_privkey_suggestion(
-    wallet: Deterministic_Wallet,
-    key_index: int = 0,
-    pwd: Optional[str] = None,
-) -> str:
-    """Get a deterministic private key derived from a BIP44 path that is not used
-    by the wallet to generate addresses.
-
-    Return it in WIF format, or return an empty string on failure (pwd dialog
-    cancelled).
-    """
-    # Use BIP44 change_index 2, which is not used by any application.
-    privkey_index = (2, key_index)
-
-    if wallet.has_password() and pwd is None:
-        raise RuntimeError("Wallet password required")
-    return wallet.export_private_key_for_index(privkey_index, pwd)
-
-
-class CachedWalletPasswordWidget(QtWidgets.QWidget):
-    """A base class for widgets that may prompt the user for a wallet password and
-    remember that password for later reuse.
-    The password can also be specified in the constructor. In this case, there is no
-    need to prompt the user for it.
-    """
-
-    def __init__(
-        self,
-        wallet: Deterministic_Wallet,
-        pwd: Optional[str] = None,
-        parent: QtWidgets.QWidget = None,
-    ):
-        super().__init__(parent)
-        self._pwd = pwd
-        self.wallet = wallet
-
-    @property
-    def pwd(self) -> Optional[str]:
-        """Return wallet password.
-
-        Open a dialog to ask for the wallet password if necessary, and cache it.
-        Keep asking until the user provides the correct pwd or clicks cancel.
-        If the password dialog is cancelled, return None.
-        """
-        if self._pwd is not None:
-            return self._pwd
-
-        while self.wallet.has_password():
-            password = PasswordDialog(parent=self).run()
-            if password is None:
-                # dialog cancelled
-                return
-            try:
-                self.wallet.check_password(password)
-                self._pwd = password
-                # success
-                return self._pwd
-            except Exception as e:
-                QtWidgets.QMessageBox.critical(self, "Invalid password", str(e))
 
 
 class AvaProofEditor(CachedWalletPasswordWidget):
@@ -461,7 +380,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         wif_pk = ""
         if not self.wallet.has_password() or self.pwd is not None:
             wif_pk = get_privkey_suggestion(
-                self.wallet, key_index=_PROOF_MASTER_KEY_INDEX, pwd=self.pwd
+                self.wallet, key_index=PROOF_MASTER_KEY_INDEX, pwd=self.pwd
             )
         return wif_pk
 
@@ -796,265 +715,6 @@ class LoadProofDialog(QtWidgets.QDialog):
         except DeserializationError:
             self.proof = None
         return self.proof is not None
-
-
-class AvaDelegationWidget(CachedWalletPasswordWidget):
-    def __init__(
-        self,
-        wallet: Deterministic_Wallet,
-        pwd: Optional[str] = None,
-        parent: Optional[QtWidgets.QWidget] = None,
-    ):
-        super().__init__(wallet, pwd, parent)
-        self.setMinimumWidth(750)
-        self.setMinimumHeight(580)
-
-        layout = QtWidgets.QVBoxLayout()
-        self.setLayout(layout)
-
-        self.load_proof_button = QtWidgets.QPushButton("Load proof from file")
-        layout.addWidget(self.load_proof_button)
-
-        self.tab_widget = QtWidgets.QTabWidget()
-        layout.addWidget(self.tab_widget)
-        layout.addSpacing(10)
-
-        self.proof_edit = QtWidgets.QTextEdit()
-        self.proof_edit.setAcceptRichText(False)
-        self.proof_edit.setToolTip(
-            "Enter a proof in hexadecimal format. A delegation will be generated for "
-            "this proof. Specify the proof master key as the delegator key below."
-        )
-        self.tab_widget.addTab(self.proof_edit, "From a proof")
-
-        self.ltd_id_edit = QtWidgets.QLineEdit()
-        self.ltd_id_edit.setToolTip(
-            "Enter the proof ID of the proof to be delegated. A delegation will be "
-            "generated for the proof corresponding to this ID. "
-            "You need to provide this proof's master key as the delegator key (below)."
-        )
-        self.tab_widget.addTab(self.ltd_id_edit, "From a Limited Proof ID")
-
-        self.dg_edit = QtWidgets.QTextEdit()
-        self.dg_edit.setAcceptRichText(False)
-        self.dg_edit.setToolTip(
-            "Enter an existing delegation to which you want to add another level. "
-            "Enter the private key corresponding to this existing delegation's "
-            "delegated key as the new delegator key, and specify a new delegated key."
-        )
-        self.tab_widget.addTab(self.dg_edit, "From an existing delegation")
-
-        layout.addWidget(QtWidgets.QLabel("Delegator key (WIF)"))
-        self.delegator_key_edit = QtWidgets.QLineEdit()
-        self.delegator_key_edit.setToolTip(
-            "Master key of the proof, or private key for the last level of an "
-            "existing delegation."
-        )
-        layout.addWidget(self.delegator_key_edit)
-        layout.addSpacing(10)
-
-        layout.addWidget(QtWidgets.QLabel("Delegated public key"))
-        delegated_key_layout = QtWidgets.QHBoxLayout()
-        self.pubkey_edit = QtWidgets.QLineEdit()
-        self.pubkey_edit.setToolTip("The public key to delegate the proof to.")
-        delegated_key_layout.addWidget(self.pubkey_edit)
-        generate_key_button = QtWidgets.QPushButton("Generate key")
-        delegated_key_layout.addWidget(generate_key_button)
-        layout.addLayout(delegated_key_layout)
-        layout.addSpacing(10)
-
-        self.generate_button = QtWidgets.QPushButton("Generate delegation")
-        layout.addWidget(self.generate_button)
-
-        self.dg_display = QtWidgets.QTextEdit()
-        self.dg_display.setReadOnly(True)
-        layout.addWidget(self.dg_display)
-
-        # Signals
-        self.load_proof_button.clicked.connect(self.on_load_proof_clicked)
-        self.dg_edit.textChanged.connect(self.on_delegation_pasted)
-        generate_key_button.clicked.connect(self.on_generate_key_clicked)
-        self.generate_button.clicked.connect(self.on_generate_clicked)
-
-    def set_proof(self, proof_hex: str):
-        self.proof_edit.setText(proof_hex)
-
-    def set_master(self, master_wif: str):
-        self.delegator_key_edit.setText(master_wif)
-
-    def on_load_proof_clicked(self):
-        fileName, __ = QtWidgets.QFileDialog.getOpenFileName(
-            self,
-            "Select the proof file",
-            filter="Avalanche proof (*.proof);;All files (*)",
-        )
-        if not fileName:
-            return
-        with open(fileName, "r") as f:
-            proof_hex = f.read().strip()
-        self.set_proof(proof_hex)
-        self.tab_widget.setCurrentWidget(self.proof_edit)
-
-    def on_delegation_pasted(self):
-        """Deserialize the delegation to be used as a base delegation to which a level
-        is to be added. Find the delegated pubkey and check whether this is an auxiliary
-        key from this wallet. If it is, prefill the Delegator key field with the private
-        key.
-        """
-        try:
-            dg = Delegation.from_hex(self.dg_edit.toPlainText())
-        except DeserializationError:
-            return
-        dg_pubkey = dg.get_delegated_public_key()
-        # Mind the type difference between PublicKey returned by
-        # Delegation.get_delegated_public_key and PublicKey used by Wallet.
-        idx = self.wallet.get_auxiliary_pubkey_index(
-            address.PublicKey.from_pubkey(dg_pubkey.keydata),
-            self.pwd,
-        )
-        if idx is not None:
-            self.delegator_key_edit.setText(
-                self.wallet.export_private_key_for_index((2, idx), self.pwd)
-            )
-
-    def on_generate_key_clicked(self):
-        """Open a dialog to show a private/public key pair to be used as delegated key.
-        Fill the delegated public key widget with the resulting public key.
-        """
-        if not self.wallet.is_deterministic() or not self.wallet.can_export():
-            return
-        wif_pk = ""
-        if not self.wallet.has_password() or self.pwd is not None:
-            wif_pk = get_privkey_suggestion(
-                self.wallet,
-                key_index=_DELEGATED_KEY_INDEX,
-                pwd=self.pwd,
-            )
-        if not wif_pk:
-            # This should only happen if the pwd dialog was cancelled
-            self.pubkey_edit.setText("")
-            return
-        QtWidgets.QMessageBox.information(
-            self,
-            "Delegated key",
-            f"This key is derived from the change_index = 2 branch of this wallet's "
-            f"derivation path.<br><br>"
-            f"Please save the following private key:<br><b>{wif_pk}</b><br><br>"
-            f"You will need it to use your delegation with a Bitcoin ABC node.",
-        )
-        self.pubkey_edit.setText(Key.from_wif(wif_pk).get_pubkey().to_hex())
-
-    def on_generate_clicked(self):
-        dg_hex = self._build()
-        if dg_hex is not None:
-            self.dg_display.setText(f'<p style="color:black;"><b>{dg_hex}</b></p>')
-
-    def _build(self) -> Optional[str]:
-        delegator_wif = self.delegator_key_edit.text()
-        if not is_private_key(delegator_wif):
-            QtWidgets.QMessageBox.critical(
-                self, "Invalid private key", "Could not parse private key."
-            )
-            return
-        delegator = Key.from_wif(delegator_wif)
-
-        try:
-            delegated_pubkey = PublicKey.from_hex(self.pubkey_edit.text())
-        except DeserializationError:
-            QtWidgets.QMessageBox.critical(
-                self,
-                "Invalid delegated pubkey",
-                "Could not parse delegated public key.",
-            )
-            return
-
-        active_tab_widget = self.tab_widget.currentWidget()
-        if active_tab_widget is self.ltd_id_edit:
-            try:
-                ltd_id = LimitedProofId.from_hex(self.ltd_id_edit.text())
-            except DeserializationError:
-                QtWidgets.QMessageBox.critical(
-                    self,
-                    "Invalid limited ID",
-                    "Could not parse limited ID (not a 32 bytes hex string).",
-                )
-                return
-            dgb = DelegationBuilder(ltd_id, delegator.get_pubkey())
-        elif active_tab_widget is self.proof_edit:
-            try:
-                proof = Proof.from_hex(self.proof_edit.toPlainText())
-            except DeserializationError:
-                QtWidgets.QMessageBox.critical(
-                    self,
-                    "Invalid proof",
-                    "Could not parse proof. Check the format.",
-                )
-                return
-            dgb = DelegationBuilder.from_proof(proof)
-        elif active_tab_widget is self.dg_edit:
-            try:
-                dg = Delegation.from_hex(self.dg_edit.toPlainText())
-            except DeserializationError:
-                QtWidgets.QMessageBox.critical(
-                    self,
-                    "Invalid delegation",
-                    "Could not parse delegation. Check the format.",
-                )
-                return
-            dgb = DelegationBuilder.from_delegation(dg)
-        else:
-            # This should never happen, so we want to hear about it. Catch fire.
-            raise RuntimeError("Indeterminate active tab.")
-
-        try:
-            dgb.add_level(delegator, delegated_pubkey)
-        except WrongDelegatorKeyError:
-            QtWidgets.QMessageBox.critical(
-                self,
-                "Wrong delegator key",
-                "The provided delegator key does not match the proof master key or "
-                "the previous delegated public key (if adding a level to an existing "
-                "delegation).",
-            )
-            return
-
-        return dgb.build().to_hex()
-
-    def get_delegation(self) -> str:
-        """Return delegation, as a hexadecimal string.
-
-        An empty string means the delegation building failed.
-        """
-        return self.dg_display.toPlainText()
-
-
-class AvaDelegationDialog(QtWidgets.QDialog):
-    def __init__(
-        self,
-        wallet: Deterministic_Wallet,
-        pwd: Optional[str] = None,
-        parent: Optional[QtWidgets.QWidget] = None,
-    ):
-        super().__init__(parent)
-        self.setWindowTitle("Build Avalanche Delegation")
-
-        layout = QtWidgets.QVBoxLayout()
-        self.setLayout(layout)
-        self.dg_widget = AvaDelegationWidget(wallet, pwd, parent)
-        layout.addWidget(self.dg_widget)
-
-        buttons_layout = QtWidgets.QHBoxLayout()
-        layout.addLayout(buttons_layout)
-        self.close_button = QtWidgets.QPushButton("Close")
-        buttons_layout.addWidget(self.close_button)
-
-        self.close_button.clicked.connect(self.accept)
-
-    def set_proof(self, proof_hex: str):
-        self.dg_widget.set_proof(proof_hex)
-
-    def set_master(self, master_wif: str):
-        self.dg_widget.set_master(master_wif)
 
 
 class StakeDustThresholdMessageBox(QtWidgets.QMessageBox):
