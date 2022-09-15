@@ -7,7 +7,6 @@ from typing import List, Optional, Union
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from electroncash import format_satoshis
 from electroncash.address import Address, AddressError
 from electroncash.avalanche.primitives import COutPoint, Key, PublicKey
 from electroncash.avalanche.proof import Proof, ProofBuilder, SignedStake, Stake
@@ -21,6 +20,7 @@ from electroncash.constants import PROOF_DUST_THRESHOLD, STAKE_UTXO_CONFIRMATION
 from electroncash.i18n import _
 from electroncash.transaction import get_address_from_output_script
 from electroncash.uint256 import UInt256
+from electroncash.util import format_satoshis
 from electroncash.wallet import AddressNotFoundError, Deterministic_Wallet
 
 from .delegation_editor import AvaDelegationDialog
@@ -163,7 +163,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.utxos_wigdet = QtWidgets.QTableWidget()
         self.utxos_wigdet.setColumnCount(4)
         self.utxos_wigdet.setHorizontalHeaderLabels(
-            ["txid", "vout", "amount (sats)", "block height"]
+            ["txid", "vout", "amount (XEC)", "block height"]
         )
         self.utxos_wigdet.verticalHeader().setVisible(False)
         self.utxos_wigdet.setSelectionMode(QtWidgets.QTableWidget.NoSelection)
@@ -348,7 +348,8 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             vout_item = QtWidgets.QTableWidgetItem(str(stake.utxo.n))
             self.utxos_wigdet.setItem(row_index, 1, vout_item)
 
-            amount_item = QtWidgets.QTableWidgetItem(str(stake.amount))
+            amount_item = QtWidgets.QTableWidgetItem(str(format_satoshis(stake.amount)))
+            amount_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
             if stake.amount < PROOF_DUST_THRESHOLD:
                 amount_item.setForeground(QtGui.QColor("red"))
                 amount_item.setToolTip(
