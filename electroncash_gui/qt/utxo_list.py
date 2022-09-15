@@ -40,6 +40,7 @@ from electroncash.address import Address
 from electroncash.bitcoin import COINBASE_MATURITY
 from electroncash.i18n import _
 from electroncash.plugins import run_hook
+from electroncash.wallet import ImportedAddressWallet, ImportedPrivkeyWallet
 
 from .avalanche_dialogs import AvaProofDialog
 from .consolidate_coins_dialog import ConsolidateCoinsWizard
@@ -537,7 +538,10 @@ class UTXOList(MyTreeWidget):
             utxo_for_json = utxo.copy()
             addr = utxo["address"]
             utxo_for_json["address"] = addr.to_full_string(Address.FMT_CASHADDR)
-            utxo_for_json["address_index"] = self.wallet.get_address_index(addr)
+
+            wallet_types_without_index = (ImportedAddressWallet, ImportedPrivkeyWallet)
+            if not isinstance(self.wallet, wallet_types_without_index):
+                utxo_for_json["address_index"] = self.wallet.get_address_index(addr)
             utxos_for_json.append(utxo_for_json)
 
         fileName, _filter = QtWidgets.QFileDialog.getSaveFileName(
