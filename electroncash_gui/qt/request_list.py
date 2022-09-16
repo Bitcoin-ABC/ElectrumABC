@@ -23,6 +23,9 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from electroncash.address import Address
 from electroncash.i18n import _
@@ -34,27 +37,31 @@ from PyQt5.QtGui import QIcon
 from PyQt5 import QtWidgets
 from .util import MyTreeWidget, pr_icons
 
+if TYPE_CHECKING:
+    from .main_window import ElectrumWindow
+
 
 class RequestList(MyTreeWidget):
     # Date, Account, Address, Description, Amount
     filter_columns = [0, 1, 2, 3, 4]
 
-    def __init__(self, parent):
+    def __init__(self, parent: ElectrumWindow):
         MyTreeWidget.__init__(
             self,
             parent,
             self.create_menu,
             [_('Date'), _('Address'), '', _('Description'), _('Amount'), _('Status')],
             config=parent.config,
+            wallet=parent.wallet,
             stretch_column=3,
             deferred_updates=False,
         )
+        self.parent = parent
         self.currentItemChanged.connect(self.item_changed)
         self.itemClicked.connect(self.item_changed)
         self.setSortingEnabled(True)
         self.setColumnWidth(0, 180)
         self.hideColumn(1)
-        self.wallet = parent.wallet
 
     def item_changed(self, item):
         if item is None:

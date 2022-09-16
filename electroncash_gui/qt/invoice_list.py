@@ -23,6 +23,11 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
+
+import os
+from typing import TYPE_CHECKING
+
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5 import QtWidgets
@@ -38,19 +43,24 @@ from electroncash.i18n import _
 from electroncash.util import format_time, FileImportFailed
 from electroncash.paymentrequest import pr_tooltips
 
+if TYPE_CHECKING:
+    from .main_window import ElectrumWindow
+
 
 class InvoiceList(MyTreeWidget):
     filter_columns = [0, 1, 2, 3]  # Date, Requestor, Description, Amount
 
-    def __init__(self, parent):
+    def __init__(self, parent: ElectrumWindow):
         MyTreeWidget.__init__(
             self,
             parent,
             self.create_menu,
             [_('Expires'), _('Requestor'), _('Description'), _('Amount'), _('Status')],
             config=parent.config,
+            wallet=parent.wallet,
             stretch_column=2,
         )
+        self.parent = parent
         self.setSortingEnabled(True)
         self.header().setSectionResizeMode(1, QtWidgets.QHeaderView.Interactive)
         self.setColumnWidth(1, 200)
@@ -83,7 +93,7 @@ class InvoiceList(MyTreeWidget):
 
 
     def import_invoices(self):
-        wallet_folder = self.parent.get_wallet_folder()
+        wallet_folder = os.path.dirname(os.path.abspath(self.config.get_wallet_path()))
         filename, __ = QtWidgets.QFileDialog.getOpenFileName(self.parent, "Select your wallet file", wallet_folder)
         if not filename:
             return

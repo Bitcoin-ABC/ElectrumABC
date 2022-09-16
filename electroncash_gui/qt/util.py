@@ -574,14 +574,16 @@ def filename_field(config, defaultname, select_msg):
 
     return gb, filename_e, b1
 
+
 class ElectrumItemDelegate(QtWidgets.QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         return self.parent().createEditor(parent, option, index)
 
+
 class MyTreeWidget(QtWidgets.QTreeWidget):
 
     class SortSpec(namedtuple("SortSpec", "column, qt_sort_order")):
-        ''' Used to specify member: default_sort '''
+        """Used to specify member: default_sort"""
 
     # Specify this in subclasses to apply a default sort order to the widget.
     # If None, nothing is applied (items are presented in the order they are
@@ -606,13 +608,24 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
     # the QTreeWidgetItem data role to use when searching data columns
     filter_data_role : int = Qt.UserRole
 
-    def __init__(self, parent, create_menu, headers, config: SimpleConfig,
-                 stretch_column=None,
-                 editable_columns=None,
-                 *, deferred_updates=False, save_sort_settings=False):
+    edited = pyqtSignal()
+
+    def __init__(
+        self,
+        parent: QtWidgets.QWidget,
+        create_menu,
+        headers,
+        config: SimpleConfig,
+        wallet: Abstract_Wallet,
+        stretch_column=None,
+        editable_columns=None,
+        *,
+        deferred_updates=False,
+        save_sort_settings=False
+    ):
         QtWidgets.QTreeWidget.__init__(self, parent)
-        self.parent = parent
         self.config = config
+        self.wallet = wallet
         self.stretch_column = stretch_column
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(create_menu)
@@ -638,9 +651,8 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
         self._setup_save_sort_mechanism()
 
     def _setup_save_sort_mechanism(self):
-        if (self._save_sort_settings
-                and isinstance(getattr(self.parent, 'wallet', None), Abstract_Wallet)):
-            storage = self.parent.wallet.storage
+        if self._save_sort_settings:
+            storage = self.wallet.storage
             key = f'mytreewidget_default_sort_{type(self).__name__}'
             default = (storage and storage.get(key, None)) or self.default_sort
             if default and isinstance(default, (tuple, list)) and len(default) >= 2 and all(isinstance(i, int) for i in default):
@@ -658,7 +670,6 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
         elif self.default_sort:
             self.setSortingEnabled(True)
             self.sortByColumn(self.default_sort[0], self.default_sort[1])
-
 
     def update_headers(self, headers):
         self.setColumnCount(len(headers))
@@ -732,11 +743,11 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
                 self.deferred_update_ct = 0
 
     def on_edited(self, item, column, prior):
-        '''Called only when the text actually changes'''
+        """Called only when the text actually changes"""
         key = item.data(0, Qt.UserRole)
         text = item.text(column)
-        self.parent.wallet.set_label(key, text)
-        self.parent.update_labels()
+        self.wallet.set_label(key, text)
+        self.edited.emit()
 
     def should_defer_update_incr(self):
         ret = (self.deferred_updates and not self.isVisible()

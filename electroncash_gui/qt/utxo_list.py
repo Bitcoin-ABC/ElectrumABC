@@ -97,6 +97,7 @@ class UTXOList(MyTreeWidget):
             self.create_menu,
             columns,
             config=main_window.config,
+            wallet=main_window.wallet,
             stretch_column=UTXOList.Col.label,
             deferred_updates=True,
             save_sort_settings=True,
@@ -104,7 +105,6 @@ class UTXOList(MyTreeWidget):
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.setSortingEnabled(True)
         self.main_window = main_window
-        self.wallet = main_window.wallet
         main_window.ca_address_default_changed_signal.connect(
             self._ca_on_address_default_change
         )
@@ -137,7 +137,7 @@ class UTXOList(MyTreeWidget):
 
         @wraps(func)
         def wrapper(self, *args, **kwargs):
-            if self.cleaned_up or not self.wallet or not self.parent:
+            if self.cleaned_up or not self.wallet or not self.main_window:
                 return
             else:
                 func(self, *args, **kwargs)

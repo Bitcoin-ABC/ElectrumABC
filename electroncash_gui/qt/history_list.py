@@ -23,7 +23,10 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
+
 import time
+from typing import TYPE_CHECKING
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QBrush, QColor, QIcon, QFont
@@ -41,6 +44,9 @@ import electroncash.web as web
 from electroncash.i18n import _
 from electroncash.util import timestamp_to_datetime, profiler, Weak
 from electroncash.plugins import run_hook
+
+if TYPE_CHECKING:
+    from .main_window import ElectrumWindow
 
 
 TX_ICONS = [
@@ -63,19 +69,19 @@ class HistoryList(MyTreeWidget):
     statusIcons = {}
     default_sort = MyTreeWidget.SortSpec(0, Qt.AscendingOrder)
 
-    def __init__(self, parent):
+    def __init__(self, parent: ElectrumWindow):
         super().__init__(
             parent,
             self.create_menu,
             [],
             config=parent.config,
+            wallet=parent.wallet,
             stretch_column=3,
             deferred_updates=True
         )
+        self.parent = parent
         self.refresh_headers()
         self.setColumnHidden(1, True)
-        # force attributes to always be defined, even if None, at construction.
-        self.wallet = self.parent.wallet
         self.cleaned_up = False
 
         self.monospaceFont = QFont(MONOSPACE_FONT)
@@ -132,7 +138,6 @@ class HistoryList(MyTreeWidget):
 
     @profiler
     def on_update(self):
-        self.wallet = self.parent.wallet
         h = self.wallet.get_history(self.get_domain(), reverse=True)
         sels = self.selectedItems()
         current_tx = sels[0].data(0, Qt.UserRole) if sels else None

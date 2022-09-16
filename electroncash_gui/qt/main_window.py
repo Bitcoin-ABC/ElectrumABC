@@ -1156,9 +1156,10 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     def create_history_tab(self):
         from .history_list import HistoryList
-        self.history_list = l = HistoryList(self)
-        l.searchable_list = l
-        return l
+        self.history_list = HistoryList(self)
+        self.history_list.edited.connect(self.update_labels)
+        self.history_list.searchable_list = self.history_list
+        return self.history_list
 
     def show_address(self, addr, *, parent=None):
         parent = parent or self.top_level_window()
@@ -1715,7 +1716,13 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         self.from_label = QtWidgets.QLabel(_('&From'))
         grid.addWidget(self.from_label, 4, 0)
-        self.from_list = MyTreeWidget(self, self.from_list_menu, ['', ''], self.config)
+        self.from_list = MyTreeWidget(
+            self,
+            self.from_list_menu,
+            ['', ''],
+            self.config,
+            self.wallet
+        )
         self.from_label.setBuddy(self.from_list)
         self.from_list.setHeaderHidden(True)
         self.from_list.setMaximumHeight(80)
@@ -2720,13 +2727,15 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     def create_addresses_tab(self):
         from .address_list import AddressList
-        self.address_list = l = AddressList(self)
-        return self.create_list_tab(l)
+        self.address_list = AddressList(self)
+        self.address_list.edited.connect(self.update_labels)
+        return self.create_list_tab(self.address_list)
 
     def create_utxo_tab(self):
         from .utxo_list import UTXOList
-        self.utxo_list = l = UTXOList(self)
-        return self.create_list_tab(l)
+        self.utxo_list = UTXOList(self)
+        self.utxo_list.edited.connect(self.update_labels)
+        return self.create_list_tab(self.utxo_list)
 
     def create_contacts_tab(self):
         from .contact_list import ContactList

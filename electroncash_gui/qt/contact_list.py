@@ -23,6 +23,7 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
 
 from electroncash.i18n import _, ngettext
 import electroncash.web as web
@@ -40,12 +41,16 @@ from .util import (MyTreeWidget, webopen, ColorScheme, MONOSPACE_FONT,
                    rate_limited)
 from enum import IntEnum
 from collections import defaultdict
-from typing import List, Set, Dict, Tuple
+from typing import List, Set, Dict, Tuple, TYPE_CHECKING
 from . import cashacctqt
+
+if TYPE_CHECKING:
+    from .main_window import ElectrumWindow
 
 
 class ContactList(PrintError, MyTreeWidget):
-    filter_columns = [1, 2, 3]  # Name, Label, Address
+    # Name, Label, Address
+    filter_columns = [1, 2, 3]
     default_sort = MyTreeWidget.SortSpec(1, Qt.AscendingOrder)
 
     do_update_signal = pyqtSignal()
@@ -54,21 +59,22 @@ class ContactList(PrintError, MyTreeWidget):
     class DataRoles(IntEnum):
         Contact     = Qt.UserRole + 0
 
-    def __init__(self, parent):
+    def __init__(self, parent: ElectrumWindow):
         MyTreeWidget.__init__(
             self,
             parent,
             self.create_menu,
             headers=["", _('Name'), _('Label'), _('Address'), _('Type')],
             config=parent.config,
+            wallet=parent.wallet,
             stretch_column=2,
             editable_columns=[1, 2],
             deferred_updates=True,
             save_sort_settings=True
         )
+        self.parent = parent
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.setSortingEnabled(True)
-        self.wallet = parent.wallet
         self.setIndentation(0)
         self._edited_item_cur_sel = (None,) * 3
         self.monospace_font = QFont(MONOSPACE_FONT)

@@ -23,11 +23,13 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
 
 from collections import defaultdict
 from contextlib import suppress
 from enum import IntEnum
 from functools import partial
+from typing import TYPE_CHECKING
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, pyqtSignal
@@ -53,6 +55,9 @@ from .util import (
     webopen,
 )
 
+if TYPE_CHECKING:
+    from .main_window import ElectrumWindow
+
 
 class AddressList(MyTreeWidget):
     # Address, Label, Balance
@@ -66,15 +71,17 @@ class AddressList(MyTreeWidget):
         can_edit_label = Qt.UserRole + 1
         cash_accounts = Qt.UserRole + 2
 
-    def __init__(self, parent, *, picker=False):
+    def __init__(self, parent: ElectrumWindow, *, picker=False):
         super().__init__(
             parent,
             self.create_menu,
             [],
             config=parent.config,
+            wallet=parent.wallet,
             stretch_column=2,
             deferred_updates=True,
         )
+        self.parent = parent
         self.refresh_headers()
         self.picker = picker
         if self.picker:
