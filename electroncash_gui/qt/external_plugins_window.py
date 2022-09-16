@@ -35,7 +35,7 @@ from PyQt5 import QtWidgets
 from electroncash.i18n import _
 from electroncash.plugins import ExternalPluginCodes, run_hook
 from electroncash.constants import PROJECT_NAME
-from .util import MyTreeWidget, MessageBoxMixin, WindowModalDialog, Buttons, CloseButton
+from .util import MessageBoxMixin, WindowModalDialog, Buttons, CloseButton
 
 
 INSTALL_ERROR_MESSAGES = {

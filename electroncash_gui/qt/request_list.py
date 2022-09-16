@@ -36,11 +36,19 @@ from .util import MyTreeWidget, pr_icons
 
 
 class RequestList(MyTreeWidget):
-    filter_columns = [0, 1, 2, 3, 4]  # Date, Account, Address, Description, Amount
-
+    # Date, Account, Address, Description, Amount
+    filter_columns = [0, 1, 2, 3, 4]
 
     def __init__(self, parent):
-        MyTreeWidget.__init__(self, parent, self.create_menu, [_('Date'), _('Address'), '', _('Description'), _('Amount'), _('Status')], 3, deferred_updates=False)
+        MyTreeWidget.__init__(
+            self,
+            parent,
+            self.create_menu,
+            [_('Date'), _('Address'), '', _('Description'), _('Amount'), _('Status')],
+            config=parent.config,
+            stretch_column=3,
+            deferred_updates=False,
+        )
         self.currentItemChanged.connect(self.item_changed)
         self.itemClicked.connect(self.item_changed)
         self.setSortingEnabled(True)

@@ -10,6 +10,7 @@ from collections import namedtuple
 from functools import partial, wraps
 from locale import atof
 
+from electroncash.simple_config import SimpleConfig
 from electroncash.util import print_error, PrintError, Weak, finalization_print_error
 from electroncash.wallet import Abstract_Wallet
 
@@ -605,12 +606,13 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
     # the QTreeWidgetItem data role to use when searching data columns
     filter_data_role : int = Qt.UserRole
 
-    def __init__(self, parent, create_menu, headers, stretch_column=None,
+    def __init__(self, parent, create_menu, headers, config: SimpleConfig,
+                 stretch_column=None,
                  editable_columns=None,
                  *, deferred_updates=False, save_sort_settings=False):
         QtWidgets.QTreeWidget.__init__(self, parent)
         self.parent = parent
-        self.config = self.parent.config
+        self.config = config
         self.stretch_column = stretch_column
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(create_menu)

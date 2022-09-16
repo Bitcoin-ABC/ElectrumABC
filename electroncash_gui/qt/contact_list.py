@@ -55,9 +55,17 @@ class ContactList(PrintError, MyTreeWidget):
         Contact     = Qt.UserRole + 0
 
     def __init__(self, parent):
-        MyTreeWidget.__init__(self, parent, self.create_menu,
-                              ["", _('Name'), _('Label'), _('Address'), _('Type') ], 2, [1,2],  # headers, stretch_column, editable_columns
-                              deferred_updates=True, save_sort_settings=True)
+        MyTreeWidget.__init__(
+            self,
+            parent,
+            self.create_menu,
+            headers=["", _('Name'), _('Label'), _('Address'), _('Type')],
+            config=parent.config,
+            stretch_column=2,
+            editable_columns=[1, 2],
+            deferred_updates=True,
+            save_sort_settings=True
+        )
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.setSortingEnabled(True)
         self.wallet = parent.wallet

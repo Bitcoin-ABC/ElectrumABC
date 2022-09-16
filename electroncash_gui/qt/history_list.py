@@ -56,6 +56,7 @@ TX_ICONS = [
     "confirmed.svg",
 ]
 
+
 class HistoryList(MyTreeWidget):
     filter_columns = [2, 3, 4]  # Date, Description, Amount
     filter_data_columns = [0]  # Allow search on tx_hash (string)
@@ -63,7 +64,14 @@ class HistoryList(MyTreeWidget):
     default_sort = MyTreeWidget.SortSpec(0, Qt.AscendingOrder)
 
     def __init__(self, parent):
-        super().__init__(parent, self.create_menu, [], 3, deferred_updates=True)
+        super().__init__(
+            parent,
+            self.create_menu,
+            [],
+            config=parent.config,
+            stretch_column=3,
+            deferred_updates=True
+        )
         self.refresh_headers()
         self.setColumnHidden(1, True)
         # force attributes to always be defined, even if None, at construction.

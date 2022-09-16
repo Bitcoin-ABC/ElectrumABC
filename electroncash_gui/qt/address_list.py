@@ -67,7 +67,14 @@ class AddressList(MyTreeWidget):
         cash_accounts = Qt.UserRole + 2
 
     def __init__(self, parent, *, picker=False):
-        super().__init__(parent, self.create_menu, [], 2, deferred_updates=True)
+        super().__init__(
+            parent,
+            self.create_menu,
+            [],
+            config=parent.config,
+            stretch_column=2,
+            deferred_updates=True,
+        )
         self.refresh_headers()
         self.picker = picker
         if self.picker:

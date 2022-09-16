@@ -96,6 +96,7 @@ class UTXOList(MyTreeWidget):
             main_window,
             self.create_menu,
             columns,
+            config=main_window.config,
             stretch_column=UTXOList.Col.label,
             deferred_updates=True,
             save_sort_settings=True,
