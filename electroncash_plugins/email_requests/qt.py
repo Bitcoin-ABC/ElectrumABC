@@ -23,8 +23,6 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-import time
 import threading
 import queue
 import base64
@@ -37,6 +35,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.encoders import encode_base64
 
+from typing import TYPE_CHECKING
+
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5 import QtWidgets
 
@@ -46,6 +46,9 @@ from electroncash.i18n import _
 from electroncash_gui.qt.util import EnterButton, Buttons, CloseButton
 from electroncash_gui.qt.util import OkButton, WindowModalDialog
 from electroncash.util import Weak, PrintError
+
+if TYPE_CHECKING:
+    from electroncash_gui.qt.request_list import RequestList
 
 
 class Processor(threading.Thread, PrintError):
@@ -180,7 +183,8 @@ class Plugin(BasePlugin):
 
     @hook
     def receive_list_menu(self, menu, addr):
-        window = menu.parentWidget().parent  # Grr. Electrum programmers overwrote parent() method.
+        request_list: RequestList = menu.parentWidget()
+        window = request_list.main_window
         menu.addAction(_("Send via e-mail"), lambda: self.send(window, addr))
 
     def send(self, window, addr):

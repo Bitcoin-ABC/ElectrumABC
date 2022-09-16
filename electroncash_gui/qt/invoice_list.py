@@ -50,33 +50,41 @@ if TYPE_CHECKING:
 class InvoiceList(MyTreeWidget):
     filter_columns = [0, 1, 2, 3]  # Date, Requestor, Description, Amount
 
-    def __init__(self, parent: ElectrumWindow):
+    def __init__(self, main_window: ElectrumWindow):
         MyTreeWidget.__init__(
             self,
-            parent,
+            main_window,
             self.create_menu,
             [_('Expires'), _('Requestor'), _('Description'), _('Amount'), _('Status')],
-            config=parent.config,
-            wallet=parent.wallet,
+            config=main_window.config,
+            wallet=main_window.wallet,
             stretch_column=2,
         )
-        self.parent = parent
+        self.main_window = main_window
         self.setSortingEnabled(True)
         self.header().setSectionResizeMode(1, QtWidgets.QHeaderView.Interactive)
         self.setColumnWidth(1, 200)
 
     def on_update(self):
-        inv_list = self.parent.invoices.unpaid_invoices()
+        inv_list = self.main_window.invoices.unpaid_invoices()
         self.clear()
         for pr in inv_list:
             key = pr.get_id()
-            status = self.parent.invoices.get_status(key)
+            status = self.main_window.invoices.get_status(key)
             if status is None:
                 continue
             requestor = pr.get_requestor()
             exp = pr.get_expiration_date()
             date_str = format_time(exp) if exp else _('Never')
-            item = QtWidgets.QTreeWidgetItem([date_str, requestor, pr.memo, self.parent.format_amount(pr.get_amount(), whitespaces=True), _(pr_tooltips.get(status,''))])
+            item = QtWidgets.QTreeWidgetItem(
+                [
+                    date_str,
+                    requestor,
+                    pr.memo,
+                    self.main_window.format_amount(pr.get_amount(), whitespaces=True),
+                    _(pr_tooltips.get(status, ''))
+                ]
+            )
             item.setIcon(4, QIcon(pr_icons.get(status)))
             item.setData(0, Qt.UserRole, key)
             item.setFont(1, QFont(MONOSPACE_FONT))
@@ -86,21 +94,23 @@ class InvoiceList(MyTreeWidget):
         self.chkVisible(inv_list)
 
     def chkVisible(self, inv_list=None):
-        inv_list = inv_list or self.parent.invoices.unpaid_invoices()
-        b = len(inv_list) > 0 and self.parent.isVisible()
+        inv_list = inv_list or self.main_window.invoices.unpaid_invoices()
+        b = len(inv_list) > 0 and self.main_window.isVisible()
         self.setVisible(b)
-        self.parent.invoices_label.setVisible(b)
+        self.main_window.invoices_label.setVisible(b)
 
 
     def import_invoices(self):
         wallet_folder = os.path.dirname(os.path.abspath(self.config.get_wallet_path()))
-        filename, __ = QtWidgets.QFileDialog.getOpenFileName(self.parent, "Select your wallet file", wallet_folder)
+        filename, __ = QtWidgets.QFileDialog.getOpenFileName(
+            self.main_window, "Select your wallet file", wallet_folder
+        )
         if not filename:
             return
         try:
-            self.parent.invoices.import_file(filename)
+            self.main_window.invoices.import_file(filename)
         except FileImportFailed as e:
-            self.parent.show_message(str(e))
+            self.main_window.show_message(str(e))
         self.on_update()
 
     def create_menu(self, position):
@@ -112,12 +122,17 @@ class InvoiceList(MyTreeWidget):
         column = self.currentColumn()
         column_title = self.headerItem().text(column)
         column_data = item.text(column)
-        pr = self.parent.invoices.get(key)
-        status = self.parent.invoices.get_status(key)
+        pr = self.main_window.invoices.get(key)
+        status = self.main_window.invoices.get_status(key)
         if column_data:
-            menu.addAction(_("Copy {}").format(column_title), lambda: self.parent.app.clipboard().setText(column_data.strip()))
-        menu.addAction(_("Details"), lambda: self.parent.show_invoice(key))
+            menu.addAction(
+                _("Copy {}").format(column_title),
+                lambda: self.main_window.app.clipboard().setText(column_data.strip())
+            )
+        menu.addAction(
+            _("Details"), lambda: self.main_window.show_invoice(key)
+        )
         if status == PR_UNPAID:
-            menu.addAction(_("Pay Now"), lambda: self.parent.do_pay_invoice(key))
-        menu.addAction(_("Delete"), lambda: self.parent.delete_invoice(key))
+            menu.addAction(_("Pay Now"), lambda: self.main_window.do_pay_invoice(key))
+        menu.addAction(_("Delete"), lambda: self.main_window.delete_invoice(key))
         menu.exec_(self.viewport().mapToGlobal(position))

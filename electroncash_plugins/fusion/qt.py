@@ -24,11 +24,13 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
+
 import threading
 import weakref
 
 from functools import partial
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from PyQt5.QtCore import QMargins, QObject, QPoint, QSize, Qt, QTimer, pyqtSignal
 from PyQt5.QtGui import QCursor, QIcon, QImage, QPainter
@@ -62,6 +64,9 @@ from .fusion import can_fuse_from, can_fuse_to
 from .server import Params
 from .plugin import FusionPlugin, TOR_PORTS, COIN_FRACTION_FUDGE_FACTOR, select_coins, MAX_LIMIT_FUSE_DEPTH
 from .util import get_coin_name
+
+if TYPE_CHECKING:
+    from electroncash_gui.qt.address_list import AddressList
 
 from pathlib import Path
 heredir = Path(__file__).parent
@@ -153,11 +158,11 @@ class Plugin(FusionPlugin, QObject):
             self.on_new_window(window)
 
     @hook
-    def address_list_context_menu_setup(self, address_list, menu, addrs):
+    def address_list_context_menu_setup(self, address_list: AddressList, menu, addrs):
         if not self.active:
             return
         wallet = address_list.wallet
-        window = address_list.parent
+        window = address_list.main_window
         network = wallet.network
         if not (can_fuse_from(wallet) and can_fuse_to(wallet) and network):
             return

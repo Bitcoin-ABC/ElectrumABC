@@ -45,18 +45,18 @@ class RequestList(MyTreeWidget):
     # Date, Account, Address, Description, Amount
     filter_columns = [0, 1, 2, 3, 4]
 
-    def __init__(self, parent: ElectrumWindow):
+    def __init__(self, main_window: ElectrumWindow):
         MyTreeWidget.__init__(
             self,
-            parent,
+            main_window,
             self.create_menu,
             [_('Date'), _('Address'), '', _('Description'), _('Amount'), _('Status')],
-            config=parent.config,
-            wallet=parent.wallet,
+            config=main_window.config,
+            wallet=main_window.wallet,
             stretch_column=3,
             deferred_updates=False,
         )
-        self.parent = parent
+        self.main_window = main_window
         self.currentItemChanged.connect(self.item_changed)
         self.itemClicked.connect(self.item_changed)
         self.setSortingEnabled(True)
@@ -77,17 +77,17 @@ class RequestList(MyTreeWidget):
         opr = req.get('op_return') or req.get('op_return_raw')
         opr_is_raw = bool(req.get('op_return_raw'))
         message = self.wallet.labels.get(addr.to_storage_string(), '')
-        self.parent.receive_address = addr
-        self.parent.receive_address_e.setText(addr.to_ui_string())
-        self.parent.receive_message_e.setText(message)
-        self.parent.receive_amount_e.setAmount(amount)
-        self.parent.expires_combo.hide()
-        self.parent.expires_label.show()
-        self.parent.expires_label.setText(expires)
-        self.parent.receive_opreturn_rawhex_cb.setChecked(opr_is_raw)
-        self.parent.receive_opreturn_e.setText(opr or '')
-        self.parent.save_request_button.setEnabled(False)
-        self.parent.cash_account_e.set_cash_acct()
+        self.main_window.receive_address = addr
+        self.main_window.receive_address_e.setText(addr.to_ui_string())
+        self.main_window.receive_message_e.setText(message)
+        self.main_window.receive_amount_e.setAmount(amount)
+        self.main_window.expires_combo.hide()
+        self.main_window.expires_label.show()
+        self.main_window.expires_label.setText(expires)
+        self.main_window.receive_opreturn_rawhex_cb.setChecked(opr_is_raw)
+        self.main_window.receive_opreturn_e.setText(opr or '')
+        self.main_window.save_request_button.setEnabled(False)
+        self.main_window.cash_account_e.set_cash_acct()
 
     def select_item_by_address(self, address):
         self.setCurrentItem(None)
@@ -105,27 +105,27 @@ class RequestList(MyTreeWidget):
         addr = item.data(0, Qt.UserRole)
         req = self.wallet.receive_requests.get(addr)
         if req:
-            self.parent.save_payment_request()
+            self.main_window.save_payment_request()
 
     def chkVisible(self):
         # hide receive tab if no receive requests available
-        b = len(self.wallet.receive_requests) > 0 and self.parent.isVisible()
+        b = len(self.wallet.receive_requests) > 0 and self.main_window.isVisible()
         self.setVisible(b)
-        self.parent.receive_requests_label.setVisible(b)
+        self.main_window.receive_requests_label.setVisible(b)
         if not b:
-            self.parent.expires_label.hide()
-            self.parent.expires_combo.show()
+            self.main_window.expires_label.hide()
+            self.main_window.expires_combo.show()
 
     def on_update(self):
         self.chkVisible()
 
         # update the receive address if necessary
-        current_address_string = self.parent.receive_address_e.text().strip()
+        current_address_string = self.main_window.receive_address_e.text().strip()
         current_address = Address.from_string(current_address_string) if len(current_address_string) else None
         domain = self.wallet.get_receiving_addresses()
         addr = self.wallet.get_unused_address()
         if current_address not in domain and addr:
-            self.parent.set_receive_address(addr)
+            self.main_window.set_receive_address(addr)
 
         # clear the list and fill it again
         item = self.currentItem()
@@ -143,7 +143,7 @@ class RequestList(MyTreeWidget):
             status = req.get('status')
             signature = req.get('sig')
             requestor = req.get('name', '')
-            amount_str = self.parent.format_amount(amount) if amount else ""
+            amount_str = self.main_window.format_amount(amount) if amount else ""
             item = QtWidgets.QTreeWidgetItem([date, address.to_ui_string(), '', message,
                                     amount_str, _(pr_tooltips.get(status,''))])
             item.setData(0, Qt.UserRole, address)
@@ -167,9 +167,22 @@ class RequestList(MyTreeWidget):
         column_title = self.headerItem().text(column)
         column_data = item.text(column)
         menu = QtWidgets.QMenu(self)
-        menu.addAction(_("Copy {}").format(column_title), lambda: self.parent.app.clipboard().setText(column_data.strip()))
-        menu.addAction(_("Copy URI"), lambda: self.parent.view_and_paste('URI', '', self.parent.get_request_URI(addr)))
-        menu.addAction(_("Save as BIP70 file"), lambda: self.parent.export_payment_request(addr))
-        menu.addAction(_("Delete"), lambda: self.parent.delete_payment_request(addr))
+        menu.addAction(
+            _("Copy {}").format(column_title),
+            lambda: self.main_window.app.clipboard().setText(column_data.strip())
+        )
+        menu.addAction(
+            _("Copy URI"),
+            lambda: self.main_window.view_and_paste(
+                'URI', '', self.main_window.get_request_URI(addr)
+            )
+        )
+        menu.addAction(
+            _("Save as BIP70 file"),
+            lambda: self.main_window.export_payment_request(addr)
+        )
+        menu.addAction(
+            _("Delete"), lambda: self.main_window.delete_payment_request(addr)
+        )
         run_hook('receive_list_menu', menu, addr)
         menu.exec_(self.viewport().mapToGlobal(position))

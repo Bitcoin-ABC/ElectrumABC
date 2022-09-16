@@ -69,17 +69,17 @@ class HistoryList(MyTreeWidget):
     statusIcons = {}
     default_sort = MyTreeWidget.SortSpec(0, Qt.AscendingOrder)
 
-    def __init__(self, parent: ElectrumWindow):
+    def __init__(self, main_window: ElectrumWindow):
         super().__init__(
-            parent,
+            main_window,
             self.create_menu,
             [],
-            config=parent.config,
-            wallet=parent.wallet,
+            config=main_window.config,
+            wallet=main_window.wallet,
             stretch_column=3,
             deferred_updates=True
         )
-        self.parent = parent
+        self.main_window = main_window
         self.refresh_headers()
         self.setColumnHidden(1, True)
         self.cleaned_up = False
@@ -97,7 +97,7 @@ class HistoryList(MyTreeWidget):
 
     def refresh_headers(self):
         headers = ['', '', _('Date'), _('Description') , _('Amount'), _('Balance')]
-        fx = self.parent.fx
+        fx = self.main_window.fx
         if fx and fx.show_history():
             headers.extend(['%s '%fx.ccy + _('Amount'), '%s '%fx.ccy + _('Balance')])
         self.update_headers(headers)
@@ -144,7 +144,7 @@ class HistoryList(MyTreeWidget):
         del sels #  make sure not to hold stale ref to C++ list of items which will be deleted in clear() call below
         self.clear()
         self.has_unknown_balances = False
-        fx = self.parent.fx
+        fx = self.main_window.fx
         if fx: fx.history_used_spot = False
         for h_item in h:
             tx_hash, height, conf, timestamp, value, balance = h_item
@@ -165,8 +165,8 @@ class HistoryList(MyTreeWidget):
             status, status_str = self.wallet.get_tx_status(tx_hash, height, conf, timestamp)
             has_invoice = self.wallet.invoices.paid.get(tx_hash)
             icon = self._get_icon_for_status(status)
-            v_str = self.parent.format_amount(value, True, whitespaces=True)
-            balance_str = self.parent.format_amount(balance, whitespaces=True)
+            v_str = self.main_window.format_amount(value, True, whitespaces=True)
+            balance_str = self.main_window.format_amount(balance, whitespaces=True)
             entry = ['', tx_hash, status_str, label, v_str, balance_str]
             if fx and fx.show_history():
                 date = timestamp_to_datetime(time.time() if conf <= 0 else timestamp)
@@ -205,7 +205,7 @@ class HistoryList(MyTreeWidget):
             tx = self.wallet.transactions.get(tx_hash)
             if tx:
                 label = self.wallet.get_label(tx_hash) or None
-                self.parent.show_transaction(tx, label)
+                self.main_window.show_transaction(tx, label)
 
     def update_labels(self):
         if self.should_defer_update_incr():
@@ -283,19 +283,31 @@ class HistoryList(MyTreeWidget):
 
         menu = QtWidgets.QMenu()
 
-        menu.addAction(_("&Copy {}").format(column_title), lambda: self.parent.app.clipboard().setText(column_data.strip()))
+        menu.addAction(
+            _("&Copy {}").format(column_title),
+            lambda: self.main_window.app.clipboard().setText(column_data.strip())
+        )
         if column in self.editable_columns:
             # We grab a fresh reference to the current item, as it has been deleted in a reported issue.
             menu.addAction(_("&Edit {}").format(column_title),
                 lambda: self.currentItem() and self.editItem(self.currentItem(), column))
         label = self.wallet.get_label(tx_hash) or None
-        menu.addAction(_("&Details"), lambda: self.parent.show_transaction(tx, label))
+        menu.addAction(
+            _("&Details"), lambda: self.main_window.show_transaction(tx, label)
+        )
         if is_unconfirmed and tx:
             child_tx = self.wallet.cpfp(tx, 0)
             if child_tx:
-                menu.addAction(_("Child pays for parent"), lambda: self.parent.cpfp(tx, child_tx))
+                menu.addAction(
+                    _("Child pays for parent"),
+                    lambda: self.main_window.cpfp(tx, child_tx)
+                )
         if pr_key:
-            menu.addAction(self.invoiceIcon, _("View invoice"), lambda: self.parent.show_invoice(pr_key))
+            menu.addAction(
+                self.invoiceIcon,
+                _("View invoice"),
+                lambda: self.main_window.show_invoice(pr_key)
+            )
         if tx_URL:
             menu.addAction(_("View on block explorer"), lambda: webopen(tx_URL))
 

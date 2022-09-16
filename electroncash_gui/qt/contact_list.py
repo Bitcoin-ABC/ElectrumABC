@@ -59,20 +59,20 @@ class ContactList(PrintError, MyTreeWidget):
     class DataRoles(IntEnum):
         Contact     = Qt.UserRole + 0
 
-    def __init__(self, parent: ElectrumWindow):
+    def __init__(self, main_window: ElectrumWindow):
         MyTreeWidget.__init__(
             self,
-            parent,
+            main_window,
             self.create_menu,
             headers=["", _('Name'), _('Label'), _('Address'), _('Type')],
-            config=parent.config,
-            wallet=parent.wallet,
+            config=main_window.config,
+            wallet=main_window.wallet,
             stretch_column=2,
             editable_columns=[1, 2],
             deferred_updates=True,
             save_sort_settings=True
         )
-        self.parent = parent
+        self.main_window = main_window
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.setSortingEnabled(True)
         self.setIndentation(0)
@@ -91,7 +91,7 @@ class ContactList(PrintError, MyTreeWidget):
         if self.wallet.network:
             self.wallet.network.register_callback(self._ca_callback, ['ca_verified_tx', 'ca_updated_minimal_chash'] )
         self._ca_minimal_chash_updated_signal.connect(self._ca_update_chash)
-        self.parent.gui_object.addr_fmt_changed.connect(self.update)
+        self.main_window.gui_object.addr_fmt_changed.connect(self.update)
 
 
     def clean_up(self):
@@ -100,7 +100,7 @@ class ContactList(PrintError, MyTreeWidget):
         except TypeError: pass
         try: self.do_update_signal.disconnect(self.update)
         except TypeError: pass
-        try: self.parent.gui_object.addr_fmt_changed.disconnect(self.update)
+        try: self.main_window.gui_object.addr_fmt_changed.disconnect(self.update)
         except TypeError: pass
         if self.wallet.network:
             self.wallet.network.unregister_callback(self._ca_callback)
@@ -128,7 +128,7 @@ class ContactList(PrintError, MyTreeWidget):
 
         # On success, parent.set_contact returns the new key (address text)
         # if 'cashacct'.. or always the same key for all other types.
-        key = self.parent.set_contact(name, value, typ=typ, replace=contact)
+        key = self.main_window.set_contact(name, value, typ=typ, replace=contact)
 
         if key:
             # Due to deferred updates, on_update will actually be called later.
@@ -138,34 +138,38 @@ class ContactList(PrintError, MyTreeWidget):
             self._edited_item_cur_sel = (key, was_cur, was_sel)
 
     def import_contacts(self):
-        wallet_folder = self.parent.get_wallet_folder()
-        filename, __ = QtWidgets.QFileDialog.getOpenFileName(self.parent, "Select your wallet file", wallet_folder)
+        wallet_folder = self.main_window.get_wallet_folder()
+        filename, __ = QtWidgets.QFileDialog.getOpenFileName(self.main_window, "Select your wallet file", wallet_folder)
         if not filename:
             return
         try:
-            num = self.parent.contacts.import_file(filename)
-            self.parent.show_message(_("{} contacts successfully imported.").format(num))
+            num = self.main_window.contacts.import_file(filename)
+            self.main_window.show_message(
+                _("{} contacts successfully imported.").format(num)
+            )
         except Exception as e:
-            self.parent.show_error(
+            self.main_window.show_error(
                 _(f"{PROJECT_NAME} was unable to import your contacts.")
                 + "\n" + repr(e))
         self.on_update()
 
     def export_contacts(self):
-        if self.parent.contacts.empty:
-            self.parent.show_error(_("Your contact list is empty."))
+        if self.main_window.contacts.empty:
+            self.main_window.show_error(_("Your contact list is empty."))
             return
         try:
-            fileName = self.parent.getSaveFileName(
+            fileName = self.main_window.getSaveFileName(
                 _("Select file to save your contacts"),
                 f'{SCRIPT_NAME}-contacts.json',
                 "*.json",
             )
             if fileName:
-                num = self.parent.contacts.export_file(fileName)
-                self.parent.show_message(_("{} contacts exported to '{}'").format(num, fileName))
+                num = self.main_window.contacts.export_file(fileName)
+                self.main_window.show_message(
+                    _("{} contacts exported to '{}'").format(num, fileName)
+                )
         except Exception as e:
-            self.parent.show_error(
+            self.main_window.show_error(
                 _(f"{PROJECT_NAME} was unable to export your contacts.")
                 + "\n" + repr(e))
 
@@ -226,7 +230,10 @@ class ContactList(PrintError, MyTreeWidget):
                         column_data = self.wallet.cashacct.fmt_info(ca_info, emoji=True)
             if len(selected) > 1:
                 column_title += f" ({len(selected)})"
-            menu.addAction(_("Copy {}").format(column_title), lambda: self.parent.app.clipboard().setText(column_data))
+            menu.addAction(
+                _("Copy {}").format(column_title),
+                lambda: self.main_window.app.clipboard().setText(column_data)
+            )
             if item and column in self.editable_columns and self.on_permit_edit(item, column):
                 key = item.data(0, self.DataRoles.Contact)
                 # this key & find_item business is so we don't hold a reference
@@ -235,16 +242,25 @@ class ContactList(PrintError, MyTreeWidget):
                 # means the item is deleted and you get a C++ object deleted
                 # runtime error.
                 menu.addAction(_("Edit {}").format(column_title), lambda: self._on_edit_item(key, column))
-            a = menu.addAction(_("Pay to"), lambda: self.parent.payto_contacts(payable_keys))
+            a = menu.addAction(
+                _("Pay to"),
+                lambda: self.main_window.payto_contacts(payable_keys)
+            )
             if needs_verif_keys or not payable_keys:
                 a.setDisabled(True)
-            a = menu.addAction(_("Delete"), lambda: self.parent.delete_contacts(deletable_keys))
+            a = menu.addAction(
+                _("Delete"),
+                lambda: self.main_window.delete_contacts(deletable_keys)
+            )
             if not deletable_keys:
                 a.setDisabled(True)
             # Add sign/verify and encrypt/decrypt menu - but only if just 1 thing selected
             if len(keys) == 1 and Address.is_valid(keys[0].address):
                 signAddr = Address.from_string(keys[0].address)
-                a = menu.addAction(_("Sign/verify message") + "...", lambda: self.parent.sign_verify_message(signAddr))
+                a = menu.addAction(
+                    _("Sign/verify message") + "...",
+                    lambda: self.main_window.sign_verify_message(signAddr)
+                )
                 if signAddr.kind != Address.ADDR_P2PKH:
                     a.setDisabled(True)  # We only allow this for P2PKH since it makes no sense for P2SH (ambiguous public key)
             URLs = [web.BE_URL(self.config, web.ExplorerUrlParts.ADDR, Address.from_string(key.address))
@@ -253,22 +269,41 @@ class ContactList(PrintError, MyTreeWidget):
             if not any(URLs):
                 a.setDisabled(True)
             if ca_info:
-                menu.addAction(_("View registration tx..."), lambda: self.parent.do_process_from_txid(txid=ca_info.txid, tx_desc=self.wallet.get_label(ca_info.txid)))
+                menu.addAction(
+                    _("View registration tx..."),
+                    lambda: self.main_window.do_process_from_txid(
+                        txid=ca_info.txid,
+                        tx_desc=self.wallet.get_label(ca_info.txid)
+                    )
+                )
                 if typ in ('cashacct_W', 'cashacct'):
                     _contact_d = i2c(item)
-                    menu.addAction(_("Details..."), lambda: cashacctqt.cash_account_detail_dialog(self.parent, _contact_d.name))
+                    menu.addAction(
+                        _("Details..."),
+                        lambda: cashacctqt.cash_account_detail_dialog(
+                            self.main_window,
+                            _contact_d.name
+                        )
+                    )
             menu.addSeparator()
 
         menu.addAction(self.icon_cashacct,
                        _("Add Contact") + " - " + _("Cash Account"), self.new_cash_account_contact_dialog)
-        menu.addAction(self.icon_contacts, _("Add Contact") + " - " + _("Address"), self.parent.new_contact_dialog)
+        menu.addAction(
+            self.icon_contacts,
+            _("Add Contact") + " - " + _("Address"),
+            self.main_window.new_contact_dialog
+        )
         menu.addSeparator()
-        menu.addAction(self.icon_cashacct,
-                       _("Register Cash Account..."), self.parent.register_new_cash_account)
+        menu.addAction(
+            self.icon_cashacct,
+            _("Register Cash Account..."),
+            self.main_window.register_new_cash_account
+        )
         menu.addSeparator()
         menu.addAction(QIcon(":icons/import.svg" if not ColorScheme.dark_scheme else ":icons/import_dark_theme.svg"),
                        _("Import file"), self.import_contacts)
-        if not self.parent.contacts.empty:
+        if not self.main_window.contacts.empty:
             menu.addAction(QIcon(":icons/save.svg" if not ColorScheme.dark_scheme else ":icons/save_dark_theme.svg"),
                            _("Export file"), self.export_contacts)
 
@@ -285,13 +320,17 @@ class ContactList(PrintError, MyTreeWidget):
                     if not tup:
                         continue
                     bnums.add(tup[1])  # number
-                ret = cashacctqt.verify_multiple_blocks(bnums, self.parent, self.wallet)
+                ret = cashacctqt.verify_multiple_blocks(
+                    bnums,
+                    self.main_window,
+                    self.wallet
+                )
                 if ret is None:
                     # user cancel
                     return
                 verified = ca_unverified - self._get_ca_unverified()
                 if not verified:
-                    self.parent.show_error(_("Cash Account verification failure"))
+                    self.main_window.show_error(_("Cash Account verification failure"))
 
             menu.addSeparator()
             num = len(ca_unverified)
@@ -334,7 +373,7 @@ class ContactList(PrintError, MyTreeWidget):
             # filter out cachaccts that are "Wallet", as they will be added
             # at the end as pseudo contacts if they also appear in real contacts
             real_contacts = [contact for contact in
-                             self.parent.contacts.get_all(nocopy=True)
+                             self.main_window.contacts.get_all(nocopy=True)
                              if contact.type != 'cashacct'  # accept anything that's not cashacct
                                 or not Address.is_valid(contact.address)  # or if it is, it can have invalid address as it's clearly 'not mine"
                                 or not self.wallet.is_mine(  # or if it's not mine
@@ -342,7 +381,7 @@ class ContactList(PrintError, MyTreeWidget):
                             ]
             return real_contacts + self._make_wallet_cashacct_pseudo_contacts()
         else:
-            return self.parent.contacts.get_all(nocopy=True)
+            return self.main_window.contacts.get_all(nocopy=True)
 
     def _make_wallet_cashacct_pseudo_contacts(self, exclude_contacts = []) -> List[Contact]:
         ''' Returns a list of 'fake' contacts that come from the wallet's
@@ -488,13 +527,13 @@ class ContactList(PrintError, MyTreeWidget):
         interface. '''
 
         items = cashacctqt.lookup_cash_account_dialog(
-            self.parent, self.wallet, title=_("New Cash Account Contact"),
+            self.main_window, self.wallet, title=_("New Cash Account Contact"),
             blurb = _("<br>Add anyone's Cash Account to your Contacts"),
             button_type=cashacctqt.InfoGroupBox.ButtonType.Radio
         )
         if items:
             info, min_chash, name = items[0]
-            self.parent.set_contact(name, info.address.to_ui_string(), typ='cashacct')
+            self.main_window.set_contact(name, info.address.to_ui_string(), typ='cashacct')
             run_hook('update_contacts_tab', self)
 
     def ca_update_potentially_unconfirmed_registrations(self, d : Dict[str, Tuple[str, Address]]):

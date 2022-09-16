@@ -71,17 +71,17 @@ class AddressList(MyTreeWidget):
         can_edit_label = Qt.UserRole + 1
         cash_accounts = Qt.UserRole + 2
 
-    def __init__(self, parent: ElectrumWindow, *, picker=False):
+    def __init__(self, main_window: ElectrumWindow, *, picker=False):
         super().__init__(
-            parent,
+            main_window,
             self.create_menu,
             [],
-            config=parent.config,
-            wallet=parent.wallet,
+            config=main_window.config,
+            wallet=main_window.wallet,
             stretch_column=2,
             deferred_updates=True,
         )
-        self.parent = parent
+        self.main_window = main_window
         self.refresh_headers()
         self.picker = picker
         if self.picker:
@@ -90,7 +90,6 @@ class AddressList(MyTreeWidget):
         else:
             self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.setSortingEnabled(True)
-        self.wallet = self.parent.wallet
         self.monospace_font = QFont(MONOSPACE_FONT)
         assert self.wallet
         self.cleaned_up = False
@@ -99,8 +98,8 @@ class AddressList(MyTreeWidget):
         self._ca_cb_registered = False
         self._ca_minimal_chash_updated_signal.connect(self._ca_update_chash)
 
-        self.parent.gui_object.addr_fmt_changed.connect(self.update)
-        self.parent.ca_address_default_changed_signal.connect(
+        self.main_window.gui_object.addr_fmt_changed.connect(self.update)
+        self.main_window.ca_address_default_changed_signal.connect(
             self._ca_on_address_default_change
         )
 
@@ -119,9 +118,9 @@ class AddressList(MyTreeWidget):
         # paranoia -- we have seen Qt not clean up the signal before the object is
         # destroyed on Python 3.7.3 PyQt 5.12.3, see #1531
         with suppress(TypeError):
-            self.parent.gui_object.addr_fmt_changed.disconnect(self.update)
+            self.main_window.gui_object.addr_fmt_changed.disconnect(self.update)
         with suppress(TypeError):
-            self.parent.ca_address_default_changed_signal.disconnect(
+            self.main_window.ca_address_default_changed_signal.disconnect(
                 self._ca_on_address_default_change
             )
 
@@ -139,7 +138,7 @@ class AddressList(MyTreeWidget):
 
     def refresh_headers(self):
         headers = [_("Address"), _("Index"), _("Label"), _("Balance"), _("Tx")]
-        fx = self.parent.fx
+        fx = self.main_window.fx
         if fx and fx.get_fiat_address_config():
             headers.insert(4, f"{fx.get_currency()} {_('Balance')}")
         self.update_headers(headers)
@@ -216,8 +215,8 @@ class AddressList(MyTreeWidget):
         receiving_addresses = list(self.wallet.get_receiving_addresses())
         change_addresses = list(self.wallet.get_change_addresses())
 
-        if self.parent.fx and self.parent.fx.get_fiat_address_config():
-            fx = self.parent.fx
+        if self.main_window.fx and self.main_window.fx.get_fiat_address_config():
+            fx = self.main_window.fx
         else:
             fx = None
         account_item = self
@@ -272,7 +271,7 @@ class AddressList(MyTreeWidget):
                         address_text = ca_info.emoji + " " + address_text
                 # /Cash Accounts
                 label = self.wallet.labels.get(address.to_storage_string(), "")
-                balance_text = self.parent.format_amount(balance, whitespaces=True)
+                balance_text = self.main_window.format_amount(balance, whitespaces=True)
                 columns = [address_text, str(n), label, balance_text, str(num)]
                 if fx:
                     rate = fx.exchange_rate()
@@ -354,7 +353,7 @@ class AddressList(MyTreeWidget):
 
         def doCopy(txt):
             txt = txt.strip()
-            self.parent.copy_to_clipboard(txt)
+            self.main_window.copy_to_clipboard(txt)
 
         col = self.currentColumn()
         column_title = self.headerItem().text(col)
@@ -389,7 +388,7 @@ class AddressList(MyTreeWidget):
                     _("Copy {}").format(alt_column_title), lambda: doCopy(alt_copy_text)
                 )
             a = menu.addAction(
-                _("Details") + "...", lambda: self.parent.show_address(addr)
+                _("Details") + "...", lambda: self.main_window.show_address(addr)
             )
             if col == 0:
                 where_to_insert_dupe_copy_cash_account = a
@@ -401,13 +400,13 @@ class AddressList(MyTreeWidget):
                     lambda: self.editItem(self.itemAt(position), col),
                 )
             a = menu.addAction(
-                _("Request payment"), lambda: self.parent.receive_at(addr)
+                _("Request payment"), lambda: self.main_window.receive_at(addr)
             )
             if self.wallet.get_num_tx(addr) or self.wallet.has_payment_request(addr):
                 # This address cannot be used for a payment request because
                 # the receive tab will refuse to display it and will instead
                 # create a request with a new address, if we were to call
-                # self.parent.receive_at(addr). This is because the recieve tab
+                # self.main_window.receive_at(addr). This is because the recieve tab
                 # now strongly enforces no-address-reuse. See #1552.
                 a.setDisabled(True)
             a = menu.addAction(
@@ -416,20 +415,21 @@ class AddressList(MyTreeWidget):
             )
             if self.wallet.can_export():
                 menu.addAction(
-                    _("Private key"), lambda: self.parent.show_private_key(addr)
+                    _("Private key"), lambda: self.main_window.show_private_key(addr)
                 )
             if not is_multisig and not self.wallet.is_watching_only():
                 menu.addAction(
                     _("Sign/verify message") + "...",
-                    lambda: self.parent.sign_verify_message(addr),
+                    lambda: self.main_window.sign_verify_message(addr),
                 )
                 menu.addAction(
                     _("Encrypt/decrypt message") + "...",
-                    lambda: self.parent.encrypt_message(addr),
+                    lambda: self.main_window.encrypt_message(addr),
                 )
             if can_delete:
                 menu.addAction(
-                    _("Remove from wallet"), lambda: self.parent.remove_address(addr)
+                    _("Remove from wallet"),
+                    lambda: self.main_window.remove_address(addr),
                 )
             addr_URL = web.BE_URL(self.config, web.ExplorerUrlParts.ADDR, addr)
             if addr_URL:
@@ -453,7 +453,7 @@ class AddressList(MyTreeWidget):
                     [
                         a.to_ui_string()
                         + ", "
-                        + self.parent.format_amount(
+                        + self.main_window.format_amount(
                             sum(self.wallet.get_addr_balance(a))
                         )
                         for a in addrs
@@ -472,7 +472,7 @@ class AddressList(MyTreeWidget):
             if alt_copy and alt_copy_text:
                 menu.addAction(alt_copy, lambda: doCopy(alt_copy_text))
 
-        freeze = self.parent.set_frozen_state
+        freeze = self.main_window.set_frozen_state
         if any(self.wallet.is_frozen(addr) for addr in addrs):
             menu.addAction(_("Unfreeze"), partial(freeze, addrs, False))
         if not all(self.wallet.is_frozen(addr) for addr in addrs):
@@ -480,7 +480,9 @@ class AddressList(MyTreeWidget):
 
         coins = self.wallet.get_spendable_coins(domain=addrs, config=self.config)
         if coins:
-            menu.addAction(_("Spend from"), partial(self.parent.spend_coins, coins))
+            menu.addAction(
+                _("Spend from"), partial(self.main_window.spend_coins, coins)
+            )
 
         run_hook("address_list_context_menu_setup", self, menu, addrs)
 
@@ -507,12 +509,12 @@ class AddressList(MyTreeWidget):
                     a = m.addAction(
                         _("Details") + "...",
                         lambda x=None, ca_text=ca_text: cashacctqt.cash_account_detail_dialog(
-                            self.parent, ca_text
+                            self.main_window, ca_text
                         ),
                     )
                     a = m.addAction(
                         _("View registration tx") + "...",
-                        lambda x=None, ca=ca_info: self.parent.do_process_from_txid(
+                        lambda x=None, ca=ca_info: self.main_window.do_process_from_txid(
                             txid=ca.txid
                         ),
                     )
@@ -536,7 +538,9 @@ class AddressList(MyTreeWidget):
                 a1.setText(_("No Cash Accounts"))
             a_new = menu.addAction(
                 _("Register new..."),
-                lambda x=None, addr=addr: self.parent.register_new_cash_account(addr),
+                lambda x=None, addr=addr: self.main_window.register_new_cash_account(
+                    addr
+                ),
             )
             a_new.setIcon(__class__._cashacct_icon)
 
@@ -548,7 +552,7 @@ class AddressList(MyTreeWidget):
             addrs = [i.data(0, self.DataRoles.address) for i in self.selectedItems()]
             if addrs and isinstance(addrs[0], Address):
                 text = addrs[0].to_ui_string()
-                self.parent.app.clipboard().setText(text)
+                self.main_window.app.clipboard().setText(text)
         else:
             super().keyPressEvent(event)
 
@@ -575,7 +579,7 @@ class AddressList(MyTreeWidget):
         else:
             addr = item.data(0, self.DataRoles.address)
             if isinstance(addr, Address):
-                self.parent.show_address(addr)
+                self.main_window.show_address(addr)
 
     #########################
     # Cash Accounts related #
@@ -641,16 +645,16 @@ class AddressList(MyTreeWidget):
                 self,
             )
             # eventually calls self.update
-        self.parent.ca_address_default_changed_signal.emit(ca_info)
+        self.main_window.ca_address_default_changed_signal.emit(ca_info)
 
     def _ca_on_address_default_change(self, ignored):
         self.update()
 
     def _open_consolidate_coins_dialog(self, addr):
-        d = ConsolidateCoinsWizard(addr, self.parent.wallet, self.parent, parent=self)
+        d = ConsolidateCoinsWizard(addr, self.wallet, self.main_window, parent=self)
         d.exec_()
 
     def create_invoice(self, address: Address):
-        d = InvoiceDialog(self, self.parent.fx)
+        d = InvoiceDialog(self, self.main_window.fx)
         d.set_address(address)
         d.show()
