@@ -49,7 +49,6 @@ class RequestList(MyTreeWidget):
         MyTreeWidget.__init__(
             self,
             main_window,
-            self.create_menu,
             [_('Date'), _('Address'), '', _('Description'), _('Amount'), _('Status')],
             config=main_window.config,
             wallet=main_window.wallet,
@@ -57,6 +56,7 @@ class RequestList(MyTreeWidget):
             deferred_updates=False,
         )
         self.main_window = main_window
+        self.customContextMenuRequested.connect(self.create_menu)
         self.currentItemChanged.connect(self.item_changed)
         self.itemClicked.connect(self.item_changed)
         self.setSortingEnabled(True)

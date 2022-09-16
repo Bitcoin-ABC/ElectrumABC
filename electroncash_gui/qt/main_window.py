@@ -1719,11 +1719,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         grid.addWidget(self.from_label, 4, 0)
         self.from_list = MyTreeWidget(
             self,
-            self.from_list_menu,
             ['', ''],
             self.config,
             self.wallet
         )
+        self.from_list.customContextMenuRequested.connect(self.from_list_menu)
         self.from_label.setBuddy(self.from_list)
         self.from_list.setHeaderHidden(True)
         self.from_list.setMaximumHeight(80)

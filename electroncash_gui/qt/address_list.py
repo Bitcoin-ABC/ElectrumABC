@@ -74,7 +74,6 @@ class AddressList(MyTreeWidget):
     def __init__(self, main_window: ElectrumWindow, *, picker=False):
         super().__init__(
             main_window,
-            self.create_menu,
             [],
             config=main_window.config,
             wallet=main_window.wallet,
@@ -82,6 +81,7 @@ class AddressList(MyTreeWidget):
             deferred_updates=True,
         )
         self.main_window = main_window
+        self.customContextMenuRequested.connect(self.create_menu)
         self.refresh_headers()
         self.picker = picker
         if self.picker:

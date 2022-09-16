@@ -94,7 +94,6 @@ class UTXOList(MyTreeWidget):
         MyTreeWidget.__init__(
             self,
             main_window,
-            self.create_menu,
             columns,
             config=main_window.config,
             wallet=main_window.wallet,
@@ -105,6 +104,7 @@ class UTXOList(MyTreeWidget):
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.setSortingEnabled(True)
         self.main_window = main_window
+        self.customContextMenuRequested.connect(self.create_menu)
         self.utxos = []
         # cache some values to avoid constructing Qt objects for every pass through self.on_update (this is important for large wallets)
         self.monospaceFont = QFont(MONOSPACE_FONT)

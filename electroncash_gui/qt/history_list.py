@@ -72,7 +72,6 @@ class HistoryList(MyTreeWidget):
     def __init__(self, main_window: ElectrumWindow):
         super().__init__(
             main_window,
-            self.create_menu,
             [],
             config=main_window.config,
             wallet=main_window.wallet,
@@ -80,6 +79,7 @@ class HistoryList(MyTreeWidget):
             deferred_updates=True
         )
         self.main_window = main_window
+        self.customContextMenuRequested.connect(self.create_menu)
         self.refresh_headers()
         self.setColumnHidden(1, True)
         self.cleaned_up = False

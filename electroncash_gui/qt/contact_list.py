@@ -63,7 +63,6 @@ class ContactList(PrintError, MyTreeWidget):
         MyTreeWidget.__init__(
             self,
             main_window,
-            self.create_menu,
             headers=["", _('Name'), _('Label'), _('Address'), _('Type')],
             config=main_window.config,
             wallet=main_window.wallet,
@@ -73,6 +72,7 @@ class ContactList(PrintError, MyTreeWidget):
             save_sort_settings=True
         )
         self.main_window = main_window
+        self.customContextMenuRequested.connect(self.create_menu)
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.setSortingEnabled(True)
         self.setIndentation(0)

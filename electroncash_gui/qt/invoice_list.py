@@ -54,13 +54,13 @@ class InvoiceList(MyTreeWidget):
         MyTreeWidget.__init__(
             self,
             main_window,
-            self.create_menu,
             [_('Expires'), _('Requestor'), _('Description'), _('Amount'), _('Status')],
             config=main_window.config,
             wallet=main_window.wallet,
             stretch_column=2,
         )
         self.main_window = main_window
+        self.customContextMenuRequested.connect(self.create_menu)
         self.setSortingEnabled(True)
         self.header().setSectionResizeMode(1, QtWidgets.QHeaderView.Interactive)
         self.setColumnWidth(1, 200)

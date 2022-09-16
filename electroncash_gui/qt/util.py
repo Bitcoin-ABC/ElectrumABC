@@ -613,7 +613,6 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
     def __init__(
         self,
         parent: QtWidgets.QWidget,
-        create_menu,
         headers,
         config: SimpleConfig,
         wallet: Abstract_Wallet,
@@ -628,7 +627,6 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
         self.wallet = wallet
         self.stretch_column = stretch_column
         self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(create_menu)
         self.setUniformRowHeights(True)
         # extend the syntax for consistency
         self.addChild = self.addTopLevelItem
