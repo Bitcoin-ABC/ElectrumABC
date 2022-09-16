@@ -25,7 +25,6 @@
 # SOFTWARE.
 from __future__ import annotations
 
-import contextlib
 import json
 from collections import defaultdict
 from enum import IntEnum
@@ -40,6 +39,7 @@ from electroncash.address import Address
 from electroncash.bitcoin import COINBASE_MATURITY
 from electroncash.i18n import _
 from electroncash.plugins import run_hook
+from electroncash.util import format_satoshis
 from electroncash.wallet import ImportedAddressWallet, ImportedPrivkeyWallet
 
 from .avalanche.proof_editor import AvaProofDialog
@@ -105,10 +105,6 @@ class UTXOList(MyTreeWidget):
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.setSortingEnabled(True)
         self.main_window = main_window
-        main_window.ca_address_default_changed_signal.connect(
-            self._ca_on_address_default_change
-        )
-        main_window.gui_object.addr_fmt_changed.connect(self.update)
         self.utxos = []
         # cache some values to avoid constructing Qt objects for every pass through self.on_update (this is important for large wallets)
         self.monospaceFont = QFont(MONOSPACE_FONT)
@@ -125,12 +121,6 @@ class UTXOList(MyTreeWidget):
 
     def clean_up(self):
         self.cleaned_up = True
-        with contextlib.suppress(TypeError):
-            self.main_window.ca_address_default_changed_signal.disconnect(
-                self._ca_on_address_default_change
-            )
-        with contextlib.suppress(TypeError):
-            self.main_window.gui_object.addr_fmt_changed.disconnect(self.update)
 
     def if_not_dead(func):
         """Boilerplate: Check if cleaned up, and if so, don't execute method"""
@@ -196,8 +186,11 @@ class UTXOList(MyTreeWidget):
             name = self.get_name(x)
             name_short = self.get_name_short(x)
             label = self.wallet.get_label(x["prevout_hash"])
-            amount = self.main_window.format_amount(
-                x["value"], is_diff=False, whitespaces=True
+            amount = format_satoshis(
+                x["value"],
+                int(self.config.get("num_zeros", 2)),
+                self.config.get("decimal_point", 2),
+                whitespaces=True,
             )
             utxo_item = SortableTreeWidgetItem(
                 [address_text, label, amount, str(height), name_short]
@@ -512,7 +505,7 @@ class UTXOList(MyTreeWidget):
             label = self.wallet.get_label(txid)
             item.setText(1, label)
 
-    def _ca_on_address_default_change(self, info):
+    def ca_on_address_default_change(self, info):
         if self.show_cash_accounts:
             self.update()
 

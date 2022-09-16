@@ -25,6 +25,7 @@
 # SOFTWARE.
 from __future__ import annotations
 
+import contextlib
 import copy
 import csv
 import json
@@ -2734,6 +2735,10 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     def create_utxo_tab(self):
         from .utxo_list import UTXOList
         self.utxo_list = UTXOList(self)
+        self.ca_address_default_changed_signal.connect(
+            self.utxo_list.ca_on_address_default_change
+        )
+        self.gui_object.addr_fmt_changed.connect(self.utxo_list.update)
         self.utxo_list.edited.connect(self.update_labels)
         return self.create_list_tab(self.utxo_list)
 
@@ -4976,6 +4981,13 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         for w in [self.address_list, self.history_list, self.utxo_list, self.cash_account_e, self.contact_list,
                   self.tx_update_mgr]:
             if w: w.clean_up()  # tell relevant object to clean itself up, unregister callbacks, disconnect signals, etc
+
+        with contextlib.suppress(TypeError):
+            self.ca_address_default_changed_signal.disconnect(
+                self.utxo_list.ca_on_address_default_change
+            )
+        with contextlib.suppress(TypeError):
+            self.gui_object.addr_fmt_changed.disconnect(self.utxo_list.update)
 
         # We catch these errors with the understanding that there is no recovery at
         # this point, given user has likely performed an action we cannot recover
