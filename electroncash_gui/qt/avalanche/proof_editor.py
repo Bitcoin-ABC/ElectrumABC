@@ -447,7 +447,12 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         d = UtxosDialog(self.wallet)
         if d.exec_() == QtWidgets.QDialog.Rejected:
             return
-        self.add_utxos(d.get_selected_utxos())
+        utxos = d.get_selected_utxos()
+
+        if not check_utxos(utxos, self):
+            return
+
+        self.add_utxos(utxos)
 
     def on_merge_stakes_clicked(self):
         fileName, __ = QtWidgets.QFileDialog.getOpenFileName(
@@ -667,21 +672,9 @@ class AvaProofDialog(QtWidgets.QDialog):
         self.close_button.clicked.connect(self.accept)
 
     def add_utxos(self, utxos: List[dict]) -> bool:
-        if not self.check_utxos(utxos):
+        if not check_utxos(utxos, self):
             return False
         self.proof_widget.add_utxos(utxos)
-        return True
-
-    def check_utxos(self, utxos: List[dict]) -> bool:
-        """Check utxos are usable for avalanche proofs.
-        If they aren't, and the user has not acknowledged that he wants to build the
-        proof anyway, return False.
-        """
-        if any(u["value"] < PROOF_DUST_THRESHOLD for u in utxos):
-            warning_dialog = StakeDustThresholdMessageBox(self)
-            warning_dialog.exec_()
-            if warning_dialog.has_cancelled():
-                return False
         return True
 
 
@@ -773,6 +766,19 @@ class StakeDustThresholdMessageBox(QtWidgets.QMessageBox):
 
     def has_cancelled(self) -> bool:
         return self.clickedButton() == self.cancel_button
+
+
+def check_utxos(utxos: List[dict], parent: Optional[QtWidgets.QWidget] = None) -> bool:
+    """Check utxos are usable for avalanche proofs.
+    If they aren't, and the user has not acknowledged that he wants to build the
+    proof anyway, return False.
+    """
+    if any(u["value"] < PROOF_DUST_THRESHOLD for u in utxos):
+        warning_dialog = StakeDustThresholdMessageBox(parent)
+        warning_dialog.exec_()
+        if warning_dialog.has_cancelled():
+            return False
+    return True
 
 
 class UtxosDialog(QtWidgets.QDialog):
