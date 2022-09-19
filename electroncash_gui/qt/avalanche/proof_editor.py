@@ -181,8 +181,13 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         stakes_button_layout = QtWidgets.QHBoxLayout()
         layout.addLayout(stakes_button_layout)
 
-        self.add_coins_button = QtWidgets.QPushButton("Add coins from file")
-        stakes_button_layout.addWidget(self.add_coins_button)
+        self.add_coins_from_file_button = QtWidgets.QPushButton("Add coins from file")
+        stakes_button_layout.addWidget(self.add_coins_from_file_button)
+
+        self.add_coins_from_wallet_button = QtWidgets.QPushButton(
+            "Add coins from wallet"
+        )
+        stakes_button_layout.addWidget(self.add_coins_from_wallet_button)
 
         self.merge_stakes_button = QtWidgets.QPushButton("Merge stakes from proof")
         self.merge_stakes_button.setToolTip(
@@ -233,7 +238,12 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.calendar.dateTimeChanged.connect(self.on_datetime_changed)
         self.timestamp_widget.valueChanged.connect(self.on_timestamp_changed)
         self.master_key_edit.textChanged.connect(self.update_master_pubkey)
-        self.add_coins_button.clicked.connect(self.on_add_coins_clicked)
+        self.add_coins_from_file_button.clicked.connect(
+            self.on_add_coins_from_file_clicked
+        )
+        self.add_coins_from_wallet_button.clicked.connect(
+            self.on_add_coins_from_wallet_clicked
+        )
         self.merge_stakes_button.clicked.connect(self.on_merge_stakes_clicked)
         self.generate_dg_button.clicked.connect(self.open_dg_dialog)
         self.load_proof_button.clicked.connect(self.on_load_proof_clicked)
@@ -352,7 +362,9 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             vout_item = QtWidgets.QTableWidgetItem(str(stake.utxo.n))
             self.utxos_wigdet.setItem(row_index, 1, vout_item)
 
-            amount_item = QtWidgets.QTableWidgetItem(str(format_satoshis(stake.amount)))
+            amount_item = QtWidgets.QTableWidgetItem(
+                format_satoshis(stake.amount, num_zeros=2)
+            )
             amount_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
             if stake.amount < PROOF_DUST_THRESHOLD:
                 amount_item.setForeground(QtGui.QColor("red"))
@@ -416,7 +428,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.calendar.setDateTime(QtCore.QDateTime.fromSecsSinceEpoch(timestamp))
         self.blockSignals(was_blocked)
 
-    def on_add_coins_clicked(self):
+    def on_add_coins_from_file_clicked(self):
         fileName, __ = QtWidgets.QFileDialog.getOpenFileName(
             self,
             "Select the file containing the data for coins to be used as stakes",
@@ -430,6 +442,12 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         if utxos is None:
             return
         self.add_utxos(utxos)
+
+    def on_add_coins_from_wallet_clicked(self):
+        d = UtxosDialog(self.wallet)
+        if d.exec_() == QtWidgets.QDialog.Rejected:
+            return
+        self.add_utxos(d.get_selected_utxos())
 
     def on_merge_stakes_clicked(self):
         fileName, __ = QtWidgets.QFileDialog.getOpenFileName(
@@ -755,3 +773,101 @@ class StakeDustThresholdMessageBox(QtWidgets.QMessageBox):
 
     def has_cancelled(self) -> bool:
         return self.clickedButton() == self.cancel_button
+
+
+class UtxosDialog(QtWidgets.QDialog):
+    """A widget listing all coins in a wallet and allowing to load multiple coins"""
+
+    def __init__(self, wallet: Deterministic_Wallet):
+        super().__init__()
+        self.setMinimumWidth(750)
+
+        self.wallet = wallet
+        self.utxos: List[dict] = []
+        self.selected_rows: List[int] = []
+
+        layout = QtWidgets.QVBoxLayout(self)
+        self.setLayout(layout)
+
+        self.utxos_table = QtWidgets.QTableWidget()
+        layout.addWidget(self.utxos_table)
+        self.utxos_table.setColumnCount(4)
+        self.utxos_table.setHorizontalHeaderLabels(
+            ["txid", "vout", "amount (sats)", "block height"]
+        )
+        self.utxos_table.verticalHeader().setVisible(False)
+        self.utxos_table.setSelectionBehavior(QtWidgets.QTableWidget.SelectRows)
+        self.utxos_table.setSelectionMode(QtWidgets.QTableWidget.ExtendedSelection)
+        self.utxos_table.horizontalHeader().setSectionResizeMode(
+            0, QtWidgets.QHeaderView.Stretch
+        )
+        layout.addWidget(self.utxos_table)
+        self._fill_utxos_table()
+
+        buttons_layout = QtWidgets.QHBoxLayout()
+        layout.addLayout(buttons_layout)
+
+        self.load_button = QtWidgets.QPushButton("Load selected coins")
+        self.load_button.setEnabled(False)
+        buttons_layout.addWidget(self.load_button)
+
+        self.cancel_button = QtWidgets.QPushButton("Cancel")
+        buttons_layout.addWidget(self.cancel_button)
+
+        self.load_button.clicked.connect(self.accept)
+        self.cancel_button.clicked.connect(self.reject)
+
+        self.utxos_table.itemSelectionChanged.connect(self._on_selection_changed)
+
+    def _fill_utxos_table(self):
+        self.utxos = [u for u in self.wallet.get_utxos() if u["height"] > 0]
+        self.utxos.sort(key=lambda u: u["value"], reverse=True)
+
+        tip = self.wallet.get_local_height()
+
+        self.utxos_table.setRowCount(len(self.utxos))
+
+        for row_index, utxo in enumerate(self.utxos):
+            txid_item = QtWidgets.QTableWidgetItem(utxo["prevout_hash"])
+            self.utxos_table.setItem(row_index, 0, txid_item)
+
+            vout_item = QtWidgets.QTableWidgetItem(str(utxo["prevout_n"]))
+            self.utxos_table.setItem(row_index, 1, vout_item)
+
+            amount_item = QtWidgets.QTableWidgetItem(
+                format_satoshis(utxo["value"], num_zeros=2)
+            )
+            amount_item.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+            if utxo["value"] < PROOF_DUST_THRESHOLD:
+                amount_item.setForeground(QtGui.QColor("red"))
+                amount_item.setToolTip(
+                    _(
+                        f"The minimum threshold for a coin in an avalanche proof is "
+                        f"{format_satoshis(PROOF_DUST_THRESHOLD)} XEC."
+                    )
+                )
+            self.utxos_table.setItem(row_index, 2, amount_item)
+
+            height = utxo["height"]
+            height_item = QtWidgets.QTableWidgetItem(str(height))
+            utxo_validity_height = height + STAKE_UTXO_CONFIRMATIONS
+            if utxo_validity_height > tip:
+                height_item.setForeground(QtGui.QColor("orange"))
+                height_item.setToolTip(
+                    _(
+                        f"UTXOs with less than {STAKE_UTXO_CONFIRMATIONS} "
+                        "confirmations cannot be used as stake proofs."
+                    )
+                    + f"\nCurrent known block height is {tip}.\nYour proof will be "
+                    f"valid after block {utxo_validity_height}."
+                )
+            self.utxos_table.setItem(row_index, 3, height_item)
+
+    def _on_selection_changed(self):
+        self.selected_rows = [
+            idx.row() for idx in self.utxos_table.selectionModel().selectedRows()
+        ]
+        self.load_button.setEnabled(bool(self.selected_rows))
+
+    def get_selected_utxos(self) -> List[dict]:
+        return [self.utxos[r] for r in self.selected_rows]
