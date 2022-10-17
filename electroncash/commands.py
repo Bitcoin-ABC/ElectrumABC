@@ -207,6 +207,7 @@ class Commands:
             'connected': self.network.is_connected(),
             'auto_connect': net_params[4],
             'version': PACKAGE_VERSION,
+            'default_wallet': self.config.get_wallet_path(),
             'wallets': {k: w.is_up_to_date()
                         for k, w in self.daemon.wallets.items()},
             'fee_per_kb': self.config.fee_per_kb(),
