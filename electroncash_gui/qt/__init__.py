@@ -610,6 +610,8 @@ class ElectrumGui(QtCore.QObject, PrintError):
 
         try:
             wallet = self.daemon.load_wallet(path, None)
+            if wallet is not None:
+                self.daemon.cmd_runner.wallet = wallet
         except BaseException as e:
             traceback.print_exc(file=sys.stdout)
             QtWidgets.QMessageBox.warning(
@@ -679,6 +681,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         wallet = Wallet(storage)
         wallet.start_threads(self.daemon.network)
         self.daemon.add_wallet(wallet)
+        self.daemon.cmd_runner.wallet = wallet
         return wallet
 
     def close_window(self, window):
