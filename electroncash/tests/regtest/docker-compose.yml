@@ -1,0 +1,35 @@
+version: "3"
+services:
+  bitcoind:
+    image: bitcoinabc/bitcoin-abc@sha256:b2a2457a9309e328fbe575b90722dbdc5e5aa43dd321b85cc7095f10e5df3b35
+    command: "bitcoind -conf=/conf/bitcoind.conf"
+    volumes:
+      - conf-files:/conf
+    networks:
+      - bitcoin
+    ports:
+      - 18333:18334
+  fulcrum:
+    image: cculianu/fulcrum@sha256:db207840f1498b38b1c61d517d3cf5fb3ee22f6f8611685afdb9cc20d7732eb4
+    command: "Fulcrum /conf/fulcrum.conf"
+    networks:
+     - bitcoin
+    ports:
+      - 51001:51001
+      - 51002:51002
+      - 8081:8080
+    depends_on:
+    - bitcoind
+    volumes:
+      - conf-files:/conf
+
+networks:
+  bitcoin:
+
+volumes:
+  conf-files:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: electroncash/tests/regtest/configs
