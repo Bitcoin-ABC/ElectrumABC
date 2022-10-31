@@ -27,7 +27,12 @@ transactions as expected.
 
 ## Release 5.1.6
 
-- Electron Cash backports:
+- Fix exporting coin details for imported private key wallets and imported
+  address wallets (#239).
+- Improve UI for generating auxiliary keys for avalanche proofs and delegations (#240).
+- Format amounts in the list of stakes in the avalanche proof editor (#241).
+- Enable adding stakes from the current wallet in the avalanche proof editor (#243).
+- Electron Cash and Electrum backports:
   - Add `freeze_utxo`, `unfreeze_utxo` and `list_wallets` RPCs.
   - Replace `status` daemon command with `getinfo` RPC.
   - Turn `load_wallet` and `close_wallet` daemon commands into RPCs.
