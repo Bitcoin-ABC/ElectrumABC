@@ -38,6 +38,11 @@ You can also install Electrum ABC on your system, by running this command::
 
     pip3 install . --user
 
+Compile the icons file for Qt (normally you can skip this step, run this command if icons are missing)::
+
+    sudo apt-get install pyqt5-dev-tools
+    pyrrc5 icons.qrc -o electroncash_gui/qt/icons.py
+
 This will download and install the Python dependencies used by
 Electrum ABC, instead of using the 'packages' directory.
 
