@@ -5,6 +5,9 @@ set -e
 PROJECT_ROOT="$(dirname "$(readlink -e "$0")")/../../.."
 CONTRIB="$PROJECT_ROOT/contrib"
 
+# Newer git errors-out about permissions here sometimes, so do this
+git config --global --add safe.directory $(readlink -f "$PROJECT_ROOT")
+
 . "$CONTRIB"/base.sh
 
 DISTDIR="$PROJECT_ROOT/dist"
