@@ -2333,8 +2333,9 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         addr_text = addr.to_ui_string()
         amount_text = format_satoshis(r['amount'])  # fixme: this should not be localized
         out['URI'] = '{}?amount={}'.format(addr_text, amount_text)
-        status, conf = self.get_request_status(addr)
+        status, conf, tx_hashes = self.get_request_status(addr)
         out['status'] = status
+        out['tx_hashes'] = tx_hashes
         if conf is not None:
             out['confirmations'] = conf
         # check if bip70 file exists
@@ -2376,8 +2377,9 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         if expiration and type(expiration) != int:
             expiration = 0
         conf = None
+        tx_hashes = []
         if amount:
-            paid, conf, _ = self.get_payment_status(address, amount)
+            paid, conf, tx_hashes = self.get_payment_status(address, amount)
             if not paid:
                 status = PR_UNPAID
             elif conf == 0:
@@ -2388,7 +2390,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                 status = PR_EXPIRED
         else:
             status = PR_UNKNOWN
-        return status, conf
+        return status, conf, tx_hashes
 
     def make_payment_request(self, addr, amount, message, expiration=None, *,
                              op_return=None, op_return_raw=None, payment_url=None, index_url=None):
