@@ -2096,8 +2096,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         return request_password
 
     def read_send_tab(self):
-
-        isInvoice= False;
+        isInvoice = False
 
         if self.payment_request and self.payment_request.has_expired():
             self.show_error(_('Payment request has expired'))
@@ -2105,7 +2104,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         label = self.message_e.text()
 
         if self.payment_request:
-            isInvoice = True;
+            isInvoice = True
             outputs = self.payment_request.get_outputs()
         else:
             errors = self.payto_e.get_errors()
@@ -4673,7 +4672,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         limit_change_w = QtWidgets.QWidget()
         vb = QtWidgets.QVBoxLayout(limit_change_w)
         vb.setContentsMargins(0, 0, 0, 0)
-        limit_change_chk = QtWidgets.QCheckBox(_("Retire unnused change addresses"))
+        limit_change_chk = QtWidgets.QCheckBox(_("Retire unused change addresses"))
         limit_change_chk.setChecked(self.wallet.limit_change_addr_subs > 0)
         vb.addWidget(limit_change_chk)
         limit_change_inner_w = QtWidgets.QWidget()
