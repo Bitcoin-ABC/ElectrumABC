@@ -834,7 +834,7 @@ def from_seed(seed, passphrase, *, seed_type="", derivation=None) -> KeyStore:
         keystore = BIP32_KeyStore({})
         keystore.add_seed(seed, seed_type=seed_type)
         keystore.passphrase = passphrase
-        bip32_seed = mnemo.bip39_mnemonic_to_seed(seed, passphrase)
+        bip32_seed = mnemo.bip39_mnemonic_to_seed(seed, passphrase or "")
         xtype = "standard"  # bip43
         derivation = derivation or bip44_derivation_xec(0)
         keystore.add_xprv_from_seed(bip32_seed, xtype, derivation)
