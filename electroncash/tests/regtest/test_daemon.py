@@ -156,9 +156,11 @@ def fulcrum_service(docker_services: Any) -> Generator[None, None, None]:
     bitcoind = bitcoind_rpc_connection()
     poll_for_answer(FULCRUM_STATS_URL, expected_answer=("Controller.TxNum", 102))
 
-    start_ec_daemon()
-    yield
-    stop_ec_daemon()
+    try:
+        start_ec_daemon()
+        yield
+    finally:
+        stop_ec_daemon()
 
 
 @pytest.mark.skipif(not SUPPORTED_PLATFORM, reason="Unsupported platform")
