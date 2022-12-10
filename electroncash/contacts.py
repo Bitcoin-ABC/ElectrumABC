@@ -28,18 +28,19 @@ import os
 import re
 import traceback
 from collections import namedtuple
-from typing import List, Generator
+from typing import List
 from . import dnssec
-from . import cashacct
 from . import util
-from . import networks
 from .storage import WalletStorage
 from .address import Address
+
 
 class Contact(namedtuple("Contact", "name address type")):
     ''' Your basic contacts entry. '''
 
-contact_types = {'address', 'cashacct', 'openalias'}
+
+contact_types = {'address', 'openalias'}
+
 
 class Contacts(util.PrintError):
     '''Electron Cash Contacts subsystem 2.0. Lightweight class for saving/laoding
@@ -89,10 +90,8 @@ class Contacts(util.PrintError):
             name, address, typ = d.get('name'), d.get('address'), d.get('type')
             if not all(isinstance(a, str) for a in (name, address, typ)):
                 continue # skip invalid-looking data
-            address = __class__._cleanup_address(address, typ)
-            if typ in ('address', 'cashacct'):
-                if not Address.is_valid(address) or (typ == 'cashacct' and not cashacct.CashAcct.parse_string(name)):
-                    continue # skip if if does not appear to be valid for these types
+            if typ == "address" and not Address.is_valid(address):
+                continue
             out.append( Contact(name, address, typ) )
         return out
 
@@ -130,18 +129,10 @@ class Contacts(util.PrintError):
             if _type not in contact_types:
                 # not a known type we care about
                 continue
-            address = __class__._cleanup_address(address, _type)
             data.append(
                 Contact(str(name), str(address), str(_type))
             )
         return data
-
-    @staticmethod
-    def _cleanup_address(address : str, _type : str) -> str:
-        rm_prefix = (networks.net.CASHADDR_PREFIX + ":").lower()
-        if _type in ('address', 'cashacct') and address.lower().startswith(rm_prefix):
-            address = address[len(rm_prefix):]  # chop off bitcoincash: prefix
-        return address
 
     @staticmethod
     def _save(data : List[Contact], v1_too : bool = False) -> dict:
@@ -290,11 +281,7 @@ class Contacts(util.PrintError):
 
     @property
     def empty(self) -> bool:
-        return not self.data  # True if [] or None, although data shouldn't ever be None
-
-    @property
-    def num(self) -> int:
-        return len(self.data)
+        return not self.data
 
     def get_all(self, nocopy : bool = False) -> List[Contact]:
         ''' Returns a copy of the internal Contact list. '''
@@ -360,23 +347,3 @@ class Contacts(util.PrintError):
         if ct:
             self.save()
         return ct
-
-    def find(self, *, address: str = None, name: str = None, type: str = None,
-             case_sensitive: bool = True) -> Generator[Contact, None, None]:
-        ''' Returns a generator. Searches the contact list for contacts matching
-        the specs given. Note that specifying no args will simply return all
-        contacts via a generator '''
-        if not case_sensitive and name is not None:
-            name = name.lower()
-        for c in self.data:
-            if address is not None and c.address != address:
-                continue
-            if not case_sensitive:
-                if name is not None and c.name.lower() != name:
-                    continue
-            else:
-                if name is not None and c.name != name:
-                    continue
-            if type is not None and c.type != type:
-                continue
-            yield c

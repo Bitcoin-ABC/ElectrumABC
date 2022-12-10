@@ -26,7 +26,6 @@
 from __future__ import annotations
 
 import json
-from collections import defaultdict
 from enum import IntEnum
 from functools import wraps
 from typing import TYPE_CHECKING, List
@@ -74,10 +73,8 @@ class UTXOList(MyTreeWidget):
         name = Qt.UserRole + 0
         frozen_flags = Qt.UserRole + 1
         address = Qt.UserRole + 2
-        # this may not always be there for a particular item
-        cash_account = Qt.UserRole + 3
         # this is either a tuple of (token_id, qty) or None
-        slp_token = Qt.UserRole + 4
+        slp_token = Qt.UserRole + 3
 
     filter_columns = [Col.address, Col.label]
     # sort by amount, descending
@@ -153,34 +150,12 @@ class UTXOList(MyTreeWidget):
         # cache previous selection, if any
         prev_selection = self.get_selected()
         self.clear()
-        ca_by_addr = defaultdict(list)
-        if self.show_cash_accounts:
-            addr_set = set()
-            self.utxos = self.wallet.get_utxos(addr_set_out=addr_set, exclude_slp=False)
-            # grab all cash accounts so that we may add the emoji char
-            for info in self.wallet.cashacct.get_cashaccounts(addr_set):
-                ca_by_addr[info.address].append(info)
-                del info
-            for ca_list in ca_by_addr.values():
-                # sort the ca_lists by number, required by cashacct.get_address_default
-                ca_list.sort(
-                    key=lambda info: ((info.number or 0), str(info.collision_hash))
-                )
-            del addr_set  # clean-up. We don't want the below code to ever depend on the existence of this cell.
-        else:
-            self.utxos = self.wallet.get_utxos(exclude_slp=False)
+        self.utxos = self.wallet.get_utxos(exclude_slp=False)
         for x in self.utxos:
             address = x["address"]
             address_text = address.to_ui_string()
-            ca_info = None
-            ca_list = ca_by_addr.get(address)
             tool_tip0 = None
-            if ca_list:
-                ca_info = self.wallet.cashacct.get_address_default(ca_list)
-                address_text = (
-                    f"{ca_info.emoji} {address_text}"  # prepend the address emoji char
-                )
-                tool_tip0 = self.wallet.cashacct.fmt_info(ca_info, emoji=True)
+
             height = x["height"]
             is_immature = x["coinbase"] and height > local_maturity_height
             name = self.get_name(x)
@@ -249,9 +224,6 @@ class UTXOList(MyTreeWidget):
             )
             # store the address
             utxo_item.setData(0, self.DataRoles.address, address)
-            # store the ca_info for this address -- if any
-            if ca_info:
-                utxo_item.setData(0, self.DataRoles.cash_account, ca_info)
             # store the slp_token
             utxo_item.setData(0, self.DataRoles.slp_token, slp_token)
             if toolTipMisc:
@@ -327,7 +299,6 @@ class UTXOList(MyTreeWidget):
                 alt_column_title, alt_copy_text = None, None
                 slp_token = item.data(0, self.DataRoles.slp_token)
                 addr = item.data(0, self.DataRoles.address)
-                ca_info = None
                 if col == self.Col.output_point:
                     copy_text = item.data(0, self.DataRoles.name)
                 elif col == self.Col.address:
@@ -341,7 +312,6 @@ class UTXOList(MyTreeWidget):
                         alt_copy_text, alt_column_title = addr.to_full_string(
                             Address.FMT_LEGACY
                         ), _("Legacy Address")
-                    ca_info = item.data(0, self.DataRoles.cash_account)  # may be None
                 else:
                     copy_text = item.text(col)
                 if copy_text:
@@ -358,16 +328,6 @@ class UTXOList(MyTreeWidget):
                         lambda: QtWidgets.QApplication.instance()
                         .clipboard()
                         .setText(alt_copy_text),
-                    )
-                if ca_info:
-                    # paranoia: pre-cache minimal chash (may go out to network)
-                    self.wallet.cashacct.fmt_info(ca_info)
-                    menu.addAction(
-                        _("Copy Cash Account"),
-                        lambda: self.wallet
-                        and QtWidgets.QApplication.instance()
-                        .clipboard()
-                        .setText(self.wallet.cashacct.fmt_info(ca_info, emoji=True)),
                     )
 
                 # single selection, offer them the "Details" option and also coin/address "freeze" status, if any
@@ -459,16 +419,6 @@ class UTXOList(MyTreeWidget):
 
         run_hook("utxo_list_context_menu_setup", self, menu, selected)
 
-        # add optional toggle actions
-        menu.addSeparator()
-
-        def toggle():
-            self.show_cash_accounts = not self.show_cash_accounts
-
-        a = menu.addAction(_("Show Cash Accounts"), toggle)
-        a.setCheckable(True)
-        a.setChecked(self.show_cash_accounts)
-
         menu.exec_(self.viewport().mapToGlobal(position))
 
     def on_permit_edit(self, item, column):
@@ -504,22 +454,6 @@ class UTXOList(MyTreeWidget):
                 continue
             label = self.wallet.get_label(txid)
             item.setText(1, label)
-
-    def ca_on_address_default_change(self, info):
-        if self.show_cash_accounts:
-            self.update()
-
-    @property
-    def show_cash_accounts(self):
-        return bool(self.wallet.storage.get("utxo_list_show_cash_accounts", False))
-
-    @show_cash_accounts.setter
-    def show_cash_accounts(self, b):
-        b = bool(b)
-        was = self.show_cash_accounts
-        if was != b:
-            self.wallet.storage.put("utxo_list_show_cash_accounts", b)
-            self.update()
 
     def dump_utxo(self, utxos: List[dict]):
         """Dump utxo to a file"""

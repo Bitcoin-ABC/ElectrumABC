@@ -6,7 +6,6 @@ from .test_avalanche import suite as test_avalanche_suite
 from .test_bip44_derivation_path import TestBip44Derivations
 from .test_bitcoin import suite as test_bitcoin_suite
 from .test_blockchain import TestBlockchain
-from .test_cashacct import TestCashAccounts
 from .test_cashaddrenc import TestCashAddrAddress
 from .test_commands import suite as test_commands_suite
 from .test_consolidate import suite as test_consolidate_suite
@@ -36,7 +35,6 @@ def suite():
     test_suite.addTest(loadTests(TestBip44Derivations))
     test_suite.addTest(test_bitcoin_suite())
     test_suite.addTest(loadTests(TestBlockchain))
-    test_suite.addTest(loadTests(TestCashAccounts))
     test_suite.addTest(loadTests(TestCashAddrAddress))
     test_suite.addTest(test_commands_suite())
     test_suite.addTest(test_consolidate_suite())

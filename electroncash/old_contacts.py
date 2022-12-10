@@ -29,7 +29,7 @@ import traceback
 import sys
 
 from .address import Address
-from . import dnssec, cashacct
+from . import dnssec
 from .util import print_error
 
 class Contacts(dict):
@@ -157,7 +157,7 @@ class Contacts(dict):
                 if '@' not in k:
                     data.pop(k)
             elif _type == 'cashacct':
-                if not Address.is_valid(k) or not cashacct.CashAcct.parse_string(n):
+                if not Address.is_valid(k):
                     data.pop(k)
             else:
                 data.pop(k)

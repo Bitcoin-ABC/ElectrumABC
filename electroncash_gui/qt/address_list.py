@@ -25,15 +25,14 @@
 # SOFTWARE.
 from __future__ import annotations
 
-from collections import defaultdict
 from contextlib import suppress
 from enum import IntEnum
 from functools import partial
 from typing import TYPE_CHECKING
 
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QCursor, QFont, QIcon, QKeySequence
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont, QKeySequence
 
 import electroncash.web as web
 from electroncash import networks
@@ -43,7 +42,6 @@ from electroncash.plugins import run_hook
 from electroncash.util import profiler
 from electroncash.wallet import Multisig_Wallet
 
-from . import cashacctqt
 from .consolidate_coins_dialog import ConsolidateCoinsWizard
 from .invoice_dialog import InvoiceDialog
 from .util import (
@@ -63,13 +61,9 @@ class AddressList(MyTreeWidget):
     # Address, Label, Balance
     filter_columns = [0, 1, 2]
 
-    _ca_minimal_chash_updated_signal = pyqtSignal(object, str)
-    _cashacct_icon = None
-
     class DataRoles(IntEnum):
         address = Qt.UserRole + 0
         can_edit_label = Qt.UserRole + 1
-        cash_accounts = Qt.UserRole + 2
 
     def __init__(self, main_window: ElectrumWindow, *, picker=False):
         super().__init__(
@@ -94,35 +88,14 @@ class AddressList(MyTreeWidget):
         assert self.wallet
         self.cleaned_up = False
 
-        # Cash Accounts support
-        self._ca_cb_registered = False
-        self._ca_minimal_chash_updated_signal.connect(self._ca_update_chash)
-
         self.main_window.gui_object.addr_fmt_changed.connect(self.update)
-        self.main_window.ca_address_default_changed_signal.connect(
-            self._ca_on_address_default_change
-        )
-
-        if not __class__._cashacct_icon:
-            # lazy init the icon
-            # TODO: make this an SVG
-            __class__._cashacct_icon = QIcon(":icons/cashacct-logo.png")
 
     def clean_up(self):
         self.cleaned_up = True
-        if self.wallet.network:
-            self.wallet.network.unregister_callback(
-                self._ca_updated_minimal_chash_callback
-            )
-            self._ca_cb_registered = False
         # paranoia -- we have seen Qt not clean up the signal before the object is
         # destroyed on Python 3.7.3 PyQt 5.12.3, see #1531
         with suppress(TypeError):
             self.main_window.gui_object.addr_fmt_changed.disconnect(self.update)
-        with suppress(TypeError):
-            self.main_window.ca_address_default_changed_signal.disconnect(
-                self._ca_on_address_default_change
-            )
 
     def filter(self, p):
         """Reimplementation from superclass filter.  Chops off the
@@ -188,11 +161,6 @@ class AddressList(MyTreeWidget):
                     if old != new:
                         it.setExpanded(new)
 
-        if not self._ca_cb_registered and self.wallet.network:
-            self.wallet.network.register_callback(
-                self._ca_updated_minimal_chash_callback, ["ca_updated_minimal_chash"]
-            )
-            self._ca_cb_registered = True
         had_item_count = self.topLevelItemCount()
         sels = self.selectedItems()
         addresses_to_re_select = {item.data(0, self.DataRoles.address) for item in sels}
@@ -238,14 +206,6 @@ class AddressList(MyTreeWidget):
             )
             has_hidden = False
             addr_list = change_addresses if is_change else receiving_addresses
-            # Cash Account support - we do this here with the already-prepared addr_list
-            # for performance reasons
-            ca_list_all = self.wallet.cashacct.get_cashaccounts(addr_list)
-            ca_by_addr = defaultdict(list)
-            for info in ca_list_all:
-                ca_by_addr[info.address].append(info)
-            del ca_list_all
-            # / cash account
             for n, address in enumerate(addr_list):
                 num = len(self.wallet.get_address_history(address))
                 if is_change:
@@ -254,22 +214,6 @@ class AddressList(MyTreeWidget):
                     is_hidden = self.wallet.is_used(address)
                 balance = sum(self.wallet.get_addr_balance(address))
                 address_text = address.to_ui_string()
-                # Cash Accounts
-                ca_info, ca_list = None, ca_by_addr.get(address)
-                if ca_list:
-                    # Add Cash Account emoji -- the emoji used is the most
-                    # recent cash account registration for said address
-                    ca_list.sort(key=lambda x: ((x.number or 0), str(x.collision_hash)))
-                    for ca in ca_list:
-                        # grab minimal_chash and stash in an attribute.
-                        # this may kick off the network
-                        ca.minimal_chash = self.wallet.cashacct.get_minimal_chash(
-                            ca.name, ca.number, ca.collision_hash
-                        )
-                    ca_info = self._ca_get_default(ca_list)
-                    if ca_info:
-                        address_text = ca_info.emoji + " " + address_text
-                # /Cash Accounts
                 label = self.wallet.labels.get(address.to_storage_string(), "")
                 balance_text = self.main_window.format_amount(balance, whitespaces=True)
                 columns = [address_text, str(n), label, balance_text, str(num)]
@@ -278,10 +222,6 @@ class AddressList(MyTreeWidget):
                     fiat_balance = fx.value_str(balance, rate)
                     columns.insert(4, fiat_balance)
                 address_item = SortableTreeWidgetItem(columns)
-                if ca_info:
-                    # Set Cash Accounts: tool tip.. this will read the minimal_chash
-                    # attribute we added to this object above
-                    self._ca_set_item_tooltip(address_item, ca_info)
                 address_item.setTextAlignment(3, Qt.AlignRight | Qt.AlignVCenter)
                 address_item.setFont(3, self.monospace_font)
                 if fx:
@@ -295,9 +235,6 @@ class AddressList(MyTreeWidget):
                 address_item.setData(0, self.DataRoles.address, address)
                 # label can be edited
                 address_item.setData(0, self.DataRoles.can_edit_label, True)
-                if ca_list:
-                    # Save the list of cashacct infos, if any
-                    address_item.setData(0, self.DataRoles.cash_accounts, ca_list)
 
                 if self.wallet.is_frozen(address):
                     address_item.setBackground(0, ColorScheme.BLUE.as_color(True))
@@ -349,8 +286,6 @@ class AddressList(MyTreeWidget):
 
         menu = QtWidgets.QMenu()
 
-        where_to_insert_dupe_copy_cash_account = None
-
         def doCopy(txt):
             txt = txt.strip()
             self.main_window.copy_to_clipboard(txt)
@@ -390,8 +325,6 @@ class AddressList(MyTreeWidget):
             a = menu.addAction(
                 _("Details") + "...", lambda: self.main_window.show_address(addr)
             )
-            if col == 0:
-                where_to_insert_dupe_copy_cash_account = a
             if col in self.editable_columns:
                 # NB: C++ item may go away if this widget is refreshed while menu is up
                 # -- so need to re-grab and not store in lamba. See #953
@@ -486,64 +419,6 @@ class AddressList(MyTreeWidget):
 
         run_hook("address_list_context_menu_setup", self, menu, addrs)
 
-        # Add Cash Accounts section at the end, if relevant
-        if not multi_select:
-            ca_list = item.data(0, self.DataRoles.cash_accounts)
-            menu.addSeparator()
-            a1 = menu.addAction(_("Cash Accounts"), lambda: None)
-            a1.setDisabled(True)
-            if ca_list:
-                ca_default = self._ca_get_default(ca_list)
-                for ca_info in ca_list:
-                    ca_text = self.wallet.cashacct.fmt_info(
-                        ca_info, ca_info.minimal_chash
-                    )
-                    ca_text_em = self.wallet.cashacct.fmt_info(
-                        ca_info, ca_info.minimal_chash, emoji=True
-                    )
-                    m = menu.addMenu(ca_info.emoji + " " + ca_text)
-                    a_ca_copy = m.addAction(
-                        _("Copy Cash Account"),
-                        lambda x=None, text=ca_text_em: doCopy(text),
-                    )
-                    a = m.addAction(
-                        _("Details") + "...",
-                        lambda x=None, ca_text=ca_text: cashacctqt.cash_account_detail_dialog(
-                            self.main_window, ca_text
-                        ),
-                    )
-                    a = m.addAction(
-                        _("View registration tx") + "...",
-                        lambda x=None, ca=ca_info: self.main_window.do_process_from_txid(
-                            txid=ca.txid
-                        ),
-                    )
-                    a = a_def = m.addAction(
-                        _("Make default for address"),
-                        lambda x=None, ca=ca_info: self._ca_set_default(ca, True),
-                    )
-                    if ca_info == ca_default:
-                        if where_to_insert_dupe_copy_cash_account and a_ca_copy:
-                            # insert a dupe of "Copy Cash Account" for the default cash
-                            # account for this address in the top-level menu
-                            menu.insertAction(
-                                where_to_insert_dupe_copy_cash_account, a_ca_copy
-                            )
-                        m.setTitle(m.title() + "    " + "★")
-                        a_def.setDisabled(True)
-                        a_def.setCheckable(True)
-                        a_def.setChecked(True)
-                        a_def.setText(_("Is default for address"))
-            else:
-                a1.setText(_("No Cash Accounts"))
-            a_new = menu.addAction(
-                _("Register new..."),
-                lambda x=None, addr=addr: self.main_window.register_new_cash_account(
-                    addr
-                ),
-            )
-            a_new.setIcon(__class__._cashacct_icon)
-
         run_hook("receive_menu", menu, addrs, self.wallet)
         menu.exec_(self.viewport().mapToGlobal(position))
 
@@ -580,75 +455,6 @@ class AddressList(MyTreeWidget):
             addr = item.data(0, self.DataRoles.address)
             if isinstance(addr, Address):
                 self.main_window.show_address(addr)
-
-    #########################
-    # Cash Accounts related #
-    #########################
-    def _ca_set_item_tooltip(self, item, ca_info):
-        minimal_chash = getattr(ca_info, "minimal_chash", None)
-        info_str = self.wallet.cashacct.fmt_info(ca_info, minimal_chash)
-        item.setToolTip(
-            0, "<i>" + _("Cash Account:") + "</i><p>&nbsp;&nbsp;<b>" + f"{info_str}</b>"
-        )
-
-    def _ca_update_chash(self, ca_info, minimal_chash):
-        """Called in GUI thread as a result of the cash account subsystem
-        figuring out that a collision_hash can be represented shorter.
-        Kicked off by a get_minimal_chash() call that results in a cache miss."""
-        if self.cleaned_up:
-            return
-        items = (
-            self.findItems(
-                ca_info.address.to_ui_string(),
-                Qt.MatchContains | Qt.MatchWrap | Qt.MatchRecursive,
-                0,
-            )
-            or []
-        )
-        for item in items:  # really items should contain just 1 element...
-            ca_list = item.data(0, self.DataRoles.cash_accounts) or []
-            ca_info_default = self._ca_get_default(ca_list)
-            for ca_info_saved in ca_list:
-                if (
-                    ca_info_saved.name.lower(),
-                    ca_info_saved.number,
-                    ca_info_saved.collision_hash,
-                ) == (ca_info.name.lower(), ca_info.number, ca_info.collision_hash):
-                    # save minimal_chash as a property
-                    ca_info_saved.minimal_chash = minimal_chash
-                    if ca_info_saved == ca_info_default:
-                        # this was the default one, also set the tooltip
-                        self._ca_set_item_tooltip(item, ca_info)
-
-    def _ca_updated_minimal_chash_callback(self, event, *args):
-        """Called from the cash accounts minimal_chash thread after a network
-        round-trip determined that the minimal collision hash can be shorter."""
-        if (
-            event == "ca_updated_minimal_chash"
-            and not self.cleaned_up
-            and args[0] is self.wallet.cashacct
-        ):
-            self._ca_minimal_chash_updated_signal.emit(args[1], args[2])
-
-    def _ca_get_default(self, ca_list):
-        """Alias for self.wallet.cashacct.get_address_default"""
-        return self.wallet.cashacct.get_address_default(ca_list)
-
-    def _ca_set_default(self, ca_info, show_tip=False):
-        """Similar to self.wallet.cashacct.set_address_default, but also
-        shows a tooltip optionally, and updates self."""
-        self.wallet.cashacct.set_address_default(ca_info)
-        if show_tip:
-            QtWidgets.QToolTip.showText(
-                QCursor.pos(),
-                _("Cash Account has been made the default for this address"),
-                self,
-            )
-            # eventually calls self.update
-        self.main_window.ca_address_default_changed_signal.emit(ca_info)
-
-    def _ca_on_address_default_change(self, ignored):
-        self.update()
 
     def _open_consolidate_coins_dialog(self, addr):
         d = ConsolidateCoinsWizard(addr, self.wallet, self.main_window, parent=self)

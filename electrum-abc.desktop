@@ -13,7 +13,7 @@ StartupNotify=true
 StartupWMClass=Electrum ABC
 Terminal=false
 Type=Application
-MimeType=x-scheme-handler/bitcoincash;x-scheme-handler/cashacct;
+MimeType=x-scheme-handler/bitcoincash;
 Actions=Testnet;
 
 [Desktop Action Testnet]

@@ -26,15 +26,12 @@
 
 from electroncash.i18n import _
 from electroncash.address import Address
-from electroncash.util import PrintError
 
 from PyQt5.QtCore import QTimer
-from PyQt5.QtGui import QCursor
 from PyQt5 import QtWidgets
 
 from .history_list import HistoryList
 from .qrtextedit import ShowQRTextEdit
-from . import cashacctqt
 from .util import (
     Buttons,
     CloseButton,
@@ -44,7 +41,7 @@ from .util import (
 )
 
 
-class AddressDialog(PrintError, WindowModalDialog):
+class AddressDialog(WindowModalDialog):
 
     MIN_WIDTH_NO_FX_HIST = 700
     MIN_WIDTH_FX_HIST = MIN_WIDTH_NO_FX_HIST + 75
@@ -101,22 +98,6 @@ class AddressDialog(PrintError, WindowModalDialog):
             redeem_e.addCopyButton()
             vbox.addWidget(redeem_e)
 
-        # Cash Accounts
-        ca_infos = self.wallet.cashacct.get_cashaccounts(self.get_domain())
-        vbox.addSpacing(10)
-        self.cashacct_gb = gb = cashacctqt.InfoGroupBox(self, self.parent, show_addresses=False)
-        self.update_cash_accounts(ca_infos)
-        def on_button_click():
-            item = gb.selectedItem()
-            if item:
-                info, ch, mch = item
-                self.wallet.cashacct.set_address_default(info)
-                QtWidgets.QToolTip.showText(QCursor.pos(), _("Cash Account has been made the default for this address"), gb)
-                self.parent.ca_address_default_changed_signal.emit(info)
-        gb.buttonGroup().buttonClicked.connect(on_button_click)
-        vbox.addWidget(gb)
-        # /Cash Accounts
-
         vbox.addWidget(QtWidgets.QLabel(_("History")))
         self.hw = HistoryList(self.parent)
         self.hw.get_domain = self.get_domain
@@ -126,17 +107,12 @@ class AddressDialog(PrintError, WindowModalDialog):
         self.format_amount = self.parent.format_amount
         self.hw.update()
 
-    def _ca_on_address_default_change(self, info):
-        if info.address == self.address:
-            self.update_cash_accounts()
-
     def connect_signals(self):
         # connect slots so the embedded history list gets updated whenever the history changes
         self.parent.gui_object.addr_fmt_changed.connect(self.update_addr)
         self.parent.history_updated_signal.connect(self.hw.update)
         self.parent.labels_updated_signal.connect(self.hw.update_labels)
         self.parent.network_signal.connect(self.got_verified_tx)
-        self.parent.ca_address_default_changed_signal.connect(self._ca_on_address_default_change)
 
     def disconnect_signals(self):
         try: self.parent.history_updated_signal.disconnect(self.hw.update)
@@ -147,38 +123,13 @@ class AddressDialog(PrintError, WindowModalDialog):
         except TypeError: pass
         try: self.parent.labels_updated_signal.disconnect(self.hw.update_labels)
         except TypeError: pass
-        try: self.parent.ca_address_default_changed_signal.disconnect(self._ca_on_address_default_change)
-        except TypeError: pass
 
     def got_verified_tx(self, event, args):
         if event == 'verified2' and args[0] is self.wallet:
             self.hw.update_item(*args[1:])
-        elif event in ('ca_verified_tx', 'ca_verification_failed') and args[0] == self.wallet.cashacct and args[1].address == self.address:
-            self.update_cash_accounts()
 
     def update_addr(self):
         self.addr_e.setText(self.address.to_ui_string())
-
-    def update_cash_accounts(self, ca_infos=None):
-        gb = self.cashacct_gb
-        ca_infos = ca_infos or self.wallet.cashacct.get_cashaccounts(self.get_domain())
-        tups = []
-        for info in ca_infos:
-            tups.append((info, self.wallet.cashacct.get_minimal_chash(info.name, info.number, info.collision_hash)))
-        default = self.wallet.cashacct.get_address_default(ca_infos)
-        saved_tups = getattr(self, '_ca_saved_tups', None)
-        if tups != saved_tups:
-            # setItems is a bit slow so we only do it if things have changed...
-            # also, on macOS, it can sometimes cause a bit of extra UI flicker.
-            gb.setItems(tups)
-        self._ca_saved_tups = tups
-        if tups:
-            gb.checkItemWithInfo(default)
-            if not gb.selectedItem():
-                gb.checkItemWithInfo(ca_infos[-1])
-            gb.setHidden(False)
-        else:
-            gb.setHidden(True)
 
     def get_domain(self):
         return [self.address]

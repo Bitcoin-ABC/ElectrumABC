@@ -59,7 +59,7 @@ import electroncash.web as web
 from electroncash import keystore, get_config
 from electroncash import networks
 from electroncash import paymentrequest
-from electroncash import util, bitcoin, commands, cashacct
+from electroncash import util, bitcoin, commands
 from electroncash.address import Address, PublicKey
 from electroncash.bitcoin import TYPE_ADDRESS
 from electroncash.constants import PROJECT_NAME, REPOSITORY_URL, CURRENCY, SCRIPT_NAME
@@ -75,8 +75,7 @@ from electroncash.transaction import (
 from electroncash.util import (format_time, format_satoshis, PrintError,
                                format_satoshis_plain, NotEnoughFunds,
                                ExcessiveFee, UserCancelled, InvalidPassword,
-                               bh2u, bfh, format_fee_satoshis, Weak,
-                               print_error)
+                               bh2u, bfh, format_fee_satoshis, Weak)
 from electroncash.wallet import Abstract_Wallet, Multisig_Wallet, sweep_preparations
 
 
@@ -95,7 +94,6 @@ from .invoice_dialog import (
 )
 from .multi_transactions_dialog import MultiTransactionsDialog
 from .popup_widget import ShowPopupLabel, KillPopupLabel
-from . import cashacctqt
 from .util import (
     MONOSPACE_FONT,
     Buttons,
@@ -121,10 +119,8 @@ from .util import (
     destroyed_print_error,
     expiration_values,
     filename_field,
-    line_dialog,
     rate_limited,
     text_dialog,
-    webopen,
 )
 
 try:
@@ -204,7 +200,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     history_updated_signal = pyqtSignal()
     labels_updated_signal = pyqtSignal() # note this signal occurs when an explicit update_labels() call happens. Interested GUIs should also listen for history_updated_signal as well which also indicates labels may have changed.
     on_timer_signal = pyqtSignal()  # functions wanting to be executed from timer_actions should connect to this signal, preferably via Qt.DirectConnection
-    ca_address_default_changed_signal = pyqtSignal(object)  # passes cashacct.Info object to slot, which is the new default. Mainly emitted by address_list and address_dialog
 
     status_icon_dict = dict()  # app-globel cache of "status_*" -> QIcon instances (for update_status() speedup)
 
@@ -317,7 +312,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.network_signal.connect(self.on_network_qt)
             interests = ['blockchain_updated', 'wallet_updated',
                          'new_transaction', 'status', 'banner', 'verified2',
-                         'fee', 'ca_verified_tx', 'ca_verification_failed']
+                         'fee',]
             # To avoid leaking references to "self" that prevent the
             # window from being GC-ed when closed, callbacks should be
             # methods of this class only, and specifically not be
@@ -461,9 +456,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         elif event in ['status', 'banner', 'fee']:
             # Handle in GUI thread
             self.network_signal.emit(event, args)
-        elif event in ('ca_verified_tx', 'ca_verification_failed'):
-            if args[0] is self.wallet.cashacct:
-                self.network_signal.emit(event, args)
         else:
             self.print_error("unexpected network message:", event, args)
 
@@ -478,8 +470,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             pass
         elif event == 'new_transaction':
             self.check_and_reset_receive_address_if_needed()
-        elif event in ('ca_verified_tx', 'ca_verification_failed'):
-            pass
         elif event == 'verified2':
             pass
         else:
@@ -789,13 +779,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 "Cannot build avalanche proof or delegation for hardware, multisig "
                 "or watch-only wallet (Schnorr signature is required)."
                 )
-        tools_menu.addSeparator()
-        if ColorScheme.dark_scheme and sys.platform != 'darwin':  # use dark icon in menu except for on macOS where we can't be sure it will look right due to the way menus work on macOS
-            icon = QIcon(":icons/cashacct-button-darkmode.png")
-        else:
-            icon = QIcon(":icons/cashacct-logo.png")
-        tools_menu.addAction(icon, _("Lookup &Cash Account..."), self.lookup_cash_account_dialog, QKeySequence("Ctrl+L"))
-        tools_menu.addAction(icon, _("&Register Cash Account..."), lambda: self.register_new_cash_account(addr='pick'), QKeySequence("Ctrl+G"))
         run_hook('init_menubar_tools', self, tools_menu)
 
         help_menu = menubar.addMenu(_("&Help"))
@@ -1208,75 +1191,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         grid.addWidget(label, 0, 0)
         grid.addWidget(self.receive_address_e, 0, 1, 1, -1)
 
-        # Cash Account for this address (if any)
-        msg = _("The Cash Account (if any) associated with this address. It doesn't get saved with the request, but it is shown here for your convenience.\n\nYou may use the Cash Accounts button to register a new Cash Account for this address.")
-        label = HelpLabel(_('Cash Accoun&t'), msg)
-        class CashAcctE(ButtonsLineEdit):
-            my_network_signal = pyqtSignal(str, object)
-            ''' Inner class encapsulating the Cash Account Edit.s
-            Note:
-                 - `slf` in this class is this instance.
-                 - `self` is wrapping class instance. '''
-            def __init__(slf, *args):
-                super().__init__(*args)
-                slf.font_default_size = slf.font().pointSize()
-                icon = ":icons/cashacct-button-darkmode.png" if ColorScheme.dark_scheme else ":icons/cashacct-logo.png"
-                slf.ca_but = slf.addButton(icon, self.register_new_cash_account, _("Register a new Cash Account for this address"))
-                slf.ca_copy_b = slf.addCopyButton()
-                slf.setReadOnly(True)
-                slf.info = None
-                slf.cleaned_up = False
-                self.network_signal.connect(slf.on_network_qt)
-                slf.my_network_signal.connect(slf.on_network_qt)
-                if self.wallet.network:
-                    self.wallet.network.register_callback(slf.on_network, ['ca_updated_minimal_chash'])
-            def clean_up(slf):
-                slf.cleaned_up = True
-                try: self.network_signal.disconnect(slf.on_network_qt)  # need to disconnect parent signals due to PyQt bugs, see #1531
-                except TypeError: pass
-                if self.wallet.network:
-                    self.wallet.network.unregister_callback(slf.on_network)
-            def set_cash_acct(slf, info: cashacct.Info = None, minimal_chash = None):
-                if not info and self.receive_address:
-                    minimal_chash = None
-                    ca_list = self.wallet.cashacct.get_cashaccounts(domain=[self.receive_address])
-                    ca_list.sort(key=lambda x: ((x.number or 0), str(x.collision_hash)))
-                    info = self.wallet.cashacct.get_address_default(ca_list)
-                if info:
-                    slf.ca_copy_b.setDisabled(False)
-                    f = slf.font(); f.setItalic(False); f.setPointSize(slf.font_default_size); slf.setFont(f)
-                    slf.setText(info.emoji + "  " + self.wallet.cashacct.fmt_info(info, minimal_chash=minimal_chash))
-                else:
-                    slf.setText(pgettext("Referencing CashAccount", "None"))
-                    f = slf.font(); f.setItalic(True); f.setPointSize(slf.font_default_size-1); slf.setFont(f)
-                    slf.ca_copy_b.setDisabled(True)
-                slf.info = info
-            def on_copy(slf):
-                ''' overrides super class '''
-                QtWidgets.QApplication.instance().clipboard().setText(slf.text()[3:] + ' ' + slf.text()[:1]) # cut off the leading emoji, and add it to the end
-                QtWidgets.QToolTip.showText(QCursor.pos(), _("Cash Account copied to clipboard"), slf)
-            def on_network_qt(slf, event, args=None):
-                ''' pick up cash account changes and update receive tab. Called
-                from GUI thread. '''
-                if not args or self.cleaned_up or slf.cleaned_up or args[0] != self.wallet.cashacct:
-                    return
-                if event == 'ca_verified_tx' and self.receive_address and self.receive_address == args[1].address:
-                    slf.set_cash_acct()
-                elif event == 'ca_updated_minimal_chash' and slf.info and slf.info.address == args[1].address:
-                    slf.set_cash_acct()
-            def on_network(slf, event, *args):
-                if event == 'ca_updated_minimal_chash' and args[0] == self.wallet.cashacct:
-                    slf.my_network_signal.emit(event, args)
-            def showEvent(slf, e):
-                super().showEvent(e)
-                if e.isAccepted():
-                    slf.set_cash_acct()
-        self.cash_account_e = CashAcctE()
-        label.setBuddy(self.cash_account_e)
-        grid.addWidget(label, 1, 0)
-        grid.addWidget(self.cash_account_e, 1, 1, 1, -1)
-
-
         self.receive_message_e = QtWidgets.QLineEdit()
         label = QtWidgets.QLabel(_('&Description'))
         label.setBuddy(self.receive_message_e)
@@ -1549,7 +1463,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         if self.receive_address:
             text = self.receive_address.to_ui_string()
         self.receive_address_e.setText(text)
-        self.cash_account_e.set_cash_acct()
 
     @rate_limited(0.250, ts_after=True)  # this function potentially re-computes the QR widget, so it's rate limited to once every 250ms
     def check_and_reset_receive_address_if_needed(self):
@@ -2047,30 +1960,14 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     def get_contact_payto(self, contact : Contact) -> str:
         assert isinstance(contact, Contact)
         _type, label = contact.type, contact.name
-        emoji_str = ''
-        mod_type = _type
-        mine_str = ''
-        if _type.startswith('cashacct'):  # picks up cashacct and the cashacct_W pseudo-contacts
-            if _type == 'cashacct_T':
-                # temporary "pending verification" registration pseudo-contact. Never offer it as a completion!
-                return None
-            mod_type = 'cashacct'
-            info = self.wallet.cashacct.get_verified(label)
-            if info:
-                emoji_str = f'  {info.emoji}'
-                if _type == 'cashacct_W':
-                    mine_str = ' [' + _('Mine') + '] '
-            else:
-                self.print_error(label, "not found")
-                # could not get verified contact, don't offer it as a completion
-                return None
-        elif _type == 'openalias':
+        if _type == 'openalias':
             return contact.address
-        return label + emoji_str + '  ' + mine_str + '<' + contact.address + '>' if mod_type in ('address', 'cashacct') else None
+        assert _type == "address"
+        return label + '  ' + '<' + contact.address + '>'
 
     def update_completions(self):
         l = []
-        for contact in self.contact_list.get_full_contacts(include_pseudo=True):
+        for contact in self.contact_list.get_full_contacts():
             s = self.get_contact_payto(contact)
             if s is not None: l.append(s)
         l.sort(key=lambda x: x.lower())  # case-insensitive sort
@@ -2246,7 +2143,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             return
 
         # paranoia -- force a resolve right away in case user pasted an
-        # openalias or cashacct and hit preview too quickly.
+        # openalias and hit preview too quickly.
         self.payto_e.resolve(force_if_has_focus=True)
 
         if not self._chk_no_segwit_suspects():
@@ -2563,7 +2460,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         if address or URI.strip().lower().split(':', 1)[0] in web.parseable_schemes():
             # if address, set the payto field to the address.
             # if *not* address, then we set the payto field to the empty string
-            # only IFF it was bitcoincash: and/or cashacct:, see issue #1131.
+            # only IFF it was bitcoincash:, see issue #1131.
             self.payto_e.setText(address or '')
         if message:
             self.message_e.setText(message)
@@ -2591,11 +2488,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.message_opreturn_e.setHidden(True)
             self.opreturn_rawhex_cb.setHidden(True)
             self.opreturn_label.setHidden(True)
-
-        if address and URI.lower().startswith(cashacct.URI_SCHEME + ':'):
-            # this is important so that cashacct: URIs get insta-resolved
-            # (they only get resolved when payto_e loses focus)
-            self.message_e.setFocus()
 
     def do_clear(self):
         ''' Clears the send tab, resetting its UI state to its initiatial state.'''
@@ -2734,9 +2626,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     def create_utxo_tab(self):
         from .utxo_list import UTXOList
         self.utxo_list = UTXOList(self)
-        self.ca_address_default_changed_signal.connect(
-            self.utxo_list.ca_on_address_default_change
-        )
         self.gui_object.addr_fmt_changed.connect(self.utxo_list.update)
         self.utxo_list.edited.connect(self.update_labels)
         return self.create_list_tab(self.utxo_list)
@@ -2803,27 +2692,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.payto_e.setText(text)
             self.payto_e.setFocus()
 
-    def resolve_cashacct(self, name):
-        ''' Throws up a WaitingDialog while it resolves a Cash Account.
-
-        Goes out to network, verifies all tx's.
-
-        Returns: a tuple of: (Info, Minimally_Encoded_Formatted_AccountName)
-
-        Argument `name` should be a Cash Account name string of the form:
-
-          name#number.123
-          name#number
-          name#number.;  etc
-
-        If the result would be ambiguous, that is considered an error, so enough
-        of the account name#number.collision_hash needs to be specified to
-        unambiguously resolve the Cash Account.
-
-        On failure throws up an error window and returns None.'''
-        return cashacctqt.resolve_cashacct(self, name)
-
-    def set_contact(self, label, address, typ='address', replace=None) -> Contact:
+    def set_contact(self, label, address, typ='address', replace=None) -> Optional[Contact]:
         ''' Returns a reference to the newly inserted Contact object.
         replace is optional and if specified, replace an existing contact,
         otherwise add a new one.
@@ -2832,25 +2701,12 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         that case the returned value would still be a valid Contact.
 
         Returns None on failure.'''
-        assert typ in ('address', 'cashacct')
-        contact = None
-        if typ == 'cashacct':
-            tup = self.resolve_cashacct(label)  # this displays an error message for us
-            if not tup:
-                self.contact_list.update() # Displays original
-                return
-            info, label = tup
-            address = info.address.to_ui_string()
-            contact = Contact(name=label, address=address, type=typ)
-        elif not Address.is_valid(address):
-            # Bad 'address' code path
+        assert typ == 'address'
+        if not Address.is_valid(address):
             self.show_error(_('Invalid Address'))
             self.contact_list.update()  # Displays original unchanged value
             return
-        else:
-            # Good 'address' code path...
-            contact = Contact(name=label, address=address, type=typ)
-        assert contact
+        contact = Contact(name=label, address=address, type=typ)
         if replace != contact:
             if self.contacts.has(contact):
                 self.show_error(_(f"A contact named {contact.name} with the same address and type already exists."))
@@ -2867,22 +2723,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         return contact
 
     def delete_contacts(self, contacts):
-        n = len(contacts)
-        qtext = ''
-        if n <= 3:
-            def fmt(contact):
-                if len(contact.address) > 20:
-                    addy = contact.address[:10] + '…' + contact.address[-10:]
-                else:
-                    addy = contact.address
-                return f"{contact.name} <{addy}>"
-            names = [fmt(contact) for contact in contacts]
-            contact_str = ", ".join(names)
-            qtext = _("Remove {list_of_contacts} from your contact list?").format(list_of_contacts = contact_str)
-        else:
-            # Note: we didn't use ngettext here for plural check because n > 1 in this branch
-            qtext = _("Remove {number_of_contacts} contacts from your contact list?").format(number_of_contacts=n)
-        if not self.question(qtext):
+        names = [f"{contact.name} <{contact.address[:8]}{'…' if len(contact.address) > 8 else ''}>" for contact in contacts]
+        n = len(names)
+        contact_str = " + ".join(names) if n <= 3 else ngettext("{number_of_contacts} contact", "{number_of_contacts} contacts", n).format(number_of_contacts=n)
+        if not self.question(_("Remove {list_of_contacts_OR_count_of_contacts_plus_the_word_count} from your list of contacts?")
+                             .format(list_of_contacts_OR_count_of_contacts_plus_the_word_count=contact_str)):
             return
         removed_entries = []
         for contact in contacts:
@@ -3169,11 +3014,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             if address.lower().startswith(prefix):
                 address = address[len(prefix):]
             self.set_contact(name, address)
-
-    def lookup_cash_account_dialog(self):
-        blurb = "<br><br>" + _('Enter a string of the form <b>name#<i>number</i></b>')
-        cashacctqt.lookup_cash_account_dialog(self, self.wallet, blurb=blurb,
-                                              add_to_contacts_button = True, pay_to_button = True)
 
     def show_master_public_keys(self):
         dialog = WindowModalDialog(self.top_level_window(), _("Wallet Information"))
@@ -3550,7 +3390,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         multi_tx_dialog.widget.set_transactions(transactions)
         multi_tx_dialog.exec_()
 
-    def do_process_from_txid(self, *, txid=None, parent=None, tx_desc=None):
+    def do_process_from_txid(self, *, txid=None, parent=None):
         parent = parent or self
         if self.gui_object.warn_if_no_network(parent):
             return
@@ -3563,7 +3403,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 parent.show_message(_("Error retrieving transaction") + ":\n" + r)
                 return
             tx = Transaction(r, sign_schnorr=self.wallet.is_schnorr_enabled())  # note that presumably the tx is already signed if it comes from blockchain so this sign_schnorr parameter is superfluous, but here to satisfy my OCD -Calin
-            self.show_transaction(tx, tx_desc=tx_desc)
+            self.show_transaction(tx)
 
     def do_create_invoice(self):
         d = InvoiceDialog(self, self.fx)
@@ -4977,14 +4817,10 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.wallet.thread.stop()
             self.wallet.thread.wait() # Join the thread to make sure it's really dead.
 
-        for w in [self.address_list, self.history_list, self.utxo_list, self.cash_account_e, self.contact_list,
+        for w in [self.address_list, self.history_list, self.utxo_list, self.contact_list,
                   self.tx_update_mgr]:
             if w: w.clean_up()  # tell relevant object to clean itself up, unregister callbacks, disconnect signals, etc
 
-        with contextlib.suppress(TypeError):
-            self.ca_address_default_changed_signal.disconnect(
-                self.utxo_list.ca_on_address_default_change
-            )
         with contextlib.suppress(TypeError):
             self.gui_object.addr_fmt_changed.disconnect(self.utxo_list.update)
 
@@ -5288,123 +5124,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         finally:
             l.clean_up()  # required to unregister network callback
 
-    def register_new_cash_account(self, addr = None):
-        ''' Initiates the "Register a new cash account" dialog.
-        If addr is none, will use self.receive_address.
-
-        Alternatively, you may pass the string 'pick' in lieu of an address
-        if you want this function to present the user with a UI for choosing
-        an address to register.'''
-        if addr == 'pick':
-            addr = self._pick_address(title=_("Register A New Cash Account"), icon=QIcon(":icons/cashacct-logo.png"))
-            if addr is None:
-                return  # user cancel
-        addr = addr or self.receive_address or self.wallet.get_receiving_address()
-        if not addr:
-            self.print_error("register_new_cash_account: no receive address specified")
-            return
-        def on_link(link):
-            if link == 'ca':
-                webopen('https://www.cashaccount.info/')
-            elif link == 'addr':
-                if self.wallet.is_mine(addr):
-                    self.show_address(addr)
-                else:
-                    url = web.BE_URL(self.config, web.ExplorerUrlParts.ADDR, addr)
-                    if url:  webopen(url)
-        name, placeholder = '', 'Satoshi_Nakamoto'
-        while True:
-            lh = self.wallet.get_local_height()
-            le = ButtonsLineEdit()
-            help_msg = '<span style="font-weight:400;">' + \
-                       _('<p>How it works: <b>Cash Accounts</b> registrations work by issuing an <b>OP_RETURN</b> transaction to yourself, costing fractions of a penny.</p>'
-                         '<p>The registrations are permanently written to the blockchain and associate a human-friendly name with your address.</p>'
-                         '<p>After the registration transaction receives <i>1 confirmation</i>, you can use your new <b>Cash Account name</b> as if it were an address and give it out to other people (another Cash Account enabled wallet is required).</p>'
-                         '<p><span style="font-weight:100;">You will be offered the opportunity to review the generated transaction before broadcasting it to the blockchain.</span></p>') + \
-                       '</span>'
-            qmark = ":icons/question-mark-dark.svg" if ColorScheme.dark_scheme else ":icons/question-mark-light.svg"
-            help_but = HelpButton(help_msg, button_text='', fixed_size=False, icon=QIcon(qmark), custom_parent=self)
-            le.addWidget(help_but)
-            name = line_dialog(self.top_level_window(),
-                               _("Register A New Cash Account"),
-                               (_("You are registering a new <a href='ca'>Cash Account</a> for your address <a href='addr'><b><pre>{address}</pre></b></a>").format(address=addr.to_ui_string())
-                                + _("The current block height is <b><i>{block_height}</i></b>, so the new cash account will likely look like: <b><u><i>AccountName<i>#{number}</u></b>.")
-                                .format(block_height=lh or '???', number=max(cashacct.bh2num(lh or 0)+1, 0) or '???')
-                                + "<br><br><br>" + _("Specify the <b>account name</b> below (limited to 99 characters):") ),
-                               _("Proceed to Send Tab"), default=name, linkActivated=on_link,
-                               placeholder=placeholder, disallow_empty=True,
-                               line_edit_widget = le,
-                               icon=QIcon(":icons/cashacct-logo.png"))
-            if name is None:
-                # user cancel
-                return
-            name = name.strip()
-            if not cashacct.name_accept_re.match(name):
-                self.show_error(_("The specified name cannot be used for a Cash Accounts registration. You must specify 1-99 alphanumeric (ASCII) characters, without spaces (underscores are permitted as well)."))
-                continue
-            self._reg_new_cash_account(name, addr)
-            return
-
-    def _reg_new_cash_account(self, name, addr):
-        self.show_send_tab()
-        self.do_clear()
-
-        # Enabled OP_RETURN stuff even if disabled in prefs. Next do_clear call will reset to prefs presets.
-        self.message_opreturn_e.setVisible(True)
-        self.opreturn_rawhex_cb.setVisible(True)
-        self.opreturn_label.setVisible(True)
-
-        # Prevent user from modifying required fields, and hide what we
-        # can as well.
-        self.message_opreturn_e.setText(cashacct.ScriptOutput.create_registration(name, addr).script[1:].hex())
-        self.message_opreturn_e.setFrozen(True)
-        self.opreturn_rawhex_cb.setChecked(True)
-        self.opreturn_rawhex_cb.setDisabled(True)
-        self.amount_e.setAmount(0)
-        self.amount_e.setFrozen(True)
-        self.max_button.setDisabled(True)
-        self.payto_e.setHidden(True)
-        self.payto_label.setHidden(True)
-
-        # Set a default description -- this we allow them to edit
-        self.message_e.setText(
-            _("Cash Accounts Registration: '{name}' -> {address}").format(
-                name=name, address=addr.to_ui_string()
-            )
-        )
-
-        # set up "Helpful Window" informing user registration will
-        # not be accepted until at least 1 confirmation.
-        cashaccounts_never_show_send_tab_hint = self.config.get('cashaccounts_never_show_send_tab_hint', False)
-
-        if not cashaccounts_never_show_send_tab_hint:
-            msg1 = (
-                _("The Send Tab has been filled-in with your <b>Cash Accounts</b> registration data.")
-                + "<br><br>" + _("Please review the transaction, save it, and/or broadcast it at your leisure.")
-            )
-            msg2 = (
-                _("After at least <i>1 confirmation</i>, you will be able to "
-                  "use your new <b>Cash Account</b>, and it will be visible "
-                  f"in {PROJECT_NAME} in the <b>Addresses</b> tab.")
-            )
-            msg3 = _("If you wish to control which specific coins are used to "
-                     "fund this registration transaction, feel free to use the "
-                     "Coins and/or Addresses tabs' Spend-from facility.\n\n"
-                     "('Spend from' is a right-click menu option in either tab.)")
-
-            res = self.msg_box(
-                # TODO: get SVG icon..
-                parent = self, icon=QIcon(":icons/cashacct-logo.png").pixmap(75, 75),
-                title=_('Register A New Cash Account'), rich_text=True,
-                text = msg1, informative_text = msg2, detail_text = msg3,
-                checkbox_text=_("Never show this again"), checkbox_ischecked=False
-            )
-            if res[1]:
-                # never ask checked
-                self.config.set_key('cashaccounts_never_show_send_tab_hint', True)
-
-
-
 
 class TxUpdateMgr(QObject, PrintError):
     ''' Manages new transaction notifications and transaction verified
@@ -5548,6 +5267,7 @@ class TxUpdateMgr(QObject, PrintError):
 
     @rate_limited(5.0, classlevel=True)
     def process_notifs(self):
+        # FIXME: check if this method still has any use, after cashacct removal
         parent = self.weakParent()
         if not parent or parent.cleaned_up:
             return
@@ -5555,60 +5275,11 @@ class TxUpdateMgr(QObject, PrintError):
             txns = self.notifs_get_and_clear()
             if txns:
                 # Combine the transactions
-                n_ok, n_cashacct, total_amount = 0, 0, 0
-                last_seen_ca_name = ''
-                ca_txs = dict()  # 'txid' -> ('name', address)  -- will be given to contacts_list for "unconfirmed registrations" display
+                n_ok, total_amount = 0, 0
                 for tx in txns:
                     if tx:
                         is_relevant, is_mine, v, fee = parent.wallet.get_wallet_delta(tx)
-                        for _typ, addr, val in tx.outputs():
-                            # Find Cash Account registrations that are for addresses *in* this wallet
-                            if isinstance(addr, cashacct.ScriptOutput) and parent.wallet.is_mine(addr.address):
-                                n_cashacct += 1
-                                last_seen_ca_name = addr.name
-                                txid = tx.txid_fast()
-                                if txid: ca_txs[txid] = (addr.name, addr.address)
                         if not is_relevant:
                             continue
                         total_amount += v
                         n_ok += 1
-                if n_cashacct:
-                    # Unhide the Addresses tab if cash account reg tx seen
-                    # and user never explicitly hid it.
-                    if parent.config.get("show_addresses_tab") is None:
-                        # We unhide it because presumably they want to SEE
-                        # their cash accounts now that they have them --
-                        # and part of the UI is *IN* the Addresses tab.
-                        parent.toggle_tab(parent.addresses_tab)
-                    # Do same for console tab
-                    if parent.config.get("show_contacts_tab") is None:
-                        # We unhide it because presumably they want to SEE
-                        # their cash accounts now that they have them --
-                        # and part of the UI is *IN* the Console tab.
-                        parent.toggle_tab(parent.contacts_tab)
-                    if ca_txs:
-                        # Notify contact_list of potentially unconfirmed txs
-                        parent.contact_list.ca_update_potentially_unconfirmed_registrations(ca_txs)
-                if parent.wallet.storage.get('gui_notify_tx', True):
-                    ca_text = ''
-                    if n_cashacct > 1:
-                        # plural
-                        ca_text = " + " + _("{number_of_cashaccounts} Cash Accounts registrations").format(number_of_cashaccounts = n_cashacct)
-                    elif n_cashacct == 1:
-                        # singular
-                        ca_text = " + " + _("1 Cash Accounts registration ({cash_accounts_name})").format(cash_accounts_name = last_seen_ca_name)
-                    if total_amount > 0:
-                        self.print_error("Notifying GUI %d tx"%(max(n_ok, n_cashacct)))
-                        if max(n_ok, n_cashacct) > 1:
-                            parent.notify(_("{} new transactions: {}")
-                                          .format(n_ok, parent.format_amount_and_units(total_amount, is_diff=True)) + ca_text)
-                        else:
-                            parent.notify(_("New transaction: {}").format(parent.format_amount_and_units(total_amount, is_diff=True)) + ca_text)
-                    elif n_cashacct:
-                        # No total amount (was just a cashacct reg tx)
-                        ca_text = ca_text[3:]  # pop off the " + "
-                        if n_cashacct > 1:
-                            parent.notify(_("{} new transactions: {}")
-                                          .format(n_cashacct, ca_text))
-                        else:
-                            parent.notify(_("New transaction: {}").format(ca_text))

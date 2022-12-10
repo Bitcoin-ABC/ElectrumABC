@@ -105,20 +105,9 @@ def double_sha256(x):
     return sha256(sha256(x))
 
 
-class UnknownAddress(namedtuple("UnknownAddress", "meta")):
-
-    def __new__(cls, meta=None):
-        return super(UnknownAddress, cls).__new__(cls, meta)
-
+class UnknownAddress:
     def to_ui_string(self):
-        if self.meta is not None:
-            meta = self.meta
-            meta = (isinstance(meta, (bytes, bytearray)) and meta.hex()) or meta
-            if isinstance(meta, str) and len(meta) > 10:
-                l = len(meta) // 2
-                meta = "…" + meta[l-4:l+4] + "…"
-            return f'<UnknownAddress meta={meta}>'
-        return '<UnknownAddress>'
+        return "<UnknownAddress>"
 
     def __str__(self):
         return self.to_ui_string()

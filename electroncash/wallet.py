@@ -51,7 +51,7 @@ from .util import (NotEnoughFunds, ExcessiveFee, PrintError,
                    format_satoshis, format_time, finalization_print_error,
                    to_string, bh2u, TimeoutException, WalletFileException)
 
-from .address import Address, Script, ScriptOutput, PublicKey
+from .address import Address, Script, PublicKey
 from .version import PACKAGE_VERSION
 from .keystore import (
     load_keystore,
@@ -79,13 +79,11 @@ from .synchronizer import Synchronizer
 from .verifier import SPV, SPVDelegate
 from . import schnorr
 from . import ecc_fast
-from .blockchain import NULL_HASH_HEX
 
 
 from . import paymentrequest
 from .paymentrequest import InvoiceStore, PR_PAID, PR_UNCONFIRMED, PR_UNPAID, PR_UNKNOWN, PR_EXPIRED
 from .contacts import Contacts
-from . import cashacct
 from . import slp
 
 from .i18n import _
@@ -193,12 +191,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         self.synchronizer = None
         self.verifier: Optional[SPV] = None
         self.weak_window: Optional[Synchronizer] = None  # Some of the GUI classes, such as the Qt ElectrumWindow, use this to refer back to themselves.  This should always be a weakref.ref (Weak.ref), or None
-        # CashAccounts subsystem. Its network-dependent layer is started in
-        # start_threads. Note: object instantiation should be lightweight here.
-        # self.cashacct.load() is called later in this function to load data.
-        self.cashacct = cashacct.CashAcct(self)
         self.slp = slp.WalletData(self)
-        finalization_print_error(self.cashacct)  # debug object lifecycle
         finalization_print_error(self.slp)  # debug object lifecycle
 
         # Removes defunct entries from self.pruned_txo asynchronously
@@ -279,10 +272,8 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         self.invoices = InvoiceStore(self.storage)
         self.contacts = Contacts(self.storage)
 
-        # cashacct is started in start_threads, but it needs to have relevant
-        # data here, before the below calls happen
-        self.cashacct.load()
-        self.slp.load()  # try to load first so we can pick up the remove_transaction hook from load_transactions if need be
+        # try to load first so we can pick up the remove_transaction hook from load_transactions if need be
+        self.slp.load()
 
         # Now, finally, after object is constructed -- we can do this
         self.load_keystore()
@@ -356,7 +347,6 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             if not self.txi.get(tx_hash) and not self.txo.get(tx_hash) and (tx_hash not in self.pruned_txo_values):
                 self.print_error("removing unreferenced tx", tx_hash)
                 self.transactions.pop(tx_hash)
-                self.cashacct.remove_transaction_hook(tx_hash)
                 self.slp.rm_tx(tx_hash)
 
     @profiler
@@ -387,7 +377,6 @@ class Abstract_Wallet(PrintError, SPVDelegate):
     def save_verified_tx(self, write=False):
         with self.lock:
             self.storage.put('verified_tx3', self.verified_tx)
-            self.cashacct.save()
             if write:
                 self.storage.write()
 
@@ -410,7 +399,6 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             self._addr_bal_cache = {}
             self._history = {}
             self.tx_addr_hist = defaultdict(set)
-            self.cashacct.on_clear_history()
 
     @profiler
     def build_reverse_history(self):
@@ -440,7 +428,6 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                     save = True
         if save:
             self.save_transactions()
-            self.cashacct.save()
 
     def basename(self):
         return os.path.basename(self.storage.path)
@@ -586,22 +573,15 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             # tx will be verified only if height > 0
             if tx_hash not in self.verified_tx:
                 self.unverified_tx[tx_hash] = tx_height
-                self.cashacct.add_unverified_tx_hook(tx_hash, tx_height)
 
-    def add_verified_tx(self, tx_hash, info, header):
+    def add_verified_tx(self, tx_hash, info):
         # Remove from the unverified map and add to the verified map and
         with self.lock:
             self.unverified_tx.pop(tx_hash, None)
             self.verified_tx[tx_hash] = info  # (tx_height, timestamp, pos)
             height, conf, timestamp = self.get_tx_height(tx_hash)
-            self.cashacct.add_verified_tx_hook(tx_hash, info, header)
         self.network.trigger_callback('verified2', self, tx_hash, height, conf, timestamp)
         self._update_request_statuses_touched_by_tx(tx_hash)
-
-    def verification_failed(self, tx_hash, reason):
-        ''' TODO: Notify gui of this if it keeps happening, try a different
-        server, rate-limited retries, etc '''
-        self.cashacct.verification_failed_hook(tx_hash, reason)
 
     def get_unverified_txs(self):
         '''Returns a map from tx hash to transaction height'''
@@ -626,9 +606,9 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                     if not header or header.get('timestamp') != timestamp:
                         self.verified_tx.pop(tx_hash, None)
                         txs.add(tx_hash)
-            if txs: self.cashacct.undo_verifications_hook(txs)
         if txs:
-            self._addr_bal_cache = {}  # this is probably not necessary -- as the receive_history_callback will invalidate bad cache items -- but just to be paranoid we clear the whole balance cache on reorg anyway as a safety measure
+            # this is probably not necessary -- as the receive_history_callback will invalidate bad cache items -- but just to be paranoid we clear the whole balance cache on reorg anyway as a safety measure
+            self._addr_bal_cache = {}
         for tx_hash in txs:
             self._update_request_statuses_touched_by_tx(tx_hash)
         return txs
@@ -649,25 +629,6 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                 return height, 0, 0
             else:
                 return 0, 0, 0
-
-    def get_tx_block_hash(self, tx_hash):
-        ''' Only works for tx's in wallet, for which we know the height. '''
-        height, ign, ign2 = self.get_tx_height(tx_hash)
-        return self.get_block_hash(height)
-
-    def get_block_hash(self, height):
-        '''Convenience method equivalent to Blockchain.get_height(), except our
-        version returns None instead of NULL_HASH_HEX on 'not found' header. '''
-        ret = None
-        if self.network and height is not None and height >= 0 and height <= self.get_local_height():
-            bchain = self.network.blockchain()
-            if bchain:
-                ret = bchain.get_hash(height)
-                if ret == NULL_HASH_HEX:
-                    # if hash was NULL (all zeroes), prefer to return None
-                    ret = None
-        return ret
-
 
     def get_txpos(self, tx_hash):
         "return position, even if the tx is unverified"
@@ -1302,25 +1263,11 @@ class Abstract_Wallet(PrintError, SPVDelegate):
 
             # add outputs
             self.txo[tx_hash] = d = {}
-            op_return_ct = 0
-            deferred_cashacct_add = None
             for n, txo in enumerate(tx.outputs()):
                 ser = tx_hash + ':%d'%n
                 _type, addr, v = txo
                 mine = False
-                if isinstance(addr, ScriptOutput):
-                    if addr.is_opreturn():
-                        op_return_ct += 1
-                    if isinstance(addr, cashacct.ScriptOutput):
-                        # auto-detect CashAccount registrations we see,
-                        # and notify cashacct subsystem of that fact. But we
-                        # can only do it after making sure it's the *only*
-                        # OP_RETURN in the tx.
-                        deferred_cashacct_add = (
-                            lambda _tx_hash=tx_hash, _tx=tx, _addr=addr:
-                                self.cashacct.add_transaction_hook(_tx_hash, _tx, _addr)
-                        )
-                elif self.is_mine(addr):
+                if self.is_mine(addr):
                     # add coin to self.txo since it's mine.
                     mine = True
                     l = d.get(addr)
@@ -1337,17 +1284,8 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             if not d:
                 self.txo.pop(tx_hash, None)
 
-
             # save
             self.transactions[tx_hash] = tx
-
-
-            # Invoke the cashacct add hook (if defined) here at the end, with
-            # the lock held. We accept the cashacct.ScriptOutput only iff
-            # op_return_ct == 1 as per the Cash Accounts spec.
-            # See: https://gitlab.com/cash-accounts/lookup-server/blob/master/routes/parser.js#L253
-            if op_return_ct == 1 and deferred_cashacct_add:
-                deferred_cashacct_add()
 
             # Unconditionally invoke the SLP handler. Note that it is a fast &
             # cheap no-op if this tx's outputs[0] is not an SLP script.
@@ -1391,8 +1329,6 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             try: self.txo.pop(tx_hash)
             except KeyError: self.print_error("tx was not in output history", tx_hash)
 
-            # do this with the lock held
-            self.cashacct.remove_transaction_hook(tx_hash)
             # inform slp subsystem as well
             self.slp.rm_tx(tx_hash)
 
@@ -2055,7 +1991,6 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             finalization_print_error(self.verifier)
             finalization_print_error(self.synchronizer)
             network.add_jobs([self.verifier, self.synchronizer])
-            self.cashacct.start(self.network)  # start cashacct network-dependent subsystem, nework.add_jobs, etc
         else:
             self.verifier = None
             self.synchronizer = None
@@ -2069,7 +2004,6 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             # because these objects need to do thier clean-up actions in a
             # thread-safe fashion from within the thread where they normally
             # operate on their data structures.
-            self.cashacct.stop()
             self.synchronizer.save()
             self.synchronizer.release()
             self.verifier.release()
@@ -2081,7 +2015,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             self.storage.put('stored_height', self.get_local_height())
         self.save_addresses()
         self.save_transactions()
-        self.save_verified_tx()  # implicit cashacct.save
+        self.save_verified_tx()
         self.storage.put('frozen_coins', list(self.frozen_coins))
         self.save_change_reservations()
         self.storage.write()
@@ -2542,7 +2476,6 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             self._history[address] = []
         if self.synchronizer:
             self.synchronizer.add(address, for_change=for_change)
-        self.cashacct.on_address_addition(address)
 
     def has_password(self):
         return self.has_keystore_encryption() or self.has_storage_encryption()
@@ -2642,7 +2575,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             self.save_addresses()
         self.save_transactions()
         self.save_change_reservations()
-        self.save_verified_tx()  # implicit cashacct.save
+        self.save_verified_tx()
         self.storage.write()
         self.start_threads(network)
         self.network.trigger_callback('wallet_updated', self)
@@ -2839,13 +2772,7 @@ class ImportedWalletBase(Simple_Wallet):
 
         self.delete_address_derived(address)
 
-        self.cashacct.on_address_deletion(address)
-        self.cashacct.save()
-
         self.save_addresses()
-
-        self.storage.write() # no-op if above already wrote
-
 
 
 class ImportedAddressWallet(ImportedWalletBase):
@@ -2905,10 +2832,9 @@ class ImportedAddressWallet(ImportedWalletBase):
         if address in self.addresses:
             return False
         self.addresses.append(address)
-        self.add_address(address)
-        self.cashacct.save()
         self.save_addresses()
-        self.storage.write() # no-op if already wrote in previous call
+        self.storage.write()
+        self.add_address(address)
         self._sorted = None
         return True
 
@@ -2984,10 +2910,8 @@ class ImportedPrivkeyWallet(ImportedWalletBase):
     def import_private_key(self, sec, pw):
         pubkey = self.keystore.import_privkey(sec, pw)
         self.save_keystore()
+        self.storage.write()
         self.add_address(pubkey.address)
-        self.cashacct.save()
-        self.save_addresses()
-        self.storage.write()  # no-op if above already wrote
         return pubkey.address.to_ui_string()
 
     def export_private_key(self, address, password):

@@ -35,6 +35,5 @@
 	<mimetypes>
 		<mimetype>x-scheme-handler/ecash</mimetype>
 		<mimetype>x-scheme-handler/bitcoincash</mimetype>
-		<mimetype>x-scheme-handler/cashacct</mimetype>
 	</mimetypes>
 </component>

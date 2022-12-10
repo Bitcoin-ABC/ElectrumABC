@@ -35,7 +35,6 @@ from PyQt5.QtCore import QTimer, Qt, QUrl, pyqtSignal
 from PyQt5.QtGui import QBrush, QCursor, QFont, QIcon, QKeySequence, QTextCharFormat
 from PyQt5 import QtWidgets
 
-from electroncash import cashacct
 from electroncash import web
 
 from electroncash.address import Address, PublicKey, ScriptOutput
@@ -262,8 +261,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         self.tx.fetch_input_data(self.wallet, done_callback=dl_done, prog_callback=dl_prog, force=force, use_network=self.is_fetch_input_data())
 
     def got_verified_tx(self, event, args):
-        if ( (event == 'verified2' and args[1] == self.tx_hash)
-                or (event == 'ca_verified_tx' and args[1].txid == self.tx_hash) ):
+        if event == 'verified2' and args[1] == self.tx_hash:
             self.update()
 
     def update_tx_if_in_wallet(self):
@@ -692,7 +690,6 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
 
         o_text.clear()
         cursor = o_text.textCursor()
-        ca_script = None
         opret_ct = 0
         for i, tup in enumerate(self.tx.outputs()):
             my_addr_in_script = None
@@ -702,25 +699,6 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
             # CashAccounts support
             if isinstance(addr, ScriptOutput) and addr.is_opreturn():
                 opret_ct += 1
-                if isinstance(addr, cashacct.ScriptOutput):
-                    ca_script = addr
-                    my_addr_in_script = (self.wallet.is_mine(ca_script.address) and ca_script.address) or None
-                    if not addr.is_complete() and self.tx_hash and self.tx_height and self.tx_height >= cashacct.activation_height:
-                        # The below will fail and return None if the height is less than
-                        # networks.net.VERIFICATION_BLOCK_HEIGHT - 146 and if we lack
-                        # this header.
-                        # This is not catastrophic -- it just means the ScriptOutput
-                        # won't be as pretty with the emoji and collision_hash.
-                        # In many cases however we will have the header if the
-                        # CashAccounts tx being viewed was verified by us.
-                        self.block_hash = self.block_hash or self.wallet.get_block_hash(self.tx_height) or None
-                        if self.block_hash:
-                            # make it complete right away if we have the block_hash for pretty UI printing a few lines below...
-                            ca_script.make_complete(block_height=self.tx_height, block_hash=self.block_hash, txid=self.tx_hash)
-                    else:
-                        # "forget" the script in this case so we don't keep
-                        # processing it further below..
-                        ca_script = None
             # Format Cash Accounts address *in* script to be highlighted with
             # our preferred yellow/green for change/receiving and also
             # linkify it.
@@ -748,27 +726,6 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
                 cursor.insertText(format_amount(v), ext)
             cursor.insertBlock()
             # /Mark B. Lundeberg's patented output formatting logic™
-
-        # Cash Accounts support
-        if ca_script:
-            # This branch is taken if script.is_complete() was False initially above...
-            if opret_ct == 1:  # <-- make sure only 1 OP_RETURN appears in the tx as per Cash Accounts spec
-                if ca_script.is_complete():
-                    # add tx to cashaccts ext tx's and verify, since user initiated
-                    # a UI action to open the TX, so maybe they are interested
-                    # in this particular cashacct registration
-                    self.print_error("adding ext tx to Cash Accounts")
-                    self.wallet.cashacct.add_ext_tx(self.tx_hash, ca_script)
-                else:
-                    # Not complete -- kick off ext verifier anyway
-                    # We will get an update() signal should it verify ok...
-                    # At which point it may become is_complete() and UI can
-                    # display all the info.
-                    self.print_error("adding incomplete tx to Cash Accounts")
-                    self.wallet.cashacct.add_ext_incomplete_tx(self.tx_hash, self.tx_height, ca_script)
-            else:
-                self.print_error(f"Encountered more than 1 OP_RETURN script in TX {self.tx_hash} with Cash Accounts registrations in it, ignoring registration script")
-        # /Cash Accounts support
 
         # make the change & receive legends appear only if we used that color
         self.recv_legend.setVisible(bool(rec_ct))
@@ -886,19 +843,12 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
             # figure out which output they right-clicked on .. output lines have an anchor named "output N"
             i = int(name.split()[1])  # split "output N", translate N -> int
             ignored, addr, value = (self.tx.outputs())[i]
-            ca_script = (isinstance(addr, cashacct.ScriptOutput) and addr) or None
             menu.addAction(_("Output") + " #" + str(i)).setDisabled(True)
             menu.addSeparator()
             self._add_addr_to_io_menu_lists_for_widget(addr, show_list, copy_list, o_text)
             if isinstance(value, int):
                 value_fmtd = self.main_window.format_amount(value)
                 copy_list += [ ( _("Copy Amount"), lambda: self._copy_to_clipboard(value_fmtd, o_text) ) ]
-            if ca_script:
-                copy_list += [ ( _("Copy Address (Embedded)"), lambda: self._copy_to_clipboard(ca_script.address.to_ui_string(), o_text) ) ]
-                if ca_script.is_complete() and self.tx_hash:
-                    text_getter = lambda: self.wallet.cashacct.fmt_info(cashacct.Info.from_script(ca_script, self.tx_hash), emoji=True)
-                    text_getter()  # go out to network to cache the shortest encoding for cash account name ahead of time...
-                    copy_list += [ ( _("Copy Cash Account"), lambda: self._copy_to_clipboard(text_getter(), o_text) ) ]
         except (TypeError, ValueError, IndexError, KeyError, AttributeError) as e:
             self.print_error("Outputs right-click menu exception:", repr(e))
 

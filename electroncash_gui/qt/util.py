@@ -427,48 +427,6 @@ class WaitingDialog(WindowModalDialog):
             super().keyPressEvent(e)
 
 
-
-def line_dialog(parent, title, label, ok_label, default=None,
-                *, linkActivated=None, placeholder=None, disallow_empty=False,
-                icon=None, line_edit_widget=None):
-    dialog = WindowModalDialog(parent, title)
-    dialog.setObjectName('WindowModalDialog - ' + title)
-    destroyed_print_error(dialog)  # track object lifecycle
-    dialog.setMinimumWidth(500)
-    l = QtWidgets.QVBoxLayout()
-    dialog.setLayout(l)
-    if isinstance(icon, QIcon):
-        hbox = QtWidgets.QHBoxLayout()
-        hbox.setContentsMargins(0,0,0,0)
-        ic_lbl = QtWidgets.QLabel()
-        ic_lbl.setPixmap(icon.pixmap(50))
-        hbox.addWidget(ic_lbl)
-        hbox.addItem(QtWidgets.QSpacerItem(10, 1))
-        t_lbl = QtWidgets.QLabel("<font size=+1><b>" + title + "</b></font>")
-        hbox.addWidget(t_lbl, 0, Qt.AlignLeft)
-        hbox.addStretch(1)
-        l.addLayout(hbox)
-    lbl = WWLabel(label)
-    l.addWidget(lbl)
-    if linkActivated:
-        lbl.linkActivated.connect(linkActivated)
-        lbl.setTextInteractionFlags(lbl.textInteractionFlags()|Qt.LinksAccessibleByMouse)
-    txt = line_edit_widget or QtWidgets.QLineEdit()
-    if default:
-        txt.setText(default)
-    if placeholder:
-        txt.setPlaceholderText(placeholder)
-    l.addWidget(txt)
-    okbut = OkButton(dialog, ok_label)
-    l.addLayout(Buttons(CancelButton(dialog), okbut))
-    if disallow_empty:
-        def on_text_changed():
-            okbut.setEnabled(bool(txt.text()))
-        txt.textChanged.connect(on_text_changed)
-        on_text_changed() # initially enable/disable it.
-    if dialog.exec_():
-        return txt.text()
-
 def text_dialog(parent, title, label, ok_label, default=None, allow_multi=False):
     from .qrtextedit import ScanQRTextEdit
     dialog = WindowModalDialog(parent, title)

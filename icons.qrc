@@ -1,7 +1,5 @@
 <RCC>
   <qresource prefix="/" >
-    <file>icons/cashacct-logo.png</file>
-    <file>icons/cashacct-button-darkmode.png</file>
     <file>icons/electrumABC.svg</file>
     <file>icons/electrumABC-update.svg</file>
     <file>icons/clock1.svg</file>

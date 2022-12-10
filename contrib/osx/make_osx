@@ -238,7 +238,7 @@ python3 setup.py install --user > /dev/null || fail "Could not build $PACKAGE"
 info "Building binary"
 pyinstaller --clean --noconfirm --ascii --name $VERSION contrib/osx/osx.spec || fail "Could not build binary"
 
-info "Adding ecash & bitcoincash & cashacct URI types to Info.plist"
+info "Adding ecash & bitcoincash URI types to Info.plist"
 # NB: Make sure there are no trailing spaces after the '\' characters here
 plutil -insert 'CFBundleURLTypes' \
 	-xml \
@@ -254,12 +254,6 @@ plutil -insert 'CFBundleURLTypes' \
 '  <string>bitcoincash</string> '\
 '  <key>CFBundleURLSchemes</key> '\
 '    <array><string>bitcoincash</string></array> '\
-'</dict> '\
-'<dict> '\
-'  <key>CFBundleURLName</key> '\
-'  <string>CashAccount</string> '\
-'  <key>CFBundleURLSchemes</key> '\
-'    <array><string>cashacct</string></array> '\
 '</dict> '\
 '</array>' \
 	-- dist/$PACKAGE.app/Contents/Info.plist \
