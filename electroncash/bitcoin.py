@@ -30,7 +30,7 @@ import hashlib
 import hmac
 import os
 from enum import Enum, IntEnum
-from typing import Optional, Tuple, Union
+from typing import TYPE_CHECKING, Optional, Tuple, Union
 
 import ecdsa
 import pyaes
@@ -47,6 +47,9 @@ from .util import (
     to_bytes,
     to_string,
 )
+
+if TYPE_CHECKING:
+    from .address import Address
 
 # Ensure Python interpreter is not running with -O, since this entire
 # codebase depends on "assert" not being a no-op.
