@@ -35,8 +35,7 @@ import threading
 import time
 import traceback
 import zipimport
-from collections import defaultdict, namedtuple
-from concurrent import futures
+from collections import defaultdict
 from enum import IntEnum
 from typing import (
     TYPE_CHECKING,

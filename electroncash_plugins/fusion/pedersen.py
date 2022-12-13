@@ -43,15 +43,7 @@ amount is sensible.
 
 """
 
-from ctypes import (
-    byref,
-    c_char_p,
-    c_int,
-    c_size_t,
-    c_void_p,
-    cast,
-    create_string_buffer,
-)
+from ctypes import byref, c_size_t, c_void_p, cast, create_string_buffer
 
 import ecdsa
 

@@ -31,15 +31,10 @@ try:
     import hid
     from btchip.bitcoinTransaction import bitcoinTransaction
     from btchip.btchip import btchip
-    from btchip.btchipComm import DongleWait, HIDDongleHIDAPI
+    from btchip.btchipComm import HIDDongleHIDAPI
     from btchip.btchipException import BTChipException
-    from btchip.btchipFirmwareWizard import checkFirmware, updateFirmware
-    from btchip.btchipUtils import (
-        compress_public_key,
-        format_transaction,
-        get_p2sh_input_script,
-        get_regular_input_script,
-    )
+    from btchip.btchipFirmwareWizard import checkFirmware
+    from btchip.btchipUtils import compress_public_key
 
     BTCHIP = True
     BTCHIP_DEBUG = is_verbose

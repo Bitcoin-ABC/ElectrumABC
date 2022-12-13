@@ -45,11 +45,8 @@ try:
     from smartcard.CardType import AnyCardType
     from smartcard.Exceptions import CardRequestTimeoutException
 
-    # pyscard
-    from smartcard.sw.SWExceptions import SWException
-
     LIBS_AVAILABLE = True
-except:
+except ImportError:
     LIBS_AVAILABLE = False
     print_error(
         "[satochip] failed to import requisite libraries, please install the 'pyscard' and 'pysatochip' libraries"

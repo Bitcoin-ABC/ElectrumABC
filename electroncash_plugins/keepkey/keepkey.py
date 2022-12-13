@@ -1,4 +1,4 @@
-from binascii import hexlify, unhexlify
+from binascii import unhexlify
 
 from electroncash import networks
 from electroncash.address import Address
@@ -11,7 +11,7 @@ from electroncash.bitcoin import (
 from electroncash.i18n import _
 from electroncash.keystore import Hardware_KeyStore, is_xpubkey, parse_xpubkey
 from electroncash.plugins import Device
-from electroncash.transaction import Transaction, deserialize
+from electroncash.transaction import deserialize
 from electroncash.util import UserCancelled, bfh, bh2u
 from electroncash_plugins.hw_wallet import HW_PluginBase
 from electroncash_plugins.hw_wallet.plugin import (

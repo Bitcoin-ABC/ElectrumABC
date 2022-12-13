@@ -27,7 +27,7 @@
 import sys
 
 from ..util import print_error
-from .abstract_base import AbstractQrCodeReader, QrCodeResult
+from .abstract_base import AbstractQrCodeReader, QrCodeResult  # noqa: F401
 
 
 class MissingLib(RuntimeError):

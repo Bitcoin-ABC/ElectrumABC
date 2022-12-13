@@ -21,4 +21,4 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from .controller import TorController, check_proxy_bypass_tor_control
+from .controller import TorController, check_proxy_bypass_tor_control  # noqa: F401

@@ -5,12 +5,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 
 # pysatochip
-from pysatochip.CardConnector import (
-    CardConnector,
-    CardError,
-    CardNotPresentError,
-    UnexpectedSW12Error,
-)
+from pysatochip.CardConnector import CardError, CardNotPresentError, UnexpectedSW12Error
 from pysatochip.Satochip2FA import Satochip2FA
 from pysatochip.version import (
     SATOCHIP_PROTOCOL_MAJOR_VERSION,

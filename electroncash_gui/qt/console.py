@@ -1,14 +1,13 @@
 # source: http://stackoverflow.com/questions/2758159/how-to-embed-a-python-interpreter-in-a-pyqt-widget
 
 import os
-import platform
 import re
 import sys
 import traceback
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from electroncash import get_config, util
+from electroncash import util
 from electroncash.i18n import _
 
 from .util import MONOSPACE_FONT, ColorScheme

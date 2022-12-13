@@ -3567,15 +3567,15 @@ class Multisig_Wallet(Deterministic_Wallet):
         return any([k.may_have_password() for k in self.get_keystores()])
 
     def _update_password_for_keystore(self, old_pw, new_pw):
-        for name, keystore in self.keystores.items():
-            if keystore.may_have_password():
-                keystore.update_password(old_pw, new_pw)
-                self.storage.put(name, keystore.dump())
+        for name, keystore_ in self.keystores.items():
+            if keystore_.may_have_password():
+                keystore_.update_password(old_pw, new_pw)
+                self.storage.put(name, keystore_.dump())
 
     def check_password(self, password):
-        for name, keystore in self.keystores.items():
-            if keystore.may_have_password():
-                keystore.check_password(password)
+        for name, keystore_ in self.keystores.items():
+            if keystore_.may_have_password():
+                keystore_.check_password(password)
         self.storage.check_password(password)
 
     def get_available_storage_encryption_version(self):

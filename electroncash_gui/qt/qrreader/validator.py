@@ -25,7 +25,7 @@
 # SOFTWARE.
 
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List
+from typing import Dict, List
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor

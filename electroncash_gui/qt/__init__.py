@@ -36,7 +36,6 @@ import traceback
 from typing import TYPE_CHECKING, Callable, Optional
 
 try:
-    import PyQt5
     from PyQt5 import QtCore, QtWidgets
     from PyQt5.QtGui import QFontDatabase, QGuiApplication, QIcon, QScreen
 except Exception:
@@ -82,9 +81,9 @@ from electroncash.util import (
 )
 from electroncash.wallet import Abstract_Wallet, Wallet
 
-from . import (
-    icons,  # This needs to be imported once app-wide then the :icons/ namespace becomes available for Qt icon filenames.
-)
+# This needs to be imported once app-wide then the :icons/ namespace becomes available
+# for Qt icon filenames.
+from . import icons  # noqa: F401
 from .exception_window import ExceptionHook
 from .installwizard import GoBack, InstallWizard, WalletAlreadyOpenInMemory
 from .main_window import ElectrumWindow, windows_qt_use_freetype
@@ -329,7 +328,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         may be missing.
         """
         try:
-            from PyQt5 import QtSvg
+            from PyQt5 import QtSvg  # noqa: F401
         except ImportError:
             # Closes #1436 -- Some "Run from source" Linux users lack QtSvg
             # (partial PyQt5 install)
@@ -358,8 +357,8 @@ class ElectrumGui(QtCore.QObject, PrintError):
             # user can set outside of this application.
             return False
         try:
-            import qdarkstyle
-        except:
+            import qdarkstyle  # noqa: F401
+        except ImportError:
             return False
         return True
 
@@ -871,7 +870,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         we are unlikely to encounter Qt5 installations that are missing
         QtMultimedia"""
         try:
-            from .qrreader import QrReaderCameraDialog
+            from .qrreader import QrReaderCameraDialog  # noqa: F401
         except ImportError as e:
             if show_warning:
                 self.warning(

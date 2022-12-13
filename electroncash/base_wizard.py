@@ -29,7 +29,7 @@ from __future__ import annotations
 import copy
 import sys
 import traceback
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, NamedTuple, Optional
+from typing import Any, Callable, Dict, List, NamedTuple, Optional
 
 from electroncash_plugins.hw_wallet import HW_PluginBase
 

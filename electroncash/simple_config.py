@@ -6,7 +6,6 @@ from copy import deepcopy
 from decimal import Decimal as PyDecimal
 
 from . import util
-from .constants import SCRIPT_NAME
 from .util import PrintError, get_user_dir, make_dir, print_error
 
 config = None

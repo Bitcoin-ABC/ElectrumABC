@@ -45,7 +45,7 @@ from google.protobuf.message import DecodeError
 from electroncash import schnorr
 from electroncash.bitcoin import public_key_from_private_key
 from electroncash.constants import XEC
-from electroncash.i18n import _, ngettext, pgettext
+from electroncash.i18n import _
 from electroncash.util import (
     PrintError,
     ServerError,

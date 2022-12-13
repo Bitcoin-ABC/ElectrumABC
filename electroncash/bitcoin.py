@@ -490,7 +490,6 @@ def hash_160(public_key: bytes) -> bytes:
         md.update(sha256_hash)
         return md.digest()
     except ValueError:
-        import Crypto
         from Crypto.Hash import RIPEMD160
 
         md = RIPEMD160.new()
@@ -1562,7 +1561,7 @@ class Bip38Key:
         if Bip38Key.isFast():
             return True
         try:
-            import pyscrypt
+            import pyscrypt  # noqa: F401
 
             return True
         except ImportError:

@@ -38,7 +38,7 @@ from PyQt5.QtMultimedia import QCamera, QCameraInfo, QCameraViewfinderSettings
 from electroncash import get_config
 from electroncash.i18n import _
 from electroncash.qrreaders import QrCodeResult, get_qr_reader
-from electroncash.util import PrintError, print_error
+from electroncash.util import PrintError
 from electroncash_gui.qt.utils import FixedAspectRatioLayout, ImageGraphicsEffect
 
 from ..util import MessageBoxMixin

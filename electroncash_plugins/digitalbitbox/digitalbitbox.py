@@ -24,23 +24,18 @@ try:
 
     from electroncash.base_wizard import HWD_SETUP_NEW_WALLET
     from electroncash.bitcoin import (
-        TYPE_ADDRESS,
         DecodeAES_bytes,
         EncodeAES_base64,
         EncodeAES_bytes,
         Hash,
         MyVerifyingKey,
         SignatureType,
-        deserialize_xpub,
         hmac_oneshot,
-        int_to_hex,
         msg_magic,
         point_to_ser,
         pubkey_from_signature,
         public_key_to_p2pkh,
         push_script,
-        serialize_xpub,
-        var_int,
         verify_message,
     )
     from electroncash.i18n import _

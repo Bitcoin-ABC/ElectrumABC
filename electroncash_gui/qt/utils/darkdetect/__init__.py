@@ -3,7 +3,7 @@
 #
 #  Distributed under the terms of the 3-clause BSD License.
 # -----------------------------------------------------------------------------
-
+# flake8: noqa
 __version__ = "0.1.1"
 
 import platform

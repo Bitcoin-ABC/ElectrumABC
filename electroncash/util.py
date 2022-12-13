@@ -30,6 +30,8 @@ import json
 import locale
 import os
 import re
+import socket
+import ssl
 import stat
 import subprocess
 import sys
@@ -40,10 +42,8 @@ import weakref
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from datetime import datetime
-from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
-from functools import lru_cache
+from decimal import Decimal
 from traceback import format_exception
-from typing import Optional
 
 from .constants import POSIX_DATA_DIR, PROJECT_NAME_NO_SPACES
 
@@ -396,7 +396,7 @@ def json_encode(obj):
 
 def json_decode(x):
     try:
-        return json.loads(x, parse_float=PyDecimal)
+        return json.loads(x, parse_float=Decimal)
     except:
         return x
 
@@ -563,7 +563,7 @@ def format_satoshis_plain(x, decimal_point=8):
     if x is None:
         return _("Unknown")
     scale_factor = pow(10, decimal_point)
-    return "{:.8f}".format(PyDecimal(x) / scale_factor).rstrip("0").rstrip(".")
+    return "{:.8f}".format(Decimal(x) / scale_factor).rstrip("0").rstrip(".")
 
 
 _cached_dp = None
@@ -826,11 +826,6 @@ class TxHashMismatch(ServerError):
     GUI-friendly error message."""
 
     pass
-
-
-import errno
-import socket
-import ssl
 
 
 class JSONSocketPipe(PrintError):

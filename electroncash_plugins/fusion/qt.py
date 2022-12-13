@@ -35,20 +35,10 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import QMargins, QObject, QPoint, QSize, Qt, QTimer, pyqtSignal
 from PyQt5.QtGui import QCursor, QIcon, QImage, QPainter
 
-from electroncash import networks
 from electroncash.address import Address
-from electroncash.i18n import _, ngettext, pgettext
+from electroncash.i18n import _, ngettext
 from electroncash.plugins import hook, run_hook
-from electroncash.util import (
-    InvalidPassword,
-    PrintError,
-    do_in_main_thread,
-    finalization_print_error,
-    format_satoshis_plain,
-    inv_dict,
-    print_error,
-    profiler,
-)
+from electroncash.util import InvalidPassword, do_in_main_thread, inv_dict
 from electroncash.wallet import Abstract_Wallet
 from electroncash_gui.qt.amountedit import XECAmountEdit
 from electroncash_gui.qt.main_window import ElectrumWindow, StatusBarButton

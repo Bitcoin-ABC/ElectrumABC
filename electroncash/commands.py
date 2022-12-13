@@ -40,7 +40,6 @@ from . import bitcoin, util
 from .address import Address, AddressError
 from .bitcoin import CASH, TYPE_ADDRESS, hash_160
 from .constants import PROJECT_NAME, SCRIPT_NAME, XEC
-from .i18n import _
 from .mnemo import Mnemonic_Electrum, make_bip39_words
 from .paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNKNOWN, PR_UNPAID
 from .plugins import run_hook

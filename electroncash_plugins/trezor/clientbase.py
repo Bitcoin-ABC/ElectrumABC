@@ -10,12 +10,7 @@ from trezorlib.exceptions import (
     TrezorException,
     TrezorFailure,
 )
-from trezorlib.messages import (
-    ButtonRequestType,
-    FailureType,
-    RecoveryDeviceType,
-    WordRequestType,
-)
+from trezorlib.messages import ButtonRequestType, RecoveryDeviceType, WordRequestType
 
 from electroncash.bitcoin import serialize_xpub
 from electroncash.i18n import _

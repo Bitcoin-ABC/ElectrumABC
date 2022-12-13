@@ -1,3 +1,4 @@
+# flake8: noqa
 import logging
 
 from . import address, bitcoin, daemon, transaction

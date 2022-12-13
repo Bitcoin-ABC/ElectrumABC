@@ -34,20 +34,19 @@ import time
 import weakref
 from typing import Optional, Tuple
 
-from electroncash import Network, Transaction
+from electroncash import Network
 from electroncash.address import Address, OpCodes
 from electroncash.bitcoin import COINBASE_MATURITY, TYPE_SCRIPT
 from electroncash.constants import PROJECT_NAME
-from electroncash.i18n import _, ngettext, pgettext
+from electroncash.i18n import _
 from electroncash.plugins import BasePlugin, daemon_command, hook
-from electroncash.util import InvalidPassword, PrintError, profiler
+from electroncash.util import InvalidPassword
 
 from .conf import Conf, Global
 from .covert import limiter
 from .fusion import MIN_TX_COMPONENTS, Fusion, can_fuse_from, can_fuse_to, is_tor_port
 from .protocol import Protocol
 from .server import FusionServer
-from .util import get_coin_name
 
 TOR_PORTS = [9050, 9150]
 # if more than <N> tor connections have been made recently (see covert.py) then don't start auto-fuses.

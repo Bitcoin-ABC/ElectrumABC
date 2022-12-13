@@ -1,4 +1,3 @@
-import threading
 from functools import partial
 
 from PyQt5 import QtWidgets

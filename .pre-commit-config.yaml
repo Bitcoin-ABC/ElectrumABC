@@ -24,7 +24,7 @@ repos:
     -   id: flake8
         args:
         -   --max-line-length=88
-        -   --select=E9,F5,F6,F7,F8
+        -   --select=E9,F4,F5,F6,F7,F8
         -   --extend-ignore=E203   # This one is incompatible with black
     # Less severe errors and warnings checked on a selection of cleaned-up files
     -   id: flake8

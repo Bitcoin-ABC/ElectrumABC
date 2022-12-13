@@ -51,7 +51,6 @@ from PyQt5.QtCore import (
     QTimer,
     pyqtBoundSignal,
     pyqtSignal,
-    qVersion,
 )
 from PyQt5.QtGui import QColor, QCursor, QFont, QIcon, QKeySequence, QTextOption
 
@@ -66,7 +65,7 @@ from electroncash import (
     paymentrequest,
     util,
 )
-from electroncash.address import Address, PublicKey
+from electroncash.address import Address
 from electroncash.bitcoin import TYPE_ADDRESS
 from electroncash.constants import CURRENCY, PROJECT_NAME, REPOSITORY_URL, SCRIPT_NAME
 from electroncash.contacts import Contact

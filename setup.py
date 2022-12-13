@@ -4,7 +4,6 @@
 # python setup.py sdist --format=zip,gztar
 
 import argparse
-import imp
 import os
 import platform
 import sys
