@@ -550,7 +550,7 @@ class Old_KeyStore(Deterministic_KeyStore):
         return self.mpk
 
     def get_xpubkey(self, for_change, n):
-        s = "".join(map(lambda x: bitcoin.int_to_hex(x, 2), (for_change, n)))
+        s = bitcoin.int_to_hex(for_change, 2) + bitcoin.int_to_hex(n, 2)
         return "fe" + self.mpk + s
 
     @classmethod
