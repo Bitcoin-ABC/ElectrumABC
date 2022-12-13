@@ -99,6 +99,7 @@ E24 = [
     9.1,
 ]
 
+
 # TODO - make these configurable
 class Params:
     num_components = 23

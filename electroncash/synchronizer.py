@@ -296,7 +296,7 @@ class Synchronizer(ThreadJob):
             return
         scripthash = params[0]
         addr = self.h2addr.get(scripthash, None)
-        if not addr or not scripthash in self.requested_histories:
+        if not addr or scripthash not in self.requested_histories:
             return  # Bad server response?
         self.print_error("receiving history {} {}".format(addr, len(result)))
         # Remove request; this allows up_to_date to be True

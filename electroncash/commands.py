@@ -705,7 +705,7 @@ class Commands:
         tx = self.wallet.make_unsigned_transaction(
             coins, final_outputs, self.config, fee_estimator, change_addr
         )
-        if locktime != None:
+        if locktime is not None:
             tx.locktime = locktime
         if not unsigned:
             run_hook("sign_tx", self.wallet, tx)

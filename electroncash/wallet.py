@@ -1841,7 +1841,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                     if x["type"] == "coinbase":
                         continue
                     addr = x.get("address")
-                    if addr == None:
+                    if addr is None:
                         continue
                     input_addresses.append(addr.to_ui_string())
                 for _type, addr, v in tx.outputs():
@@ -2624,7 +2624,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                     baseurl, "req", key[0], key[1], key, key
                 )
                 out["URI"] += "&r=" + out["request_url"]
-                if not "index_url" in out:
+                if "index_url" not in out:
                     out["index_url"] = (
                         os.path.join(baseurl, "index.html") + "?id=" + key
                     )

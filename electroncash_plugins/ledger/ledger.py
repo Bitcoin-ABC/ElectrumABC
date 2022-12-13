@@ -526,7 +526,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
                         )
                     )
             else:
-                if not _type in [TYPE_ADDRESS, TYPE_SCRIPT]:
+                if _type not in [TYPE_ADDRESS, TYPE_SCRIPT]:
                     self.give_error(
                         _("Only address and script outputs are supported by {}").format(
                             self.device

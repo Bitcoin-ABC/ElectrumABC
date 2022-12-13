@@ -427,11 +427,10 @@ class Console(QtWidgets.QWidget):
                         QtCore.QCoreApplication.processEvents()
                     self.skip = not self.skip
 
-            if type(self.namespace.get(command)) == type(lambda: None):
+            if callable(self.namespace.get(command)):
                 self.editor.appendPlainText(
-                    "'{}' is a function. Type '{}()' to use it in the Python console.".format(
-                        command, command
-                    )
+                    f"'{command}' is a function. Type '{command}()' to use it in the "
+                    f"Python console."
                 )
                 self.newPrompt()
                 return
@@ -464,7 +463,7 @@ class Console(QtWidgets.QWidget):
 
     def completions(self):
         cmd = self.getCommand()
-        lastword = re.split(" |\(|\)", cmd)[-1]
+        lastword = re.split("[ ()]", cmd)[-1]
         beginning = cmd[0 : -len(lastword)]
 
         path = lastword.split(".")

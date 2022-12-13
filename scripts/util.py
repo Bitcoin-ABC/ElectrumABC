@@ -74,13 +74,13 @@ def send_request(peers, method, params):
     interfaces = get_interfaces(peers)
     print("%d servers could be reached" % len(interfaces))
     for peer in peers:
-        if not peer in interfaces:
+        if peer not in interfaces:
             print("Connection failed:", peer)
     for msg_id, i in enumerate(interfaces.values()):
         i.queue_request(method, params, msg_id)
     responses = wait_on_interfaces(interfaces)
     for peer in interfaces:
-        if not peer in responses:
+        if peer not in responses:
             print(peer, "did not answer")
     results = dict(
         zip(responses.keys(), [t[0][1].get("result") for t in responses.values()])

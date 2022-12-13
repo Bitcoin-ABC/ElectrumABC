@@ -1186,6 +1186,7 @@ class Fusion(threading.Thread, PrintError):
                 wallets.add(self.target_wallet)
                 if len(wallets) > 1:
                     label += f" {sorted(str(w) for w in self.source_wallet_info.keys())!r} ➡ {str(self.target_wallet)!r}"
+
                 # If we have any sweep-inputs, should also modify label
                 # If we have any send-outputs, should also modify label
                 def update_wallet_label_in_main_thread_paranoia(wallets, txid, label):

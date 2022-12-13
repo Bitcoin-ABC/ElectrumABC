@@ -57,6 +57,7 @@ TOR_COOLDOWN_TIME = 660  # seconds
 # how long a covert connection is allowed to stay alive without anything happening (as a sanity check measure)
 TIMEOUT_INACTIVE_CONNECTION = 120
 
+
 # Used internally
 class Unrecoverable(FusionError):
     pass

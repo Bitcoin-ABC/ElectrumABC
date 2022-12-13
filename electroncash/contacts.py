@@ -174,7 +174,7 @@ class Contacts(util.PrintError):
                     raise RuntimeError(
                         f"Expected a JSON dict in file {os.path.basename(path)}, instead got {str(type(d))}"
                     )
-                if not "contacts" in d and not "contacts2" in d:
+                if "contacts" not in d and "contacts2" not in d:
                     # was old-style export from pre 4.0.8 EC JSON dict
                     d = {
                         "contacts": d

@@ -351,7 +351,7 @@ class Satochip_KeyStore(Hardware_KeyStore):
 
         # check if 2FA is required
         hmac = b""
-        if client.cc.needs_2FA == None:
+        if client.cc.needs_2FA is None:
             (response, sw1, sw2, d) = client.cc.card_get_status()
         if client.cc.needs_2FA:
             # challenge based on sha256(btcheader+msg)

@@ -262,7 +262,7 @@ class GenericServer(threading.Thread, PrintError):
             eport = self.local_port
             # find a free port for the redirection
             r = upnp.getspecificportmapping(eport, "TCP")
-            while r != None and eport < 65536:
+            while r is not None and eport < 65536:
                 eport = eport + 1
                 r = upnp.getspecificportmapping(eport, "TCP")
 

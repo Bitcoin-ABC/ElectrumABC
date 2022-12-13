@@ -56,7 +56,7 @@ def Connection(server, queue, config_path, callback=None):
     connection failed.
     """
     host, port, protocol = server.rsplit(":", 2)
-    if not protocol in "st":
+    if protocol not in "st":
         raise Exception("Unknown protocol: %s" % protocol)
     c = TcpConnection(server, queue, config_path)
     if callback:

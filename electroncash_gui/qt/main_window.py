@@ -434,6 +434,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         if event.isAccepted() and self._first_shown:
             self._first_shown = False
             weakSelf = Weak.ref(self)
+
             # do this immediately after this event handler finishes -- noop on everything but linux
             def callback():
                 strongSelf = weakSelf()
@@ -3820,6 +3821,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         vbox.addWidget(pk_lbl)
         keys_e = ShowQRTextEdit(text=pk)
         keys_e.addCopyButton()
+
         # BIP38 Encrypt Button
         def setup_encrypt_button():
             encrypt_but = QtWidgets.QPushButton(_("Encrypt BIP38") + "...")

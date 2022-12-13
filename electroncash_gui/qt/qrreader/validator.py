@@ -81,7 +81,7 @@ class QrReaderValidatorCounting(AbstractQrReaderValidator):
 
         for result in results:
             # Increment the detection count
-            if not result in self.result_counts:
+            if result not in self.result_counts:
                 self.result_counts[result] = 0
             self.result_counts[result] += 1
 
