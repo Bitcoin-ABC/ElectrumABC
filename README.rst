@@ -22,7 +22,6 @@ or running from source using `pyenv` (see section `Running from source on old Li
 as that's simpler to use and has everything included.  Otherwise, if you
 want to run from source, see section `Running from source on macOS`_ below.
 
-Electrum ABC is a pure python application forked from Electron Cash.
 If you want to use the Qt interface, install the Qt dependencies::
 
     sudo apt-get install python3-pyqt5 python3-pyqt5.qtsvg

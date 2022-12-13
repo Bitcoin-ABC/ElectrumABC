@@ -1,5 +1,5 @@
-Electron Cash - Plugins
-=======================
+Electrum ABC - Plugins
+======================
 
 The plugin system of Electrum ABC is designed to allow the development
 of new features without increasing the core code of Electrum ABC.

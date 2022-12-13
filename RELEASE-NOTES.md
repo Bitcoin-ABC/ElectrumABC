@@ -15,9 +15,6 @@ Initially transactions will show up as unverified because
 Electrum ABC is downloading the blockchain headers to verify the transactions.
 This can take up to 10 minutes, but is only done once.
 
-Ensure you are running Electrum ABC and not Electron Cash by checking for
-"Electrum ABC" in the title bar wording.
-
 We STRONGLY recommend you get comfortable and only send a small amount of eCash
 coins at first, to yourself, to confirm the network is processing your
 transactions as expected.

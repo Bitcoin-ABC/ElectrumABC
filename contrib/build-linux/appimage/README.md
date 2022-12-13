@@ -1,5 +1,5 @@
-AppImage binary for Electron Cash
-============================
+AppImage binary for Electrum ABC
+================================
 
 ✓ _This binary is reproducible: you should be able to generate
    binaries that match the official releases (i.e. with the same sha256 hash)._
