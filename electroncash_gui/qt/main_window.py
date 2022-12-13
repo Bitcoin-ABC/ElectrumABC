@@ -1542,12 +1542,12 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             if opret:
                 kwargs[arg] = opret
 
-        # Special case hack -- see #1473. Omit bitcoincash: prefix from
+        # Special case hack -- see #1473. Omit ecash: prefix from
         # legacy address if no other params present in receive request.
         if Address.FMT_UI == Address.FMT_LEGACY and not kwargs and not amount and not message:
             uri = self.receive_address.to_ui_string_without_prefix()
         else:
-            # Otherwise proceed as normal, prepending bitcoincash: to URI
+            # Otherwise proceed as normal, prepending ecash: to URI
             uri = web.create_URI(self.receive_address, amount, message, **kwargs)
 
         self.receive_qr.setData(uri)
@@ -1571,7 +1571,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
               _("You may enter:"
                 "<ul>"
                 f"<li> {CURRENCY} <b>Address</b> <b>★</b>"
-                "<li> Bitcoin Cash <b>Address</b> <b>★</b>"
                 "<li> Bitcoin Legacy <b>Address</b> <b>★</b>"
                 "<li> <b>Contact name</b> <b>★</b> from the Contacts tab"
                 "<li> <b>OpenAlias</b> e.g. <i>satoshi@domain.com</i>"
@@ -2459,7 +2458,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         if address or URI.strip().lower().split(':', 1)[0] in web.parseable_schemes():
             # if address, set the payto field to the address.
             # if *not* address, then we set the payto field to the empty string
-            # only IFF it was bitcoincash:, see issue #1131.
+            # only IFF it was ecash:, see issue Electron-Cash#1131.
             self.payto_e.setText(address or '')
         if message:
             self.message_e.setText(message)
@@ -3298,7 +3297,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                     return
                 if not result:
                     return
-                # if the user scanned a bitcoincash URI
+                # if the user scanned an ecash URI
                 if result.lower().startswith(networks.net.CASHADDR_PREFIX + ':'):
                     self.pay_to_URI(result)
                     return
@@ -4010,16 +4009,12 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     def cashaddr_icon(self):
         if self.gui_object.is_cashaddr():
             return QIcon(":icons/tab_converter.svg")
-        elif self.gui_object.is_cashaddr_bch():
-            return QIcon(":icons/tab_converter_red.svg")
         else:
             return QIcon(":icons/tab_converter_bw.svg")
 
     def cashaddr_status_tip(self):
         if self.gui_object.is_cashaddr():
             return _('Address Format') + ' - ' + _('CashAddr')
-        elif self.gui_object.is_cashaddr_bch():
-            return _('Address Format') + ' - ' + _('CashAddr') + ' BCH'
         else:
             return _('Address Format') + ' - ' + _('Legacy')
 
@@ -4401,9 +4396,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         cashaddr_cbox.addItem(QIcon(':icons/tab_converter.svg'),
                               _("CashAddr"),
                               Address.FMT_CASHADDR)
-        cashaddr_cbox.addItem(QIcon(':icons/tab_converter_red.svg'),
-                              _("CashAddr") + " BCH",
-                              Address.FMT_CASHADDR_BCH)
         cashaddr_cbox.addItem(QIcon(':icons/tab_converter_bw.svg'),
                               _("Legacy"),
                               Address.FMT_LEGACY)

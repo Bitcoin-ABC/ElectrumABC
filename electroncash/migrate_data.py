@@ -223,6 +223,11 @@ def update_config():
         _logger.info("Updating the block explorer to the new default explorer.e.cash")
         config["block_explorer"] = "eCash"
 
+    # We no longer support the BCH Cash Address format in the GUI as of 5.1.7
+    if config.get('address_format') == "CashAddr BCH":
+        _logger.info("Updating the Cash Addr format from bitcoincash: to ecash:")
+        config["address_format"] = "CashAddr"
+
     # update version number, to avoid doing this again for this version
     config["latest_version_used"] = VERSION_TUPLE
     save_user_config(config, get_user_dir())

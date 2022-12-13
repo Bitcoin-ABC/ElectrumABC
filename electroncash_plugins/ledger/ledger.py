@@ -487,8 +487,9 @@ class Ledger_KeyStore(Hardware_KeyStore):
             # Sign all inputs
             inputIndex = 0
             client_ledger.enableAlternate2fa(False)
-            cashaddr = Address.FMT_UI == Address.FMT_CASHADDR_BCH
+            cashaddr = Address.FMT_UI == Address.FMT_CASHADDR
             if cashaddr and client_electrum.supports_cashaddr():
+                # For now the Ledger will show a bitcoincash: CashAddr
                 client_ledger.startUntrustedTransaction(True, inputIndex, chipInputs,
                                                         redeemScripts[inputIndex], cashAddr=True)
             else:
@@ -550,7 +551,8 @@ class Ledger_KeyStore(Hardware_KeyStore):
         address_path = self.get_derivation()[2:] + "/{:d}/{:d}".format(*sequence)
         self.handler.show_message(_('Showing address on {}...').format(self.device))
         try:
-            if Address.FMT_UI == Address.FMT_CASHADDR_BCH and self.get_client_electrum().supports_cashaddr():
+            if Address.FMT_UI == Address.FMT_CASHADDR and self.get_client_electrum().supports_cashaddr():
+                # For now the Ledger will show a bitcoincash: CashAddr
                 client.getWalletPublicKey(address_path, showOnScreen=True, cashAddr=True)
             else:
                 client.getWalletPublicKey(address_path, showOnScreen=True)

@@ -337,14 +337,17 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
 
     # Address formats
     FMT_CASHADDR = "CashAddr"
-    FMT_CASHADDR_BCH = "CashAddr BCH"
     FMT_LEGACY = "Legacy"
+
+    # We keep this for now for the address converter tool and hw wallets, but it
+    # can no longer be shown in the rest of the UI.
+    FMT_CASHADDR_BCH = "CashAddr BCH"
 
     # Default to CashAddr
     FMT_UI = FMT_CASHADDR
     """Current address format used in the UI"""
 
-    FMTS_UI = [FMT_CASHADDR, FMT_CASHADDR_BCH, FMT_LEGACY]
+    FMTS_UI = [FMT_CASHADDR, FMT_LEGACY]
     """All address formats that can be used in the UI"""
 
     FMT_UI_IDX = FMTS_UI.index(FMT_UI)
@@ -432,8 +435,8 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
         """Construct from an address string.
         This supports the following formats:
           - legacy BTC addresses
-          - CashAddr with a "bitcoincash:" prefix
-          - CashAddr with a prefix omitted if this prefix is "bitcoincash:"
+          - CashAddr with a "ecash:" prefix
+          - CashAddr with a prefix omitted if this prefix is "ecash:"
           - CashAddr with an arbitrary prefix, if support_arbitrary_prefix
             is True
 

@@ -469,7 +469,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
 
 
     def eventFilter(self, obj, event):
-        ''' This event filter allows us to open bitcoincash: URIs on macOS '''
+        ''' This event filter allows us to open ecash: URIs on macOS '''
         if event.type() == QtCore.QEvent.FileOpen:
             if len(self.windows) >= 1:
                 self.windows[0].pay_to_URI(event.url().toString())
@@ -941,9 +941,6 @@ class ElectrumGui(QtCore.QObject, PrintError):
 
     def is_cashaddr(self) -> bool:
         return bool(self.get_config_addr_format() == Address.FMT_CASHADDR)
-
-    def is_cashaddr_bch(self) -> bool:
-        return bool(self.get_config_addr_format() == Address.FMT_CASHADDR_BCH)
 
     def get_config_addr_format(self) -> str:
         return self.config.get('address_format', Address.FMT_CASHADDR)
