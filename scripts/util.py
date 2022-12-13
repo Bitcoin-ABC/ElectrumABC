@@ -1,14 +1,17 @@
-import select, time, queue
-from electroncash import Connection, Interface, SimpleConfig
-
-from electroncash.network import parse_servers
+import queue
+import select
+import time
 from collections import defaultdict
+
+from electroncash import Connection, Interface, SimpleConfig
+from electroncash.network import parse_servers
+
 
 # electrum.util.set_verbosity(1)
 def get_interfaces(servers, timeout=10):
-    '''Returns a map of servers to connected interfaces.  If any
+    """Returns a map of servers to connected interfaces.  If any
     connections fail or timeout, they will be missing from the map.
-    '''
+    """
     socket_queue = queue.Queue()
     config = SimpleConfig()
     connecting = {}
@@ -28,9 +31,10 @@ def get_interfaces(servers, timeout=10):
         count += 1
     return interfaces
 
+
 def wait_on_interfaces(interfaces, timeout=10):
-    '''Return a map of servers to a list of (request, response) tuples.
-    Waits timeout seconds, or until each interface has a response'''
+    """Return a map of servers to a list of (request, response) tuples.
+    Waits timeout seconds, or until each interface has a response"""
     result = defaultdict(list)
     timeout = time.time() + timeout
     while len(result) < len(interfaces) and time.time() < timeout:
@@ -45,27 +49,28 @@ def wait_on_interfaces(interfaces, timeout=10):
                 result[interface.server].extend(responses)
     return result
 
+
 def get_peers():
     config = SimpleConfig()
     peers = {}
     # 1. get connected interfaces
-    server = config.get('server')
+    server = config.get("server")
     interfaces = get_interfaces([server])
     if not interfaces:
         print("No connection to", server)
         return []
     # 2. get list of peers
     interface = interfaces[server]
-    interface.queue_request('server.peers.subscribe', [], 0)
+    interface.queue_request("server.peers.subscribe", [], 0)
     responses = wait_on_interfaces(interfaces).get(server)
     if responses:
         response = responses[0][1]  # One response, (req, response) tuple
-        peers = parse_servers(response.get('result'))
+        peers = parse_servers(response.get("result"))
     return peers
 
 
 def send_request(peers, method, params):
-    print("Contacting %d servers"%len(peers))
+    print("Contacting %d servers" % len(peers))
     interfaces = get_interfaces(peers)
     print("%d servers could be reached" % len(interfaces))
     for peer in peers:
@@ -77,6 +82,8 @@ def send_request(peers, method, params):
     for peer in interfaces:
         if not peer in responses:
             print(peer, "did not answer")
-    results = dict(zip(responses.keys(), [t[0][1].get('result') for t in responses.values()]))
-    print("%d answers"%len(results))
+    results = dict(
+        zip(responses.keys(), [t[0][1].get("result") for t in responses.values()])
+    )
+    print("%d answers" % len(results))
     return results

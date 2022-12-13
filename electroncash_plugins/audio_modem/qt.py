@@ -1,36 +1,36 @@
-from functools import partial
-import zlib
 import json
-from io import BytesIO
-import sys
 import platform
+import sys
+import zlib
+from functools import partial
+from io import BytesIO
 
-from electroncash.plugins import BasePlugin, hook
-from electroncash_gui.qt.util import WaitingDialog, EnterButton, WindowModalDialog
-from electroncash.util import print_msg, print_error
-from electroncash.i18n import _
-
-from PyQt5.QtGui import QIcon
 from PyQt5 import QtWidgets
+from PyQt5.QtGui import QIcon
 
+from electroncash.i18n import _
+from electroncash.plugins import BasePlugin, hook
+from electroncash.util import print_error, print_msg
+from electroncash_gui.qt.util import EnterButton, WaitingDialog, WindowModalDialog
 
 PLATFORM_LIBS = {
-    'Linux': 'libportaudio.so',
+    "Linux": "libportaudio.so",
 }
 
-err_reason = 'Audio MODEM is available.'
+err_reason = "Audio MODEM is available."
 
 if platform.system() in PLATFORM_LIBS:
     try:
         import amodem.audio
-        import amodem.main
         import amodem.config
+        import amodem.main
+
         print_error(err_reason)
         amodem.log.addHandler(amodem.logging.StreamHandler(sys.stderr))
         amodem.log.setLevel(amodem.logging.INFO)
     except ImportError:
         amodem = None
-        err_reason = 'Audio MODEM is not found.'
+        err_reason = "Audio MODEM is not found."
         print_error(err_reason)
 else:
     amodem = None
@@ -39,7 +39,6 @@ else:
 
 
 class Plugin(BasePlugin):
-
     def __init__(self, parent, config, name):
         BasePlugin.__init__(self, parent, config, name)
         if self.is_available():
@@ -53,7 +52,7 @@ class Plugin(BasePlugin):
         return True
 
     def settings_widget(self, window):
-        return EnterButton(_('Settings'), partial(self.settings_dialog, window))
+        return EnterButton(_("Settings"), partial(self.settings_dialog, window))
 
     def settings_dialog(self, window):
         if not self.is_available():
@@ -62,7 +61,7 @@ class Plugin(BasePlugin):
         d = WindowModalDialog(window, _("Audio Modem Settings"))
 
         layout = QtWidgets.QGridLayout(d)
-        layout.addWidget(QtWidgets.QLabel(_('Bit rate [kbps]: ')), 0, 0)
+        layout.addWidget(QtWidgets.QLabel(_("Bit rate [kbps]: ")), 0, 0)
 
         bitrates = list(sorted(amodem.config.bitrates.keys()))
 
@@ -89,20 +88,25 @@ class Plugin(BasePlugin):
         def handler():
             blob = json.dumps(dialog.tx.as_dict())
             self._send(parent=dialog, blob=blob)
+
         b.clicked.connect(handler)
         dialog.sharing_buttons.insert(-1, b)
 
     @hook
     def scan_text_edit(self, parent):
-        parent.addButton(':icons/microphone.png', partial(self._recv, parent),
-                         _("Read from microphone"))
+        parent.addButton(
+            ":icons/microphone.png",
+            partial(self._recv, parent),
+            _("Read from microphone"),
+        )
 
     @hook
     def show_text_edit(self, parent):
         def handler():
             blob = str(parent.toPlainText())
             self._send(parent=parent, blob=blob)
-        parent.addButton(':icons/speaker.png', handler, _("Send to speaker"))
+
+        parent.addButton(":icons/speaker.png", handler, _("Send to speaker"))
 
     def _audio_interface(self):
         interface = amodem.audio.Interface(config=self.modem_config)
@@ -115,11 +119,11 @@ class Plugin(BasePlugin):
                 dst = interface.player()
                 amodem.main.send(config=self.modem_config, src=src, dst=dst)
 
-        print_msg('Sending:', repr(blob))
-        blob = zlib.compress(blob.encode('ascii'))
+        print_msg("Sending:", repr(blob))
+        blob = zlib.compress(blob.encode("ascii"))
 
         kbps = self.modem_config.modem_bps / 1e3
-        msg = 'Sending to Audio MODEM ({0:.1f} kbps)...'.format(kbps)
+        msg = "Sending to Audio MODEM ({0:.1f} kbps)...".format(kbps)
         WaitingDialog(parent, msg, sender_thread)
 
     def _recv(self, parent):
@@ -132,10 +136,10 @@ class Plugin(BasePlugin):
 
         def on_finished(blob):
             if blob:
-                blob = zlib.decompress(blob).decode('ascii')
-                print_msg('Received:', repr(blob))
+                blob = zlib.decompress(blob).decode("ascii")
+                print_msg("Received:", repr(blob))
                 parent.setText(blob)
 
         kbps = self.modem_config.modem_bps / 1e3
-        msg = 'Receiving from Audio MODEM ({0:.1f} kbps)...'.format(kbps)
+        msg = "Receiving from Audio MODEM ({0:.1f} kbps)...".format(kbps)
         WaitingDialog(parent, msg, receiver_thread, on_finished)

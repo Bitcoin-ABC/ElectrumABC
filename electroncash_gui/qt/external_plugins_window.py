@@ -25,48 +25,73 @@
 # SOFTWARE.
 
 import hashlib
-import urllib.parse
 import sys
+import urllib.parse
 
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5 import QtWidgets
 
+from electroncash.constants import PROJECT_NAME
 from electroncash.i18n import _
 from electroncash.plugins import ExternalPluginCodes, run_hook
-from electroncash.constants import PROJECT_NAME
-from .util import MessageBoxMixin, WindowModalDialog, Buttons, CloseButton
 
+from .util import Buttons, CloseButton, MessageBoxMixin, WindowModalDialog
 
 INSTALL_ERROR_MESSAGES = {
-    ExternalPluginCodes.MISSING_MANIFEST: _("The plugin archive you selected is missing a manifest. It was therefore not possible to install it."),
-    ExternalPluginCodes.NAME_ALREADY_IN_USE: _("There is already a plugin installed using the internal package name of the plugin you selected. It was therefore not possible to install it."),
-    ExternalPluginCodes.UNABLE_TO_COPY_FILE:
-        _(f"It was not possible to copy the plugin archive into "
-          f"{PROJECT_NAME}'s plugin storage location. It was "
-          f"therefore not possible to install it."),
-    ExternalPluginCodes.INSTALLED_BUT_FAILED_LOAD:
-        _("The plugin is installed, but in the process of enabling "
-          f"and loading it, an error occurred. Restart {PROJECT_NAME} and"
-          f" try again, or uninstall it and report it to it's developers."),
-    ExternalPluginCodes.INCOMPATIBLE_VERSION:
-        _(f"The plugin is targeted at a later version of {PROJECT_NAME}."),
-    ExternalPluginCodes.INCOMPATIBLE_ZIP_FORMAT: _("The plugin archive is not recognized as a valid Zip file."),
-    ExternalPluginCodes.INVALID_MANIFEST_JSON: _("The plugin manifest is not recognized as valid JSON."),
-    ExternalPluginCodes.INVALID_MAMIFEST_DISPLAY_NAME: _("The plugin manifest lacks a valid display name."),
-    ExternalPluginCodes.INVALID_MAMIFEST_DESCRIPTION: _("The plugin manifest lacks a valid description."),
-    ExternalPluginCodes.INVALID_MAMIFEST_VERSION: _("The plugin manifest lacks a valid version."),
-    ExternalPluginCodes.INVALID_MAMIFEST_MINIMUM_EC_VERSION:
-        _(f"The plugin manifest lacks a valid minimum {PROJECT_NAME} "
-          f"version."),
-    ExternalPluginCodes.INVALID_MAMIFEST_PACKAGE_NAME: _("The plugin manifest lacks a valid package name."),
-    ExternalPluginCodes.UNSPECIFIED_ERROR: _("An unspecified exception was raised. Cannot open plugin.")
+    ExternalPluginCodes.MISSING_MANIFEST: _(
+        "The plugin archive you selected is missing a manifest. It was therefore not possible to install it."
+    ),
+    ExternalPluginCodes.NAME_ALREADY_IN_USE: _(
+        "There is already a plugin installed using the internal package name of the plugin you selected. It was therefore not possible to install it."
+    ),
+    ExternalPluginCodes.UNABLE_TO_COPY_FILE: _(
+        f"It was not possible to copy the plugin archive into "
+        f"{PROJECT_NAME}'s plugin storage location. It was "
+        f"therefore not possible to install it."
+    ),
+    ExternalPluginCodes.INSTALLED_BUT_FAILED_LOAD: _(
+        "The plugin is installed, but in the process of enabling "
+        f"and loading it, an error occurred. Restart {PROJECT_NAME} and"
+        f" try again, or uninstall it and report it to it's developers."
+    ),
+    ExternalPluginCodes.INCOMPATIBLE_VERSION: _(
+        f"The plugin is targeted at a later version of {PROJECT_NAME}."
+    ),
+    ExternalPluginCodes.INCOMPATIBLE_ZIP_FORMAT: _(
+        "The plugin archive is not recognized as a valid Zip file."
+    ),
+    ExternalPluginCodes.INVALID_MANIFEST_JSON: _(
+        "The plugin manifest is not recognized as valid JSON."
+    ),
+    ExternalPluginCodes.INVALID_MAMIFEST_DISPLAY_NAME: _(
+        "The plugin manifest lacks a valid display name."
+    ),
+    ExternalPluginCodes.INVALID_MAMIFEST_DESCRIPTION: _(
+        "The plugin manifest lacks a valid description."
+    ),
+    ExternalPluginCodes.INVALID_MAMIFEST_VERSION: _(
+        "The plugin manifest lacks a valid version."
+    ),
+    ExternalPluginCodes.INVALID_MAMIFEST_MINIMUM_EC_VERSION: _(
+        f"The plugin manifest lacks a valid minimum {PROJECT_NAME} " f"version."
+    ),
+    ExternalPluginCodes.INVALID_MAMIFEST_PACKAGE_NAME: _(
+        "The plugin manifest lacks a valid package name."
+    ),
+    ExternalPluginCodes.UNSPECIFIED_ERROR: _(
+        "An unspecified exception was raised. Cannot open plugin."
+    ),
 }
 
 
 class ExternalPluginsPreviewDialog(WindowModalDialog):
-    def __init__(self, plugin_dialog, main_window, title, plugin_path=None, plugin_metadata=None):
-        WindowModalDialog.__init__(self, parent=main_window.top_level_window(), title=title)
+    def __init__(
+        self, plugin_dialog, main_window, title, plugin_path=None, plugin_metadata=None
+    ):
+        WindowModalDialog.__init__(
+            self, parent=main_window.top_level_window(), title=title
+        )
 
         self.is_preview = plugin_metadata is None
 
@@ -74,14 +99,16 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
         self.plugin_dialog = plugin_dialog
 
         self.setMinimumWidth(600)
-        #self.setMaximumWidth(600)
+        # self.setMaximumWidth(600)
 
         vbox = QtWidgets.QVBoxLayout()
         self.setLayout(vbox)
 
         groupBox = QtWidgets.QGroupBox(_("Plugin Metadata"))
         self.metadataFormLayout = QtWidgets.QFormLayout(groupBox)
-        self.metadataFormLayout.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
+        self.metadataFormLayout.setFieldGrowthPolicy(
+            QtWidgets.QFormLayout.AllNonFixedFieldsGrow
+        )
         self.pluginNameLabel = QtWidgets.QLabel()
         self.metadataFormLayout.addRow(_("Name"), self.pluginNameLabel)
         self.versionLabel = QtWidgets.QLabel()
@@ -92,13 +119,19 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
         self.descriptionLabel = QtWidgets.QLabel()
         self.descriptionLabel.setWordWrap(True)
         # Long description labels that wrap should push the form layout's row to grow
-        p = self.descriptionLabel.sizePolicy(); p.setVerticalPolicy(QtWidgets.QSizePolicy.MinimumExpanding); self.descriptionLabel.setSizePolicy(p)
+        p = self.descriptionLabel.sizePolicy()
+        p.setVerticalPolicy(QtWidgets.QSizePolicy.MinimumExpanding)
+        self.descriptionLabel.setSizePolicy(p)
         self.metadataFormLayout.addRow(_("Description"), self.descriptionLabel)
         self.supportedInterfacesLayout = QtWidgets.QVBoxLayout()
         self.supportedInterfacesLabel = QtWidgets.QLabel(_("Integration"))
         self.supportedInterfacesLabel.setAlignment(Qt.AlignLeft | Qt.AlignTop)
-        self.supportedInterfacesLabel.setToolTip(_("Plugins should support one or more of these interfaces."))
-        self.metadataFormLayout.addRow(self.supportedInterfacesLabel, self.supportedInterfacesLayout)
+        self.supportedInterfacesLabel.setToolTip(
+            _("Plugins should support one or more of these interfaces.")
+        )
+        self.metadataFormLayout.addRow(
+            self.supportedInterfacesLabel, self.supportedInterfacesLayout
+        )
 
         self.qtInterfaceLabel = QtWidgets.QLabel()
         self.qtInterfaceLabel.setMaximumWidth(20)
@@ -115,23 +148,39 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
         self.supportedInterfacesLayout.addLayout(row)
 
         self.checksumLabel = QtWidgets.QLabel()
-        self.checksumLabel.setToolTip(_("If the official source for this plugin has a checksum for this plugin, ensure that the value shown here is the same."))
+        self.checksumLabel.setToolTip(
+            _(
+                "If the official source for this plugin has a checksum for this plugin, ensure that the value shown here is the same."
+            )
+        )
         self.checksumLabel.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.metadataFormLayout.addRow(_("SHA256 Checksum"), self.checksumLabel)
 
-        vbox.addWidget(groupBox,3)
+        vbox.addWidget(groupBox, 3)
 
         if self.is_preview:
             confirmLayout = QtWidgets.QVBoxLayout()
             confirmLayout.setAlignment(Qt.AlignHCenter)
             confirmGroupBox = QtWidgets.QGroupBox(_("Risks and Dangers"))
-            liabilityLabel = QtWidgets.QLabel(_("I accept responsibility for any harm that comes from installing this plugin, and acknowledge:"))
+            liabilityLabel = QtWidgets.QLabel(
+                _(
+                    "I accept responsibility for any harm that comes from installing this plugin, and acknowledge:"
+                )
+            )
             rows = QtWidgets.QVBoxLayout()
             self.liabilityCheckbox1 = QtWidgets.QCheckBox(
-                _(f"The {PROJECT_NAME} Developers do NOT audit or vet "
-                  f"any plugins."))
-            self.liabilityCheckbox2 = QtWidgets.QCheckBox(_("Plugins are risky.  They can steal funds or even damage your computer."))
-            self.liabilityCheckbox3 = QtWidgets.QCheckBox(_("I should only install the most reputable plugins trusted by the community."))
+                _(f"The {PROJECT_NAME} Developers do NOT audit or vet " f"any plugins.")
+            )
+            self.liabilityCheckbox2 = QtWidgets.QCheckBox(
+                _(
+                    "Plugins are risky.  They can steal funds or even damage your computer."
+                )
+            )
+            self.liabilityCheckbox3 = QtWidgets.QCheckBox(
+                _(
+                    "I should only install the most reputable plugins trusted by the community."
+                )
+            )
             confirmLayout.addWidget(liabilityLabel)
             confirmLayout.addWidget(self.liabilityCheckbox1)
             confirmLayout.addWidget(self.liabilityCheckbox2)
@@ -144,7 +193,7 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
             self.installButton = QtWidgets.QPushButton("Install")
             self.cancelButton = QtWidgets.QPushButton("Close")
             self.cancelButton.setDefault(True)
-            if sys.platform == 'darwin':
+            if sys.platform == "darwin":
                 # macOS convention is Cancel-on-left, "Action" on right
                 hbox.addWidget(self.cancelButton)
                 hbox.addStretch(1)
@@ -191,7 +240,10 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
         plugin_manager = self.main_window.gui_object.plugins
 
         self.plugin_path = plugin_path
-        self.plugin_metadata, result_code = plugin_manager.get_metadata_from_external_plugin_zip_file(plugin_path)
+        (
+            self.plugin_metadata,
+            result_code,
+        ) = plugin_manager.get_metadata_from_external_plugin_zip_file(plugin_path)
         self.refresh_plugin()
 
     def refresh_plugin(self):
@@ -209,7 +261,13 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
             url_components = urllib.parse.urlparse(self.plugin_metadata["project_url"])
             if len(url_components.scheme) and len(url_components.netloc):
                 self.projectUrlLabel.setOpenExternalLinks(True)
-                self.projectUrlLabel.setText("<a href='"+ self.plugin_metadata["project_url"] +"'>"+ self.plugin_metadata["project_url"] +"</a>");
+                self.projectUrlLabel.setText(
+                    "<a href='"
+                    + self.plugin_metadata["project_url"]
+                    + "'>"
+                    + self.plugin_metadata["project_url"]
+                    + "</a>"
+                )
         if "version" in self.plugin_metadata:
             self.versionLabel.setText(str(self.plugin_metadata["version"]))
         self.descriptionLabel.setText(self.plugin_metadata["description"])
@@ -220,7 +278,9 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
             self.qtInterfaceLabel.setPixmap(QIcon(":icons/confirmed.svg").pixmap(15))
         if "cmdline" in available_for:
             self.qtInterfaceLabel.setToolTip(_("This interface is supported."))
-            self.cmdLineInterfaceLabel.setPixmap(QIcon(":icons/confirmed.svg").pixmap(15))
+            self.cmdLineInterfaceLabel.setPixmap(
+                QIcon(":icons/confirmed.svg").pixmap(15)
+            )
 
     def refresh_ui(self):
         are_widgets_enabled = self.is_plugin_valid()
@@ -235,7 +295,7 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
             was_en = self.installButton.isEnabled()
             is_en = was_liability_accepted and are_widgets_enabled
             self.installButton.setEnabled(is_en)
-            if was_en != is_en and sys.platform == 'darwin':
+            if was_en != is_en and sys.platform == "darwin":
                 # fix macOS Qt ui bug where the button doesn't update on setEnabled() on some modals
                 # that are children of modals unless you do this
                 self.installButton.repaint()
@@ -244,9 +304,11 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
             self.liabilityCheckbox3.setEnabled(are_widgets_enabled)
 
     def does_user_accept_liability(self):
-        return self.liabilityCheckbox1.checkState() == Qt.Checked and \
-            self.liabilityCheckbox2.checkState() == Qt.Checked and \
-            self.liabilityCheckbox3.checkState() == Qt.Checked
+        return (
+            self.liabilityCheckbox1.checkState() == Qt.Checked
+            and self.liabilityCheckbox2.checkState() == Qt.Checked
+            and self.liabilityCheckbox3.checkState() == Qt.Checked
+        )
 
     def is_plugin_valid(self):
         return self.plugin_metadata is not None
@@ -267,7 +329,7 @@ class ExternalPluginsDialog(WindowModalDialog, MessageBoxMixin):
         self.main_window = parent
         self.config = parent.config
         self.setMinimumWidth(600)
-        #self.setMaximumWidth(600)
+        # self.setMaximumWidth(600)
 
         vbox = QtWidgets.QVBoxLayout(self)
 
@@ -278,8 +340,11 @@ class ExternalPluginsDialog(WindowModalDialog, MessageBoxMixin):
         descriptionGroupLayout = QtWidgets.QVBoxLayout()
         self.descriptionGroupBox.setLayout(descriptionGroupLayout)
         self.descriptionLabel = QtWidgets.QLabel(
-            _(f"Install plugins at your own risk.\nThey have almost complete"
-              f" access to {PROJECT_NAME}'s internals."))
+            _(
+                f"Install plugins at your own risk.\nThey have almost complete"
+                f" access to {PROJECT_NAME}'s internals."
+            )
+        )
         self.descriptionLabel.setAlignment(Qt.AlignCenter)
         descriptionGroupLayout.addWidget(self.descriptionLabel)
         vbox.addWidget(self.descriptionGroupBox)
@@ -336,9 +401,13 @@ class ExternalPluginsDialog(WindowModalDialog, MessageBoxMixin):
                 try:
                     plugin_manager.enable_external_plugin(package_name)
                 except Exception:
-                    self.show_error(INSTALL_ERROR_MESSAGES[ExternalPluginCodes.INSTALLED_BUT_FAILED_LOAD]),
+                    self.show_error(
+                        INSTALL_ERROR_MESSAGES[
+                            ExternalPluginCodes.INSTALLED_BUT_FAILED_LOAD
+                        ]
+                    ),
                     return
-                run_hook('init_qt', self.main_window.gui_object)
+                run_hook("init_qt", self.main_window.gui_object)
             self.refresh_ui()
 
     def on_install_plugin(self):
@@ -352,20 +421,33 @@ class ExternalPluginsDialog(WindowModalDialog, MessageBoxMixin):
     def show_install_plugin_preview_dialog(self, file_path):
         plugin_manager = self.main_window.gui_object.plugins
         # We need to poll the file to see if it is valid.
-        plugin_metadata, result_code = plugin_manager.get_metadata_from_external_plugin_zip_file(file_path)
+        (
+            plugin_metadata,
+            result_code,
+        ) = plugin_manager.get_metadata_from_external_plugin_zip_file(file_path)
         if plugin_metadata is not None:
-            self.installWarningDialog = d = ExternalPluginsPreviewDialog(self, self.main_window, _("Plugin Preview"), plugin_path=file_path)
+            self.installWarningDialog = d = ExternalPluginsPreviewDialog(
+                self, self.main_window, _("Plugin Preview"), plugin_path=file_path
+            )
             d.exec_()
         else:
-            self.show_error(INSTALL_ERROR_MESSAGES.get(result_code, _("Unexpected error %d") % result_code))
+            self.show_error(
+                INSTALL_ERROR_MESSAGES.get(
+                    result_code, _("Unexpected error %d") % result_code
+                )
+            )
 
     def install_plugin_confirmed(self, plugin_archive_path):
         plugin_manager = self.main_window.gui_object.plugins
         result_code = plugin_manager.install_external_plugin(plugin_archive_path)
         if result_code != ExternalPluginCodes.SUCCESS:
-            self.show_error(INSTALL_ERROR_MESSAGES.get(result_code, _("Unexpected error %d") % result_code))
+            self.show_error(
+                INSTALL_ERROR_MESSAGES.get(
+                    result_code, _("Unexpected error %d") % result_code
+                )
+            )
         else:
-            run_hook('init_qt', self.main_window.gui_object)
+            run_hook("init_qt", self.main_window.gui_object)
         self.refresh_ui()
 
     def on_uninstall_plugin(self):
@@ -380,21 +462,25 @@ class ExternalPluginsDialog(WindowModalDialog, MessageBoxMixin):
         metadata = plugin_manager.external_plugin_metadata.get(package_name, None)
         if metadata is None:
             return
-        self.pluginAboutDialog = d = ExternalPluginsPreviewDialog(self, self.main_window, _("Plugin Details"), plugin_metadata=metadata)
+        self.pluginAboutDialog = d = ExternalPluginsPreviewDialog(
+            self, self.main_window, _("Plugin Details"), plugin_metadata=metadata
+        )
         d.exec_()
 
     def on_item_selected(self, package_name=None):
         if package_name is not None:
             plugin_manager = self.main_window.gui_object.plugins
-            plugin_description = str(plugin_manager.external_plugin_metadata.get("description", "")).strip()
+            plugin_description = str(
+                plugin_manager.external_plugin_metadata.get("description", "")
+            ).strip()
             if not len(plugin_description):
                 plugin_description = _("No description provided.")
 
             plugin = plugin_manager.external_plugins.get(package_name, None)
             if plugin is not None and plugin.is_enabled():
-                self.toggleButton.setText(_('Disable'))
+                self.toggleButton.setText(_("Disable"))
             else:
-                self.toggleButton.setText(_('Enable'))
+                self.toggleButton.setText(_("Enable"))
             if plugin is not None and plugin.has_settings_dialog():
                 self.settingsButton.setEnabled(True)
             else:
@@ -403,7 +489,7 @@ class ExternalPluginsDialog(WindowModalDialog, MessageBoxMixin):
             self.uninstallButton.setEnabled(True)
         else:
             self.settingsButton.setEnabled(False)
-            self.toggleButton.setText(_('Enable'))
+            self.toggleButton.setText(_("Enable"))
             self.toggleButton.setEnabled(False)
             self.uninstallButton.setEnabled(False)
 
@@ -426,8 +512,12 @@ class ExternalPluginTable(QtWidgets.QTableWidget):
 
         verticalHeader = self.verticalHeader()
         verticalHeader.setVisible(False)
-        verticalHeader.setSectionResizeMode(QtWidgets.QHeaderView.Fixed)  # FIXME: won't look good on all platforms with all fonts
-        verticalHeader.setDefaultSectionSize(80)  # FIXME: won't look good on all platforms with all fonts
+        verticalHeader.setSectionResizeMode(
+            QtWidgets.QHeaderView.Fixed
+        )  # FIXME: won't look good on all platforms with all fonts
+        verticalHeader.setDefaultSectionSize(
+            80
+        )  # FIXME: won't look good on all platforms with all fonts
         self.setStyleSheet("QTableWidget::item { padding: 10px; }")
 
         self.itemSelectionChanged.connect(self.on_item_selection_changed)
@@ -439,7 +529,10 @@ class ExternalPluginTable(QtWidgets.QTableWidget):
         if selected_id is None:
             return
         menu = QtWidgets.QMenu()
-        menu.addAction(_("About"), lambda: self.parent_widget.show_installed_plugin_about_dialog(selected_id))
+        menu.addAction(
+            _("About"),
+            lambda: self.parent_widget.show_installed_plugin_about_dialog(selected_id),
+        )
 
         menu.exec_(self.viewport().mapToGlobal(position))
 
@@ -491,22 +584,30 @@ class ExternalPluginTable(QtWidgets.QTableWidget):
         self.setColumnWidth(1, 300)
         self.setColumnWidth(2, 60)
         self.setColumnWidth(3, 60)
-        self.setHorizontalHeaderLabels([_("Name"), _("Description"), _("Version"), _("Enabled")])
+        self.setHorizontalHeaderLabels(
+            [_("Name"), _("Description"), _("Version"), _("Enabled")]
+        )
         header = self.horizontalHeader()
         header.setStretchLastSection(False)
         for col in range(header.count()):
-            sm = QtWidgets.QHeaderView.Stretch if col == 1 else QtWidgets.QHeaderView.ResizeToContents  # description field is the stretch column, others are resized to contents
+            sm = (
+                QtWidgets.QHeaderView.Stretch
+                if col == 1
+                else QtWidgets.QHeaderView.ResizeToContents
+            )  # description field is the stretch column, others are resized to contents
             header.setSectionResizeMode(col, sm)
         del header
 
         self.row_keys = []
-        for row_index, (package_name, metadata) in enumerate(plugin_manager.external_plugin_metadata.items()):
+        for row_index, (package_name, metadata) in enumerate(
+            plugin_manager.external_plugin_metadata.items()
+        ):
             self.row_keys.append(package_name)
 
             plugin = plugin_manager.get_external_plugin(package_name)
-            fullname = metadata.get('display_name', package_name)
-            description = metadata.get('description', "")
-            version = metadata.get('version', 0)
+            fullname = metadata.get("display_name", package_name)
+            description = metadata.get("description", "")
+            version = metadata.get("version", 0)
 
             displayNameLabel = QtWidgets.QLabel(fullname)
             displayNameLabel.setWordWrap(True)
@@ -519,6 +620,8 @@ class ExternalPluginTable(QtWidgets.QTableWidget):
             versionLabel = QtWidgets.QLabel(str(version))
             versionLabel.setAlignment(Qt.AlignRight | Qt.AlignTop)
             self.setCellWidget(row_index, 2, versionLabel)
-            enabledLabel = QtWidgets.QLabel("Yes" if plugin is not None and plugin.is_enabled() else "No")
+            enabledLabel = QtWidgets.QLabel(
+                "Yes" if plugin is not None and plugin.is_enabled() else "No"
+            )
             enabledLabel.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
             self.setCellWidget(row_index, 3, enabledLabel)

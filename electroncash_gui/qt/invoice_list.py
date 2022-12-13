@@ -28,20 +28,15 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon, QFont
 from PyQt5 import QtWidgets
-
-from .util import (
-    MONOSPACE_FONT,
-    PR_UNPAID,
-    MyTreeWidget,
-    pr_icons,
-)
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont, QIcon
 
 from electroncash.i18n import _
-from electroncash.util import format_time, FileImportFailed
 from electroncash.paymentrequest import pr_tooltips
+from electroncash.util import FileImportFailed, format_time
+
+from .util import MONOSPACE_FONT, PR_UNPAID, MyTreeWidget, pr_icons
 
 if TYPE_CHECKING:
     from .main_window import ElectrumWindow
@@ -54,7 +49,7 @@ class InvoiceList(MyTreeWidget):
         MyTreeWidget.__init__(
             self,
             main_window,
-            [_('Expires'), _('Requestor'), _('Description'), _('Amount'), _('Status')],
+            [_("Expires"), _("Requestor"), _("Description"), _("Amount"), _("Status")],
             config=main_window.config,
             wallet=main_window.wallet,
             stretch_column=2,
@@ -75,14 +70,14 @@ class InvoiceList(MyTreeWidget):
                 continue
             requestor = pr.get_requestor()
             exp = pr.get_expiration_date()
-            date_str = format_time(exp) if exp else _('Never')
+            date_str = format_time(exp) if exp else _("Never")
             item = QtWidgets.QTreeWidgetItem(
                 [
                     date_str,
                     requestor,
                     pr.memo,
                     self.main_window.format_amount(pr.get_amount(), whitespaces=True),
-                    _(pr_tooltips.get(status, ''))
+                    _(pr_tooltips.get(status, "")),
                 ]
             )
             item.setIcon(4, QIcon(pr_icons.get(status)))
@@ -98,7 +93,6 @@ class InvoiceList(MyTreeWidget):
         b = len(inv_list) > 0 and self.main_window.isVisible()
         self.setVisible(b)
         self.main_window.invoices_label.setVisible(b)
-
 
     def import_invoices(self):
         wallet_folder = os.path.dirname(os.path.abspath(self.config.get_wallet_path()))
@@ -127,11 +121,9 @@ class InvoiceList(MyTreeWidget):
         if column_data:
             menu.addAction(
                 _("Copy {}").format(column_title),
-                lambda: self.main_window.app.clipboard().setText(column_data.strip())
+                lambda: self.main_window.app.clipboard().setText(column_data.strip()),
             )
-        menu.addAction(
-            _("Details"), lambda: self.main_window.show_invoice(key)
-        )
+        menu.addAction(_("Details"), lambda: self.main_window.show_invoice(key))
         if status == PR_UNPAID:
             menu.addAction(_("Pay Now"), lambda: self.main_window.do_pay_invoice(key))
         menu.addAction(_("Delete"), lambda: self.main_window.delete_invoice(key))

@@ -45,18 +45,23 @@ private key).
 """
 
 import pyaes
+
 try:
     from Cryptodome.Cipher import AES
 except ImportError:
     AES = None
 
-import hashlib, hmac
+import hashlib
+import hmac
+
 import ecdsa
-from electroncash.bitcoin import ser_to_point, point_to_ser
+
+from electroncash.bitcoin import point_to_ser, ser_to_point
 
 try:
-    hmacdigest = hmac.digest # python 3.7+
+    hmacdigest = hmac.digest  # python 3.7+
 except AttributeError:
+
     def hmacdigest(key, msg, digest):
         return hmac.new(key, msg, digest).digest()
 
@@ -64,12 +69,16 @@ except AttributeError:
 G = ecdsa.SECP256k1.generator
 order = ecdsa.SECP256k1.generator.order()
 
+
 class EncryptionFailed(Exception):
     pass
+
+
 class DecryptionFailed(Exception):
     pass
 
-def encrypt(message, pubkey, pad_to_length = None):
+
+def encrypt(message, pubkey, pad_to_length=None):
     """
     pad_to_length must be a multiple of 16, and equal to or larger than
     len(message)+4. Default is to choose the smallest possible value.
@@ -81,64 +90,68 @@ def encrypt(message, pubkey, pad_to_length = None):
     except:
         raise EncryptionFailed
     nonce_sec = ecdsa.util.randrange(order)
-    nonce_pub = point_to_ser(nonce_sec*G, comp=True)
-    key = hashlib.sha256(point_to_ser(nonce_sec*pubpoint, comp=True)).digest()
+    nonce_pub = point_to_ser(nonce_sec * G, comp=True)
+    key = hashlib.sha256(point_to_ser(nonce_sec * pubpoint, comp=True)).digest()
 
-    plaintext = len(message).to_bytes(4,'big') + message
+    plaintext = len(message).to_bytes(4, "big") + message
     if pad_to_length is None:
-        plaintext += b'\0' * ( -len(plaintext) % 16 )
+        plaintext += b"\0" * (-len(plaintext) % 16)
     else:
         if pad_to_length % 16 != 0:
-            raise ValueError(f'{pad_to_length} not multiple of 16')
+            raise ValueError(f"{pad_to_length} not multiple of 16")
         need = pad_to_length - len(plaintext)
         if need < 0:
-            raise ValueError(f'{pad_to_length} < {len(plaintext)}')
-        plaintext += b'\0' * need
-    iv = b'\0'*16
+            raise ValueError(f"{pad_to_length} < {len(plaintext)}")
+        plaintext += b"\0" * need
+    iv = b"\0" * 16
     if AES:
         ciphertext = AES.new(key, AES.MODE_CBC, iv).encrypt(plaintext)
     else:
         aes_cbc = pyaes.AESModeOfOperationCBC(key, iv=iv)
         aes = pyaes.Encrypter(aes_cbc, padding=pyaes.PADDING_NONE)
         ciphertext = aes.feed(plaintext) + aes.feed()  # empty aes.feed() flushes buffer
-    mac = hmacdigest(key, ciphertext, 'sha256')[:16]
+    mac = hmacdigest(key, ciphertext, "sha256")[:16]
     return nonce_pub + ciphertext + mac
 
+
 def decrypt_with_symmkey(data, key):
-    """ Decrypt but using the symmetric key directly. The first 33 bytes are
-    ignored entirely. """
-    if len(data) < 33+16+16: # key, at least 1 block, and mac
+    """Decrypt but using the symmetric key directly. The first 33 bytes are
+    ignored entirely."""
+    if len(data) < 33 + 16 + 16:  # key, at least 1 block, and mac
         raise DecryptionFailed
     ciphertext = data[33:-16]
     if len(ciphertext) % 16 != 0:
         raise DecryptionFailed
-    mac = hmacdigest(key, ciphertext, 'sha256')[:16]
+    mac = hmacdigest(key, ciphertext, "sha256")[:16]
     if not hmac.compare_digest(data[-16:], mac):
         raise DecryptionFailed
 
-    iv = b'\0'*16
+    iv = b"\0" * 16
     if AES:
         plaintext = AES.new(key, AES.MODE_CBC, iv).decrypt(ciphertext)
     else:
         aes_cbc = pyaes.AESModeOfOperationCBC(bytes(key), iv=iv)
         aes = pyaes.Decrypter(aes_cbc, padding=pyaes.PADDING_NONE)
-        plaintext = aes.feed(bytes(ciphertext)) + aes.feed()  # empty aes.feed() flushes buffer
+        plaintext = (
+            aes.feed(bytes(ciphertext)) + aes.feed()
+        )  # empty aes.feed() flushes buffer
     assert len(plaintext) > 4
-    msglen = int.from_bytes(plaintext[:4], 'big')
+    msglen = int.from_bytes(plaintext[:4], "big")
     if 4 + msglen > len(plaintext):
         raise DecryptionFailed
 
-    return plaintext[4:4+msglen]
+    return plaintext[4 : 4 + msglen]
+
 
 def decrypt(data, privkey):
-    """ Decrypt using the private key; returns (message, key) or raises
-    DecryptionFailed on failure. """
-    if len(data) < 33+16+16: # key, at least 1 block, and mac
+    """Decrypt using the private key; returns (message, key) or raises
+    DecryptionFailed on failure."""
+    if len(data) < 33 + 16 + 16:  # key, at least 1 block, and mac
         raise DecryptionFailed
     try:
         nonce_pub = ser_to_point(data[:33])
     except:
         raise DecryptionFailed
-    sec = int.from_bytes(privkey, 'big')
-    key = hashlib.sha256(point_to_ser(sec*nonce_pub, comp=True)).digest()
+    sec = int.from_bytes(privkey, "big")
+    key = hashlib.sha256(point_to_ser(sec * nonce_pub, comp=True)).digest()
     return decrypt_with_symmkey(data, key), key

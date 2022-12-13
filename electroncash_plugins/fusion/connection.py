@@ -35,19 +35,24 @@ This only implements a framing protocol:
     <8 byte magic><4 byte length (big endian) of message><message>
 """
 
-import certifi
 import socket
-import socks
 import ssl
 import time
 from contextlib import suppress
 
+import certifi
+import socks
+
 sslcontext = ssl.create_default_context(cafile=certifi.where())
+
 
 class BadFrameError(Exception):
     pass
 
-def open_connection(host, port, conn_timeout = 5.0, default_timeout = 5.0, ssl = False, socks_opts=None):
+
+def open_connection(
+    host, port, conn_timeout=5.0, default_timeout=5.0, ssl=False, socks_opts=None
+):
     """Open a connection as client to the specified server.
 
     If `socks_opts` is None, a direct connection will be made using
@@ -60,7 +65,9 @@ def open_connection(host, port, conn_timeout = 5.0, default_timeout = 5.0, ssl =
     if socks_opts is None:
         bare_socket = socket.create_connection((host, port), timeout=conn_timeout)
     else:
-        bare_socket = socks.create_connection((host, port), timeout=conn_timeout, **socks_opts)
+        bare_socket = socks.create_connection(
+            (host, port), timeout=conn_timeout, **socks_opts
+        )
 
     if ssl:
         try:
@@ -77,10 +84,11 @@ def open_connection(host, port, conn_timeout = 5.0, default_timeout = 5.0, ssl =
         conn_socket.close()
         raise
 
+
 class Connection:
     # Message length limit. Anything longer is considered to be a malicious server.
     # The all-initial-commitments and all-components messages can be big (~100 kB in large fusions).
-    MAX_MSG_LENGTH = 200*1024
+    MAX_MSG_LENGTH = 200 * 1024
     magic = bytes.fromhex("765be8b4e4396dcf")
 
     def __init__(self, socket, timeout):
@@ -96,11 +104,11 @@ class Connection:
     def __exit__(self, etype, evalue, traceback):
         self.socket.__exit__(etype, evalue, traceback)
 
-    def send_message(self, msg, timeout = None):
-        """ Sends message; if this times out, the connection should be
+    def send_message(self, msg, timeout=None):
+        """Sends message; if this times out, the connection should be
         abandoned since it's not possible to know how much data was sent.
         """
-        lengthbytes = len(msg).to_bytes(4, byteorder='big')
+        lengthbytes = len(msg).to_bytes(4, byteorder="big")
         frame = self.magic + lengthbytes + msg
 
         if timeout is None:
@@ -111,8 +119,8 @@ class Connection:
         except (ssl.SSLWantWriteError, ssl.SSLWantReadError) as e:
             raise socket.timeout from e
 
-    def recv_message(self, timeout = None):
-        """ Read message, default timeout is self.timeout.
+    def recv_message(self, timeout=None):
+        """Read message, default timeout is self.timeout.
 
         If it times out, behaviour is well defined in that no data is lost,
         and the next call will functions properly.
@@ -150,7 +158,9 @@ class Connection:
                     if self.recvbuf:
                         raise ConnectionError("Connection ended mid-message.")
                     else:
-                        raise ConnectionError("Connection ended while awaiting message.")
+                        raise ConnectionError(
+                            "Connection ended while awaiting message."
+                        )
                 recvbuf.extend(data)
 
         try:
@@ -158,14 +168,18 @@ class Connection:
             magic = recvbuf[:8]
             if magic != self.magic:
                 raise BadFrameError("Bad magic in frame: {}".format(magic.hex()))
-            message_length = int.from_bytes(recvbuf[8:12], byteorder='big')
+            message_length = int.from_bytes(recvbuf[8:12], byteorder="big")
             if message_length > self.MAX_MSG_LENGTH:
-                raise BadFrameError("Got a frame with msg_length={} > {} (max)".format(message_length, self.MAX_MSG_LENGTH))
+                raise BadFrameError(
+                    "Got a frame with msg_length={} > {} (max)".format(
+                        message_length, self.MAX_MSG_LENGTH
+                    )
+                )
             fillbuf(12 + message_length)
 
             # we have a complete message
-            message = bytes(recvbuf[12:12 + message_length])
-            del recvbuf[:12 + message_length]
+            message = bytes(recvbuf[12 : 12 + message_length])
+            del recvbuf[: 12 + message_length]
             return message
         finally:
             with suppress(OSError):

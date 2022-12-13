@@ -25,8 +25,8 @@
 # SOFTWARE.
 
 from PyQt5 import QtWidgets
-from PyQt5.QtGui import QImage, QPainter, QPixmap
 from PyQt5.QtCore import QObject, Qt
+from PyQt5.QtGui import QImage, QPainter, QPixmap
 
 
 class ImageGraphicsEffect(QObject):
@@ -36,7 +36,7 @@ class ImageGraphicsEffect(QObject):
 
     def __init__(self, parent: QObject, effect: QtWidgets.QGraphicsEffect):
         super().__init__(parent)
-        assert effect, 'effect must be set'
+        assert effect, "effect must be set"
         self.effect = effect
         self.graphics_scene = QtWidgets.QGraphicsScene()
         self.graphics_item = QtWidgets.QGraphicsPixmapItem()
@@ -44,7 +44,7 @@ class ImageGraphicsEffect(QObject):
         self.graphics_scene.addItem(self.graphics_item)
 
     def apply(self, image: QImage):
-        assert image, 'image must be set'
+        assert image, "image must be set"
         result = QImage(image.size(), QImage.Format_ARGB32)
         result.fill(Qt.transparent)
         painter = QPainter(result)

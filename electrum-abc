@@ -43,26 +43,9 @@ import threading
 from typing import Any
 
 import electroncash.web as web
-from electroncash import (
-    Network,
-    SimpleConfig,
-    daemon,
-    keystore,
-    mnemo,
-    networks,
-    util,
-)
-from electroncash.commands import (
-    Commands,
-    config_variables,
-    get_parser,
-    known_commands,
-)
-from electroncash.constants import (
-    SCRIPT_NAME,
-    PROJECT_NAME,
-    PORTABLE_DATA_DIR,
-)
+from electroncash import Network, SimpleConfig, daemon, keystore, mnemo, networks, util
+from electroncash.commands import Commands, config_variables, get_parser, known_commands
+from electroncash.constants import PORTABLE_DATA_DIR, PROJECT_NAME, SCRIPT_NAME
 from electroncash.i18n import _
 from electroncash.keystore import bip44_derivation_xec
 from electroncash.migrate_data import migrate_data_from_ec, update_config
@@ -77,11 +60,11 @@ from electroncash.util import (
     set_verbosity,
 )
 from electroncash.wallet import (
-    create_new_wallet,
     Abstract_Wallet,
     ImportedAddressWallet,
     ImportedPrivkeyWallet,
     Wallet,
+    create_new_wallet,
 )
 
 # Import ok on other platforms, won't be called.
@@ -99,8 +82,10 @@ if sys.platform == "win32" and hasattr(sys, "frozen") and hasattr(sys, "_MEIPASS
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 if sys.version_info < (3, 7):
-    sys.exit(f"*** Support for Python 3.6 has been discontinued.\n"
-             f"*** Please run the application with Python 3.7 or above.")
+    sys.exit(
+        f"*** Support for Python 3.6 has been discontinued.\n"
+        f"*** Please run the application with Python 3.7 or above."
+    )
 
 # from https://gist.github.com/tito/09c42fb4767721dc323d
 try:
@@ -130,7 +115,7 @@ if IS_LOCAL:
 
 
 def check_imports():
-    """ pure-python dependencies need to be imported here for pyinstaller """
+    """pure-python dependencies need to be imported here for pyinstaller"""
     try:
         import dns  # pylint: disable=C0415,W0611
         import ecdsa  # pylint: disable=C0415,W0611
@@ -153,8 +138,7 @@ def check_imports():
         raise AssertionError("Certificates not found")
 
 
-def prompt_password(prompt: str = "Password:",
-                    confirm: bool = False) -> str:
+def prompt_password(prompt: str = "Password:", confirm: bool = False) -> str:
     """Get password routine"""
     password = getpass.getpass(prompt, stream=None)
     if password and confirm:
@@ -168,8 +152,8 @@ def prompt_password(prompt: str = "Password:",
 
 def prompt_create_wallet_password() -> str:
     return prompt_password(
-        "Password (hit enter if you do not wish to encrypt your wallet):",
-        True)
+        "Password (hit enter if you do not wish to encrypt your wallet):", True
+    )
 
 
 def run_non_rpc(simple_config: SimpleConfig):
@@ -180,9 +164,9 @@ def run_non_rpc(simple_config: SimpleConfig):
     if storage.file_exists():
         sys.exit("Error: Remove the existing wallet first!")
 
-    if cmd_name == 'restore':
+    if cmd_name == "restore":
         wallet = restore_wallet(simple_config, storage)
-    elif cmd_name == 'create':
+    elif cmd_name == "create":
         wallet = create_wallet(simple_config)
     else:
         raise RuntimeError(f"run_non_rpc called with invalid cmd: {cmd_name}")
@@ -192,11 +176,12 @@ def run_non_rpc(simple_config: SimpleConfig):
     sys.exit(0)
 
 
-def restore_wallet(simple_config: SimpleConfig,
-                   storage: WalletStorage) -> Abstract_Wallet:
+def restore_wallet(
+    simple_config: SimpleConfig, storage: WalletStorage
+) -> Abstract_Wallet:
     """Restore an existing wallet"""
-    text = simple_config.get('text').strip()
-    passphrase = simple_config.get('passphrase', '')
+    text = simple_config.get("text").strip()
+    passphrase = simple_config.get("passphrase", "")
     password = None
     if keystore.is_private(text):
         password = prompt_create_wallet_password()
@@ -257,7 +242,7 @@ def create_wallet(simple_config: SimpleConfig) -> Abstract_Wallet:
         passphrase=simple_config.get("passphrase", ""),
         password=password,
         encrypt_file=True,
-        seed_type=seed_type
+        seed_type=seed_type,
     )
 
     print_msg(f'Your wallet generation seed is:\n    "{d["seed"]}"')
@@ -269,7 +254,7 @@ def create_wallet(simple_config: SimpleConfig) -> Abstract_Wallet:
 
 
 def init_cmdline(config_options: dict, server):
-    """ Initialize command line """
+    """Initialize command line"""
     config = SimpleConfig(config_options)
     cmdname = config.get("cmd")
     cmd = known_commands[cmdname]
@@ -289,7 +274,9 @@ def init_cmdline(config_options: dict, server):
 
     if cmd.requires_wallet and not storage.file_exists():
         print_msg("Error: Wallet file not found.")
-        print_msg(f"Type '{SCRIPT_NAME} create' to create a new wallet, or provide a path to a wallet with the -w option")
+        print_msg(
+            f"Type '{SCRIPT_NAME} create' to create a new wallet, or provide a path to a wallet with the -w option"
+        )
         sys.exit(0)
 
     # important warning
@@ -303,9 +290,11 @@ def init_cmdline(config_options: dict, server):
 
     is_storage_pw_req = storage.is_encrypted() or storage.get("use_encryption")
     # commands needing password
-    if ((cmd.requires_wallet and storage.is_encrypted() and server is False)
-       or (cmdname == 'load_wallet' and storage.is_encrypted())
-       or (cmd.requires_password and is_storage_pw_req)):
+    if (
+        (cmd.requires_wallet and storage.is_encrypted() and server is False)
+        or (cmdname == "load_wallet" and storage.is_encrypted())
+        or (cmd.requires_password and is_storage_pw_req)
+    ):
         if storage.is_encrypted_with_hw_device():
             raise NotImplementedError("CLI functionality of encrypted hw wallets")
         if config.get("password"):
@@ -386,6 +375,7 @@ def run_gui(config: SimpleConfig, config_options: dict):
     # The QApplication must be started before any QObject is created.
     # The first call that creates QObjects in this function is init_plugins.
     from electroncash_gui.qt import init_qapplication
+
     init_qapplication(config)
 
     file_desc, server = daemon.get_fd_or_server(config)
@@ -428,6 +418,7 @@ def run_start(config: SimpleConfig, config_options: dict, subcommand: str):
             # The websockets module relies on an optional module that isn't
             # always available: SimpleWebSocketServer
             from electroncash import websockets  # pylint: disable=C0415
+
             websockets.WebSocketServer(config, daemon_thread.network).start()
         if config.get("requests_dir"):
             requests_path = os.path.join(config.get("requests_dir"), "index.html")
@@ -553,7 +544,9 @@ def main():
     # On windows, allocate a console if needed
     if sys.platform.startswith("win"):
         require_console = "-v" in sys.argv or "--verbose" in sys.argv
-        console_title = _(f"{PROJECT_NAME} - Verbose Output") if require_console else None
+        console_title = (
+            _(f"{PROJECT_NAME} - Verbose Output") if require_console else None
+        )
         # Attempt to attach to ancestor process console. If create=True we will
         # create a new console window if no ancestor process console exists.
         # (Presumably if user ran with -v, they expect console output).

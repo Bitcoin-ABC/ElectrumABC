@@ -2,9 +2,10 @@
 
 import sys
 import time
-from electroncash import SimpleConfig, Network
-from electroncash.util import print_msg, json_encode
+
+from electroncash import Network, SimpleConfig
 from electroncash.address import Address
+from electroncash.util import json_encode, print_msg
 
 try:
     addr = Address.from_string(sys.argv[1])
@@ -27,8 +28,8 @@ if not network.is_connected():
 
 # 2. send the subscription
 sh = addr.to_scripthash_hex()
-callback = lambda response: print_msg(json_encode(response.get('result')))
-network.send([('blockchain.scripthash.subscribe',[sh])], callback)
+callback = lambda response: print_msg(json_encode(response.get("result")))
+network.send([("blockchain.scripthash.subscribe", [sh])], callback)
 
 # 3. wait for results
 while network.is_connected():

@@ -1,7 +1,8 @@
 # from http://eli.thegreenplace.net/2009/03/07/computing-modular-square-roots-in-python/
 
+
 def modular_sqrt(a, p):
-    """ Find a quadratic residue (mod p) of 'a'. p
+    """Find a quadratic residue (mod p) of 'a'. p
     must be an odd prime.
 
     Solve the congruence of the form:
@@ -81,8 +82,9 @@ def modular_sqrt(a, p):
         b = (b * g) % p
         r = m
 
+
 def legendre_symbol(a, p):
-    """ Compute the Legendre symbol a|p using
+    """Compute the Legendre symbol a|p using
     Euler's criterion. p is a prime, a is
     relatively prime to p (if p divides
     a, then a|p = 0)

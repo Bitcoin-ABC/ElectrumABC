@@ -28,10 +28,14 @@ from __future__ import annotations
 import time
 from typing import TYPE_CHECKING
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QBrush, QColor, QIcon, QFont
 from PyQt5 import QtWidgets
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QBrush, QColor, QFont, QIcon
 
+import electroncash.web as web
+from electroncash.i18n import _
+from electroncash.plugins import run_hook
+from electroncash.util import Weak, profiler, timestamp_to_datetime
 
 from .util import (
     MONOSPACE_FONT,
@@ -40,10 +44,6 @@ from .util import (
     rate_limited,
     webopen,
 )
-import electroncash.web as web
-from electroncash.i18n import _
-from electroncash.util import timestamp_to_datetime, profiler, Weak
-from electroncash.plugins import run_hook
 
 if TYPE_CHECKING:
     from .main_window import ElectrumWindow
@@ -76,7 +76,7 @@ class HistoryList(MyTreeWidget):
             config=main_window.config,
             wallet=main_window.wallet,
             stretch_column=3,
-            deferred_updates=True
+            deferred_updates=True,
         )
         self.main_window = main_window
         self.customContextMenuRequested.connect(self.create_menu)
@@ -96,17 +96,21 @@ class HistoryList(MyTreeWidget):
         self.cleaned_up = True
 
     def refresh_headers(self):
-        headers = ['', '', _('Date'), _('Description') , _('Amount'), _('Balance')]
+        headers = ["", "", _("Date"), _("Description"), _("Amount"), _("Balance")]
         fx = self.main_window.fx
         if fx and fx.show_history():
-            headers.extend(['%s '%fx.ccy + _('Amount'), '%s '%fx.ccy + _('Balance')])
+            headers.extend(
+                ["%s " % fx.ccy + _("Amount"), "%s " % fx.ccy + _("Balance")]
+            )
         self.update_headers(headers)
 
     def get_domain(self):
-        '''Replaced in address_dialog.py'''
+        """Replaced in address_dialog.py"""
         return self.wallet.get_addresses()
 
-    @rate_limited(1.0, classlevel=True, ts_after=True) # We rate limit the history list refresh no more than once every second, app-wide
+    @rate_limited(
+        1.0, classlevel=True, ts_after=True
+    )  # We rate limit the history list refresh no more than once every second, app-wide
     def update(self):
         if self.cleaned_up:
             # short-cut return if window was closed and wallet is stopped
@@ -141,15 +145,18 @@ class HistoryList(MyTreeWidget):
         h = self.wallet.get_history(self.get_domain(), reverse=True)
         sels = self.selectedItems()
         current_tx = sels[0].data(0, Qt.UserRole) if sels else None
-        del sels #  make sure not to hold stale ref to C++ list of items which will be deleted in clear() call below
+        del sels  #  make sure not to hold stale ref to C++ list of items which will be deleted in clear() call below
         self.clear()
         self.has_unknown_balances = False
         fx = self.main_window.fx
-        if fx: fx.history_used_spot = False
+        if fx:
+            fx.history_used_spot = False
         for h_item in h:
             tx_hash, height, conf, timestamp, value, balance = h_item
             label = self.wallet.get_label(tx_hash)
-            should_skip = run_hook("history_list_filter", self, h_item, label, multi=True) or []
+            should_skip = (
+                run_hook("history_list_filter", self, h_item, label, multi=True) or []
+            )
             if any(should_skip):
                 # For implementation of fast plugin filters (such as CashFusion
                 # fusion tx filtering), we short-circuit return. This is
@@ -162,27 +169,30 @@ class HistoryList(MyTreeWidget):
                 # and redraw the GUI sometime later when it finishes updating.
                 # This flag is checked in main_window.py, TxUpadteMgr class.
                 self.has_unknown_balances = True
-            status, status_str = self.wallet.get_tx_status(tx_hash, height, conf, timestamp)
+            status, status_str = self.wallet.get_tx_status(
+                tx_hash, height, conf, timestamp
+            )
             has_invoice = self.wallet.invoices.paid.get(tx_hash)
             icon = self._get_icon_for_status(status)
             v_str = self.main_window.format_amount(value, True, whitespaces=True)
             balance_str = self.main_window.format_amount(balance, whitespaces=True)
-            entry = ['', tx_hash, status_str, label, v_str, balance_str]
+            entry = ["", tx_hash, status_str, label, v_str, balance_str]
             if fx and fx.show_history():
                 date = timestamp_to_datetime(time.time() if conf <= 0 else timestamp)
                 for amount in [value, balance]:
                     text = fx.historical_value_str(amount, date)
                     entry.append(text)
             item = SortableTreeWidgetItem(entry)
-            if icon: item.setIcon(0, icon)
+            if icon:
+                item.setIcon(0, icon)
             item.setToolTip(0, str(conf) + " confirmation" + ("s" if conf != 1 else ""))
             item.setData(0, SortableTreeWidgetItem.DataRole, (status, conf))
             if has_invoice:
                 item.setIcon(3, self.invoiceIcon)
             for i in range(len(entry)):
-                if i>3:
+                if i > 3:
                     item.setTextAlignment(i, Qt.AlignRight | Qt.AlignVCenter)
-                if i!=2:
+                if i != 2:
                     item.setFont(i, self.monospaceFont)
             if value and value < 0:
                 item.setForeground(3, self.withdrawalBrush)
@@ -228,12 +238,15 @@ class HistoryList(MyTreeWidget):
 
         label = item.text(3)
         # NB: 'h_item' parameter is None due to performance reasons
-        should_skip = run_hook("history_list_filter", self, None, label, multi=True) or []
+        should_skip = (
+            run_hook("history_list_filter", self, None, label, multi=True) or []
+        )
         if any(should_skip):
             item.setHidden(True)
 
     def update_item(self, tx_hash, height, conf, timestamp):
-        if not self.wallet: return # can happen on startup if this is called before self.on_update()
+        if not self.wallet:
+            return  # can happen on startup if this is called before self.on_update()
         item = self._item_cache.get(tx_hash)
         if item:
             idx = self.invisibleRootItem().indexOfChild(item)
@@ -245,9 +258,12 @@ class HistoryList(MyTreeWidget):
                 # call!)... but doing this hack makes it fast (~1ms per call).
                 was_cur = self.currentItem() is item
                 self.invisibleRootItem().takeChild(idx)
-            status, status_str = self.wallet.get_tx_status(tx_hash, height, conf, timestamp)
+            status, status_str = self.wallet.get_tx_status(
+                tx_hash, height, conf, timestamp
+            )
             icon = self._get_icon_for_status(status)
-            if icon: item.setIcon(0, icon)
+            if icon:
+                item.setIcon(0, icon)
             item.setData(0, SortableTreeWidgetItem.DataRole, (status, conf))
             item.setText(2, status_str)
             if idx > -1:
@@ -277,7 +293,8 @@ class HistoryList(MyTreeWidget):
         tx_URL = web.BE_URL(self.config, web.ExplorerUrlParts.TX, tx_hash)
         height, conf, timestamp = self.wallet.get_tx_height(tx_hash)
         tx = self.wallet.transactions.get(tx_hash)
-        if not tx: return # this happens sometimes on wallet synch when first starting up.
+        if not tx:
+            return  # this happens sometimes on wallet synch when first starting up.
         is_unconfirmed = height <= 0
         pr_key = self.wallet.invoices.paid.get(tx_hash)
 
@@ -285,12 +302,15 @@ class HistoryList(MyTreeWidget):
 
         menu.addAction(
             _("&Copy {}").format(column_title),
-            lambda: self.main_window.app.clipboard().setText(column_data.strip())
+            lambda: self.main_window.app.clipboard().setText(column_data.strip()),
         )
         if column in self.editable_columns:
             # We grab a fresh reference to the current item, as it has been deleted in a reported issue.
-            menu.addAction(_("&Edit {}").format(column_title),
-                lambda: self.currentItem() and self.editItem(self.currentItem(), column))
+            menu.addAction(
+                _("&Edit {}").format(column_title),
+                lambda: self.currentItem()
+                and self.editItem(self.currentItem(), column),
+            )
         label = self.wallet.get_label(tx_hash) or None
         menu.addAction(
             _("&Details"), lambda: self.main_window.show_transaction(tx, label)
@@ -300,17 +320,19 @@ class HistoryList(MyTreeWidget):
             if child_tx:
                 menu.addAction(
                     _("Child pays for parent"),
-                    lambda: self.main_window.cpfp(tx, child_tx)
+                    lambda: self.main_window.cpfp(tx, child_tx),
                 )
         if pr_key:
             menu.addAction(
                 self.invoiceIcon,
                 _("View invoice"),
-                lambda: self.main_window.show_invoice(pr_key)
+                lambda: self.main_window.show_invoice(pr_key),
             )
         if tx_URL:
             menu.addAction(_("View on block explorer"), lambda: webopen(tx_URL))
 
-        run_hook("history_list_context_menu_setup", self, menu, item, tx_hash)  # Plugins can modify menu
+        run_hook(
+            "history_list_context_menu_setup", self, menu, item, tx_hash
+        )  # Plugins can modify menu
 
         menu.exec_(self.viewport().mapToGlobal(position))

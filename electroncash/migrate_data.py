@@ -14,21 +14,22 @@ import os
 import shutil
 from typing import Optional
 
-from .network import DEFAULT_WHITELIST_SERVERS_ONLY, DEFAULT_AUTO_CONNECT
-from .simple_config import read_user_config, save_user_config, SimpleConfig
-from .util import get_user_dir
-from .version import VERSION_TUPLE, PACKAGE_VERSION
-
 from electroncash_plugins.fusion.conf import DEFAULT_SERVERS
+
+from .network import DEFAULT_AUTO_CONNECT, DEFAULT_WHITELIST_SERVERS_ONLY
+from .simple_config import SimpleConfig, read_user_config, save_user_config
+from .util import get_user_dir
+from .version import PACKAGE_VERSION, VERSION_TUPLE
 
 _logger = logging.getLogger(__name__)
 
 
 INVALID_FUSION_HOSTS = [
     # Electron Cash server
-    'cashfusion.electroncash.dk',
+    "cashfusion.electroncash.dk",
     # Test server
-    "161.97.82.60"]
+    "161.97.82.60",
+]
 
 # The default fee set to 80000 in 4.3.0 was lowered to 10000 in 4.3.2,
 # and then again to 5000 in 4.3.3, and then again to 2000 in 5.0.2
@@ -37,9 +38,8 @@ OLD_DEFAULT_FEES = [80000, 10000, 5000]
 
 # function copied from https://github.com/Electron-Cash/Electron-Cash/blob/master/electroncash/util.py
 def get_ec_user_dir() -> Optional[str]:
-    """Get the Electron Cash data directory.
-    """
-    if os.name == 'posix' and "HOME" in os.environ:
+    """Get the Electron Cash data directory."""
+    if os.name == "posix" and "HOME" in os.environ:
         return os.path.join(os.environ["HOME"], ".electron-cash")
     elif "APPDATA" in os.environ or "LOCALAPPDATA" in os.environ:
         app_dir = os.environ.get("APPDATA")
@@ -65,8 +65,7 @@ def safe_rm(path: str):
         elif os.path.isdir(path):
             shutil.rmtree(path)
     except (OSError, shutil.Error) as e:
-        _logger.warning(
-            f"Unable to delete path {path}.\n{str(e)}")
+        _logger.warning(f"Unable to delete path {path}.\n{str(e)}")
 
 
 def replace_src_dest_in_config(src: str, dest: str, config: dict):
@@ -85,8 +84,7 @@ def replace_src_dest_in_config(src: str, dest: str, config: dict):
     if "recently_open" in config:
         for idx, wallet in enumerate(config["recently_open"]):
             norm_wallet = os.path.normcase(wallet)
-            config["recently_open"][idx] = norm_wallet.replace(norm_src,
-                                                               norm_dest)
+            config["recently_open"][idx] = norm_wallet.replace(norm_src, norm_dest)
 
 
 def reset_server_config(config: dict):
@@ -105,8 +103,9 @@ def reset_server_config(config: dict):
     config.pop("rpcpassword", None)
 
 
-def migrate_data_from_ec(ec_user_dir: str = get_ec_user_dir(),
-                         user_dir: str = get_user_dir()) -> bool:
+def migrate_data_from_ec(
+    ec_user_dir: str = get_ec_user_dir(), user_dir: str = get_user_dir()
+) -> bool:
     """Copy the EC data dir the first time Electrum ABC is executed.
     This makes all the wallets and settings available to users.
     """
@@ -224,7 +223,7 @@ def update_config():
         config["block_explorer"] = "eCash"
 
     # We no longer support the BCH Cash Address format in the GUI as of 5.1.7
-    if config.get('address_format') == "CashAddr BCH":
+    if config.get("address_format") == "CashAddr BCH":
         _logger.info("Updating the Cash Addr format from bitcoincash: to ecash:")
         config["address_format"] = "CashAddr"
 

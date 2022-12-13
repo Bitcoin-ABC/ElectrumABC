@@ -56,7 +56,13 @@ def _(message):
     return message
 
 
-fee_levels = [_('Within 25 blocks'), _('Within 10 blocks'), _('Within 5 blocks'), _('Within 2 blocks'), _('In the next block')]
+fee_levels = [
+    _("Within 25 blocks"),
+    _("Within 10 blocks"),
+    _("Within 5 blocks"),
+    _("Within 2 blocks"),
+    _("In the next block"),
+]
 
 del _
 from .i18n import _, ngettext
@@ -82,9 +88,13 @@ class FileImportFailed(Exception):
 
 class FileImportFailedEncrypted(FileImportFailed):
     def __str__(self):
-        return (_('Failed to import file.') + ' ' +
-                _('Perhaps it is encrypted...') + '\n' +
-                _('Importing encrypted files is not supported.'))
+        return (
+            _("Failed to import file.")
+            + " "
+            + _("Perhaps it is encrypted...")
+            + "\n"
+            + _("Importing encrypted files is not supported.")
+        )
 
 
 class WalletFileException(Exception):
@@ -98,22 +108,27 @@ class BitcoinException(Exception):
 # Throw this exception to unwind the stack like when an error occurs.
 # However unlike other exceptions the user won't be informed.
 class UserCancelled(Exception):
-    '''An exception that is suppressed from the user'''
+    """An exception that is suppressed from the user"""
+
     pass
+
 
 class MyEncoder(json.JSONEncoder):
     def default(self, obj):
         from .transaction import Transaction
+
         if isinstance(obj, Transaction):
             return obj.as_dict()
         if isinstance(obj, datetime):
-            return obj.isoformat(' ')[:-3]
+            return obj.isoformat(" ")[:-3]
         if isinstance(obj, set):
             return list(obj)
         return super(MyEncoder, self).default(obj)
 
+
 class PrintError:
-    '''A handy base class for printing formatted log messages'''
+    """A handy base class for printing formatted log messages"""
+
     def diagnostic_name(self):
         return self.__class__.__name__
 
@@ -128,26 +143,32 @@ class PrintError:
         print_msg("[%s]" % self.diagnostic_name(), *msg)
 
     def print_exception(self, *msg):
-        text = ' '.join(str(item) for item in msg)
-        text += ': '
-        text += ''.join(format_exception(*sys.exc_info()))
+        text = " ".join(str(item) for item in msg)
+        text += ": "
+        text += "".join(format_exception(*sys.exc_info()))
         self.print_error(text)
 
     SPAM_MSG_RATE_LIMIT = 1.0  # Once every second
     _print_error_last_spam_msg = 0.0
+
     def _spam_common(self, method, *args):
-        '''Used internally to control spam messages. *All* messages called with
-        spam_* are suppressed to max once every SPAM_MSG_RATE_LIMIT seconds'''
+        """Used internally to control spam messages. *All* messages called with
+        spam_* are suppressed to max once every SPAM_MSG_RATE_LIMIT seconds"""
         now = time.time()
         if now - self._print_error_last_spam_msg >= self.SPAM_MSG_RATE_LIMIT:
             method(*args)
             self._print_error_last_spam_msg = now
+
     def spam_error(self, *args):
-        ''' Like self.print_error except it only prints the supplied args
-        once every self.SPAM_MSG_RATE_LIMIT seconds. '''
+        """Like self.print_error except it only prints the supplied args
+        once every self.SPAM_MSG_RATE_LIMIT seconds."""
         self._spam_common(self.print_error, *args)
-    def spam_msg(self, *args): self._spam_common(self.print_msg, *args)
-    def spam_stderr(self, *args): self._spam_common(self.print_stderr, *args)
+
+    def spam_msg(self, *args):
+        self._spam_common(self.print_msg, *args)
+
+    def spam_stderr(self, *args):
+        self._spam_common(self.print_stderr, *args)
 
 
 class ThreadJob(ABC, PrintError):
@@ -159,8 +180,10 @@ class ThreadJob(ABC, PrintError):
     def run(self):
         """Called periodically from the thread"""
 
+
 class DebugMem(ThreadJob):
-    '''A handy class for debugging GC memory leaks'''
+    """A handy class for debugging GC memory leaks"""
+
     def __init__(self, classes, interval=30):
         self.next_time = 0
         self.classes = classes
@@ -168,6 +191,7 @@ class DebugMem(ThreadJob):
 
     def mem_stats(self):
         import gc
+
         self.print_error("Start memscan")
         gc.collect()
         objmap = defaultdict(list)
@@ -184,8 +208,9 @@ class DebugMem(ThreadJob):
             self.mem_stats()
             self.next_time = time.time() + self.interval
 
+
 class DaemonThread(threading.Thread, PrintError):
-    """ daemon thread that terminates cleanly """
+    """daemon thread that terminates cleanly"""
 
     def __init__(self):
         threading.Thread.__init__(self)
@@ -193,15 +218,21 @@ class DaemonThread(threading.Thread, PrintError):
         self.running = False
         self.running_lock = threading.Lock()
         self.job_lock = threading.Lock()
-        self.jobs = []  # could use a set here but order is important, so we enforce uniqueness in this list in the add/remove methods
-        self._jobs2add = list()  # adding jobs needs to preserve order, so we use a list.
-        self._jobs2rm = set()  # removing jobs does not need to preserve orer so we can benefit from the uniqueness property of using a set.
+        self.jobs = (
+            []
+        )  # could use a set here but order is important, so we enforce uniqueness in this list in the add/remove methods
+        self._jobs2add = (
+            list()
+        )  # adding jobs needs to preserve order, so we use a list.
+        self._jobs2rm = (
+            set()
+        )  # removing jobs does not need to preserve orer so we can benefit from the uniqueness property of using a set.
 
     def add_jobs(self, jobs):
         if threading.current_thread() is not self:
             with self.job_lock:
                 for job in jobs:
-                    if job not in self.jobs: # ensure unique
+                    if job not in self.jobs:  # ensure unique
                         self.jobs.append(job)
                         self.print_error("Job added", job)
                     else:
@@ -225,7 +256,7 @@ class DaemonThread(threading.Thread, PrintError):
         else:
             # support for adding/removing jobs from within the ThreadJob's .run
             for job in jobs:
-                while job in self._jobs2add: # enforce uniqueness of jobs
+                while job in self._jobs2add:  # enforce uniqueness of jobs
                     self._jobs2add.remove(job)
             self._jobs2rm.update(jobs)
 
@@ -285,7 +316,6 @@ def set_verbosity(b, *, timestamps=True, thread_id=True):
 # deliver the same result.  The method cannot take any arguments
 # and should be accessed as an attribute.
 class cachedproperty:
-
     def __init__(self, f):
         self.f = f
 
@@ -311,21 +341,33 @@ class Monotonic:
         return next(self._counter)
 
 
-_human_readable_thread_ids = defaultdict(Monotonic(locking=False))  # locking not needed on Monotonic instance as we lock the dict anyway
+_human_readable_thread_ids = defaultdict(
+    Monotonic(locking=False)
+)  # locking not needed on Monotonic instance as we lock the dict anyway
 _human_readable_thread_ids_lock = threading.Lock()
 _t0 = time.time()
+
+
 def print_error(*args):
-    if not is_verbose: return
+    if not is_verbose:
+        return
     if verbose_thread_id:
         with _human_readable_thread_ids_lock:
-            args = ("|%02d|"%_human_readable_thread_ids[threading.get_ident()], *args)
+            args = ("|%02d|" % _human_readable_thread_ids[threading.get_ident()], *args)
     if verbose_timestamps:
-        args = ("|%7.3f|"%(time.time() - _t0), *args)
+        args = ("|%7.3f|" % (time.time() - _t0), *args)
     print_stderr(*args)
 
-_print_lock = threading.RLock()  # use a recursive lock in extremely rare case a signal handler does a print_error while lock held by same thread as sighandler invocation's thread
+
+_print_lock = (
+    threading.RLock()
+)  # use a recursive lock in extremely rare case a signal handler does a print_error while lock held by same thread as sighandler invocation's thread
+
+
 def _print_common(file, *args):
-    s_args = " ".join(str(item) for item in args) + "\n"  # newline at end *should* implicitly .flush() underlying stream, but not always if redirecting to file
+    s_args = (
+        " ".join(str(item) for item in args) + "\n"
+    )  # newline at end *should* implicitly .flush() underlying stream, but not always if redirecting to file
     with _print_lock:
         # locking is required here as TextIOWrapper subclasses are not thread-safe;
         # see: https://docs.python.org/3.6/library/io.html#multi-threading
@@ -333,20 +375,24 @@ def _print_common(file, *args):
             file.write(s_args)
             file.flush()  # necessary if redirecting to file
         except OSError:
-            '''In very rare cases IO errors can occur here. We tolerate them. See #1595.'''
+            """In very rare cases IO errors can occur here. We tolerate them. See #1595."""
+
 
 def print_stderr(*args):
     _print_common(sys.stderr, *args)
 
+
 def print_msg(*args):
     _print_common(sys.stdout, *args)
 
+
 def json_encode(obj):
     try:
-        s = json.dumps(obj, sort_keys = True, indent = 4, cls=MyEncoder)
+        s = json.dumps(obj, sort_keys=True, indent=4, cls=MyEncoder)
     except TypeError:
         s = repr(obj)
     return s
+
 
 def json_decode(x):
     try:
@@ -358,7 +404,7 @@ def json_decode(x):
 # taken from Django Source Code
 def constant_time_compare(val1, val2):
     """Return True if the two strings are equal, False otherwise."""
-    return hmac.compare_digest(to_bytes(val1, 'utf8'), to_bytes(val2, 'utf8'))
+    return hmac.compare_digest(to_bytes(val1, "utf8"), to_bytes(val2, "utf8"))
 
 
 # decorator that prints execution time
@@ -367,17 +413,19 @@ def profiler(func):
         t0 = time.time()
         o = func(*args, **kw_args)
         t = time.time() - t0
-        print_error("[profiler]", func.__qualname__, "%.4f"%t)
+        print_error("[profiler]", func.__qualname__, "%.4f" % t)
         return o
+
     return lambda *args, **kw_args: do_profile(args, kw_args)
 
 
 def ensure_sparse_file(filename):
     if os.name == "nt":
         try:
-            subprocess.call("fsutil sparse setFlag \""+ filename +"\" 1", shell=True)
+            subprocess.call('fsutil sparse setFlag "' + filename + '" 1', shell=True)
         except:
             pass
+
 
 def get_headers_dir(config):
     return config.path
@@ -389,8 +437,10 @@ def assert_datadir_available(config_path):
         return
     else:
         raise FileNotFoundError(
-            'Datadir does not exist. Was it deleted while running?' + '\n' +
-            'Should be at {}'.format(path))
+            "Datadir does not exist. Was it deleted while running?"
+            + "\n"
+            + "Should be at {}".format(path)
+        )
 
 
 def assert_file_in_datadir_available(path, config_path):
@@ -399,13 +449,17 @@ def assert_file_in_datadir_available(path, config_path):
     else:
         assert_datadir_available(config_path)
         raise FileNotFoundError(
-            'Cannot find file but datadir is there.' + '\n' +
-            'Should be at {}'.format(path))
+            "Cannot find file but datadir is there."
+            + "\n"
+            + "Should be at {}".format(path)
+        )
+
 
 def standardize_path(path):
     if path is not None:
         path = os.path.normcase(os.path.realpath(os.path.abspath(path)))
     return path
+
 
 def get_new_wallet_name(wallet_folder: str) -> str:
     i = 1
@@ -417,6 +471,7 @@ def get_new_wallet_name(wallet_folder: str) -> str:
             break
     return filename
 
+
 def assert_bytes(*args):
     """
     porting helper, assert args type
@@ -425,7 +480,7 @@ def assert_bytes(*args):
         for x in args:
             assert isinstance(x, (bytes, bytearray))
     except:
-        print('assert bytes failed', list(map(type, args)))
+        print("assert bytes failed", list(map(type, args)))
         raise
 
 
@@ -437,8 +492,7 @@ def assert_str(*args):
         assert isinstance(x, str)
 
 
-
-def to_string(x, enc='utf8'):
+def to_string(x, enc="utf8"):
     if isinstance(x, (bytes, bytearray)):
         return x.decode(enc)
     if isinstance(x, str):
@@ -446,7 +500,8 @@ def to_string(x, enc='utf8'):
     else:
         raise TypeError("Not a string or bytes like object")
 
-def to_bytes(something, encoding='utf8'):
+
+def to_bytes(something, encoding="utf8"):
     """
     cast string to bytes() like object, but for python2 support it's bytearray copy
     """
@@ -463,6 +518,7 @@ def to_bytes(something, encoding='utf8'):
 bfh = bytes.fromhex
 hfu = binascii.hexlify
 
+
 def bh2u(x):
     """
     str with hex representation of a bytes-like object
@@ -474,11 +530,11 @@ def bh2u(x):
     :param x: bytes
     :rtype: str
     """
-    return hfu(x).decode('ascii')
+    return hfu(x).decode("ascii")
 
 
 def get_user_dir(prefer_local=False):
-    if os.name == 'posix' and "HOME" in os.environ:
+    if os.name == "posix" and "HOME" in os.environ:
         return os.path.join(os.environ["HOME"], POSIX_DATA_DIR)
     elif "APPDATA" in os.environ or "LOCALAPPDATA" in os.environ:
         app_dir = os.environ.get("APPDATA")
@@ -488,7 +544,7 @@ def get_user_dir(prefer_local=False):
             app_dir = localapp_dir
         return os.path.join(app_dir, PROJECT_NAME_NO_SPACES)
     else:
-        #raise Exception("No home directory found in environment variables.")
+        # raise Exception("No home directory found in environment variables.")
         return
 
 
@@ -496,18 +552,18 @@ def make_dir(path):
     # Make directory if it does not yet exist.
     if not os.path.exists(path):
         if os.path.islink(path):
-            raise BaseException('Dangling link: ' + path)
+            raise BaseException("Dangling link: " + path)
         os.mkdir(path)
         os.chmod(path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
 
 
-def format_satoshis_plain(x, decimal_point = 8):
+def format_satoshis_plain(x, decimal_point=8):
     """Display a satoshi amount scaled.  Always uses a '.' as a decimal
     point and has no thousands separator"""
     if x is None:
-        return _('Unknown')
+        return _("Unknown")
     scale_factor = pow(10, decimal_point)
-    return "{:.8f}".format(PyDecimal(x) / scale_factor).rstrip('0').rstrip('.')
+    return "{:.8f}".format(PyDecimal(x) / scale_factor).rstrip("0").rstrip(".")
 
 
 _cached_dp = None
@@ -528,13 +584,15 @@ def set_locale_has_thousands_separator(flag: bool):
 
 # fixme: circular import util -> caches -> util
 from .caches import ExpiringCache
+
 # This cache will eat about ~6MB of memory per 20,000 items, but it does make
 # format_satoshis() run over 3x faster.
-_fmt_sats_cache = ExpiringCache(maxlen=20000, name='format_satoshis cache')
+_fmt_sats_cache = ExpiringCache(maxlen=20000, name="format_satoshis cache")
 
 
-def format_satoshis(x, num_zeros=0, decimal_point=2, precision=None,
-                    is_diff=False, whitespaces=False) -> str:
+def format_satoshis(
+    x, num_zeros=0, decimal_point=2, precision=None, is_diff=False, whitespaces=False
+) -> str:
     global _cached_dp
     # We lazy init this here rather than at module level in case the
     # locale is not set at program startup when the module is first
@@ -543,7 +601,7 @@ def format_satoshis(x, num_zeros=0, decimal_point=2, precision=None,
         try:
             # setting the local to the system's default work for Windows,
             # Linux. On Mac OS, it sometimes works, but sometimes fails.
-            locale.setlocale(locale.LC_NUMERIC, '')
+            locale.setlocale(locale.LC_NUMERIC, "")
         except locale.Error:
             set_locale_has_thousands_separator(False)
         else:
@@ -554,10 +612,10 @@ def format_satoshis(x, num_zeros=0, decimal_point=2, precision=None,
             # with thousands separators, using a "." for decimal point.
             _cached_dp = "."
         else:
-            _cached_dp = locale.localeconv().get('decimal_point') or '.'
+            _cached_dp = locale.localeconv().get("decimal_point") or "."
 
     if x is None:
-        return _('Unknown')
+        return _("Unknown")
     if precision is None:
         precision = decimal_point
     cache_key = (x, num_zeros, decimal_point, precision, is_diff, whitespaces)
@@ -573,24 +631,23 @@ def format_satoshis(x, num_zeros=0, decimal_point=2, precision=None,
         # See Electron-Cash#1024.
         # TODO: this happens only on user input, so just add a range
         #       validator on the wiget
-        return 'unknown'
+        return "unknown"
     if LOCALE_HAS_THOUSANDS_SEPARATOR:
         decimal_format = ".0" + str(precision) if precision > 0 else ""
         if is_diff:
-            decimal_format = '+' + decimal_format
+            decimal_format = "+" + decimal_format
         decimal_format = "%" + decimal_format + "f"
-        result = locale.format_string(decimal_format, value,
-                                      grouping=True).rstrip('0')
+        result = locale.format_string(decimal_format, value, grouping=True).rstrip("0")
     else:
         # default to ts="," and dp=".", with python local-unaware formatting
         decimal_format = "{:"
         if is_diff:
-            decimal_format +="+"
+            decimal_format += "+"
         decimal_format += ","
         if precision > 0:
             decimal_format += ".0" + str(precision)
         decimal_format += "f}"
-        result = decimal_format.format(value).rstrip('0')
+        result = decimal_format.format(value).rstrip("0")
     dp = _cached_dp
     try:
         integer_part, fract_part = result.split(dp)
@@ -606,8 +663,10 @@ def format_satoshis(x, num_zeros=0, decimal_point=2, precision=None,
     _fmt_sats_cache.put(cache_key, result)
     return result
 
+
 def format_fee_satoshis(fee, num_zeros=0):
     return format_satoshis(fee, num_zeros, 0, precision=num_zeros)
+
 
 def timestamp_to_datetime(timestamp):
     try:
@@ -615,16 +674,17 @@ def timestamp_to_datetime(timestamp):
     except:
         return None
 
+
 def format_time(timestamp):
     if timestamp:
         date = timestamp_to_datetime(timestamp)
         if date:
-            return date.isoformat(' ')[:-3]
+            return date.isoformat(" ")[:-3]
     return _("Unknown")
 
 
 # Takes a timestamp and returns a string with the approximation of the age
-def age(from_date, since_date = None, target_tz=None, include_seconds=False):
+def age(from_date, since_date=None, target_tz=None, include_seconds=False):
     if from_date is None:
         return _("Unknown")
 
@@ -647,8 +707,10 @@ def age(from_date, since_date = None, target_tz=None, include_seconds=False):
 
 
 def time_difference(distance_in_time, include_seconds):
-    #distance_in_time = from_date - since_date
-    distance_in_seconds = int(round(abs(distance_in_time.days * 86400 + distance_in_time.seconds)))
+    # distance_in_time = from_date - since_date
+    distance_in_seconds = int(
+        round(abs(distance_in_time.days * 86400 + distance_in_time.seconds))
+    )
     distance_in_minutes = int(round(distance_in_seconds / 60))
 
     if distance_in_seconds < 60:
@@ -692,74 +754,87 @@ def time_difference(distance_in_time, include_seconds):
         fmt = ngettext("{years} year", "{years} years", distance_in_years)
         return fmt.format(years=distance_in_years)
 
+
 # Python bug (http://bugs.python.org/issue1927) causes raw_input
 # to be redirected improperly between stdin/stderr on Unix systems
-#TODO: py3
+# TODO: py3
 def raw_input(prompt=None):
     if prompt:
         sys.stdout.write(prompt)
     return builtin_raw_input()
 
+
 import builtins
+
 builtin_raw_input = builtins.input
 builtins.input = raw_input
 
 
 def parse_json(message):
     # TODO: check \r\n pattern
-    n = message.find(b'\n')
-    if n==-1:
+    n = message.find(b"\n")
+    if n == -1:
         return None, message
     try:
-        j = json.loads(message[0:n].decode('utf8'))
+        j = json.loads(message[0:n].decode("utf8"))
     except Exception:
         # just consume the line and ignore error.
         j = None
-    return j, message[n+1:]
+    return j, message[n + 1 :]
 
 
 class timeout(Exception):
-    ''' Server timed out on broadcast tx (normally due to a bad connection).
-    Exception string is the translated error string.'''
+    """Server timed out on broadcast tx (normally due to a bad connection).
+    Exception string is the translated error string."""
+
     pass
 
-TimeoutException = timeout # Future compat. with Electrum codebase/cherrypicking
+
+TimeoutException = timeout  # Future compat. with Electrum codebase/cherrypicking
+
 
 class ServerError(Exception):
-    ''' Note exception string is the translated, gui-friendly error message.
+    """Note exception string is the translated, gui-friendly error message.
     self.server_msg may be a dict or a string containing the raw response from
     the server.  Do NOT display self.server_msg in GUI code due to potential for
     phishing attacks from the untrusted server.
-    See: https://github.com/spesmilo/electrum/issues/4968  '''
-    def __init__(self, msg, server_msg = None):
+    See: https://github.com/spesmilo/electrum/issues/4968"""
+
+    def __init__(self, msg, server_msg=None):
         super().__init__(msg)
-        self.server_msg = server_msg or '' # prefer empty string if none supplied
+        self.server_msg = server_msg or ""  # prefer empty string if none supplied
+
 
 class ServerErrorResponse(ServerError):
-    ''' Raised by network.py broadcast_transaction2() when the server sent an
+    """Raised by network.py broadcast_transaction2() when the server sent an
     error response. The actual server error response is contained in a dict
     and/or str in self.server_msg. Warning: DO NOT display the server text.
     Displaying server text harbors a phishing risk. Instead, a translated
     GUI-friendly 'deduced' response is in the exception string.
-    See: https://github.com/spesmilo/electrum/issues/4968 '''
+    See: https://github.com/spesmilo/electrum/issues/4968"""
+
     pass
 
+
 class TxHashMismatch(ServerError):
-    ''' Raised by network.py broadcast_transaction2().
+    """Raised by network.py broadcast_transaction2().
     Server sent an OK response but the txid it supplied does not match our
     signed tx id that we requested to broadcast. The txid returned is
     stored in self.server_msg. It's advised not to display
     the txid response as there is also potential for phishing exploits if
     one does. Instead, the exception string contains a suitable translated
-    GUI-friendly error message. '''
+    GUI-friendly error message."""
+
     pass
 
+
+import errno
 import socket
 import ssl
-import errno
+
 
 class JSONSocketPipe(PrintError):
-    """ Non-blocking wrapper for a socket passing one-per-line json messages:
+    """Non-blocking wrapper for a socket passing one-per-line json messages:
 
        <json><newline><json><newline><json><newline>...
 
@@ -767,13 +842,13 @@ class JSONSocketPipe(PrintError):
     """
 
     class Closed(RuntimeError):
-        ''' Raised if socket is closed '''
+        """Raised if socket is closed"""
 
     def __init__(self, socket, *, max_message_bytes=0):
-        ''' A max_message_bytes of <= 0 means unlimited, otherwise a positive
+        """A max_message_bytes of <= 0 means unlimited, otherwise a positive
         value indicates this many bytes to limit the message size by. This is
         used by get(), which will raise MessageSizeExceeded if the message size
-        received is larger than max_message_bytes. '''
+        received is larger than max_message_bytes."""
         self.socket = socket
         socket.settimeout(0)
         self.recv_time = time.time()
@@ -785,13 +860,13 @@ class JSONSocketPipe(PrintError):
         return time.time() - self.recv_time
 
     def get_selectloop_info(self):
-        ''' Returns tuple:
+        """Returns tuple:
 
         read_pending - new data is available that may be unknown to select(),
             so perform a get() regardless of select().
         write_pending - some send data is still buffered, so make sure to call
             send_flush if writing becomes available.
-        '''
+        """
         try:
             # pending() only defined on SSL sockets.
             has_pending = self.socket.pending() > 0
@@ -800,13 +875,13 @@ class JSONSocketPipe(PrintError):
         return has_pending, bool(self.send_buf)
 
     def get(self):
-        ''' Attempt to read out a message, possibly saving additional messages in
+        """Attempt to read out a message, possibly saving additional messages in
         a receive buffer.
 
         If no message is currently available, this raises util.timeout and you
         should retry once data becomes available to read. If connection is bad for
         some known reason, raises .Closed; other errors will raise other exceptions.
-        '''
+        """
         while True:
             response, self.recv_buf = parse_json(self.recv_buf)
             if response is not None:
@@ -822,36 +897,43 @@ class JSONSocketPipe(PrintError):
                     raise timeout
                 if exc.errno == 9:
                     # EBADF. Someone called close() locally so FD is bad.
-                    raise self.Closed('closed by local')
-                raise self.Closed('closing due to {}: {}'.format(type(exc).__name__, str(exc)))
+                    raise self.Closed("closed by local")
+                raise self.Closed(
+                    "closing due to {}: {}".format(type(exc).__name__, str(exc))
+                )
 
             if not data:
-                raise self.Closed('closed by remote')
+                raise self.Closed("closed by remote")
 
             self.recv_buf.extend(data)
             self.recv_time = time.time()
 
-            if self.max_message_bytes > 0 and len(self.recv_buf) > self.max_message_bytes:
-                raise self.Closed(f"Message limit is: {self.max_message_bytes}; receive buffer exceeded this limit!")
+            if (
+                self.max_message_bytes > 0
+                and len(self.recv_buf) > self.max_message_bytes
+            ):
+                raise self.Closed(
+                    f"Message limit is: {self.max_message_bytes}; receive buffer exceeded this limit!"
+                )
 
     def send(self, request):
-        out = json.dumps(request) + '\n'
-        out = out.encode('utf8')
+        out = json.dumps(request) + "\n"
+        out = out.encode("utf8")
         self.send_buf.extend(out)
         return self.send_flush()
 
     def send_all(self, requests):
-        out = b''.join(map(lambda x: (json.dumps(x) + '\n').encode('utf8'), requests))
+        out = b"".join(map(lambda x: (json.dumps(x) + "\n").encode("utf8"), requests))
         self.send_buf.extend(out)
         return self.send_flush()
 
     def send_flush(self):
-        ''' Flush any unsent data from a prior call to send / send_all.
+        """Flush any unsent data from a prior call to send / send_all.
 
         Raises timeout if more data remains to be sent.
         Raise .Closed in the event of a socket error that requires abandoning
         this socket.
-        '''
+        """
         send_buf = self.send_buf
         while send_buf:
             try:
@@ -864,15 +946,16 @@ class JSONSocketPipe(PrintError):
                     raise timeout
                 if exc.errno == 9:
                     # EBADF. Someone called close() locally so FD is bad.
-                    raise self.Closed('closed by local')
-                raise self.Closed('closing due to {}: {}'.format(type(exc).__name__, str(exc)))
+                    raise self.Closed("closed by local")
+                raise self.Closed(
+                    "closing due to {}: {}".format(type(exc).__name__, str(exc))
+                )
 
             if sent == 0:
                 # shouldn't happen, but just in case, we don't want to infinite
                 # loop.
                 raise timeout
             del send_buf[:sent]
-
 
 
 def setup_thread_excepthook():
@@ -902,25 +985,28 @@ def setup_thread_excepthook():
 
 
 def versiontuple(v):
-    ''' Please do not use this function as it breaks with EC version styles
-    of things like '3.3.4CS'. Instead, use electroncash/version.parse_package_version'''
+    """Please do not use this function as it breaks with EC version styles
+    of things like '3.3.4CS'. Instead, use electroncash/version.parse_package_version"""
     return tuple(map(int, (v.split("."))))
 
 
 class Handlers:
-    ''' A place to put app-global handlers. Currently the
-    "do_in_main_thread_handler" lives here '''
+    """A place to put app-global handlers. Currently the
+    "do_in_main_thread_handler" lives here"""
+
     @staticmethod
     def default_do_in_main_thread_handler(func, *args, **kwargs):
-        ''' The default "do_in_main_thread_handler" simply immediately calls
+        """The default "do_in_main_thread_handler" simply immediately calls
         func, but it does print a warning if the current thread is not
-        the main thread. '''
+        the main thread."""
         this_thread = threading.current_thread()
         if this_thread is not threading.main_thread():
-            print_stderr(f"Warning: do_in_main_thread called with the default handler"
-                         f" from outside the main thread (thr: {this_thread.name});"
-                          " such usage may lead to undefined behavior.  Traceback:\n",
-                          ''.join(traceback.format_stack()))
+            print_stderr(
+                f"Warning: do_in_main_thread called with the default handler"
+                f" from outside the main thread (thr: {this_thread.name});"
+                " such usage may lead to undefined behavior.  Traceback:\n",
+                "".join(traceback.format_stack()),
+            )
         func(*args, **kwargs)
 
     # GUI subsystems that wish to use `do_in_main_thread` (defined below) must
@@ -931,28 +1017,32 @@ class Handlers:
 
 
 def do_in_main_thread(func, *args, **kwargs):
-    ''' Calls func(*args, **kwargs) in the main thread, or immediately if the
+    """Calls func(*args, **kwargs) in the main thread, or immediately if the
     calling context *is* the main thread. Note that for this to work the GUI
     system in question must install a handler for this mechanism (if it has an
     event loop that is!) and set the global Handlers.do_in_main_thread =
     someFunc() to actually post the invocation to the main thread. The default
     handler immediately invokes func, but it does print a warning if the current
-    thread is not the main thread '''
+    thread is not the main thread"""
     if threading.current_thread() is threading.main_thread():
         func(*args, **kwargs)
     else:
         Handlers.do_in_main_thread(func, *args, **kwargs)
 
+
 def in_main_thread(func):
     """
     Function decorator that runs the decorated function in the main thread.
     """
+
     def wrapper(*args, **kwargs):
         do_in_main_thread(func, *args, **kwargs)
+
     return wrapper
 
+
 class Weak:
-    '''
+    """
     Weak reference factory. Create either a weak proxy to a bound method
     or a weakref.proxy, depending on whether this factory class's __new__ is
     invoked with a bound method or a regular function/object as its first
@@ -998,7 +1088,7 @@ class Weak:
     This usage/idiom is intented to be used with Qt's signal/slots mechanism
     to allow for Qt bound signals to not prevent target objects from being
     garbage collected due to reference cycles -- hence the permissive,
-    exception-free design.'''
+    exception-free design."""
 
     def __new__(cls, obj_or_bound_method, *args, **kwargs):
         if inspect.ismethod(obj_or_bound_method):
@@ -1008,41 +1098,47 @@ class Weak:
             # Not a method, just return a weakref.proxy
             return weakref.proxy(obj_or_bound_method, *args, **kwargs)
 
-    ref = weakref.ref # alias for convenience so you don't have to import weakref
-    Set = weakref.WeakSet # alias for convenience
-    ValueDictionary = weakref.WeakValueDictionary # alias for convenience
-    KeyDictionary = weakref.WeakKeyDictionary # alias for convenience
-    Method = weakref.WeakMethod # alias
-    finalize = weakref.finalize # alias
+    ref = weakref.ref  # alias for convenience so you don't have to import weakref
+    Set = weakref.WeakSet  # alias for convenience
+    ValueDictionary = weakref.WeakValueDictionary  # alias for convenience
+    KeyDictionary = weakref.WeakKeyDictionary  # alias for convenience
+    Method = weakref.WeakMethod  # alias
+    finalize = weakref.finalize  # alias
 
     _weak_refs_for_print_error = defaultdict(list)
+
     @staticmethod
     def finalization_print_error(obj, msg=None):
-        ''' Supply a message to be printed via print_error when obj is
-        finalized (Python GC'd). This is useful for debugging memory leaks. '''
-        assert not isinstance(obj, type), "finaliztion_print_error can only be used on instance objects!"
+        """Supply a message to be printed via print_error when obj is
+        finalized (Python GC'd). This is useful for debugging memory leaks."""
+        assert not isinstance(
+            obj, type
+        ), "finaliztion_print_error can only be used on instance objects!"
         if msg is None:
             if isinstance(obj, PrintError):
                 name = obj.diagnostic_name()
             else:
                 name = obj.__class__.__qualname__
             msg = "[{}] finalized".format(name)
+
         def finalizer(x):
             wrs = Weak._weak_refs_for_print_error
             msgs = wrs.get(x, [])
             for m in msgs:
                 print_error(m)
             wrs.pop(x, None)
+
         wr = Weak.ref(obj, finalizer)
         Weak._weak_refs_for_print_error[wr].append(msg)
 
-
     class MethodProxy(weakref.WeakMethod):
-        ''' Direct-use of this class is discouraged (aside from assigning to
-            its print_func attribute). Instead use of the wrapper class 'Weak'
-            defined in the enclosing scope is encouraged. '''
+        """Direct-use of this class is discouraged (aside from assigning to
+        its print_func attribute). Instead use of the wrapper class 'Weak'
+        defined in the enclosing scope is encouraged."""
 
-        print_func = lambda x, this, info: print_error(this, info) # <--- set this attribute if needed, either on the class or instance level, to control debug printing behavior. None is ok here.
+        print_func = lambda x, this, info: print_error(
+            this, info
+        )  # <--- set this attribute if needed, either on the class or instance level, to control debug printing behavior. None is ok here.
 
         def __init__(self, meth, *args, **kwargs):
             super().__init__(meth, *args, **kwargs)
@@ -1050,14 +1146,21 @@ class Weak:
             self.qname, self.sname = meth.__qualname__, str(meth.__self__)
 
         def __call__(self, *args, **kwargs):
-            ''' Either directly calls the method for you or prints debug info
-                if the target object died '''
-            meth = super().__call__() # if dead, None is returned
-            if meth: # could also do callable() as the test but hopefully this is sightly faster
-                return meth(*args,**kwargs)
+            """Either directly calls the method for you or prints debug info
+            if the target object died"""
+            meth = super().__call__()  # if dead, None is returned
+            if (
+                meth
+            ):  # could also do callable() as the test but hopefully this is sightly faster
+                return meth(*args, **kwargs)
             elif callable(self.print_func):
-                self.print_func(self, "MethodProxy for '{}' called on a dead reference. Referent was: {})".format(self.qname,
-                                                                                                                  self.sname))
+                self.print_func(
+                    self,
+                    "MethodProxy for '{}' called on a dead reference. Referent was: {})".format(
+                        self.qname, self.sname
+                    ),
+                )
+
 
 # Export this method to the top level for convenience. People reading code
 # may wonder 'Why Weak.finaliztion_print_error'?. The fact that this relies on
@@ -1066,12 +1169,11 @@ finalization_print_error = Weak.finalization_print_error
 
 
 def multisig_type(wallet_type):
-    '''If wallet_type is mofn multi-sig, return [m, n],
-    otherwise return None.'''
+    """If wallet_type is mofn multi-sig, return [m, n],
+    otherwise return None."""
     if not wallet_type:
         return None
-    match = re.match(r'(\d+)of(\d+)', wallet_type)
+    match = re.match(r"(\d+)of(\d+)", wallet_type)
     if match:
         match = [int(x) for x in match.group(1, 2)]
     return match
-

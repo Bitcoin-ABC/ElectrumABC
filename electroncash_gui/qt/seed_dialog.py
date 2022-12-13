@@ -24,14 +24,15 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import mnemonic
-
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5 import QtWidgets
-from electroncash.i18n import _
+
 from electroncash import mnemo
 from electroncash.constants import PROJECT_NAME
+from electroncash.i18n import _
 
+from .qrtextedit import ScanQRTextEdit
 from .util import (
     Buttons,
     ButtonsTextEdit,
@@ -41,63 +42,88 @@ from .util import (
     WindowModalDialog,
     WWLabel,
 )
-from .qrtextedit import ScanQRTextEdit
 
 
 def seed_warning_msg(seed, has_der=False, has_ext=False):
-    extra = ''
+    extra = ""
     if has_der:
         if has_ext:
-            extra = (' ' + _('Additionally, save the seed extension and derivation path as well.') + ' ')
+            extra = (
+                " "
+                + _(
+                    "Additionally, save the seed extension and derivation path as well."
+                )
+                + " "
+            )
         else:
-            extra = (' ' + _('Additionally, save the derivation path as well.') + ' ')
+            extra = " " + _("Additionally, save the derivation path as well.") + " "
     elif has_ext:
-        extra = (' ' + _('Additionally, save the seed extension as well.') + ' ')
-    return ''.join([
-        "<p>",
-        _("Please save these %d words on paper (order is important). "),
-        extra,
-        _("This seed will allow you to recover your wallet in case "
-          "of computer failure."),
-        "</p>",
-        "<b>" + _("WARNING") + ":</b>",
-        "<ul>",
-        "<li>" + _("Never disclose your seed.") + "</li>",
-        "<li>" + _("Never type it on a website.") + "</li>",
-        "<li>" + _("Do not store it electronically.") + "</li>",
-        "</ul>"
-    ]) % len(seed.split())
+        extra = " " + _("Additionally, save the seed extension as well.") + " "
+    return "".join(
+        [
+            "<p>",
+            _("Please save these %d words on paper (order is important). "),
+            extra,
+            _(
+                "This seed will allow you to recover your wallet in case "
+                "of computer failure."
+            ),
+            "</p>",
+            "<b>" + _("WARNING") + ":</b>",
+            "<ul>",
+            "<li>" + _("Never disclose your seed.") + "</li>",
+            "<li>" + _("Never type it on a website.") + "</li>",
+            "<li>" + _("Do not store it electronically.") + "</li>",
+            "</ul>",
+        ]
+    ) % len(seed.split())
 
 
 class SeedLayout(QtWidgets.QVBoxLayout):
-    #options
+    # options
     is_bip39 = False
     is_ext = False
 
     def seed_options(self):
         dialog = QtWidgets.QDialog()
         vbox = QtWidgets.QVBoxLayout(dialog)
-        if 'ext' in self.options:
-            cb_ext = QtWidgets.QCheckBox(_('Extend this seed with custom words') + " " + _("(aka 'passphrase')"))
+        if "ext" in self.options:
+            cb_ext = QtWidgets.QCheckBox(
+                _("Extend this seed with custom words") + " " + _("(aka 'passphrase')")
+            )
             cb_ext.setChecked(self.is_ext)
             vbox.addWidget(cb_ext)
-        if 'bip39' in self.options:
+        if "bip39" in self.options:
+
             def f(b):
                 self.is_seed = (lambda x: bool(x)) if b else self.saved_is_seed
                 self.is_bip39 = b
                 self.on_edit()
-            cb_bip39 = QtWidgets.QCheckBox(_('Force BIP39 interpretation of this seed'))
+
+            cb_bip39 = QtWidgets.QCheckBox(_("Force BIP39 interpretation of this seed"))
             cb_bip39.toggled.connect(f)
             cb_bip39.setChecked(self.is_bip39)
             vbox.addWidget(cb_bip39)
         vbox.addLayout(Buttons(OkButton(dialog)))
         if not dialog.exec_():
             return None
-        self.is_ext = cb_ext.isChecked() if 'ext' in self.options else False
-        self.is_bip39 = cb_bip39.isChecked() if 'bip39' in self.options else False
+        self.is_ext = cb_ext.isChecked() if "ext" in self.options else False
+        self.is_bip39 = cb_bip39.isChecked() if "bip39" in self.options else False
 
-    def __init__(self, seed=None, title=None, icon=True, msg=None, options=None, is_seed=None, passphrase=None, parent=None, editable=True,
-                 derivation=None, seed_type=None):
+    def __init__(
+        self,
+        seed=None,
+        title=None,
+        icon=True,
+        msg=None,
+        options=None,
+        is_seed=None,
+        passphrase=None,
+        parent=None,
+        editable=True,
+        derivation=None,
+        seed_type=None,
+    ):
         QtWidgets.QVBoxLayout.__init__(self)
         self.parent = parent
         self.options = options or ()
@@ -124,77 +150,94 @@ class SeedLayout(QtWidgets.QVBoxLayout):
         self.addLayout(hbox)
         hbox = QtWidgets.QHBoxLayout()
         hbox.addStretch(1)
-        self.seed_type_label = QtWidgets.QLabel('')
+        self.seed_type_label = QtWidgets.QLabel("")
         hbox.addWidget(self.seed_type_label)
         if self.options:
-            opt_button = EnterButton(_('Options'), self.seed_options)
+            opt_button = EnterButton(_("Options"), self.seed_options)
             hbox.addWidget(opt_button)
             self.addLayout(hbox)
-        grid_maybe = QtWidgets.QGridLayout()  # may not be used if none of the below if expressions evaluates to true, that's ok.
-        grid_maybe.setColumnStretch(1, 1)  # we want the right-hand column to take up as much space as it needs.
+        grid_maybe = (
+            QtWidgets.QGridLayout()
+        )  # may not be used if none of the below if expressions evaluates to true, that's ok.
+        grid_maybe.setColumnStretch(
+            1, 1
+        )  # we want the right-hand column to take up as much space as it needs.
         grid_row = 0
         if seed_type:
             seed_type_text = mnemo.format_seed_type_name_for_ui(seed_type)
-            grid_maybe.addWidget(QtWidgets.QLabel(_("Seed format") + ':'), grid_row, 0)
-            grid_maybe.addWidget(QtWidgets.QLabel(f'<b>{seed_type_text}</b>'), grid_row, 1, Qt.AlignLeft)
+            grid_maybe.addWidget(QtWidgets.QLabel(_("Seed format") + ":"), grid_row, 0)
+            grid_maybe.addWidget(
+                QtWidgets.QLabel(f"<b>{seed_type_text}</b>"), grid_row, 1, Qt.AlignLeft
+            )
             grid_row += 1
         if passphrase:
             passphrase_e = QtWidgets.QLineEdit()
             passphrase_e.setText(passphrase)
             passphrase_e.setReadOnly(True)
-            grid_maybe.addWidget(QtWidgets.QLabel(_("Your seed extension is") + ':'), grid_row, 0)
+            grid_maybe.addWidget(
+                QtWidgets.QLabel(_("Your seed extension is") + ":"), grid_row, 0
+            )
             grid_maybe.addWidget(passphrase_e, grid_row, 1)
             grid_row += 1
         if derivation:
             der_e = QtWidgets.QLineEdit()
             der_e.setText(str(derivation))
             der_e.setReadOnly(True)
-            grid_maybe.addWidget(QtWidgets.QLabel(_("Wallet derivation path") + ':'), grid_row, 0)
+            grid_maybe.addWidget(
+                QtWidgets.QLabel(_("Wallet derivation path") + ":"), grid_row, 0
+            )
             grid_maybe.addWidget(der_e, grid_row, 1)
             grid_row += 1
         if grid_row > 0:  # only if above actually added widgets
             self.addLayout(grid_maybe)
         self.addStretch(1)
-        self.seed_warning = WWLabel('')
+        self.seed_warning = WWLabel("")
         self.has_warning_message = bool(msg)
         if self.has_warning_message:
-            self.seed_warning.setText(seed_warning_msg(seed, bool(derivation), bool(passphrase)))
+            self.seed_warning.setText(
+                seed_warning_msg(seed, bool(derivation), bool(passphrase))
+            )
         self.addWidget(self.seed_warning)
 
     def get_seed(self):
         text = self.seed_e.text()
-        return ' '.join(text.split())
+        return " ".join(text.split())
 
     _mnem = None
+
     def on_edit(self):
         may_clear_warning = not self.has_warning_message and self.editable
         if self._mnem is None:
             # cache the lang wordlist so it doesn't need to get loaded each time.
             # This speeds up seed_type_name and Mnemonic.check
-            self._mnem = mnemonic.Mnemonic('english')
+            self._mnem = mnemonic.Mnemonic("english")
         words = self.get_seed()
         b = self.is_seed(words)
         if not self.is_bip39:
             t = mnemo.format_seed_type_name_for_ui(mnemo.seed_type_name(words))
-            label = _('Seed Type') + ': ' + t if t else ''
-            if t and may_clear_warning and 'bip39' in self.options:
+            label = _("Seed Type") + ": " + t if t else ""
+            if t and may_clear_warning and "bip39" in self.options:
                 match_set = mnemo.autodetect_seed_type(words)
                 if len(match_set) > 1 and mnemo.SeedType.BIP39 in match_set:
                     may_clear_warning = False
                     self.seed_warning.setText(
-                        _('This seed is ambiguous and may also be interpreted as a <b>BIP39</b> seed.')
-                        + '<br/><br/>'
-                        + _('If you wish this seed to be interpreted as a BIP39 seed, '
-                            'then use the Options button to force BIP39 interpretation of this seed.')
+                        _(
+                            "This seed is ambiguous and may also be interpreted as a <b>BIP39</b> seed."
+                        )
+                        + "<br/><br/>"
+                        + _(
+                            "If you wish this seed to be interpreted as a BIP39 seed, "
+                            "then use the Options button to force BIP39 interpretation of this seed."
+                        )
                     )
         else:
             is_valid = self._mnem.check(words)
-            status = 'valid' if is_valid else 'invalid'
-            label = f'BIP39' + f' ({status})'
+            status = "valid" if is_valid else "invalid"
+            label = f"BIP39" + f" ({status})"
         self.seed_type_label.setText(label)
         self.parent.next_button.setEnabled(b)
         if may_clear_warning:
-            self.seed_warning.setText('')
+            self.seed_warning.setText("")
 
 
 class KeysLayout(QtWidgets.QVBoxLayout):
@@ -216,13 +259,19 @@ class KeysLayout(QtWidgets.QVBoxLayout):
 
 
 class SeedDialog(WindowModalDialog):
-
     def __init__(self, parent, seed, passphrase, derivation=None, seed_type=None):
-        WindowModalDialog.__init__(self, parent,
-                                   (f'{PROJECT_NAME} - ' + _('Seed')))
+        WindowModalDialog.__init__(self, parent, (f"{PROJECT_NAME} - " + _("Seed")))
         self.setMinimumWidth(400)
         vbox = QtWidgets.QVBoxLayout(self)
-        title =  _("Your wallet generation seed is:")
-        slayout = SeedLayout(title=title, seed=seed, msg=True, passphrase=passphrase, editable=False, derivation=derivation, seed_type=seed_type)
+        title = _("Your wallet generation seed is:")
+        slayout = SeedLayout(
+            title=title,
+            seed=seed,
+            msg=True,
+            passphrase=passphrase,
+            editable=False,
+            derivation=derivation,
+            seed_type=seed_type,
+        )
         vbox.addLayout(slayout)
         vbox.addLayout(Buttons(CloseButton(self)))

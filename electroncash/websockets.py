@@ -23,13 +23,17 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import json
+import os
 import queue
-import threading, os, json
+import threading
 from collections import defaultdict
+
 try:
-    from SimpleWebSocketServer import WebSocket, SimpleSSLWebSocketServer
+    from SimpleWebSocketServer import SimpleSSLWebSocketServer, WebSocket
 except ImportError:
     import sys
+
     sys.exit("install SimpleWebSocketServer")
 
 from . import util
@@ -37,10 +41,10 @@ from .address import Address
 
 request_queue = queue.Queue()
 
-class ElectrumWebSocket(WebSocket, util.PrintError):
 
+class ElectrumWebSocket(WebSocket, util.PrintError):
     def handleMessage(self):
-        assert self.data[:3] == 'id:'
+        assert self.data[:3] == "id:"
         self.print_error("message received", self.data)
         request_id = self.data[3:]
         request_queue.put((self, request_id))
@@ -52,9 +56,7 @@ class ElectrumWebSocket(WebSocket, util.PrintError):
         self.print_error("closed", self.address)
 
 
-
 class WsClientThread(util.DaemonThread):
-
     def __init__(self, config, network):
         super().__init__()
         self.network = network
@@ -65,13 +67,15 @@ class WsClientThread(util.DaemonThread):
 
     def make_request(self, request_id):
         # read json file
-        rdir = self.config.get('requests_dir')
-        n = os.path.join(rdir, 'req', request_id[0], request_id[1], request_id, request_id + '.json')
-        with open(n, encoding='utf-8') as f:
+        rdir = self.config.get("requests_dir")
+        n = os.path.join(
+            rdir, "req", request_id[0], request_id[1], request_id, request_id + ".json"
+        )
+        with open(n, encoding="utf-8") as f:
             s = f.read()
         d = json.loads(s)
-        addr = d.get('address')
-        amount = d.get('amount')
+        addr = d.get("address")
+        amount = d.get("amount")
         return addr, amount
 
     def reading_thread(self):
@@ -89,12 +93,17 @@ class WsClientThread(util.DaemonThread):
             except Exception as e:
                 self.print_error("Error parsing address", addr, repr(e))
                 continue
-            l = self.subscriptions[addr]  # defaultdict will create empty list if not already there.
+            l = self.subscriptions[
+                addr
+            ]  # defaultdict will create empty list if not already there.
             l.append((ws, amount))
             h = addr.to_scripthash_hex()
-            self.sh2addr[h] = addr  # remember this scripthash_hex -> addr mapping since run() below needs it.
-            self.network.send([('blockchain.scripthash.subscribe', [h])], self.response_queue.put)
-
+            self.sh2addr[
+                h
+            ] = addr  # remember this scripthash_hex -> addr mapping since run() below needs it.
+            self.network.send(
+                [("blockchain.scripthash.subscribe", [h])], self.response_queue.put
+            )
 
     def run(self):
         threading.Thread(target=self.reading_thread).start()
@@ -103,15 +112,18 @@ class WsClientThread(util.DaemonThread):
                 r = self.response_queue.get(timeout=0.1)
             except queue.Empty:
                 continue
-            self.print_error('response', r)
-            method = r.get('method')
-            params = r.get('params')
-            result = r.get('result')
+            self.print_error("response", r)
+            method = r.get("method")
+            params = r.get("params")
+            result = r.get("result")
             if result is None:
                 continue
-            if method == 'blockchain.scripthash.subscribe':
-                self.network.send([('blockchain.scripthash.get_balance', params)], self.response_queue.put)
-            elif method == 'blockchain.scripthash.get_balance':
+            if method == "blockchain.scripthash.subscribe":
+                self.network.send(
+                    [("blockchain.scripthash.get_balance", params)],
+                    self.response_queue.put,
+                )
+            elif method == "blockchain.scripthash.get_balance":
                 h = params[0]
                 addr = self.sh2addr.get(h)
                 if addr is None:
@@ -121,12 +133,10 @@ class WsClientThread(util.DaemonThread):
                 for ws, amount in l:
                     if not ws.closed:
                         if sum(result.values()) >= amount:
-                            ws.sendMessage('paid')
-
+                            ws.sendMessage("paid")
 
 
 class WebSocketServer(threading.Thread):
-
     def __init__(self, config, ns):
         threading.Thread.__init__(self)
         self.config = config
@@ -137,9 +147,11 @@ class WebSocketServer(threading.Thread):
         t = WsClientThread(self.config, self.net_server)
         t.start()
 
-        host = self.config.get('websocket_server')
-        port = self.config.get('websocket_port', 9999)
-        certfile = self.config.get('ssl_chain')
-        keyfile = self.config.get('ssl_privkey')
-        self.server = SimpleSSLWebSocketServer(host, port, ElectrumWebSocket, certfile, keyfile)
+        host = self.config.get("websocket_server")
+        port = self.config.get("websocket_port", 9999)
+        certfile = self.config.get("ssl_chain")
+        keyfile = self.config.get("ssl_privkey")
+        self.server = SimpleSSLWebSocketServer(
+            host, port, ElectrumWebSocket, certfile, keyfile
+        )
         self.server.serveforever()

@@ -30,28 +30,6 @@ Client-side fusion logic. See `class Fusion` for the main exposed API.
 This module has no GUI dependency.
 """
 
-from electroncash import schnorr
-from electroncash.bitcoin import public_key_from_private_key
-from electroncash.constants import XEC
-from electroncash.i18n import _, ngettext, pgettext
-from electroncash.util import format_satoshis, do_in_main_thread, PrintError, ServerError, TxHashMismatch, TimeoutException
-from electroncash.wallet import Standard_Wallet, Multisig_Wallet
-
-from . import encrypt
-from . import fusion_pb2 as pb
-from . import pedersen
-from .comms import send_pb, recv_pb, get_current_genesis_hash
-from . import compatibility
-from .connection import open_connection
-from .conf import Conf
-from .covert import CovertSubmitter, is_tor_port
-from .protocol import Protocol
-from .util import (FusionError, sha256, calc_initial_hash, calc_round_hash, size_of_input, size_of_output,
-                   component_fee, gen_keypair, tx_from_components, rand_position)
-from .validation import validate_proof_internal, ValidationError, check_input_electrumx
-
-from google.protobuf.message import DecodeError
-
 import copy
 import itertools
 import secrets
@@ -61,6 +39,44 @@ import time
 import weakref
 from collections import defaultdict
 from math import ceil
+
+from google.protobuf.message import DecodeError
+
+from electroncash import schnorr
+from electroncash.bitcoin import public_key_from_private_key
+from electroncash.constants import XEC
+from electroncash.i18n import _, ngettext, pgettext
+from electroncash.util import (
+    PrintError,
+    ServerError,
+    TimeoutException,
+    TxHashMismatch,
+    do_in_main_thread,
+    format_satoshis,
+)
+from electroncash.wallet import Multisig_Wallet, Standard_Wallet
+
+from . import compatibility, encrypt
+from . import fusion_pb2 as pb
+from . import pedersen
+from .comms import get_current_genesis_hash, recv_pb, send_pb
+from .conf import Conf
+from .connection import open_connection
+from .covert import CovertSubmitter, is_tor_port
+from .protocol import Protocol
+from .util import (
+    FusionError,
+    calc_initial_hash,
+    calc_round_hash,
+    component_fee,
+    gen_keypair,
+    rand_position,
+    sha256,
+    size_of_input,
+    size_of_output,
+    tx_from_components,
+)
+from .validation import ValidationError, check_input_electrumx, validate_proof_internal
 
 # used for tagging fusions in a way privately derived from wallet name
 tag_seed = secrets.token_bytes(16)
@@ -84,16 +100,21 @@ MAX_FEE = MAX_COMPONENT_FEERATE * 7 + MAX_EXCESS_FEE
 # (distinct tx inputs, and tx outputs)
 MIN_TX_COMPONENTS = 11
 
+
 def can_fuse_from(wallet):
     """We can only fuse from wallets that are p2pkh, and where we are able
     to extract the private key."""
-    return not (wallet.is_watching_only() or wallet.is_hardware() or isinstance(wallet, Multisig_Wallet))
+    return not (
+        wallet.is_watching_only()
+        or wallet.is_hardware()
+        or isinstance(wallet, Multisig_Wallet)
+    )
+
 
 def can_fuse_to(wallet):
     """We can only fuse to wallets that are p2pkh with HD generation. We do
     *not* need the private keys."""
     return isinstance(wallet, Standard_Wallet)
-
 
 
 # Some internal stuff
@@ -102,8 +123,11 @@ def can_fuse_to(wallet):
 # we only use it to generate a few floating point numbers, with cryptographically secure seed.
 from random import Random
 
-def random_outputs_for_tier(rng, input_amount, scale, offset, max_count, allow_extra_change=False):
-    """ Make up to `max_number` random output values, chosen using exponential
+
+def random_outputs_for_tier(
+    rng, input_amount, scale, offset, max_count, allow_extra_change=False
+):
+    """Make up to `max_number` random output values, chosen using exponential
     distribution function. All parameters should be positive `int`s.
 
     None can be returned for expected types of failures, which will often occur
@@ -124,11 +148,11 @@ def random_outputs_for_tier(rng, input_amount, scale, offset, max_count, allow_e
     if input_amount < offset:
         return None
 
-    lambd = 1./scale
+    lambd = 1.0 / scale
 
     remaining = input_amount
     values = []  # list of fractional random values without offset
-    for _i in range(max_count+1):
+    for _i in range(max_count + 1):
         val = rng.expovariate(lambd)
         # A ceil here makes sure rounding errors won't sometimes put us over the top.
         # Provided that scale is much larger than 1, the impact is negligible.
@@ -162,11 +186,14 @@ def random_outputs_for_tier(rng, input_amount, scale, offset, max_count, allow_e
     normed_cumsum = [round(rescale * v) for v in cumsum]
     assert normed_cumsum[-1] == desired_random_sum
 
-    differences = ((a - b) for a,b in zip(normed_cumsum, itertools.chain((0,),normed_cumsum)))
+    differences = (
+        (a - b) for a, b in zip(normed_cumsum, itertools.chain((0,), normed_cumsum))
+    )
     result = [(offset + d) for d in differences]
     assert sum(result) == input_amount
 
     return result
+
 
 def gen_components(num_blanks, inputs, outputs, feerate):
     """
@@ -196,14 +223,14 @@ def gen_components(num_blanks, inputs, outputs, feerate):
         comp.input.prev_index = pn
         comp.input.pubkey = pubkey
         comp.input.amount = value
-        components.append((comp, +value-fee))
+        components.append((comp, +value - fee))
     for value, addr in outputs:
         script = addr.to_script()
         fee = component_fee(size_of_output(script), feerate)
         comp = pb.Component()
         comp.output.scriptpubkey = script
         comp.output.amount = value
-        components.append((comp, -value-fee))
+        components.append((comp, -value - fee))
     for _i in range(num_blanks):
         comp = pb.Component(blank={})
         components.append((comp, 0))
@@ -224,7 +251,7 @@ def gen_components(num_blanks, inputs, outputs, feerate):
         privkey, pubkeyU, pubkeyC = gen_keypair()
 
         commitment = pb.InitialCommitment()
-        commitment.salted_component_hash = sha256(salt+compser)
+        commitment.salted_component_hash = sha256(salt + compser)
         commitment.amount_commitment = pedersencommitment.P_uncompressed
         commitment.communication_key = pubkeyC
 
@@ -233,21 +260,21 @@ def gen_components(num_blanks, inputs, outputs, feerate):
         proof = pb.Proof()
         # proof.component_idx = <to be filled in later>
         proof.salt = salt
-        proof.pedersen_nonce = int(pedersencommitment.nonce).to_bytes(32, 'big')
+        proof.pedersen_nonce = int(pedersencommitment.nonce).to_bytes(32, "big")
 
         resultlist.append((commitser, cnum, compser, proof, privkey))
 
     # Sort by the commitment bytestring, in order to forget the original order.
-    resultlist.sort(key=lambda x:x[0])
+    resultlist.sort(key=lambda x: x[0])
 
     sum_nonce = sum_nonce % pedersen.order
-    pedersen_total_nonce = int(sum_nonce).to_bytes(32, 'big')
+    pedersen_total_nonce = int(sum_nonce).to_bytes(32, "big")
 
     return zip(*resultlist), sum_amounts, pedersen_total_nonce
 
 
 class Fusion(threading.Thread, PrintError):
-    """ Represents a single connection to the fusion server and a fusion attempt.
+    """Represents a single connection to the fusion server and a fusion attempt.
     This happens in its own thread, in the background.
 
     Usage:
@@ -258,12 +285,22 @@ class Fusion(threading.Thread, PrintError):
     4. To request stopping the fusion before completion, call .stop(). then wait
        for the thread to stop (call .join() to wait). This may take some time.
     """
-    stopping=False
-    stopping_if_not_running=False
-    max_outputs = None
-    status=('setup', None) # will always be 2-tuple; second param has extra details
 
-    def __init__(self, plugin, target_wallet, server_host, server_port, server_ssl, tor_host, tor_port):
+    stopping = False
+    stopping_if_not_running = False
+    max_outputs = None
+    status = ("setup", None)  # will always be 2-tuple; second param has extra details
+
+    def __init__(
+        self,
+        plugin,
+        target_wallet,
+        server_host,
+        server_port,
+        server_ssl,
+        tor_host,
+        tor_port,
+    ):
         super().__init__()
 
         assert can_fuse_to(target_wallet)
@@ -278,14 +315,14 @@ class Fusion(threading.Thread, PrintError):
         self.tor_host = tor_host
         self.tor_port = tor_port
 
-        self.coins = dict() # full input info
+        self.coins = dict()  # full input info
         self.keypairs = dict()
         self.outputs = []
         # for detecting spends (and finally unfreezing coins) we remember for each wallet:
         # - which coins we have from that wallet ("txid:n"),
         # - which coin txids we have, and
         # - which txids we've already scanned for spends of our coins.
-        self.source_wallet_info = defaultdict(lambda:(set(), set(), set()))
+        self.source_wallet_info = defaultdict(lambda: (set(), set(), set()))
         self.distinct_inputs = 0
         self.roundcount = 0
         self.txid = None  # set iff completed ok
@@ -295,13 +332,13 @@ class Fusion(threading.Thread, PrintError):
         return self.weak_plugin and self.weak_plugin()
 
     def add_coins(self, coins, keypairs):
-        """ Add given P2PKH coins to be used as inputs in a fusion.
+        """Add given P2PKH coins to be used as inputs in a fusion.
 
         - coins: dict of {(prevout_hash, prevout_n): (bytes pubkey, integer value in sats)}
 
         - keypairs: dict of {hex pubkey: bytes privkey}
         """
-        assert self.status[0] == 'setup'
+        assert self.status[0] == "setup"
         for hpub, priv in keypairs.items():
             assert isinstance(hpub, str)
             assert isinstance(priv, tuple) and len(priv) == 2
@@ -309,7 +346,7 @@ class Fusion(threading.Thread, PrintError):
             assert isinstance(sec, bytes) and len(sec) == 32
         self.keypairs.update(keypairs)
         for coin, (pub, value) in coins.items():
-            assert pub[0] in (2,3,4), "expecting a realized pubkey"
+            assert pub[0] in (2, 3, 4), "expecting a realized pubkey"
             assert coin not in self.coins, "already added"
             assert pub.hex() in self.keypairs, f"missing private key for {pub.hex()}"
         self.coins.update(coins)
@@ -328,12 +365,14 @@ class Fusion(threading.Thread, PrintError):
         assert can_fuse_from(wallet)
         if len(self.source_wallet_info) >= 5 and wallet not in self.source_wallet_info:
             raise RuntimeError("too many source wallets")
-        if not hasattr(wallet, 'cashfusion_tag'):
-            wallet.cashfusion_tag = sha256(tag_seed + wallet.diagnostic_name().encode())[:20]
+        if not hasattr(wallet, "cashfusion_tag"):
+            wallet.cashfusion_tag = sha256(
+                tag_seed + wallet.diagnostic_name().encode()
+            )[:20]
         xpubkeys_set = set()
         for c in coins:
             wallet.add_input_info(c)
-            xpubkey, = c['x_pubkeys']
+            (xpubkey,) = c["x_pubkeys"]
             xpubkeys_set.add(xpubkey)
 
         # get private keys and convert x_pubkeys to real pubkeys
@@ -347,14 +386,20 @@ class Fusion(threading.Thread, PrintError):
             keypairs[pubkeyhex] = privkey
             pubkeys[xpubkey] = pubkey
 
-        coindict = {(c['prevout_hash'], c['prevout_n']): (pubkeys[c['x_pubkeys'][0]], c['value']) for c in coins}
+        coindict = {
+            (c["prevout_hash"], c["prevout_n"]): (
+                pubkeys[c["x_pubkeys"][0]],
+                c["value"],
+            )
+            for c in coins
+        }
         self.add_coins(coindict, keypairs)
 
-        coinstrs = set(t + ':' + str(i) for t,i in coindict)
-        txids = set(t for t,i in coindict)
+        coinstrs = set(t + ":" + str(i) for t, i in coindict)
+        txids = set(t for t, i in coindict)
         self.source_wallet_info[wallet][0].update(coinstrs)
         self.source_wallet_info[wallet][1].update(txids)
-        wallet.set_frozen_coin_state(coinstrs, True, temporary = True)
+        wallet.set_frozen_coin_state(coinstrs, True, temporary=True)
         self.notify_coins_ui(wallet)
 
     def check_coins(self):
@@ -366,7 +411,7 @@ class Fusion(threading.Thread, PrintError):
                     txi = wallet.txi.get(txid, None)
                     if not txi:
                         continue
-                    txspends = (c for addrtxi in txi.values() for c,v in addrtxi)
+                    txspends = (c for addrtxi in txi.values() for c, v in addrtxi)
                     spent = coins.intersection(txspends)
                     if spent:
                         raise FusionError(f"input spent: {spent.pop()} spent in {txid}")
@@ -378,11 +423,11 @@ class Fusion(threading.Thread, PrintError):
                 raise FusionError(f"input missing: {missing.pop()}")
 
     def clear_coins(self):
-        """ Clear the inputs list and release frozen coins. """
+        """Clear the inputs list and release frozen coins."""
         for wallet, (coins, mytxids, checked_txids) in self.source_wallet_info.items():
             wallet.set_frozen_coin_state(coins, False)
             self.notify_coins_ui(wallet)
-        self.source_wallet_info.clear() # save some memory as the checked_txids set can be big
+        self.source_wallet_info.clear()  # save some memory as the checked_txids set can be big
         self.coins.clear()
         self.keypairs.clear()
 
@@ -392,16 +437,16 @@ class Fusion(threading.Thread, PrintError):
             strong_plugin.update_coins_ui(wallet)
 
     def notify_server_status(self, b, tup=None):
-        '''True means server is good, False it's bad. This ultimately makes
+        """True means server is good, False it's bad. This ultimately makes
         its way to the UI to tell the user there is a connectivity or other
-        problem. '''
+        problem."""
         strong_plugin = self.strong_plugin  # hold strong ref for duration of function
         if strong_plugin:
             if not isinstance(tup, (tuple, list)) or len(tup) != 2:
-                tup = "Ok" if b else "Error", ''
+                tup = "Ok" if b else "Error", ""
             strong_plugin.notify_server_status(b, tup)
 
-    def start(self, inactive_timeout = None):
+    def start(self, inactive_timeout=None):
         if inactive_timeout is None:
             self.inactive_time_limit = None
         else:
@@ -416,21 +461,34 @@ class Fusion(threading.Thread, PrintError):
                 compatibility.check()
             except RuntimeError as e:
                 raise FusionError("Incompatible: " + str(e))
-            if (self.tor_host is not None and self.tor_port is not None
-                    and not is_tor_port(self.tor_host, self.tor_port)):
-                raise FusionError(f"Can't connect to Tor proxy at {self.tor_host}:{self.tor_port}")
+            if (
+                self.tor_host is not None
+                and self.tor_port is not None
+                and not is_tor_port(self.tor_host, self.tor_port)
+            ):
+                raise FusionError(
+                    f"Can't connect to Tor proxy at {self.tor_host}:{self.tor_port}"
+                )
 
-            self.check_stop(running = False)
+            self.check_stop(running=False)
             self.check_coins()
 
             # Connect to the server
-            self.status = ('connecting', '')
+            self.status = ("connecting", "")
             try:
-                self.connection = open_connection(self.server_host, self.server_port, conn_timeout=5.0, default_timeout=5.0, ssl=self.server_ssl)
+                self.connection = open_connection(
+                    self.server_host,
+                    self.server_port,
+                    conn_timeout=5.0,
+                    default_timeout=5.0,
+                    ssl=self.server_ssl,
+                )
             except OSError as e:
                 self.print_error("Connect failed:", repr(e))
-                sslstr = ' SSL ' if self.server_ssl else ''
-                raise FusionError(f'Could not connect to {sslstr}{self.server_host}:{self.server_port}') from e
+                sslstr = " SSL " if self.server_ssl else ""
+                raise FusionError(
+                    f"Could not connect to {sslstr}{self.server_host}:{self.server_port}"
+                ) from e
 
             with self.connection:
                 # Version check and download server params.
@@ -442,7 +500,7 @@ class Fusion(threading.Thread, PrintError):
                 # In principle we can hook a pause in here -- user can insert coins after seeing server params.
 
                 if not self.coins:
-                    raise FusionError('Started with no coins')
+                    raise FusionError("Started with no coins")
                 self.allocate_outputs()
 
                 # In principle we can hook a pause in here -- user can tweak tier_outputs, perhaps cancelling some unwanted tiers.
@@ -461,7 +519,7 @@ class Fusion(threading.Thread, PrintError):
                 finally:
                     covert.stop()
 
-            self.status = ('complete', 'time_wait')
+            self.status = ("complete", "time_wait")
 
             # The server has told us the fusion is complete but we might not
             # have seen the tx show up in our wallets. So we can't unfreeze
@@ -471,7 +529,7 @@ class Fusion(threading.Thread, PrintError):
             wallets.add(self.target_wallet)
             for _i in range(60):
                 if self.stopping:
-                    break # not an error
+                    break  # not an error
                 for w in wallets:
                     if self.txid not in w.transactions:
                         break
@@ -479,23 +537,24 @@ class Fusion(threading.Thread, PrintError):
                     break
                 time.sleep(1)
 
-            self.status = ('complete', 'txid: ' + self.txid)
+            self.status = ("complete", "txid: " + self.txid)
         except FusionError as err:
-            self.print_error('Failed: {}'.format(err))
-            self.status = ('failed', err.args[0] if err.args else 'Unknown error')
+            self.print_error("Failed: {}".format(err))
+            self.status = ("failed", err.args[0] if err.args else "Unknown error")
         except Exception as exc:
             import traceback
+
             traceback.print_exc(file=sys.stderr)
-            self.status = ('failed', 'Exception {}: {}'.format(type(exc).__name__, exc))
+            self.status = ("failed", "Exception {}: {}".format(type(exc).__name__, exc))
         finally:
             self.clear_coins()
-            if self.status[0] != 'complete':
+            if self.status[0] != "complete":
                 for amount, addr in self.outputs:
                     self.target_wallet.unreserve_change_address(addr)
                 if not server_connected_and_greeted:
                     self.notify_server_status(False, self.status)
 
-    def stop(self, reason = 'stopped', not_if_running = False):
+    def stop(self, reason="stopped", not_if_running=False):
         if self.stopping:
             return
         if not_if_running:
@@ -509,15 +568,21 @@ class Fusion(threading.Thread, PrintError):
         # note the reason is only overwritten if we were not already stopping this way.
 
     def check_stop(self, running=True):
-        """ Gets called occasionally from fusion thread to allow a stop point. """
+        """Gets called occasionally from fusion thread to allow a stop point."""
         if self.stopping or (not running and self.stopping_if_not_running):
             raise FusionError(self.stop_reason)
 
     def recv(self, *expected_msg_names, timeout=None):
-        submsg, mtype = recv_pb(self.connection, pb.ServerMessage, 'error', *expected_msg_names, timeout=timeout)
+        submsg, mtype = recv_pb(
+            self.connection,
+            pb.ServerMessage,
+            "error",
+            *expected_msg_names,
+            timeout=timeout,
+        )
 
-        if mtype == 'error':
-            raise FusionError('server error: {!r}'.format(submsg.message))
+        if mtype == "error":
+            raise FusionError("server error: {!r}".format(submsg.message))
 
         return submsg
 
@@ -526,10 +591,16 @@ class Fusion(threading.Thread, PrintError):
 
     ## Rough phases of protocol
 
-    def greet(self,):
-        self.print_error('greeting server')
-        self.send(pb.ClientHello(version=Protocol.VERSION, genesis_hash=get_current_genesis_hash()))
-        reply = self.recv('serverhello')
+    def greet(
+        self,
+    ):
+        self.print_error("greeting server")
+        self.send(
+            pb.ClientHello(
+                version=Protocol.VERSION, genesis_hash=get_current_genesis_hash()
+            )
+        )
+        reply = self.recv("serverhello")
         self.num_components = reply.num_components
         self.component_feerate = reply.component_feerate
         self.min_excess_fee = reply.min_excess_fee
@@ -541,17 +612,19 @@ class Fusion(threading.Thread, PrintError):
 
         # Enforce some sensible limits, in case server is crazy
         if self.component_feerate > MAX_COMPONENT_FEERATE:
-            raise FusionError('excessive component feerate from server')
+            raise FusionError("excessive component feerate from server")
         if self.min_excess_fee > 400:
             # note this threshold should be far below MAX_EXCESS_FEE
-            raise FusionError('excessive min excess fee from server')
+            raise FusionError("excessive min excess fee from server")
         if self.min_excess_fee > self.max_excess_fee:
-            raise FusionError('bad config on server: fees')
+            raise FusionError("bad config on server: fees")
         if self.num_components < MIN_TX_COMPONENTS * 1.5:
-            raise FusionError('bad config on server: num_components')
+            raise FusionError("bad config on server: num_components")
 
-    def allocate_outputs(self,):
-        assert self.status[0] in ('setup', 'connecting')
+    def allocate_outputs(
+        self,
+    ):
+        assert self.status[0] in ("setup", "connecting")
 
         # fix the input selection
         self.inputs = tuple(self.coins.items())
@@ -560,7 +633,9 @@ class Fusion(threading.Thread, PrintError):
         maxcomponents = min(self.num_components, MAX_COMPONENTS)
         max_outputs = maxcomponents - num_inputs
         if max_outputs < 1:
-            raise FusionError('Too many inputs (%d >= %d)'%(num_inputs, maxcomponents))
+            raise FusionError(
+                "Too many inputs (%d >= %d)" % (num_inputs, maxcomponents)
+            )
 
         if self.max_outputs is not None:
             assert self.max_outputs >= 1
@@ -570,17 +645,21 @@ class Fusion(threading.Thread, PrintError):
         # outputs.
         # Calculate the number of distinct inputs as the number of distinct pubkeys
         # (i.e. extra inputs from same address don't count as distinct)
-        num_distinct = len(set(pub for (_,_), (pub,_) in self.inputs))
+        num_distinct = len(set(pub for (_, _), (pub, _) in self.inputs))
         min_outputs = max(MIN_TX_COMPONENTS - num_distinct, 1)
         if max_outputs < min_outputs:
-            raise FusionError('Too few distinct inputs selected (%d); cannot satisfy output count constraint (>=%d, <=%d)'%(num_distinct, min_outputs, max_outputs))
+            raise FusionError(
+                "Too few distinct inputs selected (%d); cannot satisfy output count constraint (>=%d, <=%d)"
+                % (num_distinct, min_outputs, max_outputs)
+            )
 
         # how much input value do we bring to the table (after input & player fees)
-        sum_inputs_value = sum(v for (_,_), (p,v) in self.inputs)
-        input_fees = sum(component_fee(size_of_input(p), self.component_feerate) for (_,_), (p,v) in self.inputs)
-        avail_for_outputs = (sum_inputs_value
-                             - input_fees
-                             - self.min_excess_fee)
+        sum_inputs_value = sum(v for (_, _), (p, v) in self.inputs)
+        input_fees = sum(
+            component_fee(size_of_input(p), self.component_feerate)
+            for (_, _), (p, v) in self.inputs
+        )
+        avail_for_outputs = sum_inputs_value - input_fees - self.min_excess_fee
 
         # each P2PKH output will need at least this much allocated to it.
         fee_per_output = component_fee(34, self.component_feerate)
@@ -588,7 +667,7 @@ class Fusion(threading.Thread, PrintError):
 
         if avail_for_outputs < offset_per_output:
             # our input amounts are so small that we can't even manage a single output.
-            raise FusionError('Selected inputs had too little value')
+            raise FusionError("Selected inputs had too little value")
 
         rng = Random()
         rng.seed(secrets.token_bytes(32))
@@ -610,18 +689,25 @@ class Fusion(threading.Thread, PrintError):
             # Now choose a random fuzz fee. Uniform random is best for obfuscation.
             # But before we do, there is a maximum fuzzing fee that is admitted by server, and
             # a safety maximum that we have ourselves.
-            fuzz_fee_max_reduced = min(fuzz_fee_max,
-                                       MAX_EXCESS_FEE - self.min_excess_fee,
-                                       self.max_excess_fee - self.min_excess_fee)
+            fuzz_fee_max_reduced = min(
+                fuzz_fee_max,
+                MAX_EXCESS_FEE - self.min_excess_fee,
+                self.max_excess_fee - self.min_excess_fee,
+            )
             assert fuzz_fee_max_reduced >= 0
             fuzz_fee = secrets.randbelow(fuzz_fee_max_reduced + 1)
-            assert fuzz_fee <= fuzz_fee_max_reduced and fuzz_fee_max_reduced <= fuzz_fee_max
+            assert (
+                fuzz_fee <= fuzz_fee_max_reduced
+                and fuzz_fee_max_reduced <= fuzz_fee_max
+            )
 
             reduced_avail_for_outputs = avail_for_outputs - fuzz_fee
             if reduced_avail_for_outputs < offset_per_output:
                 continue
 
-            outputs = random_outputs_for_tier(rng, reduced_avail_for_outputs, scale, offset_per_output, max_outputs)
+            outputs = random_outputs_for_tier(
+                rng, reduced_avail_for_outputs, scale, offset_per_output, max_outputs
+            )
             if not outputs or len(outputs) < min_outputs:
                 # this tier is no good for us.
                 continue
@@ -629,7 +715,9 @@ class Fusion(threading.Thread, PrintError):
             outputs = tuple(o - fee_per_output for o in outputs)
 
             assert len(self.inputs) + len(outputs) <= MAX_COMPONENTS
-            excess_fees[scale] = sum_inputs_value - input_fees - reduced_avail_for_outputs
+            excess_fees[scale] = (
+                sum_inputs_value - input_fees - reduced_avail_for_outputs
+            )
             tier_outputs[scale] = outputs
 
         self.tier_outputs = tier_outputs
@@ -639,33 +727,39 @@ class Fusion(threading.Thread, PrintError):
         self.safety_sum_in = sum_inputs_value
         self.safety_excess_fees = excess_fees
 
-    def register_and_wait(self,):
+    def register_and_wait(
+        self,
+    ):
         tier_outputs = self.tier_outputs
         tiers_sorted = sorted(tier_outputs.keys())
 
         if not tier_outputs:
-            raise FusionError('No outputs available at any tier (selected inputs were too small / too large).')
+            raise FusionError(
+                "No outputs available at any tier (selected inputs were too small / too large)."
+            )
 
-        self.print_error(f'registering for tiers: {tiers_sorted}')
+        self.print_error(f"registering for tiers: {tiers_sorted}")
 
         tags = []
         for wallet in self.source_wallet_info:
             selffuse = Conf(wallet).self_fuse_players
-            tags.append(pb.JoinPools.PoolTag(id = wallet.cashfusion_tag, limit = selffuse))
+            tags.append(pb.JoinPools.PoolTag(id=wallet.cashfusion_tag, limit=selffuse))
 
         ## Join waiting pools
         self.check_stop(running=False)
         self.check_coins()
-        self.send(pb.JoinPools(tiers = tiers_sorted, tags=tags))
+        self.send(pb.JoinPools(tiers=tiers_sorted, tags=tags))
 
-        self.status = ('waiting', 'Registered for tiers')
+        self.status = ("waiting", "Registered for tiers")
 
         # make nicer strings for UI
-        tiers_strings = {t: '{:.8f}'.format(t * 1e-8).rstrip('0') for t, s in tier_outputs.items()}
+        tiers_strings = {
+            t: "{:.8f}".format(t * 1e-8).rstrip("0") for t, s in tier_outputs.items()
+        }
 
         while True:
             # We should get a status update every 5 seconds.
-            msg = self.recv('tierstatusupdate', 'fusionbegin', timeout=10)
+            msg = self.recv("tierstatusupdate", "fusionbegin", timeout=10)
 
             if isinstance(msg, pb.FusionBegin):
                 break
@@ -676,21 +770,21 @@ class Fusion(threading.Thread, PrintError):
             assert isinstance(msg, pb.TierStatusUpdate)
 
             statuses = msg.statuses
-            maxfraction = 0.
+            maxfraction = 0.0
             maxtiers = []
             besttime = None
             besttimetier = None
-            for t,s in statuses.items():
+            for t, s in statuses.items():
                 try:
                     frac = s.players / s.min_players
                 except ZeroDivisionError:
-                    frac = -1.
+                    frac = -1.0
                 if frac >= maxfraction:
                     if frac > maxfraction:
                         maxfraction = frac
                         maxtiers.clear()
                     maxtiers.append(t)
-                if s.HasField('time_remaining'):
+                if s.HasField("time_remaining"):
                     tr = s.time_remaining
                     if besttime is None or tr < besttime:
                         besttime = tr
@@ -705,12 +799,14 @@ class Fusion(threading.Thread, PrintError):
                 try:
                     ts = tiers_strings[t]
                 except KeyError:
-                    raise FusionError('server reported status on tier we are not registered for')
+                    raise FusionError(
+                        "server reported status on tier we are not registered for"
+                    )
                 if t in statuses:
                     if t == besttimetier:
-                        display_best.insert(0, '**' + ts + '**')
+                        display_best.insert(0, "**" + ts + "**")
                     elif t in maxtiers:
-                        display_best.append('[' + ts + ']')
+                        display_best.append("[" + ts + "]")
                     else:
                         display_mid.append(ts)
                 else:
@@ -718,23 +814,29 @@ class Fusion(threading.Thread, PrintError):
 
             parts = []
             if display_best or display_mid:
-                parts.append(_("Tiers:") + ' ' + ', '.join(display_best + display_mid))
+                parts.append(_("Tiers:") + " " + ", ".join(display_best + display_mid))
             if display_queued:
-                parts.append(_("Queued:") + ' ' + ', '.join(display_queued))
-            tiers_string = ' '.join(parts)
+                parts.append(_("Queued:") + " " + ", ".join(display_queued))
+            tiers_string = " ".join(parts)
 
             if besttime is None and self.inactive_time_limit is not None:
                 if time.monotonic() > self.inactive_time_limit:
-                    raise FusionError('stopping due to inactivity')
+                    raise FusionError("stopping due to inactivity")
 
             if besttime is not None:
-                self.status = ('waiting', 'Starting in {}s. {}'.format(besttime, tiers_string))
+                self.status = (
+                    "waiting",
+                    "Starting in {}s. {}".format(besttime, tiers_string),
+                )
             elif maxfraction >= 1:
-                self.status = ('waiting', 'Starting soon. {}'.format(tiers_string))
+                self.status = ("waiting", "Starting soon. {}".format(tiers_string))
             elif display_best or display_mid:
-                self.status = ('waiting', '{:d}% full. {}'.format(round(maxfraction*100), tiers_string))
+                self.status = (
+                    "waiting",
+                    "{:d}% full. {}".format(round(maxfraction * 100), tiers_string),
+                )
             else:
-                self.status = ('waiting', tiers_string)
+                self.status = ("waiting", tiers_string)
 
         assert isinstance(msg, pb.FusionBegin)
         # Record the time we got FusionBegin. Later in run_round we will check that the
@@ -752,31 +854,68 @@ class Fusion(threading.Thread, PrintError):
         self.covert_ssl = msg.covert_ssl
         self.begin_time = msg.server_time
 
-        self.last_hash = calc_initial_hash(self.tier, msg.covert_domain, msg.covert_port, msg.covert_ssl, msg.server_time)
+        self.last_hash = calc_initial_hash(
+            self.tier,
+            msg.covert_domain,
+            msg.covert_port,
+            msg.covert_ssl,
+            msg.server_time,
+        )
 
         out_amounts = tier_outputs[self.tier]
-        out_addrs = self.target_wallet.reserve_change_addresses(len(out_amounts), temporary=True)
+        out_addrs = self.target_wallet.reserve_change_addresses(
+            len(out_amounts), temporary=True
+        )
         self.reserved_addresses = out_addrs
         self.outputs = list(zip(out_amounts, out_addrs))
         self.safety_excess_fee = self.safety_excess_fees[self.tier]
-        self.print_error(f"starting fusion rounds at tier {self.tier}: {len(self.inputs)} inputs and {len(self.outputs)} outputs")
+        self.print_error(
+            f"starting fusion rounds at tier {self.tier}: {len(self.inputs)} inputs and {len(self.outputs)} outputs"
+        )
 
-    def start_covert(self, ):
-        self.status = ('running', 'Setting up Tor connections')
+    def start_covert(
+        self,
+    ):
+        self.status = ("running", "Setting up Tor connections")
         try:
-            covert_domain = self.covert_domain_b.decode('ascii')
+            covert_domain = self.covert_domain_b.decode("ascii")
         except:
-            raise FusionError('badly encoded covert domain')
-        covert = CovertSubmitter(covert_domain, self.covert_port, self.covert_ssl, self.tor_host, self.tor_port, self.num_components, Protocol.COVERT_SUBMIT_WINDOW, Protocol.COVERT_SUBMIT_TIMEOUT)
+            raise FusionError("badly encoded covert domain")
+        covert = CovertSubmitter(
+            covert_domain,
+            self.covert_port,
+            self.covert_ssl,
+            self.tor_host,
+            self.tor_port,
+            self.num_components,
+            Protocol.COVERT_SUBMIT_WINDOW,
+            Protocol.COVERT_SUBMIT_TIMEOUT,
+        )
         try:
-            covert.schedule_connections(self.t_fusionbegin, Protocol.COVERT_CONNECT_WINDOW, Protocol.COVERT_CONNECT_SPARES, Protocol.COVERT_CONNECT_TIMEOUT)
+            covert.schedule_connections(
+                self.t_fusionbegin,
+                Protocol.COVERT_CONNECT_WINDOW,
+                Protocol.COVERT_CONNECT_SPARES,
+                Protocol.COVERT_CONNECT_TIMEOUT,
+            )
 
             # loop until a just a bit before we're expecting startround, watching for status updates
-            tend = self.t_fusionbegin + (Protocol.WARMUP_TIME - Protocol.WARMUP_SLOP - 1)
+            tend = self.t_fusionbegin + (
+                Protocol.WARMUP_TIME - Protocol.WARMUP_SLOP - 1
+            )
             while time.monotonic() < tend:
-                num_connected = sum(1 for s in covert.slots if s.covconn.connection is not None)
-                num_spare_connected = sum(1 for c in tuple(covert.spare_connections) if c.connection is not None)
-                self.status = ('running', f'Setting up Tor connections ({num_connected}+{num_spare_connected} out of {self.num_components})')
+                num_connected = sum(
+                    1 for s in covert.slots if s.covconn.connection is not None
+                )
+                num_spare_connected = sum(
+                    1
+                    for c in tuple(covert.spare_connections)
+                    if c.connection is not None
+                )
+                self.status = (
+                    "running",
+                    f"Setting up Tor connections ({num_connected}+{num_spare_connected} out of {self.num_components})",
+                )
                 time.sleep(1)
 
                 covert.check_ok()
@@ -790,8 +929,10 @@ class Fusion(threading.Thread, PrintError):
         return covert
 
     def run_round(self, covert):
-        self.status = ('running', 'Starting round {}'.format(self.roundcount))
-        msg = self.recv('startround', timeout = 2 * Protocol.WARMUP_SLOP + Protocol.STANDARD_TIMEOUT)
+        self.status = ("running", "Starting round {}".format(self.roundcount))
+        msg = self.recv(
+            "startround", timeout=2 * Protocol.WARMUP_SLOP + Protocol.STANDARD_TIMEOUT
+        )
         # record the time we got this message; it forms the basis time for all
         # covert activities.
         clock = time.monotonic
@@ -810,43 +951,60 @@ class Fusion(threading.Thread, PrintError):
             # was within acceptable bounds.
             lag = covert_T0 - self.t_fusionbegin - Protocol.WARMUP_TIME
             if abs(lag) > Protocol.WARMUP_SLOP:
-                raise FusionError(f"Warmup period too different from expectation (|{lag:.3f}s| > {Protocol.WARMUP_SLOP:.3f}s).")
+                raise FusionError(
+                    f"Warmup period too different from expectation (|{lag:.3f}s| > {Protocol.WARMUP_SLOP:.3f}s)."
+                )
             self.t_fusionbegin = None
 
         self.print_error(f"round starting at {time.time()}")
 
         # Safety against funds loss: re-check our calculations for consistency and
         # impose sanity limits.
-        input_fees = sum(component_fee(size_of_input(p), self.component_feerate) for (_,_), (p,v) in self.inputs)
+        input_fees = sum(
+            component_fee(size_of_input(p), self.component_feerate)
+            for (_, _), (p, v) in self.inputs
+        )
         output_fees = len(self.outputs) * component_fee(34, self.component_feerate)
         sum_in = sum(amt for (_, _), (pub, amt) in self.inputs)
         sum_out = sum(amt for amt, addr in self.outputs)
         total_fee = sum_in - sum_out
         excess_fee = total_fee - input_fees - output_fees
         safeties = (
-                sum_in     == self.safety_sum_in,
-                excess_fee == self.safety_excess_fee,
-                excess_fee <= MAX_EXCESS_FEE,
-                total_fee  <= MAX_FEE,
-                )
+            sum_in == self.safety_sum_in,
+            excess_fee == self.safety_excess_fee,
+            excess_fee <= MAX_EXCESS_FEE,
+            total_fee <= MAX_FEE,
+        )
         if not all(safeties):
             # Don't use assert for funds-loss check. We want this check active always.
-            raise RuntimeError(f"(BUG!) Funds re-check failed -- aborting for safety. {safeties}")
+            raise RuntimeError(
+                f"(BUG!) Funds re-check failed -- aborting for safety. {safeties}"
+            )
 
         round_pubkey = msg.round_pubkey
 
         blind_nonce_points = msg.blind_nonce_points
         if len(blind_nonce_points) != self.num_components:
-            raise FusionError('blind nonce miscount')
+            raise FusionError("blind nonce miscount")
 
         num_blanks = self.num_components - len(self.inputs) - len(self.outputs)
-        (mycommitments, mycomponentslots, mycomponents, myproofs, privkeys), pedersen_amount, pedersen_nonce = gen_components(num_blanks, self.inputs, self.outputs, self.component_feerate)
+        (
+            (mycommitments, mycomponentslots, mycomponents, myproofs, privkeys),
+            pedersen_amount,
+            pedersen_nonce,
+        ) = gen_components(
+            num_blanks, self.inputs, self.outputs, self.component_feerate
+        )
 
-        assert excess_fee == pedersen_amount # sanity check that we didn't mess up the above
-        assert len(set(mycomponents)) == len(mycomponents) # no duplicates
+        assert (
+            excess_fee == pedersen_amount
+        )  # sanity check that we didn't mess up the above
+        assert len(set(mycomponents)) == len(mycomponents)  # no duplicates
 
-        blindsigrequests = [schnorr.BlindSignatureRequest(round_pubkey, R, sha256(m))
-                            for R,m in zip(blind_nonce_points, mycomponents)]
+        blindsigrequests = [
+            schnorr.BlindSignatureRequest(round_pubkey, R, sha256(m))
+            for R, m in zip(blind_nonce_points, mycomponents)
+        ]
 
         random_number = secrets.token_bytes(32)
 
@@ -855,22 +1013,27 @@ class Fusion(threading.Thread, PrintError):
         self.check_stop()
         self.check_coins()
 
-        self.send(pb.PlayerCommit(initial_commitments = mycommitments,
-                                  excess_fee = excess_fee,
-                                  pedersen_total_nonce = pedersen_nonce,
-                                  random_number_commitment = sha256(random_number),
-                                  blind_sig_requests = [r.get_request() for r in blindsigrequests],
-                                  ))
+        self.send(
+            pb.PlayerCommit(
+                initial_commitments=mycommitments,
+                excess_fee=excess_fee,
+                pedersen_total_nonce=pedersen_nonce,
+                random_number_commitment=sha256(random_number),
+                blind_sig_requests=[r.get_request() for r in blindsigrequests],
+            )
+        )
 
-        msg = self.recv('blindsigresponses', timeout=Protocol.T_START_COMPS)
+        msg = self.recv("blindsigresponses", timeout=Protocol.T_START_COMPS)
         assert len(msg.scalars) == len(blindsigrequests)
-        blindsigs = [r.finalize(sbytes, check=True)
-                     for r,sbytes in zip(blindsigrequests, msg.scalars)]
+        blindsigs = [
+            r.finalize(sbytes, check=True)
+            for r, sbytes in zip(blindsigrequests, msg.scalars)
+        ]
 
         # sleep until the covert component phase really starts, to catch covert connection failures.
         remtime = Protocol.T_START_COMPS - covert_clock()
         if remtime < 0:
-            raise FusionError('Arrived at covert-component phase too slowly.')
+            raise FusionError("Arrived at covert-component phase too slowly.")
         time.sleep(remtime)
 
         # Our final check to leave the fusion pool, before we start telling our
@@ -883,7 +1046,7 @@ class Fusion(threading.Thread, PrintError):
 
         ### Start covert component submissions
         self.print_error("starting covert component submission")
-        self.status = ('running', 'covert submission: components')
+        self.status = ("running", "covert submission: components")
 
         # If we fail after this point, we want to stop connections gradually and
         # randomly. We don't want to stop them
@@ -894,34 +1057,36 @@ class Fusion(threading.Thread, PrintError):
         # Schedule covert submissions.
         messages = [None] * len(mycomponents)
         for i, (comp, sig) in enumerate(zip(mycomponents, blindsigs)):
-            messages[mycomponentslots[i]] = pb.CovertComponent(round_pubkey = round_pubkey, signature = sig, component = comp)
+            messages[mycomponentslots[i]] = pb.CovertComponent(
+                round_pubkey=round_pubkey, signature=sig, component=comp
+            )
         assert all(messages)
         covert.schedule_submissions(covert_T0 + Protocol.T_START_COMPS, messages)
 
         # While submitting, we download the (large) full commitment list.
-        msg = self.recv('allcommitments', timeout=Protocol.T_START_SIGS)
+        msg = self.recv("allcommitments", timeout=Protocol.T_START_SIGS)
         all_commitments = tuple(msg.initial_commitments)
 
         # Quick check on the commitment list.
         if len(set(all_commitments)) != len(all_commitments):
-            raise FusionError('Commitments list includes duplicates.')
+            raise FusionError("Commitments list includes duplicates.")
         try:
             my_commitment_idxes = [all_commitments.index(c) for c in mycommitments]
         except ValueError:
-            raise FusionError('One or more of my commitments missing.')
+            raise FusionError("One or more of my commitments missing.")
 
         remtime = Protocol.T_START_SIGS - covert_clock()
         if remtime < 0:
-            raise FusionError('took too long to download commitments list')
+            raise FusionError("took too long to download commitments list")
 
         # Once all components are received, the server shares them with us:
-        msg = self.recv('sharecovertcomponents', timeout=Protocol.T_START_SIGS)
+        msg = self.recv("sharecovertcomponents", timeout=Protocol.T_START_SIGS)
         all_components = tuple(msg.components)
         skip_signatures = bool(msg.skip_signatures)
 
         # Critical check on server's response timing.
         if covert_clock() > Protocol.T_START_SIGS:
-            raise FusionError('Shared components message arrived too slowly.')
+            raise FusionError("Shared components message arrived too slowly.")
 
         covert.check_done()
 
@@ -929,29 +1094,29 @@ class Fusion(threading.Thread, PrintError):
         try:
             mycomponent_idxes = [all_components.index(c) for c in mycomponents]
         except ValueError:
-            raise FusionError('One or more of my components missing.')
-
+            raise FusionError("One or more of my components missing.")
 
         # TODO: check the components list and see if there are enough inputs/outputs
         # for there to be significant privacy.
-
 
         # The session hash includes all relevant information that the server
         # should have told equally to all the players. If the server tries to
         # sneakily spy on players by saying different things to them, then the
         # users will sign different transactions and the fusion will fail.
-        self.last_hash = session_hash = calc_round_hash(self.last_hash, round_pubkey, round_time, all_commitments, all_components)
-        if msg.HasField('session_hash') and msg.session_hash != session_hash:
-            raise FusionError('Session hash mismatch (bug!)')
+        self.last_hash = session_hash = calc_round_hash(
+            self.last_hash, round_pubkey, round_time, all_commitments, all_components
+        )
+        if msg.HasField("session_hash") and msg.session_hash != session_hash:
+            raise FusionError("Session hash mismatch (bug!)")
 
         ### Start covert signature submissions (or skip)
 
         if not skip_signatures:
             self.print_error("starting covert signature submission")
-            self.status = ('running', 'covert submission: signatures')
+            self.status = ("running", "covert submission: signatures")
 
             if len(set(all_components)) != len(all_components):
-                raise FusionError('Server component list includes duplicates.')
+                raise FusionError("Server component list includes duplicates.")
 
             tx, input_indices = tx_from_components(all_components, session_hash)
 
@@ -968,20 +1133,30 @@ class Fusion(threading.Thread, PrintError):
                 try:
                     mycompidx = mycomponent_idxes.index(cidx)
                 except ValueError:
-                    continue # not my input
-                sec, compressed = self.keypairs[inp['pubkeys'][0]]
-                sighash = sha256(sha256(bytes.fromhex(tx.serialize_preimage(i, 0x41, use_cache = True))))
+                    continue  # not my input
+                sec, compressed = self.keypairs[inp["pubkeys"][0]]
+                sighash = sha256(
+                    sha256(
+                        bytes.fromhex(tx.serialize_preimage(i, 0x41, use_cache=True))
+                    )
+                )
                 sig = schnorr.sign(sec, sighash)
 
-                messages[mycomponentslots[mycompidx]] = pb.CovertTransactionSignature(txsignature = sig, which_input = i)
+                messages[mycomponentslots[mycompidx]] = pb.CovertTransactionSignature(
+                    txsignature=sig, which_input=i
+                )
             covert.schedule_submissions(covert_T0 + Protocol.T_START_SIGS, messages)
 
             # wait for result
-            msg = self.recv('fusionresult', timeout=Protocol.T_EXPECTING_CONCLUSION - Protocol.TS_EXPECTING_COVERT_COMPONENTS)
+            msg = self.recv(
+                "fusionresult",
+                timeout=Protocol.T_EXPECTING_CONCLUSION
+                - Protocol.TS_EXPECTING_COVERT_COMPONENTS,
+            )
 
             # Critical check on server's response timing.
             if covert_clock() > Protocol.T_EXPECTING_CONCLUSION:
-                raise FusionError('Fusion result message arrived too slowly.')
+                raise FusionError("Fusion result message arrived too slowly.")
 
             covert.check_done()
 
@@ -989,11 +1164,11 @@ class Fusion(threading.Thread, PrintError):
                 allsigs = msg.txsignatures
                 # assemble the transaction.
                 if len(allsigs) != len(tx.inputs()):
-                    raise FusionError('Server gave wrong number of signatures.')
+                    raise FusionError("Server gave wrong number of signatures.")
                 for i, (sig, inp) in enumerate(zip(allsigs, tx.inputs())):
                     if len(sig) != 64:
-                        raise FusionError('server relayed bad signature')
-                    inp['signatures'] = [sig.hex() + '41']
+                        raise FusionError("server relayed bad signature")
+                    inp["signatures"] = [sig.hex() + "41"]
 
                 assert tx.is_complete()
                 txhex = tx.serialize()
@@ -1001,10 +1176,12 @@ class Fusion(threading.Thread, PrintError):
                 self.txid = txid = tx.txid()
                 sum_in_str = format_satoshis(sum_in, num_zeros=2)
                 fee_str = str(total_fee)
-                feeloc = _('fee')
-                label = f"CashFusion {len(self.inputs)} -> {len(self.outputs)}," \
-                        f" {sum_in_str} {XEC.ticker} " \
-                        f"(-{fee_str} sats {feeloc})"
+                feeloc = _("fee")
+                label = (
+                    f"CashFusion {len(self.inputs)} -> {len(self.outputs)},"
+                    f" {sum_in_str} {XEC.ticker} "
+                    f"(-{fee_str} sats {feeloc})"
+                )
                 wallets = set(self.source_wallet_info.keys())
                 wallets.add(self.target_wallet)
                 if len(wallets) > 1:
@@ -1012,42 +1189,52 @@ class Fusion(threading.Thread, PrintError):
                 # If we have any sweep-inputs, should also modify label
                 # If we have any send-outputs, should also modify label
                 def update_wallet_label_in_main_thread_paranoia(wallets, txid, label):
-                    '''We do it this way because run_hook may be invoked as a
+                    """We do it this way because run_hook may be invoked as a
                     result of set_label and that's not well defined if not done
-                    in the main (GUI) thread. '''
+                    in the main (GUI) thread."""
                     for w in wallets:
                         with w.lock:
                             existing_label = w.labels.get(txid, None)
                             if existing_label is not None:
-                                label = existing_label + '; ' + label
+                                label = existing_label + "; " + label
                             w.set_label(txid, label)
 
-                do_in_main_thread(update_wallet_label_in_main_thread_paranoia,
-                                  wallets, txid, label)
+                do_in_main_thread(
+                    update_wallet_label_in_main_thread_paranoia, wallets, txid, label
+                )
 
                 try:
                     # deep copy here is extra (possibly unnecessary) paranoia to
                     # freeze the tx that is broadcast and not allow it to point
                     # to our all_components data, etc.
-                    self.network.broadcast_transaction2(copy.deepcopy(tx),)
+                    self.network.broadcast_transaction2(
+                        copy.deepcopy(tx),
+                    )
                 except ServerError as e:
-                    nice_msg, = e.args
+                    (nice_msg,) = e.args
                     server_msg = str(e.server_msg)
                     if isinstance(e, TxHashMismatch):
                         # This should never actually happen. The TxHashMismatch
                         # bug is believed to have been fixed as of
                         # commit 4582391276a377c7a91a7a4285f4336abce2014b.
-                        self.print_error("Server responded with:", server_msg, ", we expected:", txid)
+                        self.print_error(
+                            "Server responded with:", server_msg, ", we expected:", txid
+                        )
                     acceptable_substrings = (
-                        r"txn-already-in-mempool", r"txn-already-known",
+                        r"txn-already-in-mempool",
+                        r"txn-already-known",
                         r"transaction already in block chain",
                     )
                     if not any(s in server_msg for s in acceptable_substrings):
                         server_msg = server_msg.replace(txhex, "<...tx hex...>")
                         self.print_error("tx broadcast failed:", repr(server_msg))
-                        raise FusionError(f"could not broadcast the transaction: {nice_msg}") from e
+                        raise FusionError(
+                            f"could not broadcast the transaction: {nice_msg}"
+                        ) from e
                 except TimeoutException:
-                    raise FusionError("could not broadcast the transaction due to timeout")
+                    raise FusionError(
+                        "could not broadcast the transaction due to timeout"
+                    )
 
                 self.print_error(f"successful broadcast of {txid}")
                 return True
@@ -1055,51 +1242,66 @@ class Fusion(threading.Thread, PrintError):
             else:
                 bad_components = set(msg.bad_components)
                 if not bad_components.isdisjoint(mycomponent_idxes):
-                    self.print_error(f"bad components: {sorted(bad_components)} mine: {sorted(mycomponent_idxes)}")
+                    self.print_error(
+                        f"bad components: {sorted(bad_components)} mine: {sorted(mycomponent_idxes)}"
+                    )
                     raise FusionError("server thinks one of my components is bad!")
-        else: # skip_signatures True
+        else:  # skip_signatures True
             bad_components = set()
-
 
         ### Blame phase ###
 
         covert.set_stop_time(covert_T0 + Protocol.T_START_CLOSE_BLAME)
         self.print_error("sending proofs")
-        self.status = ('running', 'round failed - sending proofs')
+        self.status = ("running", "round failed - sending proofs")
 
         # create a list of commitment indexes, but leaving out mine.
-        others_commitment_idxes = [i for i in range(len(all_commitments)) if i not in my_commitment_idxes]
+        others_commitment_idxes = [
+            i for i in range(len(all_commitments)) if i not in my_commitment_idxes
+        ]
         N = len(others_commitment_idxes)
         assert N == len(all_commitments) - len(mycommitments)
         if N == 0:
-            raise FusionError("Fusion failed with only me as player -- I can only blame myself.")
+            raise FusionError(
+                "Fusion failed with only me as player -- I can only blame myself."
+            )
 
         # where should I send my proofs?
-        dst_commits = [all_commitments[others_commitment_idxes[rand_position(random_number, N, i)]] for i in range(len(mycommitments))]
+        dst_commits = [
+            all_commitments[others_commitment_idxes[rand_position(random_number, N, i)]]
+            for i in range(len(mycommitments))
+        ]
         # generate the encrypted proofs
-        encproofs = [b'']*len(mycommitments)
+        encproofs = [b""] * len(mycommitments)
         for i, (dst_commit, proof) in enumerate(zip(dst_commits, myproofs)):
             msg = pb.InitialCommitment()
             try:
                 msg.ParseFromString(dst_commit)
             except DecodeError:
-                raise FusionError("Server relayed a bad commitment; can't proceed with blame.")
+                raise FusionError(
+                    "Server relayed a bad commitment; can't proceed with blame."
+                )
             proof.component_idx = mycomponent_idxes[i]
             try:
-                encproofs[i] = encrypt.encrypt(proof.SerializeToString(), msg.communication_key, pad_to_length = 80)
+                encproofs[i] = encrypt.encrypt(
+                    proof.SerializeToString(), msg.communication_key, pad_to_length=80
+                )
             except encrypt.EncryptionFailed:
                 # The communication key was bad (probably invalid x coordinate).
                 # We will just send a blank. They can't even blame us since there is no private key! :)
                 continue
 
-        self.send(pb.MyProofsList(encrypted_proofs = encproofs,
-                                  random_number = random_number,
-                                  ))
+        self.send(
+            pb.MyProofsList(
+                encrypted_proofs=encproofs,
+                random_number=random_number,
+            )
+        )
 
-        self.status = ('running', 'round failed - checking proofs')
+        self.status = ("running", "round failed - checking proofs")
 
         self.print_error("receiving proofs")
-        msg = self.recv('theirproofslist', timeout = 2 * Protocol.STANDARD_TIMEOUT)
+        msg = self.recv("theirproofslist", timeout=2 * Protocol.STANDARD_TIMEOUT)
         blames = []
         count_inputs = 0
         for i, rp in enumerate(msg.proofs):
@@ -1112,7 +1314,11 @@ class Fusion(threading.Thread, PrintError):
                 proofblob, skey = encrypt.decrypt(rp.encrypted_proof, privkey)
             except encrypt.DecryptionFailed:
                 self.print_error("found an undecryptable proof")
-                blames.append(pb.Blames.BlameProof(which_proof = i, privkey = privkey, blame_reason = 'undecryptable'))
+                blames.append(
+                    pb.Blames.BlameProof(
+                        which_proof=i, privkey=privkey, blame_reason="undecryptable"
+                    )
+                )
                 continue
             try:
                 commitment = pb.InitialCommitment()
@@ -1120,10 +1326,20 @@ class Fusion(threading.Thread, PrintError):
             except DecodeError:
                 raise FusionError("Server relayed bad commitment")
             try:
-                inpcomp = validate_proof_internal(proofblob, commitment, all_components, bad_components, self.component_feerate)
+                inpcomp = validate_proof_internal(
+                    proofblob,
+                    commitment,
+                    all_components,
+                    bad_components,
+                    self.component_feerate,
+                )
             except ValidationError as e:
                 self.print_error(f"found an erroneous proof: {e.args[0]}")
-                blames.append(pb.Blames.BlameProof(which_proof = i, session_key = skey, blame_reason = e.args[0]))
+                blames.append(
+                    pb.Blames.BlameProof(
+                        which_proof=i, session_key=skey, blame_reason=e.args[0]
+                    )
+                )
                 continue
 
             if inpcomp is not None:
@@ -1131,19 +1347,35 @@ class Fusion(threading.Thread, PrintError):
                 try:
                     check_input_electrumx(self.network, inpcomp)
                 except ValidationError as e:
-                    self.print_error(f"found a bad input [{rp.src_commitment_idx}]: {e.args[0]} ({inpcomp.prev_txid[::-1].hex()}:{inpcomp.prev_index})")
-                    blames.append(pb.Blames.BlameProof(which_proof = i, session_key = skey, blame_reason = 'input does not match blockchain: ' + e.args[0],
-                                                       need_lookup_blockchain = True))
+                    self.print_error(
+                        f"found a bad input [{rp.src_commitment_idx}]: {e.args[0]} ({inpcomp.prev_txid[::-1].hex()}:{inpcomp.prev_index})"
+                    )
+                    blames.append(
+                        pb.Blames.BlameProof(
+                            which_proof=i,
+                            session_key=skey,
+                            blame_reason="input does not match blockchain: "
+                            + e.args[0],
+                            need_lookup_blockchain=True,
+                        )
+                    )
                 except Exception as e:
-                    self.print_error(f"verified an input internally, but was unable to check it against blockchain: {repr(e)}")
-        self.print_error(f"checked {len(msg.proofs)} proofs, {count_inputs} of them inputs")
+                    self.print_error(
+                        f"verified an input internally, but was unable to check it against blockchain: {repr(e)}"
+                    )
+        self.print_error(
+            f"checked {len(msg.proofs)} proofs, {count_inputs} of them inputs"
+        )
 
         self.print_error("sending blames")
-        self.send(pb.Blames(blames = blames))
+        self.send(pb.Blames(blames=blames))
 
-        self.status = ('running', 'awaiting restart')
+        self.status = ("running", "awaiting restart")
 
         # Await the final 'restartround' message. It might take some time
         # to arrive since other players might be slow, and then the server
         # itself needs to check blockchain.
-        self.recv('restartround', timeout = 2 * (Protocol.STANDARD_TIMEOUT + Protocol.BLAME_VERIFY_TIME))
+        self.recv(
+            "restartround",
+            timeout=2 * (Protocol.STANDARD_TIMEOUT + Protocol.BLAME_VERIFY_TIME),
+        )

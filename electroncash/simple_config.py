@@ -1,13 +1,13 @@
 import json
-import threading
 import os
 import stat
+import threading
+from copy import deepcopy
 from decimal import Decimal as PyDecimal
 
 from . import util
-from copy import deepcopy
-from .util import get_user_dir, make_dir, print_error, PrintError
 from .constants import SCRIPT_NAME
+from .util import PrintError, get_user_dir, make_dir, print_error
 
 config = None
 
@@ -35,6 +35,7 @@ class SimpleConfig(PrintError):
         2. User configuration (in the user's config directory)
     They are taken in order (1. overrides config options set in 2.)
     """
+
     max_slider_fee: int = 10000
     """Maximum fee rate in sat/kB that can be selected using the slider widget
     in the send tab. Make sure this is a multiple of slider_steps, so that
@@ -43,8 +44,9 @@ class SimpleConfig(PrintError):
     """Number of possible equidistant fee rate settings (starting with
     max_slider_fee / slider_steps)"""
 
-    def __init__(self, options=None, read_user_config_function=None,
-                 read_user_dir_function=None):
+    def __init__(
+        self, options=None, read_user_config_function=None, read_user_dir_function=None
+    ):
 
         if options is None:
             options = {}
@@ -65,7 +67,7 @@ class SimpleConfig(PrintError):
         # The command line options
         self.cmdline_options = deepcopy(options)
         # don't allow to be set on CLI:
-        self.cmdline_options.pop('config_version', None)
+        self.cmdline_options.pop("config_version", None)
 
         # Set self.path and read the user config
         self.user_config = {}  # for self.get in electrum_path()
@@ -73,11 +75,12 @@ class SimpleConfig(PrintError):
         self.user_config = read_user_config_function(self.path)
         if not self.user_config:
             # avoid new config getting upgraded
-            self.user_config = {'config_version': FINAL_CONFIG_VERSION}
+            self.user_config = {"config_version": FINAL_CONFIG_VERSION}
 
         # config "upgrade" - CLI options
         self.rename_config_keys(
-            self.cmdline_options, {'auto_cycle': 'auto_connect'}, True)
+            self.cmdline_options, {"auto_cycle": "auto_connect"}, True
+        )
 
         # config upgrade - user config
         if self.requires_upgrade():
@@ -89,19 +92,19 @@ class SimpleConfig(PrintError):
     def electrum_path(self):
         # Read electrum_cash_path from command line
         # Otherwise use the user's default data directory.
-        path = self.get('data_path')
+        path = self.get("data_path")
         if path is None:
             path = self.user_dir()
 
         make_dir(path)
-        if self.get('testnet'):
-            path = os.path.join(path, 'testnet')
+        if self.get("testnet"):
+            path = os.path.join(path, "testnet")
             make_dir(path)
-        elif self.get('regtest'):
-            path = os.path.join(path, 'regtest')
+        elif self.get("regtest"):
+            path = os.path.join(path, "regtest")
             make_dir(path)
 
-        obsolete_file = os.path.join(path, 'recent_servers')
+        obsolete_file = os.path.join(path, "recent_servers")
         if os.path.exists(obsolete_file):
             os.remove(obsolete_file)
         return path
@@ -114,15 +117,19 @@ class SimpleConfig(PrintError):
                 if new_key not in config:
                     config[new_key] = config[old_key]
                     if deprecation_warning:
-                        self.print_stderr('Note that the {} variable has been deprecated. '
-                                     'You should use {} instead.'.format(old_key, new_key))
+                        self.print_stderr(
+                            "Note that the {} variable has been deprecated. "
+                            "You should use {} instead.".format(old_key, new_key)
+                        )
                 del config[old_key]
                 updated = True
         return updated
 
     def set_key(self, key, value, save=True):
         if not self.is_modifiable(key):
-            self.print_error("Warning: not changing config key '%s' set on the command line" % key)
+            self.print_error(
+                "Warning: not changing config key '%s' set on the command line" % key
+            )
             return
         self._set_key_in_user_config(key, value, save)
 
@@ -149,26 +156,26 @@ class SimpleConfig(PrintError):
         with self.lock:
             self.convert_version_2()
 
-            self.set_key('config_version', FINAL_CONFIG_VERSION, save=True)
+            self.set_key("config_version", FINAL_CONFIG_VERSION, save=True)
 
     def convert_version_2(self):
         if not self._is_upgrade_method_needed(1, 1):
             return
 
-        self.rename_config_keys(self.user_config, {'auto_cycle': 'auto_connect'})
+        self.rename_config_keys(self.user_config, {"auto_cycle": "auto_connect"})
 
         try:
             # change server string FROM host:port:proto TO host:port:s
-            server_str = self.user_config.get('server')
-            host, port, protocol = str(server_str).rsplit(':', 2)
-            assert protocol in ('s', 't')
+            server_str = self.user_config.get("server")
+            host, port, protocol = str(server_str).rsplit(":", 2)
+            assert protocol in ("s", "t")
             int(port)  # Throw if cannot be converted to int
-            server_str = str('{}:{}:s'.format(host, port))
-            self._set_key_in_user_config('server', server_str)
+            server_str = str("{}:{}:s".format(host, port))
+            self._set_key_in_user_config("server", server_str)
         except BaseException:
-            self._set_key_in_user_config('server', None)
+            self._set_key_in_user_config("server", None)
 
-        self.set_key('config_version', 2)
+        self.set_key("config_version", 2)
 
     def _is_upgrade_method_needed(self, min_version, max_version):
         cur_version = self.get_config_version()
@@ -176,23 +183,29 @@ class SimpleConfig(PrintError):
             return False
         elif cur_version < min_version:
             raise BaseException(
-                ('config upgrade: unexpected version %d (should be %d-%d)'
-                 % (cur_version, min_version, max_version)))
+                (
+                    "config upgrade: unexpected version %d (should be %d-%d)"
+                    % (cur_version, min_version, max_version)
+                )
+            )
         else:
             return True
 
     def get_config_version(self):
-        config_version = self.get('config_version', 1)
+        config_version = self.get("config_version", 1)
         if config_version > FINAL_CONFIG_VERSION:
-            self.print_stderr('WARNING: config version ({}) is higher than ours ({})'
-                             .format(config_version, FINAL_CONFIG_VERSION))
+            self.print_stderr(
+                "WARNING: config version ({}) is higher than ours ({})".format(
+                    config_version, FINAL_CONFIG_VERSION
+                )
+            )
         return config_version
 
     def is_modifiable(self, key):
         return key not in self.cmdline_options
 
     def save_user_config(self):
-        if self.get('forget_config'):
+        if self.get("forget_config"):
             return
         if not self.path:
             return
@@ -207,9 +220,8 @@ class SimpleConfig(PrintError):
         is used.
         """
         # command line -w option
-        path = self.get('wallet_path')
-        return os.path.dirname(path) if path else os.path.join(self.path,
-                                                               "wallets")
+        path = self.get("wallet_path")
+        return os.path.dirname(path) if path else os.path.join(self.path, "wallets")
 
     def get_wallet_path(self):
         """Return the path of the current wallet.
@@ -220,11 +232,11 @@ class SimpleConfig(PrintError):
         "default_wallet" in the user directory.
         """
         # command line -w option
-        if self.get('wallet_path'):
-            return self.get('wallet_path')
+        if self.get("wallet_path"):
+            return self.get("wallet_path")
 
         # path in config file
-        path = self.get('default_wallet_path')
+        path = self.get("default_wallet_path")
         if path and os.path.exists(path):
             return path
 
@@ -236,27 +248,27 @@ class SimpleConfig(PrintError):
         return new_path
 
     def remove_from_recently_open(self, filename):
-        recent = self.get('recently_open', [])
+        recent = self.get("recently_open", [])
         if filename in recent:
             recent.remove(filename)
-            self.set_key('recently_open', recent)
+            self.set_key("recently_open", recent)
 
     def set_session_timeout(self, seconds):
-        self.set_key('session_timeout', seconds)
+        self.set_key("session_timeout", seconds)
 
     def get_session_timeout(self):
-        return self.get('session_timeout', 300)
+        return self.get("session_timeout", 300)
 
     def open_last_wallet(self):
-        if self.get('wallet_path') is None:
-            last_wallet = self.get('gui_last_wallet')
+        if self.get("wallet_path") is None:
+            last_wallet = self.get("gui_last_wallet")
             if last_wallet is not None and os.path.exists(last_wallet):
-                self.cmdline_options['default_wallet_path'] = last_wallet
+                self.cmdline_options["default_wallet_path"] = last_wallet
 
     def save_last_wallet(self, wallet):
-        if self.get('wallet_path') is None:
+        if self.get("wallet_path") is None:
             path = wallet.storage.path
-            self.set_key('gui_last_wallet', path)
+            self.set_key("gui_last_wallet", path)
 
     def static_fee(self, i: int) -> int:
         """Return fee rate for slider position i, in sat/kB.
@@ -267,7 +279,7 @@ class SimpleConfig(PrintError):
         return self.max_slider_fee // self.slider_steps * (i + 1)
 
     def custom_fee_rate(self):
-        f = self.get('customfee')
+        f = self.get("customfee")
         return f
 
     @classmethod
@@ -280,9 +292,9 @@ class SimpleConfig(PrintError):
 
     def fee_per_kb(self) -> int:
         """Return transaction fee in sats per kB"""
-        retval = self.get('customfee')
+        retval = self.get("customfee")
         if retval is None:
-            retval = self.get('fee_per_kb')
+            retval = self.get("fee_per_kb")
         if retval is None:
             return self.default_fee_rate()
         return retval
@@ -309,8 +321,8 @@ class SimpleConfig(PrintError):
 
     def get_video_device(self):
         device = self.get("video_device", "default")
-        if device == 'default':
-            device = ''
+        if device == "default":
+            device = ""
         return device
 
 
@@ -326,7 +338,7 @@ def read_user_config(path: str) -> dict:
     if not os.path.exists(config_path):
         return {}
     try:
-        with open(config_path, "r", encoding='utf-8') as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             data = f.read()
         result = json.loads(data)
     except Exception:
@@ -344,6 +356,6 @@ def save_user_config(config: dict, path: str):
     """
     config_path = os.path.join(path, "config")
     s = json.dumps(config, indent=4, sort_keys=True)
-    with open(config_path, "w", encoding='utf-8') as f:
+    with open(config_path, "w", encoding="utf-8") as f:
         f.write(s)
     os.chmod(config_path, stat.S_IREAD | stat.S_IWRITE)

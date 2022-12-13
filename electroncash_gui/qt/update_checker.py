@@ -27,14 +27,15 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import base64
-import requests
 import sys
 import threading
 import time
-from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5 import QtWidgets
 
-from electroncash import version, bitcoin, address
+import requests
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import Qt, pyqtSignal
+
+from electroncash import address, bitcoin, version
 from electroncash.constants import PROJECT_NAME, RELEASES_JSON_URL
 from electroncash.i18n import _
 from electroncash.networks import MainNet
@@ -58,6 +59,7 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
     Update data is expected to be JSON with a bunch of signed version strings.
     see self._process_server_reply below for an example.
     """
+
     # Note: it's guaranteed that every call to do_check() will either result
     # in a 'checked' signal or a 'failed' signal to be emitted.
     # got_new_version is only emitted if the new version is actually newer than
@@ -83,15 +85,15 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
     VERSION_ANNOUNCEMENT_SIGNING_ADDRESSES = (
         # Pierre's keys
         address.Address.from_string(
-            "ecash:qz5j83ez703wvlwpqh94j6t45f8dn2afjgtgurgua0",
-            net=MainNet),
+            "ecash:qz5j83ez703wvlwpqh94j6t45f8dn2afjgtgurgua0", net=MainNet
+        ),
     )
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle(f'{PROJECT_NAME} - ' + _('Update Checker'))
+        self.setWindowTitle(f"{PROJECT_NAME} - " + _("Update Checker"))
         self.content = QtWidgets.QVBoxLayout()
-        self.content.setContentsMargins(*([10]*4))
+        self.content.setContentsMargins(*([10] * 4))
 
         self.heading_label = QtWidgets.QLabel()
         self.content.addWidget(self.heading_label)
@@ -108,7 +110,9 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
         self.content.addWidget(self.pb)
 
         versions = QtWidgets.QHBoxLayout()
-        versions.addWidget(QtWidgets.QLabel(_(f"Current version: {version.PACKAGE_VERSION}")))
+        versions.addWidget(
+            QtWidgets.QLabel(_(f"Current version: {version.PACKAGE_VERSION}"))
+        )
         self.latest_version_label = QtWidgets.QLabel(_(f"Latest version: {' '}"))
         versions.addWidget(self.latest_version_label)
         self.content.addLayout(versions)
@@ -131,13 +135,13 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
 
     def _process_server_reply(self, signed_version_dict):
         """Returns:
-                - the new package version string if new version found from
-                  server, e.g. '3.3.5', '3.3.5CS', etc
-                - or the current version (version.PACKAGE_VERSION) if no new
-                  version found.
-                - None on failure (such as bad signature).
+            - the new package version string if new version found from
+              server, e.g. '3.3.5', '3.3.5CS', etc
+            - or the current version (version.PACKAGE_VERSION) if no new
+              version found.
+            - None on failure (such as bad signature).
 
-            May also raise on error.
+        May also raise on error.
         """
         # example signed_version_dict:
         # {
@@ -169,8 +173,11 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
                             continue
                         try:
                             is_verified = bitcoin.verify_message(
-                                adr, base64.b64decode(sig),
-                                version_msg.encode('utf-8'), net=MainNet)
+                                adr,
+                                base64.b64decode(sig),
+                                version_msg.encode("utf-8"),
+                                net=MainNet,
+                            )
                         except Exception:
                             # temporary: try the legacy verification algorithm
                             # because we will need to sign the old way for a
@@ -179,20 +186,27 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
                             # TODO: remove after two new releases past 5.0.1
                             try:
                                 is_verified = bitcoin.verify_message(
-                                    adr, base64.b64decode(sig),
-                                    version_msg.encode('utf-8'), net=MainNet,
-                                    legacy=True)
+                                    adr,
+                                    base64.b64decode(sig),
+                                    version_msg.encode("utf-8"),
+                                    net=MainNet,
+                                    legacy=True,
+                                )
                             except Exception:
                                 self.print_error(
                                     "Exception when verifying version signature for",
-                                    version_msg, ":", repr(sys.exc_info()[1]))
+                                    version_msg,
+                                    ":",
+                                    repr(sys.exc_info()[1]),
+                                )
                                 return None
                         if is_verified:
                             self.print_error("Got new version", version_msg)
                             return version_msg.strip()
                         else:
-                            self.print_error("Got new version", version_msg,
-                                             "but sigcheck failed!")
+                            self.print_error(
+                                "Got new version", version_msg, "but sigcheck failed!"
+                            )
                             return None
         if 0 == ct_matching:
             # Hmm. None of the versions we saw matched our variant.
@@ -200,14 +214,17 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
             # This is an error condition, so return None
             self.print_error(
                 "Error: Got a valid reply from server but none of the variants"
-                " match us and/or none of the signing keys are known!")
+                " match us and/or none of the signing keys are known!"
+            )
             return None
         return version.PACKAGE_VERSION
 
     @classmethod
     def _my_version(cls):
-        if getattr(cls, '_my_version_parsed', None) is None:
-            cls._my_version_parsed = version.parse_package_version(version.PACKAGE_VERSION)
+        if getattr(cls, "_my_version_parsed", None) is None:
+            cls._my_version_parsed = version.parse_package_version(
+                version.PACKAGE_VERSION
+            )
         return cls._my_version_parsed
 
     @classmethod
@@ -215,8 +232,11 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
         try:
             return version.parse_package_version(version_msg)
         except Exception:
-            print_error("[{}] Error parsing version '{}': {}".format(
-                cls.__name__, version_msg, repr(sys.exc_info()[1])))
+            print_error(
+                "[{}] Error parsing version '{}': {}".format(
+                    cls.__name__, version_msg, repr(sys.exc_info()[1])
+                )
+            )
             raise
 
     @classmethod
@@ -243,21 +263,22 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
     def _on_downloading(self, req, prog):
         if req is self.active_req:
             prog = int(prog or 0)
-            self.print_error("Downloading progress", str(prog) + "%",
-                             "from", req.url)
+            self.print_error("Downloading progress", str(prog) + "%", "from", req.url)
             self.pb.setValue(max(0, min(int(prog), 100)))
         else:
             self.print_error(
-                "Warning: on_downloading called with a req that is not "
-                "'active'!")
+                "Warning: on_downloading called with a req that is not " "'active'!"
+            )
 
     def _update_view(self, latest_version=None):
         if latest_version == self._error_val:
-            self.heading_label.setText(
-                '<h2>' + _("Update check failed") + '</h2>')
+            self.heading_label.setText("<h2>" + _("Update check failed") + "</h2>")
             self.detail_label.setText(
-                _("Sorry, but we were unable to check for updates. "
-                  "Please try again later."))
+                _(
+                    "Sorry, but we were unable to check for updates. "
+                    "Please try again later."
+                )
+            )
             self.cancel_or_check_button.setText(_("Check Again"))
             self.cancel_or_check_button.setEnabled(True)
 
@@ -266,20 +287,22 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
             self.pb.hide()
             self.cancel_or_check_button.setText(_("Check Again"))
             self.latest_version_label.setText(
-                _(f"Latest version: {'<b>' + latest_version + '</b>'}"))
+                _(f"Latest version: {'<b>' + latest_version + '</b>'}")
+            )
             if self.is_newer(latest_version):
                 self.heading_label.setText(
-                    '<h2>' + _("There is a new update available") + '</h2>')
-                url = '<a href="{u}">{u}</a>'.format(
-                    u=UpdateChecker.download_url)
+                    "<h2>" + _("There is a new update available") + "</h2>"
+                )
+                url = '<a href="{u}">{u}</a>'.format(u=UpdateChecker.download_url)
                 self.detail_label.setText(
-                    _(f"You can download the new version from:<br>{url}"))
+                    _(f"You can download the new version from:<br>{url}")
+                )
                 self.cancel_or_check_button.setEnabled(False)
             else:
-                self.heading_label.setText('<h2>' + _("Already up to date") + '</h2>')
+                self.heading_label.setText("<h2>" + _("Already up to date") + "</h2>")
                 self.detail_label.setText(
-                    _(f"You are already on the latest version of "
-                      f"{PROJECT_NAME}."))
+                    _(f"You are already on the latest version of " f"{PROJECT_NAME}.")
+                )
                 self.cancel_or_check_button.setEnabled(True)
         else:
             self.pb.show()
@@ -287,10 +310,10 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
             self.cancel_or_check_button.setText(_("Cancel"))
             self.cancel_or_check_button.setEnabled(True)
             self.latest_version_label.setText("")
-            self.heading_label.setText('<h2>' + _("Checking for updates...") + '</h2>')
+            self.heading_label.setText("<h2>" + _("Checking for updates...") + "</h2>")
             self.detail_label.setText(
-                _(f"Please wait while {PROJECT_NAME} checks for "
-                  f"available updates."))
+                _(f"Please wait while {PROJECT_NAME} checks for " f"available updates.")
+            )
 
     def cancel_active(self):
         if self.active_req:
@@ -318,7 +341,7 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
     def did_check_recently(self, secs=10.0):
         return time.time() - self.last_checked_ts < secs
 
-    _error_val = 0xdeadb33f
+    _error_val = 0xDEADB33F
 
     def _err_fail(self):
         self._update_view(self._error_val)
@@ -341,6 +364,7 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
                 newver = self._process_server_reply(req.json)
             except Exception:
                 import traceback
+
                 self.print_error(traceback.format_exc())
         if newver is not None:
             self._ok_good(newver)
@@ -348,7 +372,7 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
             self._err_fail()
 
     def _on_req_finished(self, req):
-        adjective = ''
+        adjective = ""
         if req is self.active_req:
             self._got_reply(req)
             self.active_req = None
@@ -362,6 +386,7 @@ class _Req(threading.Thread, PrintError):
     """Thread to get the list of releases from a JSON file on the github
     repository.
     """
+
     url = RELEASES_JSON_URL
 
     def __init__(self, checker):
@@ -386,6 +411,7 @@ class _Req(threading.Thread, PrintError):
         except Exception:
             self.checker._dl_prog.emit(self, 25)
             import traceback
+
             self.print_error(traceback.format_exc())
         finally:
             self.checker._req_finished.emit(self)

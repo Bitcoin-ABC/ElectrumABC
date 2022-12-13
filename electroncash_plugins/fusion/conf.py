@@ -30,11 +30,11 @@ CashFusion - conf.py - configuration & settings management
 from collections import namedtuple
 from typing import List, Optional, Tuple, Union
 
-
-CashFusionServer = namedtuple("CashFusionServer", ('hostname', 'port', 'ssl'))
+CashFusionServer = namedtuple("CashFusionServer", ("hostname", "port", "ssl"))
 
 DEFAULT_SERVERS: List[Tuple[str, int, bool]] = [
-    CashFusionServer('fusion.tokamak.cash', 8788, True)]
+    CashFusionServer("fusion.tokamak.cash", 8788, True)
+]
 
 
 class Conf:
@@ -51,13 +51,12 @@ class Conf:
         AutofuseCoinbase = False
         AutofuseConfirmedOnly = False
         CoinbaseSeenLatch = False
-        FusionMode = 'normal'
+        FusionMode = "normal"
         QueudAutofuse = 4
         FuseDepth = 0  # Fuse forever by default
-        Selector = ('fraction', 0.1)  # coin selector options
-        SelfFusePlayers = 1 # self-fusing control (1 = just self, more than 1 = self fuse up to N times)
+        Selector = ("fraction", 0.1)  # coin selector options
+        SelfFusePlayers = 1  # self-fusing control (1 = just self, more than 1 = self fuse up to N times)
         SpendOnlyFusedCoins = False  # spendable_coin_filter @hook
-
 
     def __init__(self, wallet):
         assert wallet
@@ -65,98 +64,146 @@ class Conf:
 
     @property
     def autofuse(self) -> bool:
-        return bool(self.wallet.storage.get('cashfusion_autofuse', self.Defaults.Autofuse))
+        return bool(
+            self.wallet.storage.get("cashfusion_autofuse", self.Defaults.Autofuse)
+        )
+
     @autofuse.setter
-    def autofuse(self, b : Optional[bool]):
-        if b is not None: b = bool(b)
-        self.wallet.storage.put('cashfusion_autofuse', b)
+    def autofuse(self, b: Optional[bool]):
+        if b is not None:
+            b = bool(b)
+        self.wallet.storage.put("cashfusion_autofuse", b)
 
     @property
     def autofuse_coinbase(self) -> bool:
-        return bool(self.wallet.storage.get('cashfusion_autofuse_coinbase', self.Defaults.AutofuseCoinbase))
+        return bool(
+            self.wallet.storage.get(
+                "cashfusion_autofuse_coinbase", self.Defaults.AutofuseCoinbase
+            )
+        )
+
     @autofuse_coinbase.setter
-    def autofuse_coinbase(self, b : Optional[bool]):
-        if b is not None: b = bool(b)
-        self.wallet.storage.put('cashfusion_autofuse_coinbase', b)
+    def autofuse_coinbase(self, b: Optional[bool]):
+        if b is not None:
+            b = bool(b)
+        self.wallet.storage.put("cashfusion_autofuse_coinbase", b)
 
     @property
     def autofuse_confirmed_only(self) -> bool:
-        return bool(self.wallet.storage.get('cashfusion_autofuse_only_when_all_confirmed', self.Defaults.AutofuseConfirmedOnly))
+        return bool(
+            self.wallet.storage.get(
+                "cashfusion_autofuse_only_when_all_confirmed",
+                self.Defaults.AutofuseConfirmedOnly,
+            )
+        )
+
     @autofuse_confirmed_only.setter
-    def autofuse_confirmed_only(self, b : Optional[bool]):
-        if b is not None: b = bool(b)
-        self.wallet.storage.put('cashfusion_autofuse_only_when_all_confirmed', b)
+    def autofuse_confirmed_only(self, b: Optional[bool]):
+        if b is not None:
+            b = bool(b)
+        self.wallet.storage.put("cashfusion_autofuse_only_when_all_confirmed", b)
 
     @property
     def coinbase_seen_latch(self) -> bool:
-        return bool(self.wallet.storage.get('cashfusion_coinbase_seen_latch', self.Defaults.CoinbaseSeenLatch))
-    @coinbase_seen_latch.setter
-    def coinbase_seen_latch(self, b : Optional[bool]):
-        if b is not None: b = bool(b)
-        self.wallet.storage.put('cashfusion_coinbase_seen_latch', b)
+        return bool(
+            self.wallet.storage.get(
+                "cashfusion_coinbase_seen_latch", self.Defaults.CoinbaseSeenLatch
+            )
+        )
 
-    _valid_fusion_modes = frozenset(('normal', 'consolidate', 'fan-out', 'custom'))
+    @coinbase_seen_latch.setter
+    def coinbase_seen_latch(self, b: Optional[bool]):
+        if b is not None:
+            b = bool(b)
+        self.wallet.storage.put("cashfusion_coinbase_seen_latch", b)
+
+    _valid_fusion_modes = frozenset(("normal", "consolidate", "fan-out", "custom"))
+
     @property
     def fusion_mode(self) -> str:
-        """ Returns a string, one of self._valid_fusion_modes above. """
-        ret = self.wallet.storage.get('cashfusion_fusion_mode', self.Defaults.FusionMode)
+        """Returns a string, one of self._valid_fusion_modes above."""
+        ret = self.wallet.storage.get(
+            "cashfusion_fusion_mode", self.Defaults.FusionMode
+        )
         ret = ret.lower().strip() if isinstance(ret, str) else ret
         if ret not in self._valid_fusion_modes:
             return self.Defaults.FusionMode
         return ret
+
     @fusion_mode.setter
-    def fusion_mode(self, m : Optional[str]):
+    def fusion_mode(self, m: Optional[str]):
         if m is not None:
             assert isinstance(m, str)
             m = m.lower().strip()
             assert m in self._valid_fusion_modes
-        self.wallet.storage.put('cashfusion_fusion_mode', m)
+        self.wallet.storage.put("cashfusion_fusion_mode", m)
 
     @property
     def queued_autofuse(self) -> int:
-        return int(self.wallet.storage.get('cashfusion_queued_autofuse', self.Defaults.QueudAutofuse))
+        return int(
+            self.wallet.storage.get(
+                "cashfusion_queued_autofuse", self.Defaults.QueudAutofuse
+            )
+        )
+
     @queued_autofuse.setter
-    def queued_autofuse(self, i : Optional[int]):
+    def queued_autofuse(self, i: Optional[int]):
         if i is not None:
             assert i >= 1
             i = int(i)
-        self.wallet.storage.put('cashfusion_queued_autofuse', i)
+        self.wallet.storage.put("cashfusion_queued_autofuse", i)
 
     @property
     def fuse_depth(self) -> int:
-        return int(self.wallet.storage.get('cashfusion_fuse_depth', self.Defaults.FuseDepth))
+        return int(
+            self.wallet.storage.get("cashfusion_fuse_depth", self.Defaults.FuseDepth)
+        )
+
     @fuse_depth.setter
-    def fuse_depth(self, i : Optional[int]):
+    def fuse_depth(self, i: Optional[int]):
         if i is not None:
             assert i >= 0
             i = int(i)
-        self.wallet.storage.put('cashfusion_fuse_depth', i)
+        self.wallet.storage.put("cashfusion_fuse_depth", i)
 
     @property
-    def selector(self) -> Tuple[str, Union[int,float]]:
-        return tuple(self.wallet.storage.get('cashfusion_selector', self.Defaults.Selector))
+    def selector(self) -> Tuple[str, Union[int, float]]:
+        return tuple(
+            self.wallet.storage.get("cashfusion_selector", self.Defaults.Selector)
+        )
+
     @selector.setter
-    def selector(self, t : Optional[ Tuple[str, Union[int,float]] ]):
-        """ Optional: Pass None to clear the key """
+    def selector(self, t: Optional[Tuple[str, Union[int, float]]]):
+        """Optional: Pass None to clear the key"""
         assert t is None or (isinstance(t, (tuple, list)) and len(t) == 2)
-        self.wallet.storage.put('cashfusion_selector', t)
+        self.wallet.storage.put("cashfusion_selector", t)
 
     @property
     def self_fuse_players(self) -> int:
-        return int(self.wallet.storage.get('cashfusion_self_fuse_players', self.Defaults.SelfFusePlayers))
+        return int(
+            self.wallet.storage.get(
+                "cashfusion_self_fuse_players", self.Defaults.SelfFusePlayers
+            )
+        )
+
     @self_fuse_players.setter
-    def self_fuse_players(self, i : Optional[int]):
+    def self_fuse_players(self, i: Optional[int]):
         if i is not None:
             assert i >= 1
             i = int(i)
-        return self.wallet.storage.put('cashfusion_self_fuse_players', i)
+        return self.wallet.storage.put("cashfusion_self_fuse_players", i)
 
     @property
     def spend_only_fused_coins(self) -> bool:
-        return bool(self.wallet.storage.get('cashfusion_spend_only_fused_coins', self.Defaults.SpendOnlyFusedCoins))
+        return bool(
+            self.wallet.storage.get(
+                "cashfusion_spend_only_fused_coins", self.Defaults.SpendOnlyFusedCoins
+            )
+        )
+
     @spend_only_fused_coins.setter
     def spend_only_fused_coins(self, b: bool):
-        return self.wallet.storage.put('cashfusion_spend_only_fused_coins', bool(b))
+        return self.wallet.storage.put("cashfusion_spend_only_fused_coins", bool(b))
 
 
 class Global:
@@ -167,13 +214,13 @@ class Global:
             h = Global(config).tor_host            # getter
             Global(config).tor_host = 'localhost'  # setter
     """
+
     class Defaults:
         HideHistoryTxs = False
         ServerList: List[Tuple[str, int, bool]] = DEFAULT_SERVERS
-        TorHost = 'localhost'
+        TorHost = "localhost"
         TorPortAuto = True
         TorPortManual = 9050
-
 
     def __init__(self, config):
         assert config
@@ -181,49 +228,60 @@ class Global:
 
     @property
     def hide_history_txs(self) -> bool:
-        return bool(self.config.get('cashfusion_hide_history_txs', self.Defaults.HideHistoryTxs))
+        return bool(
+            self.config.get("cashfusion_hide_history_txs", self.Defaults.HideHistoryTxs)
+        )
+
     @hide_history_txs.setter
-    def hide_history_txs(self, b : bool):
-        self.config.set_key('cashfusion_hide_history_txs', bool(b))
+    def hide_history_txs(self, b: bool):
+        self.config.set_key("cashfusion_hide_history_txs", bool(b))
 
     @property
     def server(self) -> Tuple[str, int, bool]:
-        return tuple(self.config.get('cashfusion_server', self.Defaults.ServerList[0]))
+        return tuple(self.config.get("cashfusion_server", self.Defaults.ServerList[0]))
+
     @server.setter
-    def server(self, t : Optional[Tuple[str, int, bool]]):
+    def server(self, t: Optional[Tuple[str, int, bool]]):
         if t is not None:
             assert isinstance(t, (list, tuple)) and len(t) == 3
             t = CashFusionServer(*t)
             assert isinstance(t.hostname, str)
             assert isinstance(t.port, int)
             assert isinstance(t.ssl, bool)
-        self.config.set_key('cashfusion_server', t)
+        self.config.set_key("cashfusion_server", t)
 
     @property
     def tor_host(self) -> str:
-        return str(self.config.get('cashfusion_tor_host', self.Defaults.TorHost))
+        return str(self.config.get("cashfusion_tor_host", self.Defaults.TorHost))
+
     @tor_host.setter
-    def tor_host(self, h : Optional[str]):
+    def tor_host(self, h: Optional[str]):
         if h is not None:
             h = str(h)
             assert h
-        self.config.set_key('cashfusion_tor_host', h)
+        self.config.set_key("cashfusion_tor_host", h)
 
     @property
     def tor_port_auto(self) -> bool:
-        return bool(self.config.get('cashfusion_tor_port_auto', self.Defaults.TorPortAuto))
+        return bool(
+            self.config.get("cashfusion_tor_port_auto", self.Defaults.TorPortAuto)
+        )
+
     @tor_port_auto.setter
-    def tor_port_auto(self, b : Optional[bool]):
+    def tor_port_auto(self, b: Optional[bool]):
         if b is not None:
             b = bool(b)
-        self.config.set_key('cashfusion_tor_port_auto', b)
+        self.config.set_key("cashfusion_tor_port_auto", b)
 
     @property
     def tor_port_manual(self) -> int:
-        return int(self.config.get('cashfusion_tor_port_manual', self.Defaults.TorPortManual))
+        return int(
+            self.config.get("cashfusion_tor_port_manual", self.Defaults.TorPortManual)
+        )
+
     @tor_port_manual.setter
-    def tor_port_manual(self, i : Optional[int]):
+    def tor_port_manual(self, i: Optional[int]):
         if i is not None:
             i = int(i)
             assert 0 <= i <= 65535
-        self.config.set_key('cashfusion_tor_port_manual', i)
+        self.config.set_key("cashfusion_tor_port_manual", i)

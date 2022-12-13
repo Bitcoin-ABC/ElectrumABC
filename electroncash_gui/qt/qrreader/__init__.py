@@ -24,8 +24,18 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from .camera_dialog import (QrReaderCameraDialog, CameraError, NoCamerasFound,
-                            NoCameraResolutionsFound, MissingQrDetectionLib)
-from .validator import (QrReaderValidatorResult, AbstractQrReaderValidator,
-                        QrReaderValidatorCounting, QrReaderValidatorColorizing,
-                        QrReaderValidatorStrong, QrReaderValidatorCounted)
+from .camera_dialog import (
+    CameraError,
+    MissingQrDetectionLib,
+    NoCameraResolutionsFound,
+    NoCamerasFound,
+    QrReaderCameraDialog,
+)
+from .validator import (
+    AbstractQrReaderValidator,
+    QrReaderValidatorColorizing,
+    QrReaderValidatorCounted,
+    QrReaderValidatorCounting,
+    QrReaderValidatorResult,
+    QrReaderValidatorStrong,
+)

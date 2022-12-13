@@ -25,17 +25,16 @@
 # SOFTWARE.
 import os
 import re
-import requests
 import socket
 import ssl
 import sys
 import threading
 import time
 import traceback
-
-from typing import Optional, Tuple
 from collections import namedtuple
+from typing import Optional, Tuple
 
+import requests
 from pathvalidate import sanitize_filename
 
 from .util import print_error
@@ -43,10 +42,7 @@ from .utils import Event
 
 ca_path = requests.certs.where()
 
-from . import util
-from . import x509
-from . import pem
-
+from . import pem, util, x509
 
 PING_INTERVAL = 300
 
@@ -59,9 +55,9 @@ def Connection(server, queue, config_path, callback=None):
     queue of the form (server, socket), where socket is None if
     connection failed.
     """
-    host, port, protocol = server.rsplit(':', 2)
-    if not protocol in 'st':
-        raise Exception('Unknown protocol: %s' % protocol)
+    host, port, protocol = server.rsplit(":", 2)
+    if not protocol in "st":
+        raise Exception("Unknown protocol: %s" % protocol)
     c = TcpConnection(server, queue, config_path)
     if callback:
         callback(c)
@@ -77,10 +73,10 @@ class TcpConnection(threading.Thread, util.PrintError):
         self.config_path = config_path
         self.queue = queue
         self.server = server
-        self.host, self.port, self.protocol = self.server.rsplit(':', 2)
+        self.host, self.port, self.protocol = self.server.rsplit(":", 2)
         self.host = str(self.host)
         self.port = int(self.port)
-        self.use_ssl = (self.protocol == 's')
+        self.use_ssl = self.protocol == "s"
         self.daemon = True
 
     def diagnostic_name(self):
@@ -103,7 +99,9 @@ class TcpConnection(threading.Thread, util.PrintError):
 
     def get_simple_socket(self):
         try:
-            l = socket.getaddrinfo(self.host, self.port, socket.AF_UNSPEC, socket.SOCK_STREAM)
+            l = socket.getaddrinfo(
+                self.host, self.port, socket.AF_UNSPEC, socket.SOCK_STREAM
+            )
         except OverflowError:
             # This can happen if user specifies a huge port out of 32-bit range. See #985
             self.print_error("port invalid:", self.port)
@@ -131,7 +129,9 @@ class TcpConnection(threading.Thread, util.PrintError):
 
     @staticmethod
     def get_ssl_context(cert_reqs, ca_certs):
-        context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH, cafile=ca_certs)
+        context = ssl.create_default_context(
+            purpose=ssl.Purpose.SERVER_AUTH, cafile=ca_certs
+        )
         context.check_hostname = False
         context.verify_mode = cert_reqs
 
@@ -141,16 +141,20 @@ class TcpConnection(threading.Thread, util.PrintError):
 
         return context
 
-    def _get_socket_and_verify_ca_cert(self, *, suppress_errors) -> Tuple[Optional[ssl.SSLSocket], bool]:
-        ''' Attempts to connect to the remote host, assuming it is using a CA
+    def _get_socket_and_verify_ca_cert(
+        self, *, suppress_errors
+    ) -> Tuple[Optional[ssl.SSLSocket], bool]:
+        """Attempts to connect to the remote host, assuming it is using a CA
         signed certificate. If the cert is valid then a tuple of: (wrapped
         SSLSocket, False) is returned. Otherwise (None, bool) is returned on
         error. If the second item in the tuple is True, then the entire
-        operation should be aborted due to low-level error. '''
+        operation should be aborted due to low-level error."""
         s = self.get_simple_socket()
         if s is not None:
             try:
-                context = self.get_ssl_context(cert_reqs=ssl.CERT_REQUIRED, ca_certs=ca_path)
+                context = self.get_ssl_context(
+                    cert_reqs=ssl.CERT_REQUIRED, ca_certs=ca_path
+                )
                 s = context.wrap_socket(s, do_handshake_on_connect=True)
                 # validate cert
                 if s and self.check_host_name(s.getpeercert(), self.host):
@@ -166,7 +170,9 @@ class TcpConnection(threading.Thread, util.PrintError):
                     self.print_error("SSL error:", e)
                 return None, False  # inform caller to continue trying alternate
             except Exception as e:
-                self.print_error("Unexpected exception in _get_socket_and_verify_ca_cert:", repr(e))
+                self.print_error(
+                    "Unexpected exception in _get_socket_and_verify_ca_cert:", repr(e)
+                )
         return None, True  # inform caller to abort the operation
 
     def get_socket(self):
@@ -174,9 +180,15 @@ class TcpConnection(threading.Thread, util.PrintError):
             # Try with CA first, since they are preferred over self-signed certs
             # and are always accepted (even if a previous pinned self-signed
             # cert exists).
-            cert_path = os.path.join(self.config_path, 'certs', sanitize_filename(self.host, replacement_text='_'))
+            cert_path = os.path.join(
+                self.config_path,
+                "certs",
+                sanitize_filename(self.host, replacement_text="_"),
+            )
             has_pinned_self_signed = os.path.exists(cert_path)
-            s, give_up = self._get_socket_and_verify_ca_cert(suppress_errors=has_pinned_self_signed)
+            s, give_up = self._get_socket_and_verify_ca_cert(
+                suppress_errors=has_pinned_self_signed
+            )
             if s:
                 if has_pinned_self_signed:
                     # Delete pinned cert. They now have a valid CA-signed cert.
@@ -185,7 +197,10 @@ class TcpConnection(threading.Thread, util.PrintError):
                     # ever had a self-signed cert in the past.
                     try:
                         os.remove(cert_path)
-                        self.print_error("Server is now using a CA-signed certificate, deleted previous self-signed certificate:", cert_path)
+                        self.print_error(
+                            "Server is now using a CA-signed certificate, deleted previous self-signed certificate:",
+                            cert_path,
+                        )
                     except OSError:
                         pass
                 return s
@@ -202,7 +217,9 @@ class TcpConnection(threading.Thread, util.PrintError):
                 if s is None:
                     return
                 try:
-                    context = self.get_ssl_context(cert_reqs=ssl.CERT_NONE, ca_certs=None)
+                    context = self.get_ssl_context(
+                        cert_reqs=ssl.CERT_NONE, ca_certs=None
+                    )
                     s = context.wrap_socket(s)
                 except ssl.SSLError as e:
                     self.print_error("SSL error retrieving SSL certificate:", e)
@@ -214,10 +231,14 @@ class TcpConnection(threading.Thread, util.PrintError):
                 s.close()
                 cert = ssl.DER_cert_to_PEM_cert(dercert)
                 # workaround android bug
-                cert = re.sub("([^\n])-----END CERTIFICATE-----","\\1\n-----END CERTIFICATE-----",cert)
-                temporary_path = cert_path + '.temp'
+                cert = re.sub(
+                    "([^\n])-----END CERTIFICATE-----",
+                    "\\1\n-----END CERTIFICATE-----",
+                    cert,
+                )
+                temporary_path = cert_path + ".temp"
                 util.assert_datadir_available(self.config_path)
-                with open(temporary_path, "w", encoding='utf-8') as f:
+                with open(temporary_path, "w", encoding="utf-8") as f:
                     f.write(cert)
                     f.flush()
                     os.fsync(f.fileno())
@@ -231,34 +252,40 @@ class TcpConnection(threading.Thread, util.PrintError):
 
         if self.use_ssl:
             try:
-                context = self.get_ssl_context(cert_reqs=ssl.CERT_REQUIRED,
-                                               ca_certs=(temporary_path if is_new else cert_path))
+                context = self.get_ssl_context(
+                    cert_reqs=ssl.CERT_REQUIRED,
+                    ca_certs=(temporary_path if is_new else cert_path),
+                )
                 s = context.wrap_socket(s, do_handshake_on_connect=True)
             except socket.timeout:
-                self.print_error('timeout')
+                self.print_error("timeout")
                 return
             except ssl.SSLError as e:
                 self.print_error("SSL error:", e)
                 if e.errno != 1:
                     return
                 if is_new:
-                    rej = cert_path + '.rej'
+                    rej = cert_path + ".rej"
                     try:
                         if os.path.exists(rej):
                             os.unlink(rej)
                         os.rename(temporary_path, rej)
                     except OSError as e2:
-                        self.print_error("Could not rename rejected certificate:", rej, repr(e2))
+                        self.print_error(
+                            "Could not rename rejected certificate:", rej, repr(e2)
+                        )
                 else:
                     util.assert_datadir_available(self.config_path)
-                    with open(cert_path, encoding='utf-8') as f:
+                    with open(cert_path, encoding="utf-8") as f:
                         cert = f.read()
                     try:
-                        b = pem.dePem(cert, 'CERTIFICATE')
+                        b = pem.dePem(cert, "CERTIFICATE")
                         x = x509.X509(b)
                     except:
                         if util.is_verbose:
-                            self.print_error("Error checking certificate, traceback follows")
+                            self.print_error(
+                                "Error checking certificate, traceback follows"
+                            )
                             traceback.print_exc(file=sys.stderr)
                         self.print_error("wrong certificate")
                         self.bad_certificate(self.server, cert_path)
@@ -271,7 +298,11 @@ class TcpConnection(threading.Thread, util.PrintError):
                             os.unlink(cert_path)
                             self.print_error("Removed expired certificate:", cert_path)
                         except OSError as e2:
-                            self.print_error("Could not remove expired certificate:", cert_path, repr(e2))
+                            self.print_error(
+                                "Could not remove expired certificate:",
+                                cert_path,
+                                repr(e2),
+                            )
                         return
                     self.print_error("wrong certificate")
                     self.bad_certificate(self.server, cert_path)
@@ -308,16 +339,16 @@ class Interface(util.PrintError):
     - Member variable server.
     """
 
-    MODE_DEFAULT = 'default'
-    MODE_BACKWARD = 'backward'
-    MODE_BINARY = 'binary'
-    MODE_CATCH_UP = 'catch_up'
-    MODE_VERIFICATION = 'verification'
+    MODE_DEFAULT = "default"
+    MODE_BACKWARD = "backward"
+    MODE_BINARY = "binary"
+    MODE_CATCH_UP = "catch_up"
+    MODE_VERIFICATION = "verification"
 
     def __init__(self, server, socket, *, max_message_bytes=0, config=None):
         self.server = server
         self.config = config
-        self.host, self.port, _ = server.rsplit(':', 2)
+        self.host, self.port, _ = server.rsplit(":", 2)
         self.socket = socket
 
         self.pipe = util.JSONSocketPipe(socket, max_message_bytes=max_message_bytes)
@@ -363,7 +394,6 @@ class Interface(util.PrintError):
         self.request_time = time.time()
         self.unsent_requests.append(args)
 
-
     ReqThrottleParams = namedtuple("ReqThrottleParams", "max chunkSize")
     req_throttle_default = ReqThrottleParams(2000, 100)
 
@@ -402,11 +432,15 @@ class Interface(util.PrintError):
                 self.pipe.send_flush()
             except util.timeout:
                 if self.debug:
-                    self.print_error("still flushing send data... [{}]".format(len(self.pipe.send_buf)))
+                    self.print_error(
+                        "still flushing send data... [{}]".format(
+                            len(self.pipe.send_buf)
+                        )
+                    )
                 return True
 
             self.last_send = time.time()
-            make_dict = lambda m, p, i: {'method': m, 'params': p, 'id': i}
+            make_dict = lambda m, p, i: {"method": m, "params": p, "id": i}
             n = self.num_requests()
             wire_requests = self.unsent_requests[0:n]
 
@@ -435,8 +469,11 @@ class Interface(util.PrintError):
 
     def has_timed_out(self):
         """Returns True if the interface has timed out."""
-        if (self.unanswered_requests and time.time() - self.request_time > 10
-            and self.pipe.idle_time() > 10):
+        if (
+            self.unanswered_requests
+            and time.time() - self.request_time > 10
+            and self.pipe.idle_time() > 10
+        ):
             self.print_error("timeout", len(self.unanswered_requests))
             return True
 
@@ -466,17 +503,21 @@ class Interface(util.PrintError):
             if type(response) is not dict:
                 # time to close this connection.
                 if type(response) is not None:
-                    self.print_error("received non-object type {}".format(type(response)))
+                    self.print_error(
+                        "received non-object type {}".format(type(response))
+                    )
                 # signal that this connection is done.
                 responses.append((None, None))
                 break
 
             if self.debug:
                 self.print_error("<--", response)
-            wire_id = response.get('id', None)
+            wire_id = response.get("id", None)
             if wire_id is None:  # Notification
-                if not isinstance(response.get('method'), str):  # defend against funny/out-of-spec JSON
-                    if response.get('error'):
+                if not isinstance(
+                    response.get("method"), str
+                ):  # defend against funny/out-of-spec JSON
+                    if response.get("error"):
                         # Fulcrum servers versions 1.0.1 and earlier sometimes
                         # would send spurious 'error' messages with id=null and
                         # no 'method'. This would only happen on idle timeout
@@ -487,11 +528,17 @@ class Interface(util.PrintError):
                         #   https://github.com/Electron-Cash/Electron-Cash/issues/1774
                         # Fulcrum:
                         #   https://github.com/cculianu/Fulcrum/issues/20
-                        self.print_error("Ignoring spurious error message from server:", response.get('error'))
+                        self.print_error(
+                            "Ignoring spurious error message from server:",
+                            response.get("error"),
+                        )
                         continue
                     else:
                         # Malforned notification -- signal bad server
-                        self.print_error("Server sent us a notification message without a 'method':", response)
+                        self.print_error(
+                            "Server sent us a notification message without a 'method':",
+                            response,
+                        )
                         responses.append((None, None))  # Signal
                         break
                 # At this point the notification has a 'method' defined, so we know it's good.
@@ -510,7 +557,7 @@ class Interface(util.PrintError):
 
 def check_cert(host, cert):
     try:
-        b = pem.dePem(cert, 'CERTIFICATE')
+        b = pem.dePem(cert, "CERTIFICATE")
         x = x509.X509(b)
     except:
         if util.is_verbose:
@@ -524,8 +571,8 @@ def check_cert(host, cert):
     except:
         expired = True
 
-    m = "host: %s\n"%host
-    m += "has_expired: %s\n"% expired
+    m = "host: %s\n" % host
+    m += "has_expired: %s\n" % expired
     util.print_msg(m)
 
 
@@ -534,19 +581,21 @@ def _match_hostname(name, val):
     if val == name:
         return True
 
-    return val.startswith('*.') and name.endswith(val[1:])
+    return val.startswith("*.") and name.endswith(val[1:])
 
 
 def test_certificates():
     from .simple_config import SimpleConfig
+
     config = SimpleConfig()
     mydir = os.path.join(config.path, "certs")
     certs = os.listdir(mydir)
     for c in certs:
-        p = os.path.join(mydir,c)
-        with open(p, encoding='utf-8') as f:
+        p = os.path.join(mydir, c)
+        with open(p, encoding="utf-8") as f:
             cert = f.read()
         check_cert(c, cert)
+
 
 if __name__ == "__main__":
     test_certificates()

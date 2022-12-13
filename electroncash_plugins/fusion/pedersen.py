@@ -43,24 +43,38 @@ amount is sensible.
 
 """
 
-from electroncash import secp256k1
+from ctypes import (
+    byref,
+    c_char_p,
+    c_int,
+    c_size_t,
+    c_void_p,
+    cast,
+    create_string_buffer,
+)
+
 import ecdsa
-from electroncash.bitcoin import ser_to_point, point_to_ser
-from ctypes import create_string_buffer, c_void_p, c_char_p, c_int, c_size_t, byref, cast
+
+from electroncash import secp256k1
+from electroncash.bitcoin import point_to_ser, ser_to_point
 
 order = ecdsa.SECP256k1.generator.order()
 seclib = secp256k1.secp256k1
 
+
 class NonceRangeError(ValueError):
     pass
 
+
 class ResultAtInfinity(Exception):
     pass
+
 
 class InsecureHPoint(Exception):
     # This exception gets thrown when the H point has a known discrete
     # logarithm, which means the commitment setup is broken.
     pass
+
 
 class PedersenSetup:
     """
@@ -75,6 +89,7 @@ class PedersenSetup:
     (Why H and H+G? To be able to blind the elliptic curve math -- see
     Commitment class comments for details)
     """
+
     def __init__(self, H):
         assert isinstance(H, bytes)
 
@@ -97,7 +112,7 @@ class PedersenSetup:
             H_buf = create_string_buffer(64)
             res = seclib.secp256k1_ec_pubkey_parse(ctx, H_buf, H, c_size_t(len(H)))
             if not res:
-                raise ValueError('H could not be parsed by the secp256k1 library')
+                raise ValueError("H could not be parsed by the secp256k1 library")
 
             self._seclib_H = H_buf.raw
 
@@ -107,7 +122,7 @@ class PedersenSetup:
             assert res, "G point should always deserialize without issue"
 
             HG_buf = create_string_buffer(64)
-            publist = (c_void_p*2)(*(cast(x, c_void_p) for x in (H_buf, G_buf)))
+            publist = (c_void_p * 2)(*(cast(x, c_void_p) for x in (H_buf, G_buf)))
             res = seclib.secp256k1_ec_pubkey_combine(ctx, HG_buf, publist, 2)
             if res != 1:
                 # this happens if H = -G
@@ -119,12 +134,24 @@ class PedersenSetup:
             serpoint = create_string_buffer(65)
             sersize = c_size_t(65)
 
-            res = seclib.secp256k1_ec_pubkey_serialize(ctx, serpoint, byref(sersize), H_buf, secp256k1.SECP256K1_EC_UNCOMPRESSED)
+            res = seclib.secp256k1_ec_pubkey_serialize(
+                ctx,
+                serpoint,
+                byref(sersize),
+                H_buf,
+                secp256k1.SECP256K1_EC_UNCOMPRESSED,
+            )
             assert res == 1
             assert sersize.value == 65
             self.H = serpoint.raw
 
-            res = seclib.secp256k1_ec_pubkey_serialize(ctx, serpoint, byref(sersize), HG_buf, secp256k1.SECP256K1_EC_UNCOMPRESSED)
+            res = seclib.secp256k1_ec_pubkey_serialize(
+                ctx,
+                serpoint,
+                byref(sersize),
+                HG_buf,
+                secp256k1.SECP256K1_EC_UNCOMPRESSED,
+            )
             assert res == 1
             assert sersize.value == 65
             self.HG = serpoint.raw
@@ -132,13 +159,15 @@ class PedersenSetup:
     def commit(self, amount, nonce=None):
         return Commitment(self, amount, nonce=nonce)
 
+
 class Commitment:
     """
     This represents a single commitment. Upon construction it calculates the
     commitment point, and stores the random secret nonce value.
     """
+
     def __init__(self, setup, amount, nonce=None, _P_uncompressed=None):
-        """ setup should be a PedersenSetup object.
+        """setup should be a PedersenSetup object.
 
         amount should be an integer, may be negative or positive. The provided
         value is stored as .amount and its normal form (mod order) is stored in
@@ -168,7 +197,9 @@ class Commitment:
             assert len(_P_uncompressed) == 65
             assert _P_uncompressed[0] == 4
             self.P_uncompressed = _P_uncompressed
-            self.P_compressed = bytes([2 + (_P_uncompressed[-1]&1)]) + _P_uncompressed[1:33]
+            self.P_compressed = (
+                bytes([2 + (_P_uncompressed[-1] & 1)]) + _P_uncompressed[1:33]
+            )
             return
 
         try:
@@ -197,7 +228,7 @@ class Commitment:
             # in a normal setup (only ~2^256 chance).)
 
             # As it's easy to calculate the discrete log, let's do it.
-            dlog = (pow(self.amount_mod, order-2, order) * self.nonce) % order
+            dlog = (pow(self.amount_mod, order - 2, order) * self.nonce) % order
             raise InsecureHPoint(dlog)
 
     def _calc_initial(self):
@@ -210,7 +241,7 @@ class Commitment:
         # We don't want to calculate (a * Hpoint) since the time to execute
         # would reveal information about size / bitcount of a. So, we use
         # the nonce as a blinding offset factor.
-        Ppoint = ((a - k) % order) * Hpoint +  k * HGpoint
+        Ppoint = ((a - k) % order) * Hpoint + k * HGpoint
 
         if Ppoint == ecdsa.ellipticcurve.INFINITY:
             raise ResultAtInfinity
@@ -232,9 +263,9 @@ class Commitment:
         a = self.amount_mod
 
         # calculate k * (G + H)
-        k_bytes = int(k).to_bytes(32,'big')
+        k_bytes = int(k).to_bytes(32, "big")
         kHG_buf = create_string_buffer(64)
-        kHG_buf.raw = self.setup._seclib_HG #copy
+        kHG_buf.raw = self.setup._seclib_HG  # copy
         res = seclib.secp256k1_ec_pubkey_tweak_mul(ctx, kHG_buf, k_bytes)
         assert res == 1, "must never fail since 0 < k < order"
 
@@ -243,14 +274,16 @@ class Commitment:
             result_buf = create_string_buffer(64)
 
             # calculate (a - k) * H
-            a_k_bytes = int(a_k).to_bytes(32,'big')  # NB: a_k may be gmpy2.mpz here because sometimes it just is due to ecdsa changes.
+            a_k_bytes = int(a_k).to_bytes(
+                32, "big"
+            )  # NB: a_k may be gmpy2.mpz here because sometimes it just is due to ecdsa changes.
             akH_buf = create_string_buffer(64)
-            akH_buf.raw = self.setup._seclib_H #copy
+            akH_buf.raw = self.setup._seclib_H  # copy
             res = seclib.secp256k1_ec_pubkey_tweak_mul(ctx, akH_buf, a_k_bytes)
             assert res == 1, "must never fail since a != k here"
 
             # add the two points together.
-            publist = (c_void_p*2)(*(cast(x, c_void_p) for x in (kHG_buf, akH_buf)))
+            publist = (c_void_p * 2)(*(cast(x, c_void_p) for x in (kHG_buf, akH_buf)))
             res = seclib.secp256k1_ec_pubkey_combine(ctx, result_buf, publist, 2)
             if res != 1:
                 raise ResultAtInfinity
@@ -263,18 +296,27 @@ class Commitment:
         serpoint = create_string_buffer(65)
         sersize = c_size_t(65)
 
-        res = seclib.secp256k1_ec_pubkey_serialize(ctx, serpoint, byref(sersize), result_buf, secp256k1.SECP256K1_EC_UNCOMPRESSED)
+        res = seclib.secp256k1_ec_pubkey_serialize(
+            ctx,
+            serpoint,
+            byref(sersize),
+            result_buf,
+            secp256k1.SECP256K1_EC_UNCOMPRESSED,
+        )
         assert res == 1
         assert sersize.value == 65
         self.P_uncompressed = serpoint.raw
 
-        res = seclib.secp256k1_ec_pubkey_serialize(ctx, serpoint, byref(sersize), result_buf, secp256k1.SECP256K1_EC_COMPRESSED)
+        res = seclib.secp256k1_ec_pubkey_serialize(
+            ctx, serpoint, byref(sersize), result_buf, secp256k1.SECP256K1_EC_COMPRESSED
+        )
         assert res == 1
         assert sersize.value == 33
         self.P_compressed = serpoint.raw[:33]
 
+
 def add_points(points_iterable):
-    """ Adds one or more serialized points together. This is fastest if the
+    """Adds one or more serialized points together. This is fastest if the
     points are already uncompressed. Returns uncompressed point.
 
     Note: intermediate sums are allowed to be the point at infinity, but not the
@@ -288,21 +330,27 @@ def add_points(points_iterable):
             _b = bytes(pser)
             res = seclib.secp256k1_ec_pubkey_parse(ctx, P_buf, _b, c_size_t(len(_b)))
             if not res:
-                raise ValueError('point could not be parsed by the secp256k1 library')
+                raise ValueError("point could not be parsed by the secp256k1 library")
             plist.append(P_buf)
         if not plist:
-            raise ValueError('empty list')
+            raise ValueError("empty list")
 
         num = len(plist)
         result_buf = create_string_buffer(64)
-        publist = (c_void_p*num)(*(cast(x, c_void_p) for x in plist))
+        publist = (c_void_p * num)(*(cast(x, c_void_p) for x in plist))
         res = seclib.secp256k1_ec_pubkey_combine(ctx, result_buf, publist, num)
         if res != 1:
             raise ResultAtInfinity
 
         serpoint = create_string_buffer(65)
         sersize = c_size_t(65)
-        res = seclib.secp256k1_ec_pubkey_serialize(ctx, serpoint, byref(sersize), result_buf, secp256k1.SECP256K1_EC_UNCOMPRESSED)
+        res = seclib.secp256k1_ec_pubkey_serialize(
+            ctx,
+            serpoint,
+            byref(sersize),
+            result_buf,
+            secp256k1.SECP256K1_EC_UNCOMPRESSED,
+        )
         assert res == 1
         assert sersize.value == 65
         return serpoint.raw
@@ -310,14 +358,15 @@ def add_points(points_iterable):
         for pser in points_iterable:
             plist.append(ser_to_point(pser))
         if not plist:
-            raise ValueError('empty list')
+            raise ValueError("empty list")
         Psum = sum(plist[1:], plist[0])
         if Psum == ecdsa.ellipticcurve.INFINITY:
             raise ResultAtInfinity
         return point_to_ser(Psum, comp=False)
 
+
 def add_commitments(commitment_iterable):
-    """ Adds any number of Pedersen commitments together, resulting in
+    """Adds any number of Pedersen commitments together, resulting in
     another Commitment.
 
     commitment_list is a list of Commitment objects; they must all share
@@ -333,11 +382,11 @@ def add_commitments(commitment_iterable):
         setups.append(c.setup)
 
     if len(points) < 1:
-        raise ValueError('empty list')
+        raise ValueError("empty list")
 
     setup = setups[0]
     if not all(s is setup for s in setups):
-        raise ValueError('mismatched setups')
+        raise ValueError("mismatched setups")
 
     # atotal is not computed from modulo quantities.
 
@@ -354,9 +403,9 @@ def add_commitments(commitment_iterable):
         try:
             P_uncompressed = add_points(points)
         except ResultAtInfinity:
-            P_uncompressed = None # will raise exception below
+            P_uncompressed = None  # will raise exception below
     else:
         # So many points, we are better off just doing it from scalars.
         P_uncompressed = None
 
-    return Commitment(setup, atotal, nonce=ktotal, _P_uncompressed = P_uncompressed)
+    return Commitment(setup, atotal, nonce=ktotal, _P_uncompressed=P_uncompressed)

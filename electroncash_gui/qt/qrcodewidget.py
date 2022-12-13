@@ -1,32 +1,27 @@
-
+import qrcode
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QBrush, QColor, QCursor, QPainter, QPen
-from PyQt5 import QtWidgets
-
-import qrcode
 
 from electroncash import util
 from electroncash.i18n import _
-from electroncash_gui.qt.util import (
-    WindowModalDialog,
-    MessageBoxMixin,
-    CloseButton,
-)
+from electroncash_gui.qt.util import CloseButton, MessageBoxMixin, WindowModalDialog
 
 
 class QRCodeWidget(QtWidgets.QWidget, util.PrintError):
-
-    def __init__(self, data = None, fixedSize=False):
+    def __init__(self, data=None, fixedSize=False):
         QtWidgets.QWidget.__init__(self)
         self.data = None
         self.qr = None
         self.fixedSize = fixedSize
-        self.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        self.setSizePolicy(
+            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.MinimumExpanding,
+        )
         if fixedSize:
             self.setFixedSize(fixedSize, fixedSize)
             self.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         self.setData(data)
-
 
     def setData(self, data):
         if self.data != data:
@@ -37,7 +32,7 @@ class QRCodeWidget(QtWidgets.QWidget, util.PrintError):
                 self.qr.add_data(self.data)
                 if not self.fixedSize:
                     k = len(self.qr.get_matrix())
-                    self.setMinimumSize(k*5,k*5)
+                    self.setMinimumSize(k * 5, k * 5)
                     self.updateGeometry()
             except qrcode.exceptions.DataOverflowError:
                 self._bad_data(data)  # sets self.qr = None
@@ -46,15 +41,19 @@ class QRCodeWidget(QtWidgets.QWidget, util.PrintError):
 
         self.update()
 
-
     def _paint_blank(self):
         qp = QPainter(self)
         r = qp.viewport()
         qp.fillRect(0, 0, r.width(), r.height(), self._white_brush)
-        qp.end(); del qp
+        qp.end()
+        del qp
 
     def _bad_data(self, data):
-        self.print_error("Failed to generate QR image -- data too long! Data length was: {} bytes".format(len(data or '')))
+        self.print_error(
+            "Failed to generate QR image -- data too long! Data length was: {} bytes".format(
+                len(data or "")
+            )
+        )
         self.qr = None
 
     _black_brush = QBrush(QColor(0, 0, 0, 255))
@@ -89,37 +88,53 @@ class QRCodeWidget(QtWidgets.QWidget, util.PrintError):
         # Make a white margin around the QR in case of dark theme use
         qp.setBrush(self._white_brush)
         qp.setPen(self._white_pen)
-        qp.drawRect(left-margin, top-margin, size + (margin * 2), size + (margin * 2))
+        qp.drawRect(
+            left - margin, top - margin, size + (margin * 2), size + (margin * 2)
+        )
         qp.setBrush(self._black_brush)
         qp.setPen(self._black_pen)
 
         for r in range(k):
             for c in range(k):
                 if matrix[r][c]:
-                    qp.drawRect(left+c*boxsize, top+r*boxsize, boxsize - 1, boxsize - 1)
-        qp.end(); del qp
+                    qp.drawRect(
+                        left + c * boxsize, top + r * boxsize, boxsize - 1, boxsize - 1
+                    )
+        qp.end()
+        del qp
 
 
 def save_to_file(qrw, parent):
     from electroncash_gui.qt.main_window import ElectrumWindow
+
     p = qrw and qrw.grab()
     if p and not p.isNull():
-        filename = ElectrumWindow.static_getSaveFileName(title=_("Save QR Image"), filename="qrcode.png", parent=parent, filter="*.png")
+        filename = ElectrumWindow.static_getSaveFileName(
+            title=_("Save QR Image"),
+            filename="qrcode.png",
+            parent=parent,
+            filter="*.png",
+        )
         if filename:
-            p.save(filename, 'png')
-            isinstance(parent, MessageBoxMixin) and parent.show_message(_("QR code saved to file") + " " + filename)
+            p.save(filename, "png")
+            isinstance(parent, MessageBoxMixin) and parent.show_message(
+                _("QR code saved to file") + " " + filename
+            )
+
 
 def copy_to_clipboard(qrw, widget):
     p = qrw and qrw.grab()
     if p and not p.isNull():
         QtWidgets.QApplication.clipboard().setPixmap(p)
-        QtWidgets.QToolTip.showText(QCursor.pos(), _("QR code copied to clipboard"), widget)
+        QtWidgets.QToolTip.showText(
+            QCursor.pos(), _("QR code copied to clipboard"), widget
+        )
 
 
 class QRDialog(WindowModalDialog):
-
-    def __init__(self, data, parent=None, title = "", show_text=False,
-                 *, help_text: str = ""):
+    def __init__(
+        self, data, parent=None, title="", show_text=False, *, help_text: str = ""
+    ):
         WindowModalDialog.__init__(self, parent, title)
 
         vbox = QtWidgets.QVBoxLayout()

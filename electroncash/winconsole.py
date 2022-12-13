@@ -28,13 +28,14 @@ binaries that are built for the Windows subsystem and therefore do not
 automatically allocate a console.
 """
 
-import sys
-import os
-import ctypes
 import atexit
+import ctypes
+import os
+import sys
 
 STD_OUTPUT_HANDLE = -11
 FILE_TYPE_DISK = 1
+
 
 def parent_process_pids() -> int:
     """
@@ -42,6 +43,7 @@ def parent_process_pids() -> int:
     """
     try:
         import psutil
+
         pid = os.getpid()
         while pid > 0:
             pid = psutil.Process(pid).ppid()
@@ -50,18 +52,23 @@ def parent_process_pids() -> int:
         # Parent process not found, likely terminated, nothing we can do
         pass
 
+
 def get_console_title() -> str:
-    ''' Return the current console title as a string. May return None on error. '''
+    """Return the current console title as a string. May return None on error."""
     b = bytes(1024)
     b_ptr = ctypes.c_char_p(b)
     title = None
-    title_len = ctypes.windll.kernel32.GetConsoleTitleW(b_ptr, len(b)//2)  # GetConsoleTitleW expects size in 2-byte chars
+    title_len = ctypes.windll.kernel32.GetConsoleTitleW(
+        b_ptr, len(b) // 2
+    )  # GetConsoleTitleW expects size in 2-byte chars
     if title_len > 0:
-        title = b.decode('utf-16')[:title_len]
+        title = b.decode("utf-16")[:title_len]
     return title
 
-def create_or_attach_console(*, attach: bool = True, create: bool = False,
-                             title: str = None) -> bool:
+
+def create_or_attach_console(
+    *, attach: bool = True, create: bool = False, title: str = None
+) -> bool:
     """
     Workaround to the fact that cmd.exe based execution of this program means
     it has no stdout handles and thus is always silent, thereby rendering
@@ -120,17 +127,19 @@ def create_or_attach_console(*, attach: bool = True, create: bool = False,
 
     try:
         # Reopen Pythons console input and output handles
-        conout = open('CONOUT$', 'w')
+        conout = open("CONOUT$", "w")
         sys.stdout = conout
         sys.stderr = conout
-        sys.stdin = open('CONIN$', 'r')
+        sys.stdin = open("CONIN$", "r")
     except OSError:
         # If we get here, we likely were in MinGW / MSYS where CONOUT$ / CONIN$
         # are not valid files or some other weirdness occurred. Give up.
         return  # return None to indicate underlying exception
 
     if title:
-        old_title = get_console_title() if not created else None  # save the old title only if not created by us
+        old_title = (
+            get_console_title() if not created else None
+        )  # save the old title only if not created by us
         # Set the console title, if specified
         ctypes.windll.kernel32.SetConsoleTitleW(title)
         if old_title is not None:

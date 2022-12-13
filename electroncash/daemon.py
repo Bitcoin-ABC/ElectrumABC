@@ -27,31 +27,29 @@ from __future__ import annotations
 
 import ast
 import os
-import time
 import sys
+import time
 from typing import TYPE_CHECKING, Dict, Optional, Tuple
 
-from .constants import PROJECT_NAME, SCRIPT_NAME
-
 import jsonrpclib
-from .jsonrpc import VerifyingJSONRPCServer
 
-from .network import Network
-from .util import (json_decode, DaemonThread, print_error, to_string,
-                   standardize_path)
-from .wallet import Wallet
-from .storage import WalletStorage
-from .commands import known_commands, Commands
-from .simple_config import SimpleConfig
+from .commands import Commands, known_commands
+from .constants import PROJECT_NAME, SCRIPT_NAME
 from .exchange_rate import FxThread
+from .jsonrpc import VerifyingJSONRPCServer
+from .network import Network
+from .simple_config import SimpleConfig
+from .storage import WalletStorage
+from .util import DaemonThread, json_decode, print_error, standardize_path, to_string
+from .wallet import Wallet
 
 if TYPE_CHECKING:
-    from .wallet import Abstract_Wallet
     from .plugins import Plugins
+    from .wallet import Abstract_Wallet
 
 
 def get_lockfile(config):
-    return os.path.join(config.path, 'daemon')
+    return os.path.join(config.path, "daemon")
 
 
 def remove_lockfile(lockfile):
@@ -63,7 +61,8 @@ def remove_lockfile(lockfile):
 
 
 def get_fd_or_server(
-    config: SimpleConfig) -> Tuple[Optional[int], Optional[jsonrpclib.Server]]:
+    config: SimpleConfig,
+) -> Tuple[Optional[int], Optional[jsonrpclib.Server]]:
     """Tries to create the lockfile, using O_EXCL to
     prevent races.  If it succeeds it returns a tuple (fd, None).
     Otherwise try and connect to the server specified in the lockfile.
@@ -76,15 +75,18 @@ def get_fd_or_server(
     latest_exc = None
     for n in range(limit):
         try:
-            return os.open(lockfile, os.O_CREAT | os.O_EXCL | os.O_WRONLY,
-                           0o644), None
+            return os.open(lockfile, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644), None
         except PermissionError as e:
-            sys.exit(f"Unable to create lockfile due to file system "
-                     f"permission problems: {e}")
+            sys.exit(
+                f"Unable to create lockfile due to file system "
+                f"permission problems: {e}"
+            )
         except NotADirectoryError as e:
             lockdir = os.path.dirname(lockfile)
-            sys.exit(f"{PROJECT_NAME} directory location at {lockdir} is not"
-                     f" a directory. Error was: {e}")
+            sys.exit(
+                f"{PROJECT_NAME} directory location at {lockdir} is not"
+                f" a directory. Error was: {e}"
+            )
         except OSError as e:
             # Unable to create because there was a pre-existing lockfile
             latest_exc = e
@@ -93,9 +95,11 @@ def get_fd_or_server(
             return None, server
         # Couldn't connect; remove lockfile and try again.
         remove_lockfile(lockfile)
-    sys.exit(f"Unable to open/create lockfile at {lockfile} after "
-             f"{limit} attempts. Please check your filesystem setup. "
-             f"Last error was: {repr(latest_exc)}")
+    sys.exit(
+        f"Unable to open/create lockfile at {lockfile} after "
+        f"{limit} attempts. Please check your filesystem setup. "
+        f"Last error was: {repr(latest_exc)}"
+    )
 
 
 def get_server(config: SimpleConfig, timeout=2.0) -> Optional[jsonrpclib.Server]:
@@ -106,14 +110,19 @@ def get_server(config: SimpleConfig, timeout=2.0) -> Optional[jsonrpclib.Server]
         try:
             with open(lockfile) as f:
                 (host, port), tmp_create_time = ast.literal_eval(f.read())
-                create_time = float(tmp_create_time); del tmp_create_time  # ensures create_time is float; raises if create_time is not-float-compatible
+                create_time = float(tmp_create_time)
+                del tmp_create_time  # ensures create_time is float; raises if create_time is not-float-compatible
                 rpc_user, rpc_password = get_rpc_credentials(config)
-                if rpc_password == '':
+                if rpc_password == "":
                     # authentication disabled
-                    server_url = 'http://%s:%d' % (host, port)
+                    server_url = "http://%s:%d" % (host, port)
                 else:
-                    server_url = 'http://%s:%s@%s:%d' % (
-                        rpc_user, rpc_password, host, port)
+                    server_url = "http://%s:%s@%s:%d" % (
+                        rpc_user,
+                        rpc_password,
+                        host,
+                        port,
+                    )
                 server = jsonrpclib.Server(server_url)
             # Test daemon is running
             server.ping()
@@ -133,40 +142,42 @@ def get_server(config: SimpleConfig, timeout=2.0) -> Optional[jsonrpclib.Server]
 
 
 def get_rpc_credentials(config):
-    rpc_user = config.get('rpcuser', None)
-    rpc_password = config.get('rpcpassword', None)
+    rpc_user = config.get("rpcuser", None)
+    rpc_password = config.get("rpcpassword", None)
     if rpc_user is None or rpc_password is None:
-        rpc_user = 'electrumabcuser'
-        import ecdsa, base64
+        rpc_user = "electrumabcuser"
+        import base64
+
+        import ecdsa
+
         bits = 128
         nbytes = bits // 8 + (bits % 8 > 0)
         pw_int = ecdsa.util.randrange(pow(2, bits))
-        pw_b64 = base64.b64encode(
-            pw_int.to_bytes(nbytes, 'big'), b'-_')
-        rpc_password = to_string(pw_b64, 'ascii')
-        config.set_key('rpcuser', rpc_user)
-        config.set_key('rpcpassword', rpc_password, save=True)
-    elif rpc_password == '':
+        pw_b64 = base64.b64encode(pw_int.to_bytes(nbytes, "big"), b"-_")
+        rpc_password = to_string(pw_b64, "ascii")
+        config.set_key("rpcuser", rpc_user)
+        config.set_key("rpcpassword", rpc_password, save=True)
+    elif rpc_password == "":
         from .util import print_stderr
-        print_stderr('WARNING: RPC authentication is disabled.')
+
+        print_stderr("WARNING: RPC authentication is disabled.")
     return rpc_user, rpc_password
 
 
 class Daemon(DaemonThread):
-
     def __init__(
         self,
         config: SimpleConfig,
         fd: int,
         plugins: Plugins,
         *,
-        listen_jsonrpc: bool=True
+        listen_jsonrpc: bool = True,
     ):
         DaemonThread.__init__(self)
         self.plugins = plugins
         self.config = config
         self.listen_jsonrpc = listen_jsonrpc
-        if config.get('offline'):
+        if config.get("offline"):
             self.network = None
         else:
             self.network = Network(config)
@@ -182,42 +193,48 @@ class Daemon(DaemonThread):
             self.init_server(config, fd)
 
     def init_server(self, config: SimpleConfig, fd: int):
-        host = config.get('rpchost', '127.0.0.1')
-        port = config.get('rpcport', 0)
+        host = config.get("rpchost", "127.0.0.1")
+        port = config.get("rpcport", 0)
 
         rpc_user, rpc_password = get_rpc_credentials(config)
         try:
-            server = VerifyingJSONRPCServer((host, port), logRequests=False,
-                                            rpc_user=rpc_user, rpc_password=rpc_password)
+            server = VerifyingJSONRPCServer(
+                (host, port),
+                logRequests=False,
+                rpc_user=rpc_user,
+                rpc_password=rpc_password,
+            )
         except Exception as e:
-            self.print_error('Warning: cannot initialize RPC server on host', host, e)
+            self.print_error("Warning: cannot initialize RPC server on host", host, e)
             os.close(fd)
             return
-        os.write(fd, bytes(repr((server.socket.getsockname(), time.time())), 'utf8'))
+        os.write(fd, bytes(repr((server.socket.getsockname(), time.time())), "utf8"))
         os.close(fd)
         self.server = server
         server.timeout = 0.1
-        server.register_function(self.ping, 'ping')
-        server.register_function(self.run_gui, 'gui')
-        server.register_function(self.run_daemon, 'daemon')
+        server.register_function(self.ping, "ping")
+        server.register_function(self.run_gui, "gui")
+        server.register_function(self.run_daemon, "daemon")
         self.cmd_runner = Commands(self.config, None, self.network, self)
         for cmdname in known_commands:
             server.register_function(getattr(self.cmd_runner, cmdname), cmdname)
-        server.register_function(self.run_cmdline, 'run_cmdline')
+        server.register_function(self.run_cmdline, "run_cmdline")
 
     def ping(self):
         return True
 
     def run_daemon(self, config_options):
         config = SimpleConfig(config_options)
-        sub = config.get('subcommand')
-        subargs = config.get('subargs')
+        sub = config.get("subcommand")
+        subargs = config.get("subargs")
         plugin_cmd = self.plugins and self.plugins.daemon_commands.get(sub)
-        if subargs and sub in [None, 'start', 'stop']:
-            return "Unexpected arguments: {!r}. {!r} takes no options.".format(subargs, sub)
-        if sub in [None, 'start']:
+        if subargs and sub in [None, "start", "stop"]:
+            return "Unexpected arguments: {!r}. {!r} takes no options.".format(
+                subargs, sub
+            )
+        if sub in [None, "start"]:
             response = "Daemon already running"
-        elif sub == 'stop':
+        elif sub == "stop":
             self.stop()
             response = "Daemon stopped"
         elif plugin_cmd is not None:
@@ -230,10 +247,10 @@ class Daemon(DaemonThread):
     def run_gui(self, config_options):
         config = SimpleConfig(config_options)
         if self.gui:
-            if hasattr(self.gui, 'new_window'):
+            if hasattr(self.gui, "new_window"):
                 # This tells the gui to open the current wallet if any,
                 # or the last wallet if no wallets are currently open.
-                self.gui.new_window(None, config.get('url'))
+                self.gui.new_window(None, config.get("url"))
                 response = "ok"
             else:
                 response = "error: current GUI does not support multiple windows"
@@ -286,17 +303,19 @@ class Daemon(DaemonThread):
             wallet.stop_threads()
 
     def run_cmdline(self, config_options):
-        password = config_options.get('password')
-        new_password = config_options.get('new_password')
+        password = config_options.get("password")
+        new_password = config_options.get("new_password")
         config = SimpleConfig(config_options)
-        cmdname = config.get('cmd')
+        cmdname = config.get("cmd")
         cmd = known_commands[cmdname]
         if cmd.requires_wallet:
             path = config.get_wallet_path()
             wallet = self.wallets.get(path)
             if wallet is None:
                 wallet_name = os.path.basename(path)
-                return {'error': f'Wallet "{wallet_name}" is not loaded. Use "{SCRIPT_NAME} daemon load_wallet"'}
+                return {
+                    "error": f'Wallet "{wallet_name}" is not loaded. Use "{SCRIPT_NAME} daemon load_wallet"'
+                }
         else:
             wallet = None
         # arguments passed to function
@@ -306,13 +325,19 @@ class Daemon(DaemonThread):
         # options
         kwargs = {}
         for x in cmd.options:
-            kwargs[x] = (config_options.get(x) if x in ['password', 'new_password'] else config.get(x))
+            kwargs[x] = (
+                config_options.get(x)
+                if x in ["password", "new_password"]
+                else config.get(x)
+            )
         cmd_runner = Commands(config, wallet, self.network, self)
         func = getattr(cmd_runner, cmd.name)
         try:
             result = func(*args, **kwargs)
         except TypeError as e:
-            raise Exception("Wrapping TypeError to prevent JSONRPC-Pelix from hiding traceback") from e
+            raise Exception(
+                "Wrapping TypeError to prevent JSONRPC-Pelix from hiding traceback"
+            ) from e
         return result
 
     def run(self):
@@ -335,11 +360,14 @@ class Daemon(DaemonThread):
     def init_gui(self):
         config = self.config
         plugins = self.plugins
-        gui_name = config.get('gui', 'qt')
-        if gui_name in ['lite', 'classic']:
-            gui_name = 'qt'
-        if (sys.platform in ('windows', 'win32')
-            and config.get('qt_opengl') and gui_name == 'qt'):
+        gui_name = config.get("gui", "qt")
+        if gui_name in ["lite", "classic"]:
+            gui_name = "qt"
+        if (
+            sys.platform in ("windows", "win32")
+            and config.get("qt_opengl")
+            and gui_name == "qt"
+        ):
             # Hack to force QT_OPENGL env var. See #1255
             #
             # Note if the user provides a bad override here.. the app may crash
@@ -347,7 +375,7 @@ class Daemon(DaemonThread):
             # since this command line option is ultimately intended to just
             # be used for an installer-generated shortcut.
             #
-            os.environ['QT_OPENGL'] = str(config.get('qt_opengl'))
-        gui = __import__('electroncash_gui.' + gui_name, fromlist=['electroncash_gui'])
+            os.environ["QT_OPENGL"] = str(config.get("qt_opengl"))
+        gui = __import__("electroncash_gui." + gui_name, fromlist=["electroncash_gui"])
         self.gui = gui.ElectrumGui(config, self, plugins)
         self.gui.main()

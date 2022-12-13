@@ -1,28 +1,31 @@
 from binascii import hexlify, unhexlify
 
-from electroncash.util import bfh, bh2u, UserCancelled
-from electroncash.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, SignatureType, deserialize_xpub
 from electroncash import networks
-from electroncash.i18n import _
-from electroncash.transaction import deserialize, Transaction
-from electroncash.keystore import Hardware_KeyStore, is_xpubkey, parse_xpubkey
 from electroncash.address import Address
+from electroncash.bitcoin import (
+    TYPE_ADDRESS,
+    TYPE_SCRIPT,
+    SignatureType,
+    deserialize_xpub,
+)
+from electroncash.i18n import _
+from electroncash.keystore import Hardware_KeyStore, is_xpubkey, parse_xpubkey
 from electroncash.plugins import Device
-
+from electroncash.transaction import Transaction, deserialize
+from electroncash.util import UserCancelled, bfh, bh2u
 from electroncash_plugins.hw_wallet import HW_PluginBase
 from electroncash_plugins.hw_wallet.plugin import (
     is_any_tx_output_on_change_branch,
     validate_op_return_output_and_get_data,
 )
 
-
 # TREZOR initialization methods
 TIM_NEW, TIM_RECOVER, TIM_MNEMONIC, TIM_PRIVKEY = range(0, 4)
 
 
 class KeepKey_KeyStore(Hardware_KeyStore):
-    hw_type = 'keepkey'
-    device = 'KeepKey'
+    hw_type = "keepkey"
+    device = "KeepKey"
 
     def get_derivation(self):
         return self.derivation
@@ -31,15 +34,17 @@ class KeepKey_KeyStore(Hardware_KeyStore):
         return self.plugin.get_client(self, force_pair)
 
     def decrypt_message(self, sequence, message, password):
-        raise RuntimeError(_('Encryption and decryption are not implemented by {}').format(self.device))
+        raise RuntimeError(
+            _("Encryption and decryption are not implemented by {}").format(self.device)
+        )
 
     def sign_message(self, sequence, message, password, sigtype=SignatureType.BITCOIN):
         if sigtype == SignatureType.ECASH:
             raise RuntimeError(
-                _('eCash message signing is not available for {}').format(self.device)
+                _("eCash message signing is not available for {}").format(self.device)
             )
         client = self.get_client()
-        address_path = self.get_derivation() + "/%d/%d"%sequence
+        address_path = self.get_derivation() + "/%d/%d" % sequence
         address_n = client.expand_path(address_path)
         msg_sig = client.sign_message(self.plugin.get_coin_name(), address_n, message)
         return msg_sig.signature
@@ -53,10 +58,12 @@ class KeepKey_KeyStore(Hardware_KeyStore):
         xpub_path = {}
         for txin in tx.inputs():
             pubkeys, x_pubkeys = tx.get_sorted_pubkeys(txin)
-            tx_hash = txin['prevout_hash']
-            if txin.get('prev_tx') is None:
-                raise RuntimeError(_('Offline signing with {} is not supported.').format(self.device))
-            prev_tx[tx_hash] = txin['prev_tx']
+            tx_hash = txin["prevout_hash"]
+            if txin.get("prev_tx") is None:
+                raise RuntimeError(
+                    _("Offline signing with {} is not supported.").format(self.device)
+                )
+            prev_tx[tx_hash] = txin["prev_tx"]
             for x_pubkey in x_pubkeys:
                 if not is_xpubkey(x_pubkey):
                     continue
@@ -74,12 +81,12 @@ class KeepKeyPlugin(HW_PluginBase):
     #     libraries_available, libraries_URL, minimum_firmware,
     #     wallet_class, ckd_public, types, HidTransport
 
-    firmware_URL = 'https://www.keepkey.com'
-    libraries_URL = 'https://github.com/keepkey/python-keepkey'
+    firmware_URL = "https://www.keepkey.com"
+    libraries_URL = "https://github.com/keepkey/python-keepkey"
     minimum_firmware = (1, 0, 0)
     keystore_class = KeepKey_KeyStore
     usb_context = None
-    SUPPORTED_XTYPES = ('standard', 'p2wsh-p2sh', 'p2wsh')
+    SUPPORTED_XTYPES = ("standard", "p2wsh-p2sh", "p2wsh")
 
     MAX_LABEL_LEN = 32
 
@@ -87,17 +94,21 @@ class KeepKeyPlugin(HW_PluginBase):
         HW_PluginBase.__init__(self, parent, config, name)
 
         try:
-            from electroncash_plugins.keepkey import client
             import keepkeylib
             import keepkeylib.ckd_public
             import keepkeylib.transport_hid
             import keepkeylib.transport_webusb
             from usb1 import USBContext
+
+            from electroncash_plugins.keepkey import client
+
             self.client_class = client.KeepKeyClient
             self.ckd_public = keepkeylib.ckd_public
             self.types = keepkeylib.client.types
-            self.DEVICE_IDS = (keepkeylib.transport_hid.DEVICE_IDS +
-                               keepkeylib.transport_webusb.DEVICE_IDS)
+            self.DEVICE_IDS = (
+                keepkeylib.transport_hid.DEVICE_IDS
+                + keepkeylib.transport_webusb.DEVICE_IDS
+            )
             self.device_manager().register_devices(self.DEVICE_IDS, plugin=self)
             self.device_manager().register_enumerate_func(self.enumerate)
             self.usb_context = USBContext()
@@ -108,26 +119,37 @@ class KeepKeyPlugin(HW_PluginBase):
 
     def libusb_enumerate(self):
         from keepkeylib.transport_webusb import DEVICE_IDS
+
         for dev in self.usb_context.getDeviceIterator(skip_on_error=True):
             usb_id = (dev.getVendorID(), dev.getProductID())
             if usb_id in DEVICE_IDS:
                 yield dev
 
     def _USBDevice_getPath(self, dev):
-        return ":".join(str(x) for x in ["%03i" % (dev.getBusNumber(),)] + dev.getPortNumberList())
+        return ":".join(
+            str(x) for x in ["%03i" % (dev.getBusNumber(),)] + dev.getPortNumberList()
+        )
 
     def enumerate(self):
         for dev in self.libusb_enumerate():
             path = self._USBDevice_getPath(dev)
             usb_id = (dev.getVendorID(), dev.getProductID())
-            yield Device(path=path, interface_number=-1, id_=path, product_key=usb_id, usage_page=0)
+            yield Device(
+                path=path,
+                interface_number=-1,
+                id_=path,
+                product_key=usb_id,
+                usage_page=0,
+            )
 
     def hid_transport(self, pair):
         from keepkeylib.transport_hid import HidTransport
+
         return HidTransport(pair)
 
     def webusb_transport(self, device):
         from keepkeylib.transport_webusb import WebUsbTransport
+
         for dev in self.libusb_enumerate():
             path = self._USBDevice_getPath(dev)
             if path == device.path:
@@ -174,15 +196,16 @@ class KeepKeyPlugin(HW_PluginBase):
 
         # Try a ping for device sanity
         try:
-            client.ping('t')
+            client.ping("t")
         except BaseException as e:
             self.print_error(f"ping failed {e}")
             return None
 
         if not client.atleast_version(*self.minimum_firmware):
-            msg = (_('Outdated {} firmware for device labelled {}. Please '
-                     'download the updated firmware from {}')
-                   .format(self.device, client.label(), self.firmware_URL))
+            msg = _(
+                "Outdated {} firmware for device labelled {}. Please "
+                "download the updated firmware from {}"
+            ).format(self.device, client.label(), self.firmware_URL)
             self.print_error(msg)
             if handler:
                 handler.show_error(msg)
@@ -207,25 +230,31 @@ class KeepKeyPlugin(HW_PluginBase):
 
     def initialize_device(self, device_id, wizard, handler):
         # Initialization method
-        msg = _("Choose how you want to initialize your {}.\n\n"
-                "The first two methods are secure as no secret information "
-                "is entered into your computer.\n\n"
-                "For the last two methods you input secrets on your keyboard "
-                "and upload them to your {}, and so you should "
-                "only do those on a computer you know to be trustworthy "
-                "and free of malware."
+        msg = _(
+            "Choose how you want to initialize your {}.\n\n"
+            "The first two methods are secure as no secret information "
+            "is entered into your computer.\n\n"
+            "For the last two methods you input secrets on your keyboard "
+            "and upload them to your {}, and so you should "
+            "only do those on a computer you know to be trustworthy "
+            "and free of malware."
         ).format(self.device, self.device)
         choices = [
             # Must be short as QT doesn't word-wrap radio button text
             (TIM_NEW, _("Let the device generate a completely new seed randomly")),
             (TIM_RECOVER, _("Recover from a seed you have previously written down")),
             (TIM_MNEMONIC, _("Upload a BIP39 mnemonic to generate the seed")),
-            (TIM_PRIVKEY, _("Upload a master private key"))
+            (TIM_PRIVKEY, _("Upload a master private key")),
         ]
+
         def f(method):
             import threading
+
             settings = self.request_trezor_init_settings(wizard, method, self.device)
-            t = threading.Thread(target=self._initialize_device_safe, args=(settings, method, device_id, wizard, handler))
+            t = threading.Thread(
+                target=self._initialize_device_safe,
+                args=(settings, method, device_id, wizard, handler),
+            )
             t.setDaemon(True)
             t.start()
             exit_code = wizard.loop.exec_()
@@ -234,7 +263,10 @@ class KeepKeyPlugin(HW_PluginBase):
                 # of leaving the device in an initialized state when finishing.
                 # signal that this is not the case:
                 raise UserCancelled()
-        wizard.choice_dialog(title=_('Initialize Device'), message=msg, choices=choices, run_next=f)
+
+        wizard.choice_dialog(
+            title=_("Initialize Device"), message=msg, choices=choices, run_next=f
+        )
 
     def _initialize_device_safe(self, settings, method, device_id, wizard, handler):
         exit_code = 0
@@ -252,7 +284,7 @@ class KeepKeyPlugin(HW_PluginBase):
     def _initialize_device(self, settings, method, device_id, wizard, handler):
         item, label, pin_protection, passphrase_protection = settings
 
-        language = 'english'
+        language = "english"
         devmgr = self.device_manager()
         client = devmgr.client_by_id(device_id)
         if not client:
@@ -260,32 +292,35 @@ class KeepKeyPlugin(HW_PluginBase):
 
         if method == TIM_NEW:
             strength = 64 * (item + 2)  # 128, 192 or 256
-            client.reset_device(True, strength, passphrase_protection,
-                                pin_protection, label, language)
+            client.reset_device(
+                True, strength, passphrase_protection, pin_protection, label, language
+            )
         elif method == TIM_RECOVER:
             word_count = 6 * (item + 2)  # 12, 18 or 24
             client.step = 0
-            client.recovery_device(word_count, passphrase_protection,
-                                       pin_protection, label, language)
+            client.recovery_device(
+                word_count, passphrase_protection, pin_protection, label, language
+            )
         elif method == TIM_MNEMONIC:
             item = str(item).strip()
             if not len(item.split()) in [12, 18, 24]:
                 raise Exception(_("The mnemonic needs to be 12, 18 or 24 words."))
             pin = pin_protection  # It's the pin, not a boolean
-            client.load_device_by_mnemonic(item, pin,
-                                           passphrase_protection,
-                                           label, language)
+            client.load_device_by_mnemonic(
+                item, pin, passphrase_protection, label, language
+            )
         else:
             pin = pin_protection  # It's the pin, not a boolean
-            client.load_device_by_xprv(item, pin, passphrase_protection,
-                                       label, language)
+            client.load_device_by_xprv(
+                item, pin, passphrase_protection, label, language
+            )
 
     def _make_node_path(self, xpub, address_n):
         _, depth, fingerprint, child_num, chain_code, key = deserialize_xpub(xpub)
         node = self.types.HDNodeType(
             depth=depth,
-            fingerprint=int.from_bytes(fingerprint, 'big'),
-            child_num=int.from_bytes(child_num, 'big'),
+            fingerprint=int.from_bytes(fingerprint, "big"),
+            child_num=int.from_bytes(child_num, "big"),
             chain_code=chain_code,
             public_key=key,
         )
@@ -299,13 +334,16 @@ class KeepKeyPlugin(HW_PluginBase):
         if not device_info.initialized:
             self.initialize_device(device_id, wizard, client.handler)
         wizard.run_task_without_blocking_gui(
-            task=lambda: client.get_xpub("m", 'standard'))
+            task=lambda: client.get_xpub("m", "standard")
+        )
         client.used()
         return client
 
     def get_xpub(self, device_id, derivation, xtype, wizard):
         if xtype not in self.SUPPORTED_XTYPES:
-            raise RuntimeError(_('This type of script is not supported with {}.').format(self.device))
+            raise RuntimeError(
+                _("This type of script is not supported with {}.").format(self.device)
+            )
         client = self.scan_and_create_client_for_device(
             device_id=device_id, wizard=wizard
         )
@@ -333,8 +371,13 @@ class KeepKeyPlugin(HW_PluginBase):
         client = self.get_client(keystore)
         inputs = self.tx_inputs(tx, True)
         outputs = self.tx_outputs(keystore.get_derivation(), tx)
-        signatures, signed_tx = client.sign_tx(self.get_coin_name(), inputs, outputs,
-                                               lock_time=tx.locktime, version=tx.version)
+        signatures, signed_tx = client.sign_tx(
+            self.get_coin_name(),
+            inputs,
+            outputs,
+            lock_time=tx.locktime,
+            version=tx.version,
+        )
         signatures = [bh2u(x) for x in signatures]
         tx.update_signatures(signatures)
 
@@ -349,80 +392,98 @@ class KeepKeyPlugin(HW_PluginBase):
             return
         change, index = wallet.get_address_index(address)
         derivation = keystore.derivation
-        address_path = "%s/%d/%d"%(derivation, change, index)
+        address_path = "%s/%d/%d" % (derivation, change, index)
         address_n = client.expand_path(address_path)
         xpubs = wallet.get_master_public_keys()
         if len(xpubs) == 1:
             script_type = self.get_keepkey_input_script_type(wallet.txin_type)
-            client.get_address(self.get_coin_name(), address_n, True, script_type=script_type)
+            client.get_address(
+                self.get_coin_name(), address_n, True, script_type=script_type
+            )
         else:
+
             def f(xpub):
                 return self._make_node_path(xpub, [change, index])
+
             pubkeys = wallet.get_public_keys(address)
             # sort xpubs using the order of pubkeys
             sorted_pubkeys, sorted_xpubs = zip(*sorted(zip(pubkeys, xpubs)))
             pubkeys = list(map(f, sorted_xpubs))
             multisig = self.types.MultisigRedeemScriptType(
-               pubkeys=pubkeys,
-               signatures=[b''] * wallet.n,
-               m=wallet.m,
+                pubkeys=pubkeys,
+                signatures=[b""] * wallet.n,
+                m=wallet.m,
             )
             script_type = self.get_keepkey_input_script_type(wallet.txin_type)
-            client.get_address(self.get_coin_name(), address_n, True, multisig=multisig, script_type=script_type)
+            client.get_address(
+                self.get_coin_name(),
+                address_n,
+                True,
+                multisig=multisig,
+                script_type=script_type,
+            )
 
     def tx_inputs(self, tx, for_sig=False):
         inputs = []
         for txin in tx.inputs():
             txinputtype = self.types.TxInputType()
-            if txin['type'] == 'coinbase':
-                prev_hash = b"\x00"*32
-                prev_index = 0xffffffff  # signed int -1
+            if txin["type"] == "coinbase":
+                prev_hash = b"\x00" * 32
+                prev_index = 0xFFFFFFFF  # signed int -1
             else:
                 if for_sig:
-                    x_pubkeys = txin['x_pubkeys']
+                    x_pubkeys = txin["x_pubkeys"]
                     if len(x_pubkeys) == 1:
                         x_pubkey = x_pubkeys[0]
                         xpub, s = parse_xpubkey(x_pubkey)
                         xpub_n = self.client_class.expand_path(self.xpub_path[xpub])
                         txinputtype.address_n.extend(xpub_n + s)
-                        txinputtype.script_type = self.get_keepkey_input_script_type(txin['type'])
+                        txinputtype.script_type = self.get_keepkey_input_script_type(
+                            txin["type"]
+                        )
                     else:
+
                         def f(x_pubkey):
                             xpub, s = parse_xpubkey(x_pubkey)
                             return self._make_node_path(xpub, s)
+
                         pubkeys = list(map(f, x_pubkeys))
                         multisig = self.types.MultisigRedeemScriptType(
                             pubkeys=pubkeys,
-                            signatures=map(lambda x: bfh(x)[:-1] if x else b'', txin.get('signatures')),
-                            m=txin.get('num_sig'),
+                            signatures=map(
+                                lambda x: bfh(x)[:-1] if x else b"",
+                                txin.get("signatures"),
+                            ),
+                            m=txin.get("num_sig"),
                         )
-                        script_type = self.get_keepkey_input_script_type(txin['type'])
+                        script_type = self.get_keepkey_input_script_type(txin["type"])
                         txinputtype = self.types.TxInputType(
-                            script_type=script_type,
-                            multisig=multisig
+                            script_type=script_type, multisig=multisig
                         )
                         # find which key is mine
                         for x_pubkey in x_pubkeys:
                             if is_xpubkey(x_pubkey):
                                 xpub, s = parse_xpubkey(x_pubkey)
                                 if xpub in self.xpub_path:
-                                    xpub_n = self.client_class.expand_path(self.xpub_path[xpub])
+                                    xpub_n = self.client_class.expand_path(
+                                        self.xpub_path[xpub]
+                                    )
                                     txinputtype.address_n.extend(xpub_n + s)
                                     break
 
-                prev_hash = unhexlify(txin['prevout_hash'])
-                prev_index = txin['prevout_n']
+                prev_hash = unhexlify(txin["prevout_hash"])
+                prev_index = txin["prevout_n"]
 
-            if 'value' in txin:
-                txinputtype.amount = txin['value']
+            if "value" in txin:
+                txinputtype.amount = txin["value"]
             txinputtype.prev_hash = prev_hash
             txinputtype.prev_index = prev_index
 
-            if txin.get('scriptSig') is not None:
-                script_sig = bfh(txin['scriptSig'])
+            if txin.get("scriptSig") is not None:
+                script_sig = bfh(txin["scriptSig"])
                 txinputtype.script_sig = script_sig
 
-            txinputtype.sequence = txin.get('sequence', 0xffffffff - 1)
+            txinputtype.sequence = txin.get("sequence", 0xFFFFFFFF - 1)
 
             inputs.append(txinputtype)
 
@@ -442,14 +503,16 @@ class KeepKeyPlugin(HW_PluginBase):
                 address_n = self.client_class.expand_path("/%d/%d" % index)
                 pubkeys = [self._make_node_path(xpub, address_n) for xpub in xpubs]
                 multisig = self.types.MultisigRedeemScriptType(
-                    pubkeys=pubkeys,
-                    signatures=[b''] * len(pubkeys),
-                    m=m)
+                    pubkeys=pubkeys, signatures=[b""] * len(pubkeys), m=m
+                )
                 txoutputtype = self.types.TxOutputType(
                     multisig=multisig,
                     amount=amount,
-                    address_n=self.client_class.expand_path(derivation + "/%d/%d" % index),
-                    script_type=keepkey_script_type)
+                    address_n=self.client_class.expand_path(
+                        derivation + "/%d/%d" % index
+                    ),
+                    script_type=keepkey_script_type,
+                )
             return txoutputtype
 
         def create_output_by_address():
@@ -457,10 +520,14 @@ class KeepKeyPlugin(HW_PluginBase):
             txoutputtype.amount = amount
             if _type == TYPE_SCRIPT:
                 txoutputtype.script_type = self.types.PAYTOOPRETURN
-                txoutputtype.op_return_data = validate_op_return_output_and_get_data(o, max_pushes=1)
+                txoutputtype.op_return_data = validate_op_return_output_and_get_data(
+                    o, max_pushes=1
+                )
             elif _type == TYPE_ADDRESS:
                 txoutputtype.script_type = self.types.PAYTOADDRESS
-                txoutputtype.address = address.to_full_string(Address.FMT_CASHADDR_BCH, net=networks.MainNet)
+                txoutputtype.address = address.to_full_string(
+                    Address.FMT_CASHADDR_BCH, net=networks.MainNet
+                )
             return txoutputtype
 
         outputs = []
@@ -495,14 +562,14 @@ class KeepKeyPlugin(HW_PluginBase):
             # probably for segwit input and we don't need this prev txn
             return t
         d = deserialize(tx.raw)
-        t.version = d['version']
-        t.lock_time = d['lockTime']
+        t.version = d["version"]
+        t.lock_time = d["lockTime"]
         inputs = self.tx_inputs(tx)
         t.inputs.extend(inputs)
-        for vout in d['outputs']:
+        for vout in d["outputs"]:
             o = t.bin_outputs.add()
-            o.amount = vout['value']
-            o.script_pubkey = bfh(vout['scriptPubKey'])
+            o.amount = vout["value"]
+            o.script_pubkey = bfh(vout["scriptPubKey"])
         return t
 
     # This function is called from the TREZOR libraries (via tx_api)

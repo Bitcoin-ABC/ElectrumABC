@@ -26,16 +26,19 @@
 # SOFTWARE.
 from __future__ import annotations
 
-from functools import partial
 import threading
-from typing import TYPE_CHECKING, Union, Optional
+from functools import partial
+from typing import TYPE_CHECKING, Optional, Union
 
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtGui import QIcon
-from PyQt5 import QtWidgets
+
+from electroncash.i18n import _
+from electroncash.util import PrintError
 from electroncash_gui.qt.installwizard import InstallWizard
 from electroncash_gui.qt.main_window import ElectrumWindow
-from electroncash_gui.qt.password_dialog import PasswordLayout, PW_PASSPHRASE
+from electroncash_gui.qt.password_dialog import PW_PASSPHRASE, PasswordLayout
 from electroncash_gui.qt.util import (
     Buttons,
     CancelButton,
@@ -47,21 +50,18 @@ from electroncash_gui.qt.util import (
     char_width_in_lineedit,
 )
 
-from electroncash.i18n import _
-from electroncash.util import PrintError
-
-from.plugin import HW_PluginBase, HardwareHandlerBase
+from .plugin import HardwareHandlerBase, HW_PluginBase
 
 if TYPE_CHECKING:
-    from electroncash.wallet import Abstract_Wallet
     from electroncash.keystore import Hardware_KeyStore
+    from electroncash.wallet import Abstract_Wallet
 
 
 # The trickiest thing about this handler was getting windows properly
 # parented on MacOSX.
 class QtHandlerBase(HardwareHandlerBase, QObject, PrintError):
-    '''An interface between the GUI (here, Qt) and the device handling
-    logic for handling I/O.'''
+    """An interface between the GUI (here, Qt) and the device handling
+    logic for handling I/O."""
 
     passphrase_signal = pyqtSignal(object, object)
     message_signal = pyqtSignal(object, object)
@@ -96,7 +96,7 @@ class QtHandlerBase(HardwareHandlerBase, QObject, PrintError):
         self.status_signal.emit(paired)
 
     def _update_status(self, paired):
-        if hasattr(self, 'button'):
+        if hasattr(self, "button"):
             button = self.button
             icon = button.icon_paired if paired else button.icon_unpaired
             button.setIcon(QIcon(icon))
@@ -179,7 +179,7 @@ class QtHandlerBase(HardwareHandlerBase, QObject, PrintError):
     def message_dialog(self, msg, on_cancel):
         # Called more than once during signing, to confirm output and fee
         self.clear_dialog()
-        title = _('Please check your {} device').format(self.device)
+        title = _("Please check your {} device").format(self.device)
         self.dialog = dialog = WindowModalDialog(self.top_level_window(), title)
         l = QtWidgets.QLabel(msg)
         vbox = QtWidgets.QVBoxLayout(dialog)
@@ -198,8 +198,10 @@ class QtHandlerBase(HardwareHandlerBase, QObject, PrintError):
 
     def clear_dialog(self):
         if self.dialog:
-            try: self.dialog.accept()
-            except RuntimeError: pass  # closes #1437. Yes, this is a band-aid but it's clean-up code anyway and so it doesn't matter. I also was unable to track down how it could ever happen.
+            try:
+                self.dialog.accept()
+            except RuntimeError:
+                pass  # closes #1437. Yes, this is a band-aid but it's clean-up code anyway and so it doesn't matter. I also was unable to track down how it could ever happen.
             self.dialog = None
 
     def win_query_choice(self, msg, labels):
@@ -211,13 +213,16 @@ class QtHandlerBase(HardwareHandlerBase, QObject, PrintError):
         self.done.set()
 
 
-import sys, queue
+import queue
+import sys
+
 from electroncash.plugins import hook
 from electroncash.util import UserCancelled
 from electroncash_gui.qt.main_window import StatusBarButton
 
+
 class ThreadJob_TaskThread_Facade(TaskThread):
-    ''' This class is really a ThreadJob intended to mimic the TaskThread's
+    """This class is really a ThreadJob intended to mimic the TaskThread's
     semantics. (Which we need since it can send signals/callbacks to the GUI
     thread).
 
@@ -229,7 +234,8 @@ class ThreadJob_TaskThread_Facade(TaskThread):
     issues on platforms such as MacOS.  See #1598.
 
     (The Plugins thread already talks to the HW wallets because of the DeviceMgr
-    class, so we must also live on that same thread). '''
+    class, so we must also live on that same thread)."""
+
     def __init__(self, plugin, on_error=None, *, name=None):
         super().__init__(parent=None, on_error=on_error, name=name)
         self.plugin = plugin
@@ -237,12 +243,12 @@ class ThreadJob_TaskThread_Facade(TaskThread):
         self.print_error("Started")
 
     def start(self):
-        ''' Overrides base; is a no-op since we do not want to actually
-        start the QThread object '''
+        """Overrides base; is a no-op since we do not want to actually
+        start the QThread object"""
 
     def run(self):
-        ''' Overrides base. This follows the ThreadJob API -- is called every
-        100ms in a loop from the Plugins DaemonThread. '''
+        """Overrides base. This follows the ThreadJob API -- is called every
+        100ms in a loop from the Plugins DaemonThread."""
         while True:
             try:
                 task = self.tasks.get_nowait()
@@ -257,34 +263,35 @@ class ThreadJob_TaskThread_Facade(TaskThread):
                 self.doneSig.emit(sys.exc_info(), task.cb_done, task.cb_error)
 
     def stop(self, *args, **kwargs):
-        ''' Overrides base. Remove us from DaemonThread jobs. '''
+        """Overrides base. Remove us from DaemonThread jobs."""
         try:
             self.plugin.parent.remove_jobs([self])
             self.print_error("Stopped")
         except ValueError:
-            ''' Was already removed, silently ignore error. '''
+            """Was already removed, silently ignore error."""
 
 
 class QtPluginBase(object):
-
     @hook
     def load_wallet(
         self: Union[QtPluginBase, HW_PluginBase],
         wallet: Abstract_Wallet,
-        window: ElectrumWindow
+        window: ElectrumWindow,
     ):
         for i, keystore in enumerate(wallet.get_keystores()):
             if not isinstance(keystore, self.keystore_class):
                 continue
             if not self.libraries_available:
-                if hasattr(self, 'libraries_available_message'):
-                    message = self.libraries_available_message + '\n'
+                if hasattr(self, "libraries_available_message"):
+                    message = self.libraries_available_message + "\n"
                 else:
-                    message = _("Cannot find python library for") + " '{}'.\n".format(self.name)
+                    message = _("Cannot find python library for") + " '{}'.\n".format(
+                        self.name
+                    )
                 message += _("Make sure you install it with python3")
                 window.show_error(message)
                 return
-            tooltip = self.device + '\n' + (keystore.label or 'unnamed')
+            tooltip = self.device + "\n" + (keystore.label or "unnamed")
             cb = partial(self.show_settings_dialog, window, keystore)
             button = StatusBarButton(QIcon(self.icon_unpaired), tooltip, cb)
             button.icon_paired = self.icon_paired
@@ -293,21 +300,25 @@ class QtPluginBase(object):
             handler = self.create_handler(window)
             handler.button = button
             keystore.handler = handler
-            keystore.thread = ThreadJob_TaskThread_Facade(self, window.on_error, name = wallet.diagnostic_name() + f'/keystore{i}')
+            keystore.thread = ThreadJob_TaskThread_Facade(
+                self, window.on_error, name=wallet.diagnostic_name() + f"/keystore{i}"
+            )
             # Trigger a pairing
             keystore.thread.add(partial(self.get_client, keystore))
 
     def choose_device(
-        self: Union['QtPluginBase', HW_PluginBase],
+        self: Union["QtPluginBase", HW_PluginBase],
         window: ElectrumWindow,
-        keystore: Hardware_KeyStore
+        keystore: Hardware_KeyStore,
     ) -> Optional[str]:
-        '''This dialog box should be usable even if the user has
-        forgotten their PIN or it is in bootloader mode.'''
+        """This dialog box should be usable even if the user has
+        forgotten their PIN or it is in bootloader mode."""
         device_id = self.device_manager().xpub_id(keystore.xpub)
         if not device_id:
             try:
-                info = self.device_manager().select_device(self, keystore.handler, keystore)
+                info = self.device_manager().select_device(
+                    self, keystore.handler, keystore
+                )
             except UserCancelled:
                 return
             device_id = info.device.id_
@@ -316,9 +327,10 @@ class QtPluginBase(object):
     def show_settings_dialog(self, window: ElectrumWindow, keystore: Hardware_KeyStore):
         def connect():
             device_id = self.choose_device(window, keystore)
+
         keystore.thread.add(connect)
 
     def create_handler(
-        self, window:  Union[ElectrumWindow, InstallWizard]
+        self, window: Union[ElectrumWindow, InstallWizard]
     ) -> QtHandlerBase:
         raise NotImplementedError()

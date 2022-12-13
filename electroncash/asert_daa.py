@@ -21,46 +21,57 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import os
-
 from collections import namedtuple
 from typing import Optional, Union
 
 from .util import print_error
 
+
 def bits_to_target(bits: int) -> int:
     size = bits >> 24
-    assert size <= 0x1d
+    assert size <= 0x1D
 
-    word = bits & 0x00ffffff
-    assert 0x8000 <= word <= 0x7fffff
+    word = bits & 0x00FFFFFF
+    assert 0x8000 <= word <= 0x7FFFFF
 
     if size <= 3:
         return word >> (8 * (3 - size))
     else:
         return word << (8 * (size - 3))
 
+
 def _get_asert_activation_mtp():
-    """ Returns 1605441600 (Nov 15, 2020 12:00:00 UTC) or whatever override may
-    be set by the env variable ASERT_MTP """
+    """Returns 1605441600 (Nov 15, 2020 12:00:00 UTC) or whatever override may
+    be set by the env variable ASERT_MTP"""
     default_mtp = 1605441600  # Nov 15, 2020 12:00:00 UTC
-    mtp = os.environ.get('ASERT_MTP', default_mtp)
-    try: mtp = int(mtp)
-    except: pass
+    mtp = os.environ.get("ASERT_MTP", default_mtp)
+    try:
+        mtp = int(mtp)
+    except:
+        pass
     if not isinstance(mtp, int) or mtp <= 1510600000:
-        print_error("Error: Environment variable ASERT_MTP ignored because it is invalid: {}".format(str(mtp)))
+        print_error(
+            "Error: Environment variable ASERT_MTP ignored because it is invalid: {}".format(
+                str(mtp)
+            )
+        )
         mtp = default_mtp
     if mtp != default_mtp:
         print_error("ASERT_MTP of {} will be used".format(mtp))
     return mtp
 
+
 class Anchor(namedtuple("Anchor", "height bits prev_time")):
     pass
 
-class ASERTDaa:
-    """ Parameters and methods for the ASERT DAA. Instances of these live in
-    networks.TestNet, networks.MainNet as part of the chain params. """
 
-    MTP_ACTIVATION_TIME = _get_asert_activation_mtp()  # Normally Nov. 15th, 2020 UTC 12:00:00
+class ASERTDaa:
+    """Parameters and methods for the ASERT DAA. Instances of these live in
+    networks.TestNet, networks.MainNet as part of the chain params."""
+
+    MTP_ACTIVATION_TIME = (
+        _get_asert_activation_mtp()
+    )  # Normally Nov. 15th, 2020 UTC 12:00:00
 
     IDEAL_BLOCK_TIME = 10 * 60  # 10 mins
     HALF_LIFE = 2 * 24 * 3600
@@ -68,7 +79,7 @@ class ASERTDaa:
     RBITS = 16  # number of bits after the radix for fixed-point math
     RADIX = 1 << RBITS
     # POW Limit
-    MAX_BITS = 0x1d00ffff
+    MAX_BITS = 0x1D00FFFF
 
     MAX_TARGET = bits_to_target(MAX_BITS)
 
@@ -81,15 +92,20 @@ class ASERTDaa:
             self.HALF_LIFE = 3600
 
     @staticmethod
-    def bits_to_target(bits: int) -> int:  return bits_to_target(bits)
+    def bits_to_target(bits: int) -> int:
+        return bits_to_target(bits)
 
     def target_to_bits(self, target: int) -> int:
         assert target > 0
         if target > self.MAX_TARGET:
-            print_error('Warning: target went above maximum ({} > {})'.format(target, self.MAX_TARGET))
+            print_error(
+                "Warning: target went above maximum ({} > {})".format(
+                    target, self.MAX_TARGET
+                )
+            )
             target = self.MAX_TARGET
         size = (target.bit_length() + 7) // 8
-        mask64 = 0xffffffffffffffff
+        mask64 = 0xFFFFFFFFFFFFFFFF
         if size <= 3:
             compact = (target & mask64) << (8 * (3 - size))
         else:
@@ -99,7 +115,7 @@ class ASERTDaa:
             compact >>= 8
             size += 1
 
-        assert compact == (compact & 0x007fffff)
+        assert compact == (compact & 0x007FFFFF)
         assert size < 256
         return compact | size << 24
 
@@ -110,12 +126,14 @@ class ASERTDaa:
     @staticmethod
     def target_to_hex(target: int) -> str:
         h = hex(target)[2:]
-        return '0' * (64 - len(h)) + h
+        return "0" * (64 - len(h)) + h
 
-    def next_bits_aserti3_2d(self, anchor_bits: int, time_diff: Union[float, int], height_diff: int) -> int:
-        """ Integer ASERTI algorithm, based on Jonathan Toomim's
+    def next_bits_aserti3_2d(
+        self, anchor_bits: int, time_diff: Union[float, int], height_diff: int
+    ) -> int:
+        """Integer ASERTI algorithm, based on Jonathan Toomim's
         `next_bits_aserti` implementation in mining.py (see
-        https://github.com/jtoomim/difficulty) """
+        https://github.com/jtoomim/difficulty)"""
 
         target = self.bits_to_target(anchor_bits)
 
@@ -128,17 +146,30 @@ class ASERTDaa:
         # assertion checks a type constraint of the C++ implementation which
         # uses a 64-bit signed integer for the exponent. If inputs violate that,
         # then the implementation will diverge.
-        assert(abs(time_diff - self.IDEAL_BLOCK_TIME * (height_diff+1)) < (1<<(63-self.RBITS)))
-        exponent = int(((time_diff - self.IDEAL_BLOCK_TIME*(height_diff+1)) * self.RADIX) / self.HALF_LIFE)
+        assert abs(time_diff - self.IDEAL_BLOCK_TIME * (height_diff + 1)) < (
+            1 << (63 - self.RBITS)
+        )
+        exponent = int(
+            ((time_diff - self.IDEAL_BLOCK_TIME * (height_diff + 1)) * self.RADIX)
+            / self.HALF_LIFE
+        )
 
         # Next, we use the 2^x = 2 * 2^(x-1) identity to shift our exponent into the (0, 1] interval.
         shifts = exponent >> self.RBITS
         exponent -= shifts * self.RADIX
-        assert(exponent >= 0 and exponent < 65536)
+        assert exponent >= 0 and exponent < 65536
 
         # Now we compute an approximated target * 2^(fractional part) * 65536
         # target * 2^x ~= target * (1 + 0.695502049*x + 0.2262698*x**2 + 0.0782318*x**3)
-        target *= self.RADIX + ((195766423245049*exponent + 971821376*exponent**2 + 5127*exponent**3 + 2**47)>>(self.RBITS*3))
+        target *= self.RADIX + (
+            (
+                195766423245049 * exponent
+                + 971821376 * exponent**2
+                + 5127 * exponent**3
+                + 2**47
+            )
+            >> (self.RBITS * 3)
+        )
 
         # Next, we shift to multiply by 2^(integer part). Python doesn't allow
         # shifting by negative integers, so:

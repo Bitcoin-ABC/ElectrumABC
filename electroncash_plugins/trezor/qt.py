@@ -1,10 +1,14 @@
-from functools import partial
 import os
+from functools import partial
 
-from PyQt5.QtCore import QEventLoop, Qt, QStandardPaths, pyqtSignal
-from PyQt5.QtGui import QImage, QBitmap, qRed, qGreen, qBlue
 from PyQt5 import QtWidgets
+from PyQt5.QtCore import QEventLoop, QStandardPaths, Qt, pyqtSignal
+from PyQt5.QtGui import QBitmap, QImage, qBlue, qGreen, qRed
 
+from electroncash.constants import PROJECT_NAME
+from electroncash.i18n import _
+from electroncash.plugins import hook
+from electroncash.util import bh2u
 from electroncash_gui.qt.util import (
     Buttons,
     CancelButton,
@@ -14,40 +18,47 @@ from electroncash_gui.qt.util import (
     WindowModalDialog,
     WWLabel,
 )
-from electroncash.constants import PROJECT_NAME
-from electroncash.i18n import _
-from electroncash.plugins import hook
-from electroncash.util import bh2u
 
 from ..hw_wallet.qt import QtHandlerBase, QtPluginBase
-from .trezor import (TrezorPlugin, TIM_RECOVER,
-                     RECOVERY_TYPE_SCRAMBLED_WORDS, RECOVERY_TYPE_MATRIX,
-                     PASSPHRASE_ON_DEVICE)
+from .trezor import (
+    PASSPHRASE_ON_DEVICE,
+    RECOVERY_TYPE_MATRIX,
+    RECOVERY_TYPE_SCRAMBLED_WORDS,
+    TIM_RECOVER,
+    TrezorPlugin,
+)
 
-
-PASSPHRASE_HELP_SHORT =_(
+PASSPHRASE_HELP_SHORT = _(
     "Passphrases allow you to access new wallets, each "
-    "hidden behind a particular case-sensitive passphrase.")
-PASSPHRASE_HELP = PASSPHRASE_HELP_SHORT + "  " + _(
-    f"You need to create a separate {PROJECT_NAME} wallet for each passphrase"
-    " you use as they each generate different addresses. Changing "
-    "your passphrase does not lose other wallets, each is still "
-    "accessible behind its own passphrase.")
+    "hidden behind a particular case-sensitive passphrase."
+)
+PASSPHRASE_HELP = (
+    PASSPHRASE_HELP_SHORT
+    + "  "
+    + _(
+        f"You need to create a separate {PROJECT_NAME} wallet for each passphrase"
+        " you use as they each generate different addresses. Changing "
+        "your passphrase does not lose other wallets, each is still "
+        "accessible behind its own passphrase."
+    )
+)
 RECOMMEND_PIN = _(
     "You should enable PIN protection.  Your PIN is the only protection "
-    "for your bitcoins if your device is lost or stolen.")
+    "for your bitcoins if your device is lost or stolen."
+)
 PASSPHRASE_NOT_PIN = _(
     "If you forget a passphrase you will be unable to access any "
     "bitcoins in the wallet behind it.  A passphrase is not a PIN. "
-    "Only change this if you are sure you understand it.")
+    "Only change this if you are sure you understand it."
+)
 MATRIX_RECOVERY = _(
     "Enter the recovery words by pressing the buttons according to what "
     "the device shows on its display.  You can also use your NUMPAD.\n"
-    "Press BACKSPACE to go back a choice or word.\n")
+    "Press BACKSPACE to go back a choice or word.\n"
+)
 
 
 class MatrixDialog(WindowModalDialog):
-
     def __init__(self, parent):
         super(MatrixDialog, self).__init__(parent)
         self.setWindowTitle(_("Trezor Matrix Recovery"))
@@ -62,14 +73,16 @@ class MatrixDialog(WindowModalDialog):
         self.char_buttons = []
         for y in range(3):
             for x in range(3):
-                button = QtWidgets.QPushButton('?')
-                button.clicked.connect(partial(self.process_key, ord('1') + y * 3 + x))
+                button = QtWidgets.QPushButton("?")
+                button.clicked.connect(partial(self.process_key, ord("1") + y * 3 + x))
                 grid.addWidget(button, 3 - y, x)
                 self.char_buttons.append(button)
         vbox.addLayout(grid)
 
         self.backspace_button = QtWidgets.QPushButton("<=")
-        self.backspace_button.clicked.connect(partial(self.process_key, Qt.Key_Backspace))
+        self.backspace_button.clicked.connect(
+            partial(self.process_key, Qt.Key_Backspace)
+        )
         self.cancel_button = QtWidgets.QPushButton(_("Cancel"))
         self.cancel_button.clicked.connect(partial(self.process_key, Qt.Key_Escape))
         buttons = Buttons(self.backspace_button, self.cancel_button)
@@ -83,17 +96,17 @@ class MatrixDialog(WindowModalDialog):
             self.char_buttons[3 * y + 1].setEnabled(self.num == 9)
 
     def is_valid(self, key):
-        return key >= ord('1') and key <= ord('9')
+        return key >= ord("1") and key <= ord("9")
 
     def process_key(self, key):
         self.data = None
         if key == Qt.Key_Backspace:
-            self.data = '\010'
+            self.data = "\010"
         elif key == Qt.Key_Escape:
-            self.data = 'x'
+            self.data = "x"
         elif self.is_valid(key):
-            self.char_buttons[key - ord('1')].setFocus()
-            self.data = '%c' % key
+            self.char_buttons[key - ord("1")].setFocus()
+            self.data = "%c" % key
         if self.data:
             self.loop.exit(0)
 
@@ -134,7 +147,7 @@ class QtHandler(QtHandlerBase):
         self.matrix_signal.emit(msg)
         self.done.wait()
         data = self.matrix_dialog.data
-        if data == 'x':
+        if data == "x":
             self.close_matrix_dialog()
         return data
 
@@ -169,10 +182,10 @@ class QtHandler(QtHandlerBase):
     def passphrase_dialog(self, msg, confirm):
         # If confirm is true, require the user to enter the passphrase twice
         parent = self.top_level_window()
-        d = WindowModalDialog(parent, _('Enter Passphrase'))
+        d = WindowModalDialog(parent, _("Enter Passphrase"))
 
-        OK_button = OkButton(d, _('Enter Passphrase'))
-        OnDevice_button = QtWidgets.QPushButton(_('Enter Passphrase on Device'))
+        OK_button = OkButton(d, _("Enter Passphrase"))
+        OnDevice_button = QtWidgets.QPushButton(_("Enter Passphrase on Device"))
 
         new_pw = PasswordLineEdit()
         conf_pw = PasswordLineEdit()
@@ -185,15 +198,15 @@ class QtHandler(QtHandlerBase):
         grid.setSpacing(8)
         grid.setColumnMinimumWidth(0, 150)
         grid.setColumnMinimumWidth(1, 100)
-        grid.setColumnStretch(1,1)
+        grid.setColumnStretch(1, 1)
 
         vbox.addWidget(label)
 
-        grid.addWidget(QtWidgets.QLabel(_('Passphrase:')), 0, 0)
+        grid.addWidget(QtWidgets.QLabel(_("Passphrase:")), 0, 0)
         grid.addWidget(new_pw, 0, 1)
 
         if confirm:
-            grid.addWidget(QtWidgets.QLabel(_('Confirm Passphrase:')), 1, 0)
+            grid.addWidget(QtWidgets.QLabel(_("Confirm Passphrase:")), 1, 0)
             grid.addWidget(conf_pw, 1, 1)
 
         vbox.addLayout(grid)
@@ -242,8 +255,12 @@ class QtPlugin(QtPluginBase):
             return
         for keystore in wallet.get_keystores():
             if type(keystore) == self.keystore_class:
+
                 def show_address():
-                    keystore.thread.add(partial(self.show_address, wallet, addrs[0], keystore))
+                    keystore.thread.add(
+                        partial(self.show_address, wallet, addrs[0], keystore)
+                    )
+
                 menu.addAction(_("Show on {}").format(self.device), show_address)
                 break
 
@@ -271,7 +288,7 @@ class QtPlugin(QtPluginBase):
 
         def clean_text(widget):
             text = widget.toPlainText().strip()
-            return ' '.join(text.split())
+            return " ".join(text.split())
 
         gb = QtWidgets.QGroupBox()
         hbox1 = QtWidgets.QHBoxLayout()
@@ -286,7 +303,7 @@ class QtPlugin(QtPluginBase):
             bg_numwords.setId(rb, i)
             hbox1.addWidget(rb)
             rb.setChecked(True)
-        cb_pin = QtWidgets.QCheckBox(_('Enable PIN protection'))
+        cb_pin = QtWidgets.QCheckBox(_("Enable PIN protection"))
         cb_pin.setChecked(True)
 
         vbox.addWidget(WWLabel(RECOMMEND_PIN))
@@ -295,14 +312,14 @@ class QtPlugin(QtPluginBase):
         passphrase_msg = WWLabel(PASSPHRASE_HELP_SHORT)
         passphrase_warning = WWLabel(PASSPHRASE_NOT_PIN)
         passphrase_warning.setStyleSheet("color: red")
-        cb_phrase = QtWidgets.QCheckBox(_('Enable passphrases'))
+        cb_phrase = QtWidgets.QCheckBox(_("Enable passphrases"))
         cb_phrase.setChecked(False)
         vbox.addWidget(passphrase_msg)
         vbox.addWidget(passphrase_warning)
         vbox.addWidget(cb_phrase)
 
         # ask for recovery type (random word order OR matrix)
-        if method == TIM_RECOVER and not model == 'T':
+        if method == TIM_RECOVER and not model == "T":
             gb_rectype = QtWidgets.QGroupBox()
             hbox_rectype = QtWidgets.QHBoxLayout()
             gb_rectype.setLayout(hbox_rectype)
@@ -311,14 +328,14 @@ class QtPlugin(QtPluginBase):
             bg_rectype = QtWidgets.QButtonGroup()
 
             rb1 = QtWidgets.QRadioButton(gb_rectype)
-            rb1.setText(_('Scrambled words'))
+            rb1.setText(_("Scrambled words"))
             bg_rectype.addButton(rb1)
             bg_rectype.setId(rb1, RECOVERY_TYPE_SCRAMBLED_WORDS)
             hbox_rectype.addWidget(rb1)
             rb1.setChecked(True)
 
             rb2 = QtWidgets.QRadioButton(gb_rectype)
-            rb2.setText(_('Matrix'))
+            rb2.setText(_("Matrix"))
             bg_rectype.addButton(rb2)
             bg_rectype.setId(rb2, RECOVERY_TYPE_MATRIX)
             hbox_rectype.addWidget(rb2)
@@ -344,13 +361,14 @@ class Plugin(TrezorPlugin, QtPlugin):
     @classmethod
     def pin_matrix_widget_class(self):
         from trezorlib.qt.pinmatrix import PinMatrixWidget
+
         return PinMatrixWidget
 
 
 class SettingsDialog(WindowModalDialog):
-    '''This dialog doesn't require a device be paired with a wallet.
+    """This dialog doesn't require a device be paired with a wallet.
     We want users to be able to wipe a device even if they've forgotten
-    their PIN.'''
+    their PIN."""
 
     last_hs_dir = None
 
@@ -363,14 +381,17 @@ class SettingsDialog(WindowModalDialog):
         config = devmgr.config
         handler = keystore.handler
         thread = keystore.thread
-        is_model_T = devmgr.client_by_id(device_id) and devmgr.client_by_id(device_id).features.model == 'T'
+        is_model_T = (
+            devmgr.client_by_id(device_id)
+            and devmgr.client_by_id(device_id).features.model == "T"
+        )
         if is_model_T:
             hs_cols, hs_rows, hs_mono = 144, 144, False
         else:
             hs_cols, hs_rows, hs_mono = 128, 64, True
 
         def invoke_client(method, *args, **kw_args):
-            unpair_after = kw_args.pop('unpair_after', False)
+            unpair_after = kw_args.pop("unpair_after", False)
 
             def task():
                 client = devmgr.client_by_id(device_id)
@@ -397,9 +418,11 @@ class SettingsDialog(WindowModalDialog):
             disen = [_("Disabled"), _("Enabled")]
             setchange = [_("Set a PIN"), _("Change PIN")]
 
-            version = "%d.%d.%d" % (features.major_version,
-                                    features.minor_version,
-                                    features.patch_version)
+            version = "%d.%d.%d" % (
+                features.major_version,
+                features.minor_version,
+                features.patch_version,
+            )
 
             device_label.setText(features.label)
             pin_set_label.setText(noyes[features.pin_protection])
@@ -420,75 +443,127 @@ class SettingsDialog(WindowModalDialog):
             label_apply.setEnabled(label_edit.text() != self.features.label)
 
         def rename():
-            invoke_client('change_label', label_edit.text())
+            invoke_client("change_label", label_edit.text())
 
         def toggle_passphrase():
             title = _("Confirm Toggle Passphrase Protection")
             currently_enabled = self.features.passphrase_protection
             if currently_enabled:
-                msg = _("After disabling passphrases, you can only pair this "
-                        f"{PROJECT_NAME} wallet if it had an empty passphrase. "
-                        "If its passphrase was not empty, you will need to "
-                        "create a new wallet with the install wizard. You "
-                        "can use this wallet again at any time by re-enabling "
-                        "passphrases and entering its passphrase.")
+                msg = _(
+                    "After disabling passphrases, you can only pair this "
+                    f"{PROJECT_NAME} wallet if it had an empty passphrase. "
+                    "If its passphrase was not empty, you will need to "
+                    "create a new wallet with the install wizard. You "
+                    "can use this wallet again at any time by re-enabling "
+                    "passphrases and entering its passphrase."
+                )
             else:
-                msg = _(f"Your current {PROJECT_NAME} wallet can only be used "
-                        "with an empty passphrase. You must create a separate "
-                        "wallet with the install wizard for other passphrases "
-                        "as each one generates a new set of addresses.")
+                msg = _(
+                    f"Your current {PROJECT_NAME} wallet can only be used "
+                    "with an empty passphrase. You must create a separate "
+                    "wallet with the install wizard for other passphrases "
+                    "as each one generates a new set of addresses."
+                )
             msg += "\n\n" + _("Are you sure you want to proceed?")
             if not self.question(msg, title=title):
                 return
-            invoke_client('toggle_passphrase', unpair_after=currently_enabled)
+            invoke_client("toggle_passphrase", unpair_after=currently_enabled)
 
         def change_homescreen():
-            le_dir = ((__class__.last_hs_dir and [__class__.last_hs_dir])
-                      or QStandardPaths.standardLocations(QStandardPaths.DesktopLocation)
-                      or QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)
-                      or QStandardPaths.standardLocations(QStandardPaths.HomeLocation)
-                      or [''])[0]
-            filename, __ = QtWidgets.QFileDialog.getOpenFileName(self, _("Choose Homescreen"), le_dir)
+            le_dir = (
+                (__class__.last_hs_dir and [__class__.last_hs_dir])
+                or QStandardPaths.standardLocations(QStandardPaths.DesktopLocation)
+                or QStandardPaths.standardLocations(QStandardPaths.PicturesLocation)
+                or QStandardPaths.standardLocations(QStandardPaths.HomeLocation)
+                or [""]
+            )[0]
+            filename, __ = QtWidgets.QFileDialog.getOpenFileName(
+                self, _("Choose Homescreen"), le_dir
+            )
 
             if not filename:
                 return  # user cancelled
 
-            __class__.last_hs_dir = os.path.dirname(filename) # remember previous location
+            __class__.last_hs_dir = os.path.dirname(
+                filename
+            )  # remember previous location
 
-            if filename.lower().endswith('.toif') or filename.lower().endswith('.toig'):
-                which = filename.lower()[-1].encode('ascii')  # .toif or .toig = f or g in header
-                if which == b'g':
+            if filename.lower().endswith(".toif") or filename.lower().endswith(".toig"):
+                which = filename.lower()[-1].encode(
+                    "ascii"
+                )  # .toif or .toig = f or g in header
+                if which == b"g":
                     # For now I couldn't get Grayscale TOIG to work on any device, disabled
-                    handler.show_error(_('Grayscale TOI files are not currently supported. Try a PNG or JPG file instead.'))
+                    handler.show_error(
+                        _(
+                            "Grayscale TOI files are not currently supported. Try a PNG or JPG file instead."
+                        )
+                    )
                     return
                 if not is_model_T:
-                    handler.show_error(_('At this time, only the Trezor Model T supports the direct loading of TOIF files. Try a PNG or JPG file instead.'))
+                    handler.show_error(
+                        _(
+                            "At this time, only the Trezor Model T supports the direct loading of TOIF files. Try a PNG or JPG file instead."
+                        )
+                    )
                     return
                 try:
-                    img = open(filename, 'rb').read()
-                    if img[:8] != b'TOI' + which + int(hs_cols).to_bytes(2, byteorder='little') + int(hs_rows).to_bytes(2, byteorder='little'):
-                        handler.show_error(_('Image must be a TOI{} file of size {}x{}').format(which.decode('ascii').upper(), hs_cols, hs_rows))
+                    img = open(filename, "rb").read()
+                    if img[:8] != b"TOI" + which + int(hs_cols).to_bytes(
+                        2, byteorder="little"
+                    ) + int(hs_rows).to_bytes(2, byteorder="little"):
+                        handler.show_error(
+                            _("Image must be a TOI{} file of size {}x{}").format(
+                                which.decode("ascii").upper(), hs_cols, hs_rows
+                            )
+                        )
                         return
                 except OSError as e:
-                    handler.show_error('Error reading {}: {}'.format(filename, e))
+                    handler.show_error("Error reading {}: {}".format(filename, e))
                     return
             else:
-                def read_and_convert_using_qt_to_raw_mono(handler, filename, hs_cols, hs_rows, invert=True):
+
+                def read_and_convert_using_qt_to_raw_mono(
+                    handler, filename, hs_cols, hs_rows, invert=True
+                ):
                     img = QImage(filename)
                     if img.isNull():
-                        handler.show_error(_('Could not load the image {} -- unknown format or other error').format(os.path.basename(filename)))
+                        handler.show_error(
+                            _(
+                                "Could not load the image {} -- unknown format or other error"
+                            ).format(os.path.basename(filename))
+                        )
                         return
-                    if (img.width(), img.height()) != (hs_cols, hs_rows): # do we need to scale it ?
-                       img = img.scaled(hs_cols, hs_rows, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)  # force to our dest size. Note that IgnoreAspectRatio guarantess the right size. Ther other modes don't
-                       if img.isNull() or (img.width(), img.height()) != (hs_cols, hs_rows):
-                           handler.show_error(_("Could not scale image to {} x {} pixels").format(hs_cols, hs_rows))
-                           return
-                    bm = QBitmap.fromImage(img, Qt.MonoOnly) # ensures 1bpp, dithers any colors
+                    if (img.width(), img.height()) != (
+                        hs_cols,
+                        hs_rows,
+                    ):  # do we need to scale it ?
+                        img = img.scaled(
+                            hs_cols,
+                            hs_rows,
+                            Qt.IgnoreAspectRatio,
+                            Qt.SmoothTransformation,
+                        )  # force to our dest size. Note that IgnoreAspectRatio guarantess the right size. Ther other modes don't
+                        if img.isNull() or (img.width(), img.height()) != (
+                            hs_cols,
+                            hs_rows,
+                        ):
+                            handler.show_error(
+                                _("Could not scale image to {} x {} pixels").format(
+                                    hs_cols, hs_rows
+                                )
+                            )
+                            return
+                    bm = QBitmap.fromImage(
+                        img, Qt.MonoOnly
+                    )  # ensures 1bpp, dithers any colors
                     if bm.isNull():
-                        handler.show_error(_('Could not convert image to monochrome'))
+                        handler.show_error(_("Could not convert image to monochrome"))
                         return
                     target_fmt = QImage.Format_Mono
-                    img = bm.toImage().convertToFormat(target_fmt, Qt.MonoOnly|Qt.ThresholdDither|Qt.AvoidDither) # ensures MSB bytes again (above steps may have twiddled the bytes)
+                    img = bm.toImage().convertToFormat(
+                        target_fmt, Qt.MonoOnly | Qt.ThresholdDither | Qt.AvoidDither
+                    )  # ensures MSB bytes again (above steps may have twiddled the bytes)
                     lineSzOut = hs_cols // 8  # bits -> num bytes per line
                     bimg = bytearray(hs_rows * lineSzOut)  # 1024 bytes for a 128x64 img
                     bpl = img.bytesPerLine()
@@ -498,7 +573,9 @@ class SettingsDialog(WindowModalDialog):
                     # read in 1 scan line at a time since the scan lines may be > our target packed image
                     for row in range(hs_rows):
                         # copy image scanlines 1 line at a time to destination buffer
-                        ucharptr = img.constScanLine(row)  # returned type is basically void*
+                        ucharptr = img.constScanLine(
+                            row
+                        )  # returned type is basically void*
                         ucharptr.setsize(bpl)  # inform python how big this C array is
                         b = bytes(ucharptr)  # aaand.. work with bytes.
 
@@ -507,36 +584,70 @@ class SettingsDialog(WindowModalDialog):
                         bimg[begin:end] = b[0:lineSzOut]
                         if invert:
                             for i in range(begin, end):
-                                bimg[i] = ~bimg[i] & 0xff  # invert b/w
+                                bimg[i] = ~bimg[i] & 0xFF  # invert b/w
                     return bytes(bimg)
-                def read_and_convert_using_qt_to_toif(handler, filename, hs_cols, hs_rows):
+
+                def read_and_convert_using_qt_to_toif(
+                    handler, filename, hs_cols, hs_rows
+                ):
                     img = QImage(filename)
                     if img.isNull():
-                        handler.show_error(_('Could not load the image {} -- unknown format or other error').format(os.path.basename(filename)))
+                        handler.show_error(
+                            _(
+                                "Could not load the image {} -- unknown format or other error"
+                            ).format(os.path.basename(filename))
+                        )
                         return
-                    if (img.width(), img.height()) != (hs_cols, hs_rows): # do we need to scale it ?
-                       img = img.scaled(hs_cols, hs_rows, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)  # force to our dest size. Note that IgnoreAspectRatio guarantess the right size. Ther other modes don't
-                       if img.isNull() or (img.width(), img.height()) != (hs_cols, hs_rows):
-                           handler.show_error(_("Could not scale image to {} x {} pixels").format(hs_cols, hs_rows))
-                           return
+                    if (img.width(), img.height()) != (
+                        hs_cols,
+                        hs_rows,
+                    ):  # do we need to scale it ?
+                        img = img.scaled(
+                            hs_cols,
+                            hs_rows,
+                            Qt.IgnoreAspectRatio,
+                            Qt.SmoothTransformation,
+                        )  # force to our dest size. Note that IgnoreAspectRatio guarantess the right size. Ther other modes don't
+                        if img.isNull() or (img.width(), img.height()) != (
+                            hs_cols,
+                            hs_rows,
+                        ):
+                            handler.show_error(
+                                _("Could not scale image to {} x {} pixels").format(
+                                    hs_cols, hs_rows
+                                )
+                            )
+                            return
                     target_fmt = QImage.Format_RGB888
-                    img = img.convertToFormat(QImage.Format_Indexed8).convertToFormat(target_fmt)  # dither it down to 256 colors to reduce image complexity then back up to 24 bit for easy reading
+                    img = img.convertToFormat(QImage.Format_Indexed8).convertToFormat(
+                        target_fmt
+                    )  # dither it down to 256 colors to reduce image complexity then back up to 24 bit for easy reading
                     if img.isNull():
                         handler.show_error(_("Could not dither or re-render image"))
                         return
+
                     def qimg_to_toif(img, handler):
                         try:
-                            import struct, zlib
+                            import struct
+                            import zlib
                         except ImportError as e:
-                            handler.show_error(_("Could not convert image, a required library is missing: {}").format(e))
+                            handler.show_error(
+                                _(
+                                    "Could not convert image, a required library is missing: {}"
+                                ).format(e)
+                            )
                             return
                         data, pixeldata = bytearray(), bytearray()
-                        data += b'TOIf'
+                        data += b"TOIf"
                         for y in range(img.width()):
                             for x in range(img.height()):
-                                rgb = img.pixel(x,y)
+                                rgb = img.pixel(x, y)
                                 r, g, b = qRed(rgb), qGreen(rgb), qBlue(rgb)
-                                c = ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xF8) >> 3)
+                                c = (
+                                    ((r & 0xF8) << 8)
+                                    | ((g & 0xFC) << 3)
+                                    | ((b & 0xF8) >> 3)
+                                )
                                 pixeldata += struct.pack(">H", c)
                         z = zlib.compressobj(level=9, wbits=10)
                         zdata = z.compress(bytes(pixeldata)) + z.flush()
@@ -545,35 +656,44 @@ class SettingsDialog(WindowModalDialog):
                         data += struct.pack("<I", len(zdata))
                         data += zdata
                         return bytes(data)
+
                     return qimg_to_toif(img, handler)
+
                 # /read_and_convert_using_qt
                 if hs_mono and not is_model_T:
-                    img = read_and_convert_using_qt_to_raw_mono(handler, filename, hs_cols, hs_rows)
+                    img = read_and_convert_using_qt_to_raw_mono(
+                        handler, filename, hs_cols, hs_rows
+                    )
                 else:
-                    img = read_and_convert_using_qt_to_toif(handler, filename, hs_cols, hs_rows)
+                    img = read_and_convert_using_qt_to_toif(
+                        handler, filename, hs_cols, hs_rows
+                    )
                 if not img:
                     return
-            invoke_client('change_homescreen', img)
+            invoke_client("change_homescreen", img)
 
         def clear_homescreen():
-            invoke_client('change_homescreen', b'\x00')
+            invoke_client("change_homescreen", b"\x00")
 
         def set_pin():
-            invoke_client('set_pin', remove=False)
+            invoke_client("set_pin", remove=False)
 
         def clear_pin():
-            invoke_client('set_pin', remove=True)
+            invoke_client("set_pin", remove=True)
 
         def wipe_device():
             wallet = window.wallet
             if wallet and sum(wallet.get_balance()):
                 title = _("Confirm Device Wipe")
-                msg = _("Are you SURE you want to wipe the device?\n"
-                        "Your wallet still has bitcoins in it!")
-                if not self.question(msg, title=title,
-                                     icon=QtWidgets.QMessageBox.Critical):
+                msg = _(
+                    "Are you SURE you want to wipe the device?\n"
+                    "Your wallet still has bitcoins in it!"
+                )
+                if not self.question(
+                    msg, title=title, icon=QtWidgets.QMessageBox.Critical
+                ):
                     return
-            invoke_client('wipe_device', unpair_after=True)
+            invoke_client("wipe_device", unpair_after=True)
 
         def slider_moved():
             mins = timeout_slider.sliderPosition()
@@ -617,9 +737,12 @@ class SettingsDialog(WindowModalDialog):
         settings_glayout = QtWidgets.QGridLayout()
 
         # Settings tab - Label
-        label_msg = QtWidgets.QLabel(_("Name this {}.  If you have multiple devices "
-                             "their labels help distinguish them.")
-                           .format(plugin.device))
+        label_msg = QtWidgets.QLabel(
+            _(
+                "Name this {}.  If you have multiple devices "
+                "their labels help distinguish them."
+            ).format(plugin.device)
+        )
         label_msg.setWordWrap(True)
         label_label = QtWidgets.QLabel(_("Device Label"))
         label_edit = QtWidgets.QLineEdit()
@@ -639,10 +762,14 @@ class SettingsDialog(WindowModalDialog):
         pin_button.clicked.connect(set_pin)
         settings_glayout.addWidget(pin_label, 2, 0)
         settings_glayout.addWidget(pin_button, 2, 1)
-        pin_msg = QtWidgets.QLabel(_("PIN protection is strongly recommended.  "
-                           "A PIN is your only protection against someone "
-                           "stealing your bitcoins if they obtain physical "
-                           "access to your {}.").format(plugin.device))
+        pin_msg = QtWidgets.QLabel(
+            _(
+                "PIN protection is strongly recommended.  "
+                "A PIN is your only protection against someone "
+                "stealing your bitcoins if they obtain physical "
+                "access to your {}."
+            ).format(plugin.device)
+        )
         pin_msg.setWordWrap(True)
         pin_msg.setStyleSheet("color: red")
         settings_glayout.addWidget(pin_msg, 3, 1, 1, -1)
@@ -653,13 +780,15 @@ class SettingsDialog(WindowModalDialog):
         homescreen_clear_button = QtWidgets.QPushButton(_("Reset"))
         homescreen_change_button.clicked.connect(change_homescreen)
         homescreen_clear_button.clicked.connect(clear_homescreen)
-        homescreen_msg = QtWidgets.QLabel(_("You can set the homescreen on your "
-                                  "device to personalize it. You can choose any "
-                                  "image and it will be dithered, scaled and "
-                                  "converted to {} x {} {} "
-                                  "for the device.").format(hs_cols, hs_rows,
-                                                            _("monochrome") if hs_mono
-                                                            else _("color")))
+        homescreen_msg = QtWidgets.QLabel(
+            _(
+                "You can set the homescreen on your "
+                "device to personalize it. You can choose any "
+                "image and it will be dithered, scaled and "
+                "converted to {} x {} {} "
+                "for the device."
+            ).format(hs_cols, hs_rows, _("monochrome") if hs_mono else _("color"))
+        )
         homescreen_msg.setWordWrap(True)
         settings_glayout.addWidget(homescreen_label, 4, 0)
         settings_glayout.addWidget(homescreen_change_button, 4, 1)
@@ -676,10 +805,13 @@ class SettingsDialog(WindowModalDialog):
         timeout_slider.setTickPosition(QtWidgets.QSlider.TicksBelow)
         timeout_slider.setTracking(True)
         timeout_msg = QtWidgets.QLabel(
-            _("Clear the session after the specified period "
-              "of inactivity.  Once a session has timed out, "
-              "your PIN and passphrase (if enabled) must be "
-              "re-entered to use the device."))
+            _(
+                "Clear the session after the specified period "
+                "of inactivity.  Once a session has timed out, "
+                "your PIN and passphrase (if enabled) must be "
+                "re-entered to use the device."
+            )
+        )
         timeout_msg.setWordWrap(True)
         timeout_slider.setSliderPosition(config.get_session_timeout() // 60)
         slider_moved()
@@ -701,8 +833,11 @@ class SettingsDialog(WindowModalDialog):
         clear_pin_button = QtWidgets.QPushButton(_("Disable PIN"))
         clear_pin_button.clicked.connect(clear_pin)
         clear_pin_warning = QtWidgets.QLabel(
-            _("If you disable your PIN, anyone with physical access to your "
-              "{} device can spend your bitcoins.").format(plugin.device))
+            _(
+                "If you disable your PIN, anyone with physical access to your "
+                "{} device can spend your bitcoins."
+            ).format(plugin.device)
+        )
         clear_pin_warning.setWordWrap(True)
         clear_pin_warning.setStyleSheet("color: red")
         advanced_glayout.addWidget(clear_pin_button, 0, 2)
@@ -722,13 +857,19 @@ class SettingsDialog(WindowModalDialog):
         wipe_device_button = QtWidgets.QPushButton(_("Wipe Device"))
         wipe_device_button.clicked.connect(wipe_device)
         wipe_device_msg = QtWidgets.QLabel(
-            _("Wipe the device, removing all data from it.  The firmware "
-              "is left unchanged."))
+            _(
+                "Wipe the device, removing all data from it.  The firmware "
+                "is left unchanged."
+            )
+        )
         wipe_device_msg.setWordWrap(True)
         wipe_device_warning = QtWidgets.QLabel(
-            _("Only wipe a device if you have the recovery seed written down "
-              "and the device wallet(s) are empty, otherwise the bitcoins "
-              "will be lost forever."))
+            _(
+                "Only wipe a device if you have the recovery seed written down "
+                "and the device wallet(s) are empty, otherwise the bitcoins "
+                "will be lost forever."
+            )
+        )
         wipe_device_warning.setWordWrap(True)
         wipe_device_warning.setStyleSheet("color: red")
         advanced_glayout.addWidget(wipe_device_button, 6, 2)

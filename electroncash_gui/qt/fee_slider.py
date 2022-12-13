@@ -1,12 +1,11 @@
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QCursor
 
 from electroncash.i18n import _
 
-from PyQt5.QtGui import QCursor
-from PyQt5.QtCore import Qt
-from PyQt5 import QtWidgets
 
 class FeeSlider(QtWidgets.QSlider):
-
     def __init__(self, window, config, callback):
         QtWidgets.QSlider.__init__(self, Qt.Horizontal)
         self.config = config
@@ -25,13 +24,14 @@ class FeeSlider(QtWidgets.QSlider):
 
     def get_tooltip(self, pos, fee_rate):
         from electroncash.util import fee_levels
-        rate_str = self.window.format_fee_rate(fee_rate) if fee_rate else _('unknown')
+
+        rate_str = self.window.format_fee_rate(fee_rate) if fee_rate else _("unknown")
         if self.config.has_custom_fee_rate():
-            tooltip = _('Custom rate: ') + rate_str
+            tooltip = _("Custom rate: ") + rate_str
         elif self.dyn:
-            tooltip = _(fee_levels[pos]) + '\n' + rate_str
+            tooltip = _(fee_levels[pos]) + "\n" + rate_str
         else:
-            tooltip = _('Fixed rate: ') + rate_str
+            tooltip = _("Fixed rate: ") + rate_str
         return tooltip
 
     def update(self):
@@ -55,7 +55,7 @@ class FeeSlider(QtWidgets.QSlider):
     def update_has_custom_fee_rate(self):
         self.fee_step = self.config.max_slider_fee / self.config.slider_steps
         fee_rate = self.config.fee_per_kb()
-        pos = max(0,min(fee_rate / self.fee_step, 1))
+        pos = max(0, min(fee_rate / self.fee_step, 1))
         self.setRange(0, 1)
         self.setValue(0)
         self.setEnabled(False)

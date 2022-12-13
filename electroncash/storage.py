@@ -23,26 +23,31 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-import os
-import threading
-import stat
-import hashlib
 import base64
+import hashlib
+import os
+import stat
+import threading
 import zlib
 
-from .json_db import JsonDB
-from .util import InvalidPassword, PrintError, WalletFileException, profiler, standardize_path
-from .plugins import run_hook
 from . import bitcoin
-
+from .json_db import JsonDB
+from .plugins import run_hook
+from .util import (
+    InvalidPassword,
+    PrintError,
+    WalletFileException,
+    profiler,
+    standardize_path,
+)
 
 TMP_SUFFIX = ".tmp.{}".format(os.getpid())
 
 
 def get_derivation_used_for_hw_device_encryption():
-    return ("m"
-            "/4541509'"      # ascii 'ELE'  as decimal ("BIP43 purpose")
-            "/1112098098'")  # ascii 'BIE2' as decimal
+    return (
+        "m" "/4541509'" "/1112098098'"  # ascii 'ELE'  as decimal ("BIP43 purpose")
+    )  # ascii 'BIE2' as decimal
 
 
 # storage encryption version
@@ -50,7 +55,6 @@ STO_EV_PLAINTEXT, STO_EV_USER_PW, STO_EV_XPUB_PW = range(0, 3)
 
 
 class WalletStorage(PrintError):
-
     def __init__(self, path, *, manual_upgrades=False, in_memory_only=False):
         self.lock = threading.RLock()
         self.path = standardize_path(path)
@@ -62,7 +66,7 @@ class WalletStorage(PrintError):
         self.raw = None
         self._in_memory_only = in_memory_only
         if self.file_exists() and not self._in_memory_only:
-            with open(self.path, "r", encoding='utf-8') as f:
+            with open(self.path, "r", encoding="utf-8") as f:
                 self.raw = f.read()
             self._encryption_version = self._init_encryption_version()
             if not self.is_encrypted():
@@ -70,7 +74,7 @@ class WalletStorage(PrintError):
         else:
             self._encryption_version = STO_EV_PLAINTEXT
             # avoid new wallets getting 'upgraded'
-            self.db = DB_Class('', manual_upgrades=False)
+            self.db = DB_Class("", manual_upgrades=False)
 
     def put(self, key, value):
         self.db.put(key, value)
@@ -87,7 +91,7 @@ class WalletStorage(PrintError):
 
     def _write(self):
         if threading.current_thread().daemon:
-            self.print_error('warning: daemon thread cannot write wallet')
+            self.print_error("warning: daemon thread cannot write wallet")
             return
         if not self.db.modified():
             return
@@ -95,7 +99,7 @@ class WalletStorage(PrintError):
         s = self.encrypt_before_writing(self.db.dump())
 
         temp_path = self.path + TMP_SUFFIX
-        with open(temp_path, "w", encoding='utf-8') as f:
+        with open(temp_path, "w", encoding="utf-8") as f:
             f.write(s)
             f.flush()
             os.fsync(f.fileno())
@@ -155,9 +159,9 @@ class WalletStorage(PrintError):
     def _init_encryption_version(self):
         try:
             magic = base64.b64decode(self.raw)[0:4]
-            if magic == b'BIE1':
+            if magic == b"BIE1":
                 return STO_EV_USER_PW
-            elif magic == b'BIE2':
+            elif magic == b"BIE2":
                 return STO_EV_XPUB_PW
             else:
                 return STO_EV_PLAINTEXT
@@ -165,18 +169,20 @@ class WalletStorage(PrintError):
             return STO_EV_PLAINTEXT
 
     def get_key(self, password):
-        secret = hashlib.pbkdf2_hmac('sha512', password.encode('utf-8'), b'', iterations=1024)
+        secret = hashlib.pbkdf2_hmac(
+            "sha512", password.encode("utf-8"), b"", iterations=1024
+        )
         ec_key = bitcoin.EC_KEY(secret)
         return ec_key
 
     def _get_encryption_magic(self):
         v = self._encryption_version
         if v == STO_EV_USER_PW:
-            return b'BIE1'
+            return b"BIE1"
         elif v == STO_EV_XPUB_PW:
-            return b'BIE2'
+            return b"BIE2"
         else:
-            raise WalletFileException('no encryption magic for version: %s' % v)
+            raise WalletFileException("no encryption magic for version: %s" % v)
 
     def decrypt(self, password):
         ec_key = self.get_key(password)
@@ -186,17 +192,17 @@ class WalletStorage(PrintError):
         else:
             s = None
         self.pubkey = ec_key.get_public_key()
-        s = s.decode('utf8')
+        s = s.decode("utf8")
         self.db = JsonDB(s, manual_upgrades=True)
 
     def encrypt_before_writing(self, plaintext: str) -> str:
         s = plaintext
         if self.pubkey:
-            s = bytes(s, 'utf8')
+            s = bytes(s, "utf8")
             c = zlib.compress(s)
             enc_magic = self._get_encryption_magic()
             s = bitcoin.encrypt_message(c, self.pubkey, enc_magic)
-            s = s.decode('utf8')
+            s = s.decode("utf8")
         return s
 
     def check_password(self, password):
@@ -207,7 +213,7 @@ class WalletStorage(PrintError):
             raise InvalidPassword()
 
     def set_keystore_encryption(self, enable):
-        self.put('use_encryption', enable)
+        self.put("use_encryption", enable)
 
     def set_password(self, password, enc_version=None):
         """Set a password to be used for encrypting this storage."""
@@ -243,7 +249,7 @@ class WalletStorage(PrintError):
         out = []
         result = self.db.split_accounts()
         for data in result:
-            path = self.path + '.' + data['suffix']
+            path = self.path + "." + data["suffix"]
             storage = WalletStorage(path)
             storage.db.data = data
             storage.db.upgrade()
@@ -252,5 +258,5 @@ class WalletStorage(PrintError):
         return out
 
     def get_action(self):
-        action = run_hook('get_action', self)
+        action = run_hook("get_action", self)
         return action

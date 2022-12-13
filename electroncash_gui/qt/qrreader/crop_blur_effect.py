@@ -25,8 +25,8 @@
 # SOFTWARE.
 
 from PyQt5 import QtWidgets
-from PyQt5.QtGui import QPainter, QTransform, QRegion
-from PyQt5.QtCore import QObject, QRect, QPoint, Qt
+from PyQt5.QtCore import QObject, QPoint, QRect, Qt
+from PyQt5.QtGui import QPainter, QRegion, QTransform
 
 
 class QrReaderCropBlurEffect(QtWidgets.QGraphicsBlurEffect):
@@ -45,7 +45,7 @@ class QrReaderCropBlurEffect(QtWidgets.QGraphicsBlurEffect):
         self.crop = crop
 
     def draw(self, painter: QPainter):
-        assert self.crop, 'crop must be set'
+        assert self.crop, "crop must be set"
 
         # Compute painter regions for the crop and the blur
         all_region = QRegion(painter.viewport())
@@ -68,7 +68,9 @@ class QrReaderCropBlurEffect(QtWidgets.QGraphicsBlurEffect):
         painter.setOpacity(1.0)
 
         # Get the source pixmap
-        pixmap, offset = self.sourcePixmap(Qt.DeviceCoordinates,QtWidgets.QGraphicsEffect.NoPad)
+        pixmap, offset = self.sourcePixmap(
+            Qt.DeviceCoordinates, QtWidgets.QGraphicsEffect.NoPad
+        )
         painter.setWorldTransform(QTransform())
 
         # Get the source by adding the offset to the crop location

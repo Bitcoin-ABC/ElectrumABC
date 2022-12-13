@@ -3,8 +3,9 @@
 # A simple script that connects to a server and displays block headers
 
 import time
-from electroncash import SimpleConfig, Network
-from electroncash.util import print_msg, json_encode
+
+from electroncash import Network, SimpleConfig
+from electroncash.util import json_encode, print_msg
 
 # start network
 c = SimpleConfig()
@@ -20,9 +21,9 @@ if not network.is_connected():
     sys.exit(1)
 
 # 2. send the subscription
-callback = lambda response: print_msg(json_encode(response.get('result')))
-network.send([('server.version',["block_headers script", "1.2"])], callback)
-network.send([('blockchain.headers.subscribe',[])], callback)
+callback = lambda response: print_msg(json_encode(response.get("result")))
+network.send([("server.version", ["block_headers script", "1.2"])], callback)
+network.send([("blockchain.headers.subscribe", [])], callback)
 
 # 3. wait for results
 while network.is_connected():

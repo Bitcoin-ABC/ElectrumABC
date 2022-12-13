@@ -25,27 +25,33 @@
 # SOFTWARE.
 
 import sys
-from .abstract_base import AbstractQrCodeReader, QrCodeResult
+
 from ..util import print_error
+from .abstract_base import AbstractQrCodeReader, QrCodeResult
+
 
 class MissingLib(RuntimeError):
-    ''' Raised by underlying implementation if missing libs '''
+    """Raised by underlying implementation if missing libs"""
+
     pass
+
 
 def get_qr_reader() -> AbstractQrCodeReader:
     """
     Get the Qr code reader for the current platform
     """
     try:
-        if sys.platform == 'darwin' and False:
+        if sys.platform == "darwin" and False:
             # This has been disabled for now as it has trouble reading BitPay
             # QR Codes and instead we also use ZBar on macOS now.
             from .osxqrdetect import OSXQRDetect
+
             return OSXQRDetect()
         else:
             # New! macOS also uses ZBar.
             # Windows has zbar, Linux has zbar. Hopefully some FreeBSD power users install zbar.
             from .zbar import ZbarQrCodeReader
+
             return ZbarQrCodeReader()
         """
         # DEBUG CODE BELOW

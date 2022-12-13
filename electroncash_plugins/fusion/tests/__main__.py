@@ -1,7 +1,6 @@
 import unittest
 
-from . import test_encrypt
-from . import test_pedersen
+from . import test_encrypt, test_pedersen
 
 
 def suite():
@@ -13,5 +12,5 @@ def suite():
     return test_suite
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main(defaultTest="suite")

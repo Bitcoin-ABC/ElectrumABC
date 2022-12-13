@@ -5,16 +5,18 @@
 # This file Copyright (C) 2019 Calin Culianu <calin.culianu@gmail.com>
 # License: MIT License
 #
-import time
-import threading
-import queue
-import weakref
 import math
+import queue
+import threading
+import time
+import weakref
 from collections import defaultdict
+
 from .util import PrintError, print_error
 
+
 class ExpiringCache:
-    ''' A fast cache useful for storing tens of thousands of lightweight items.
+    """A fast cache useful for storing tens of thousands of lightweight items.
 
     Use this class to cache the results of functions or other computations
     when:
@@ -50,49 +52,68 @@ class ExpiringCache:
     expire items when the cache overflows (so that get and put never stall
     to manage the cache's size and/or to flush old items).  This background
     thread runs every 10 seconds -- so caches may temporarily overflow past
-    their maxlen for up to 10 seconds. '''
+    their maxlen for up to 10 seconds."""
+
     def __init__(self, *, maxlen=10000, name="An Unnamed Cache", timeout=None):
         assert maxlen > 0
-        timeout = (isinstance(timeout, (float, int)) and timeout > 0.0 and timeout) or None
-        self.timeout_ticks = timeout and math.ceil(timeout/_ExpiringCacheMgr.tick_interval)
+        timeout = (
+            isinstance(timeout, (float, int)) and timeout > 0.0 and timeout
+        ) or None
+        self.timeout_ticks = timeout and math.ceil(
+            timeout / _ExpiringCacheMgr.tick_interval
+        )
         self.maxlen = maxlen
         self.name = name
         self.d = dict()
         _ExpiringCacheMgr.add_cache(self)
+
     def get(self, key, default=None):
         res = self.d.get(key)
         if res is not None:
             # cache hit
-            res[0] = _ExpiringCacheMgr.tick  # update tick access time for this cache hit
+            res[
+                0
+            ] = _ExpiringCacheMgr.tick  # update tick access time for this cache hit
             return res[1]
         # cache miss
         return default
+
     def put(self, key, value):
         self.d[key] = [_ExpiringCacheMgr.tick, value]
+
     def size_bytes(self):
-        ''' Returns the cache's memory usage in bytes. This is done by doing a
-        deep, recursive examination of the cache contents. '''
-        return get_object_size(
-            self.d.copy()  # prevent iterating over a mutating dict.
-        )
+        """Returns the cache's memory usage in bytes. This is done by doing a
+        deep, recursive examination of the cache contents."""
+        return get_object_size(self.d.copy())  # prevent iterating over a mutating dict.
+
     def copy_dict(self):
-        ''' Returns a copy of the cache contents. Useful for seriliazing
+        """Returns a copy of the cache contents. Useful for seriliazing
         or otherwise examining the cache. The returned dict format is:
-        d[item_key] -> [tick, item_value]'''
+        d[item_key] -> [tick, item_value]"""
         return self.d.copy()
+
     def __len__(self):
         return len(self.d)
+
     def __repr__(self):
         name, address, length, maxlen, timeout = (
-            self.name, '0x{:x}'.format(id(self)), len(self), self.maxlen,
-            ('{:1.1f}'.format(float(self.timeout_ticks * _ExpiringCacheMgr.tick_interval))
+            self.name,
+            "0x{:x}".format(id(self)),
+            len(self),
+            self.maxlen,
+            (
+                "{:1.1f}".format(
+                    float(self.timeout_ticks * _ExpiringCacheMgr.tick_interval)
+                )
                 if self.timeout_ticks
-                else self.timeout_ticks)
+                else self.timeout_ticks
+            ),
         )
-        return (f'<{__class__.__name__} "{name}" at {address}, {length} item{"s" if length != 1 else ""} (maxlen={maxlen} timeout={timeout})>')
+        return f'<{__class__.__name__} "{name}" at {address}, {length} item{"s" if length != 1 else ""} (maxlen={maxlen} timeout={timeout})>'
+
 
 class _ExpiringCacheMgr(PrintError):
-    '''Do not use this class directly. Instead just create ExpiringCache
+    """Do not use this class directly. Instead just create ExpiringCache
     instances and that will handle the creation of this object automatically
     and its lifecycle.
 
@@ -101,7 +122,7 @@ class _ExpiringCacheMgr(PrintError):
     overflowing extant caches.
 
     Note that after the last cache is gc'd the manager thread will exit and
-    this singleton object also will expire and clean itself up automatically.'''
+    this singleton object also will expire and clean itself up automatically."""
 
     # This lock is used to lock _instance and self.caches.
     # NOTE: This lock *must* be a recursive lock as the gc callback function
@@ -122,7 +143,9 @@ class _ExpiringCacheMgr(PrintError):
         self.caches = weakref.WeakSet()
         if add_iter:
             self.caches.update(add_iter)
-        self.livect = len(self.caches)  # this is updated by add_cache and on_cache_gc below.
+        self.livect = len(
+            self.caches
+        )  # this is updated by add_cache and on_cache_gc below.
         self.thread = threading.Thread(target=self.mgr_thread, daemon=True)
         self.thread.start()
 
@@ -149,18 +172,24 @@ class _ExpiringCacheMgr(PrintError):
         thread2join = None
         with cls._lock:
             slf = cls._instance
-            slf.livect -= 1 # we need to keep this counter because the weak set doesn't have the correct length at this point yet.
+            slf.livect -= 1  # we need to keep this counter because the weak set doesn't have the correct length at this point yet.
             if cls.debug:
-                slf.print_error("Cache '{}' has been gc'd, {} still alive".format(name, slf.livect))
+                slf.print_error(
+                    "Cache '{}' has been gc'd, {} still alive".format(name, slf.livect)
+                )
             if not slf.livect:  # all caches have been gc'd, kill the thread
                 if cls.debug:
-                    slf.print_error("No more caches, stopping manager thread and removing singleton")
+                    slf.print_error(
+                        "No more caches, stopping manager thread and removing singleton"
+                    )
                 need2join = slf.thread.is_alive()
                 slf.q.put(None)  # signal thread to stop
                 if need2join:
                     thread2join = slf.thread
                 elif cls.debug:
-                    slf.print_error("Warning: Cache thread was stoppped before we had a chance to kill it")
+                    slf.print_error(
+                        "Warning: Cache thread was stoppped before we had a chance to kill it"
+                    )
                 cls._instance = None  # kill self.
         if thread2join and thread2join is not threading.current_thread():
             # we do this here as defensive programming to avoid deadlocks in case
@@ -169,32 +198,50 @@ class _ExpiringCacheMgr(PrintError):
 
     def mgr_thread(self):
         cls = type(self)
-        #self.print_error("thread started")
+        # self.print_error("thread started")
         try:
             while True:
                 try:
                     x = self.q.get(timeout=self.tick_interval)
-                    return # we got a stop signal
+                    return  # we got a stop signal
                 except queue.Empty:
                     # normal condition, we slept with nothing to do
                     pass
                 cls.tick += 1
-                for c in tuple(self.caches):  # prevent cache from dying while we iterate
+                for c in tuple(
+                    self.caches
+                ):  # prevent cache from dying while we iterate
                     # 1. timeout check (off by default unless client code specified a timeout)
-                    if c.timeout_ticks and len(c.d) and 0 == (cls.tick % c.timeout_ticks):
+                    if (
+                        c.timeout_ticks
+                        and len(c.d)
+                        and 0 == (cls.tick % c.timeout_ticks)
+                    ):
                         # expire timed-out items first, if any. This check only runs every timeout_ticks ticks.
                         t0 = time.time()
-                        num = cls._remove_timed_out_items(c.d, cls.tick - c.timeout_ticks)
+                        num = cls._remove_timed_out_items(
+                            c.d, cls.tick - c.timeout_ticks
+                        )
                         tf = time.time()
                         if num:
-                            self.print_error("{}: flushed {} timed-out items in {:.02f} msec".format(c.name, num, (tf-t0)*1e3))
+                            self.print_error(
+                                "{}: flushed {} timed-out items in {:.02f} msec".format(
+                                    c.name, num, (tf - t0) * 1e3
+                                )
+                            )
                     # 2. maxlen check (always on)
-                    len_c = len(c.d)  # capture length here as c.d may mutate and grow while this code executes.
+                    len_c = len(
+                        c.d
+                    )  # capture length here as c.d may mutate and grow while this code executes.
                     if len_c > c.maxlen:
                         t0 = time.time()
                         num = cls._try_to_expire_old_items(c.d, len_c - c.maxlen)
                         tf = time.time()
-                        self.print_error("{}: flushed {} items in {:.02f} msec".format(c.name, num, (tf-t0)*1e3))
+                        self.print_error(
+                            "{}: flushed {} items in {:.02f} msec".format(
+                                c.name, num, (tf - t0) * 1e3
+                            )
+                        )
         finally:
             if cls.debug:
                 self.print_error("thread exit")
@@ -204,12 +251,14 @@ class _ExpiringCacheMgr(PrintError):
         d = d_orig.copy()  # yes, this is slow but this makes it so we don't need locks.
         if len(d) < num or num <= 0:
             # cache modified from underneath our feet. We abort gracefully and complain.
-            print_error(f'[{__class__.__name__}] Cache data may have been removed by another thread. Aborting flush operation and will try again later...')
+            print_error(
+                f"[{__class__.__name__}] Cache data may have been removed by another thread. Aborting flush operation and will try again later..."
+            )
             return 0
 
         # bin the cache.dict items by 'tick' (when they were last accessed)
         bins = defaultdict(list)
-        for k,v in d.items():
+        for k, v in d.items():
             tick = v[0]
             bins[tick].append(k)
         del d
@@ -228,8 +277,10 @@ class _ExpiringCacheMgr(PrintError):
             for key in bins[tick]:
                 # KeyError here should never happen in normal use, but it
                 # may if client code is messing with the .d dict.
-                try: del d_orig[key]  # despite appearances, this is atomic (thread-safe)
-                except KeyError: pass
+                try:
+                    del d_orig[key]  # despite appearances, this is atomic (thread-safe)
+                except KeyError:
+                    pass
                 ct += 1
                 if ct >= num:
                     break
@@ -243,39 +294,44 @@ class _ExpiringCacheMgr(PrintError):
         d = d_orig.copy()  # yes, this is slow but this makes it so we don't need locks.
         if not len(d) or tick_cutoff < 0:
             # cache modified from underneath our feet. We abort gracefully and complain.
-            print_error(f'[{__class__.__name__}] Cache data may have been removed by another thread. Aborting flush operation and will try again later...')
+            print_error(
+                f"[{__class__.__name__}] Cache data may have been removed by another thread. Aborting flush operation and will try again later..."
+            )
             return 0
 
         # scan the cache.dict for items whose 'tick' is older than tick_cutoff
         ct = 0
-        for k,v in d.items():
+        for k, v in d.items():
             tick = v[0]
             if tick < tick_cutoff:
-                try: del d_orig[k]  # despite appearances, this is atomic (thread-safe)
-                except KeyError: pass
+                try:
+                    del d_orig[k]  # despite appearances, this is atomic (thread-safe)
+                except KeyError:
+                    pass
                 ct += 1
         return ct
 
 
 def get_object_size(obj_0):
-    ''' Debug tool -- returns the amount of memory taken by an object in bytes
+    """Debug tool -- returns the amount of memory taken by an object in bytes
     by deeply examining its contents recursively (more accurate than
-    sys.getsizeof as a result). '''
+    sys.getsizeof as a result)."""
     import sys
     import warnings
+    from collections import Mapping, Set, deque
     from numbers import Number
-    from collections import Set, Mapping, deque
 
-    try: # Python 2
+    try:  # Python 2
         zero_depth_bases = (basestring, Number, xrange, bytearray)
-        iteritems = 'iteritems'
-    except NameError: # Python 3
+        iteritems = "iteritems"
+    except NameError:  # Python 3
         zero_depth_bases = (str, bytes, Number, range, bytearray)
-        iteritems = 'items'
+        iteritems = "items"
 
     def getsize(obj_0):
         """Recursively iterate to sum size of object & members."""
         _seen_ids = set()
+
         def inner(obj):
             obj_id = id(obj)
             if obj_id in _seen_ids:
@@ -283,19 +339,29 @@ def get_object_size(obj_0):
             _seen_ids.add(obj_id)
             size = sys.getsizeof(obj)
             if isinstance(obj, zero_depth_bases):
-                pass # bypass remaining control flow and return
+                pass  # bypass remaining control flow and return
             elif isinstance(obj, (tuple, list, Set, deque)):
                 size += sum(inner(i) for i in obj)
             elif isinstance(obj, Mapping) or hasattr(obj, iteritems):
                 try:
-                    size += sum(inner(k) + inner(v) for k, v in getattr(obj, iteritems)())
+                    size += sum(
+                        inner(k) + inner(v) for k, v in getattr(obj, iteritems)()
+                    )
                 except Exception as e:
-                    warnings.warn(f"warning: unable to process object '{obj}' due to exception: {repr(e)}", RuntimeWarning, stacklevel=2)
+                    warnings.warn(
+                        f"warning: unable to process object '{obj}' due to exception: {repr(e)}",
+                        RuntimeWarning,
+                        stacklevel=2,
+                    )
             # Check for custom object instances - may subclass above too
-            if hasattr(obj, '__dict__'):
+            if hasattr(obj, "__dict__"):
                 size += inner(vars(obj))
-            if hasattr(obj, '__slots__'): # can have __slots__ with __dict__
-                size += sum(inner(getattr(obj, s)) for s in obj.__slots__ if hasattr(obj, s))
+            if hasattr(obj, "__slots__"):  # can have __slots__ with __dict__
+                size += sum(
+                    inner(getattr(obj, s)) for s in obj.__slots__ if hasattr(obj, s)
+                )
             return size
+
         return inner(obj_0)
+
     return getsize(obj_0)

@@ -27,13 +27,14 @@
 from typing import List
 
 from PyQt5 import QtWidgets
-from PyQt5.QtGui import QPainter, QPaintEvent, QPen, QPainterPath, QColor, QTransform
-from PyQt5.QtCore import QPoint, QSize, QRect, QRectF, Qt
+from PyQt5.QtCore import QPoint, QRect, QRectF, QSize, Qt
+from PyQt5.QtGui import QColor, QPainter, QPainterPath, QPaintEvent, QPen, QTransform
 from PyQt5.QtSvg import QSvgRenderer
 
 from electroncash.qrreaders import QrCodeResult
 
 from .validator import QrReaderValidatorResult
+
 
 class QrReaderVideoOverlay(QtWidgets.QWidget):
     """
@@ -71,8 +72,12 @@ class QrReaderVideoOverlay(QtWidgets.QWidget):
 
         self.qr_finder = QSvgRenderer(":icons/qr_finder.svg")
 
-    def set_results(self, results: List[QrCodeResult], flip_x: bool,
-                    validator_results: QrReaderValidatorResult):
+    def set_results(
+        self,
+        results: List[QrCodeResult],
+        flip_x: bool,
+        validator_results: QrReaderValidatorResult,
+    ):
         self.results = results
         self.flip_x = flip_x
         self.validator_results = validator_results
@@ -94,13 +99,17 @@ class QrReaderVideoOverlay(QtWidgets.QWidget):
         transform = painter.worldTransform()
 
         # Set scaling transform
-        transform = transform.scale(self.width() / self.resolution.width(),
-                                    self.height() / self.resolution.height())
+        transform = transform.scale(
+            self.width() / self.resolution.width(),
+            self.height() / self.resolution.height(),
+        )
 
         # Compute the transform to flip the coordinate system on the x axis
         transform_flip = QTransform()
         if self.flip_x:
-            transform_flip = transform_flip.translate(float(self.resolution.width()), 0.0)
+            transform_flip = transform_flip.translate(
+                float(self.resolution.width()), 0.0
+            )
             transform_flip = transform_flip.scale(-1.0, 1.0)
 
         # Small helper for tuple to QPoint
@@ -147,7 +156,9 @@ class QrReaderVideoOverlay(QtWidgets.QWidget):
             # to map the center point of the result.
             painter.setWorldTransform(transform, False)
             font_metrics = painter.fontMetrics()
-            data_metrics = QSize(font_metrics.horizontalAdvance(res.data), font_metrics.capHeight())
+            data_metrics = QSize(
+                font_metrics.horizontalAdvance(res.data), font_metrics.capHeight()
+            )
 
             center_pos = toqp(res.center)
             center_pos += self.crop.topLeft()
@@ -164,7 +175,9 @@ class QrReaderVideoOverlay(QtWidgets.QWidget):
             bg_rect = QRect(bg_rect_pos, bg_rect_size)
             bg_rect_path = QPainterPath()
             radius = self.BG_RECT_CORNER_RADIUS
-            bg_rect_path.addRoundedRect(QRectF(bg_rect), radius, radius, Qt.AbsoluteSize)
+            bg_rect_path.addRoundedRect(
+                QRectF(bg_rect), radius, radius, Qt.AbsoluteSize
+            )
             painter.setPen(self.bg_rect_pen)
             painter.fillPath(bg_rect_path, self.bg_rect_fill)
             painter.drawPath(bg_rect_path)

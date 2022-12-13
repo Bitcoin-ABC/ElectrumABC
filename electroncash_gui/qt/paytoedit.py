@@ -24,25 +24,24 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFontMetrics, QTextCursor
-from PyQt5 import QtWidgets
-from .qrtextedit import ScanQRTextEdit
-
 import re
 import sys
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
-from electroncash import bitcoin
+
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFontMetrics, QTextCursor
+
+from electroncash import bitcoin, networks, web
 from electroncash.address import Address, AddressError, ScriptOutput
-from electroncash import networks
-from electroncash.util import PrintError
 from electroncash.contacts import Contact
-from electroncash import web
+from electroncash.util import PrintError
 
 from . import util
+from .qrtextedit import ScanQRTextEdit
 
-RE_ALIAS = r'^(.*?)\s*<\s*([0-9A-Za-z:]{26,})\s*>$'
-RE_AMT = r'^.*\s*,\s*([0-9,.]*)\s*$'
+RE_ALIAS = r"^(.*?)\s*<\s*([0-9A-Za-z:]{26,})\s*>$"
+RE_AMT = r"^.*\s*,\s*([0-9,.]*)\s*$"
 
 RX_ALIAS = re.compile(RE_ALIAS)
 RX_AMT = re.compile(RE_AMT)
@@ -50,10 +49,11 @@ RX_AMT = re.compile(RE_AMT)
 frozen_style = "PayToEdit { border:none;}"
 normal_style = "PayToEdit { }"
 
-class PayToEdit(PrintError, ScanQRTextEdit):
 
+class PayToEdit(PrintError, ScanQRTextEdit):
     def __init__(self, win):
         from .main_window import ElectrumWindow
+
         assert isinstance(win, ElectrumWindow) and win.amount_e and win.wallet
         ScanQRTextEdit.__init__(self)
         self.win = win
@@ -81,11 +81,11 @@ class PayToEdit(PrintError, ScanQRTextEdit):
         self.scan_f = win.pay_to_URI
         self.update_size()
         self.payto_address = None
-        self._original_style_sheet = self.styleSheet() or ''
+        self._original_style_sheet = self.styleSheet() or ""
 
-        self.previous_payto = ''
+        self.previous_payto = ""
 
-        if sys.platform in ('darwin',):
+        if sys.platform in ("darwin",):
             # See issue #1411 -- on *some* macOS systems, clearing the
             # payto field with setText('') ends up leaving "ghost" pixels
             # in the field, which look like the text that was just there.
@@ -99,21 +99,30 @@ class PayToEdit(PrintError, ScanQRTextEdit):
 
     def setFrozen(self, b):
         self.setReadOnly(b)
-        self.setStyleSheet(self._original_style_sheet + (frozen_style if b else normal_style))
+        self.setStyleSheet(
+            self._original_style_sheet + (frozen_style if b else normal_style)
+        )
         self.overlay_widget.setHidden(b)
 
     def setGreen(self):
-        if sys.platform in ('darwin',) and util.ColorScheme.dark_scheme:
+        if sys.platform in ("darwin",) and util.ColorScheme.dark_scheme:
             # MacOS dark mode requires special treatment here
-            self.setStyleSheet(self._original_style_sheet + util.ColorScheme.DEEPGREEN.as_stylesheet(True))
+            self.setStyleSheet(
+                self._original_style_sheet
+                + util.ColorScheme.DEEPGREEN.as_stylesheet(True)
+            )
         else:
-            self.setStyleSheet(self._original_style_sheet + util.ColorScheme.GREEN.as_stylesheet(True))
+            self.setStyleSheet(
+                self._original_style_sheet + util.ColorScheme.GREEN.as_stylesheet(True)
+            )
 
     def setExpired(self):
-        self.setStyleSheet(self._original_style_sheet + util.ColorScheme.RED.as_stylesheet(True))
+        self.setStyleSheet(
+            self._original_style_sheet + util.ColorScheme.RED.as_stylesheet(True)
+        )
 
     def parse_address_and_amount(self, line):
-        x, y = line.split(',')
+        x, y = line.split(",")
         out_type, out = self.parse_output(x)
         amount = self.parse_amount(y)
         return out_type, out, amount
@@ -134,8 +143,8 @@ class PayToEdit(PrintError, ScanQRTextEdit):
         return Address.from_string(address)
 
     def parse_amount(self, x):
-        if x.strip() == '!':
-            return '!'
+        if x.strip() == "!":
+            return "!"
         p = pow(10, self.amount_edit.decimal_point)
         return int(p * PyDecimal(x.strip()))
 
@@ -151,7 +160,9 @@ class PayToEdit(PrintError, ScanQRTextEdit):
         if len(lines) == 1:
             data = lines[0]
             lc_data = data.lower()
-            if any(lc_data.startswith(scheme + ":") for scheme in web.parseable_schemes()):
+            if any(
+                lc_data.startswith(scheme + ":") for scheme in web.parseable_schemes()
+            ):
                 self.scan_f(data)
                 return
             try:
@@ -171,7 +182,7 @@ class PayToEdit(PrintError, ScanQRTextEdit):
                 continue
 
             outputs.append((_type, to_address, amount))
-            if amount == '!':
+            if amount == "!":
                 is_max = True
             else:
                 total += amount
@@ -184,7 +195,7 @@ class PayToEdit(PrintError, ScanQRTextEdit):
             self.win.do_update_fee()
         else:
             self.amount_edit.setAmount(total if outputs else None)
-            self.win.lock_amount(total or len(lines)>1)
+            self.win.lock_amount(total or len(lines) > 1)
 
     def get_errors(self):
         return self.errors
@@ -195,7 +206,7 @@ class PayToEdit(PrintError, ScanQRTextEdit):
     def get_outputs(self, is_max):
         if self.payto_address:
             if is_max:
-                amount = '!'
+                amount = "!"
             else:
                 amount = self.amount_edit.get_amount()
 
@@ -205,7 +216,7 @@ class PayToEdit(PrintError, ScanQRTextEdit):
         return self.outputs[:]
 
     def lines(self):
-        return self.toPlainText().split('\n')
+        return self.toPlainText().split("\n")
 
     def is_multiline(self):
         return len(self.lines()) > 1
@@ -227,18 +238,26 @@ class PayToEdit(PrintError, ScanQRTextEdit):
         self.setMinimumHeight(h)
         self.setMaximumHeight(h)
 
-        self.verticalScrollBar().setHidden(docHeight + self.verticalMargins < self.heightMax)
+        self.verticalScrollBar().setHidden(
+            docHeight + self.verticalMargins < self.heightMax
+        )
 
         # The scrollbar visibility can have changed so we update the overlay position here
         self._updateOverlayPos()
 
     def _vertical_scroll_bar_changed(self, value):
-        ''' Fix for bug #1521 -- Contents of payto edit can disappear
-        unexpectedly when selecting with mouse on a single-liner. '''
+        """Fix for bug #1521 -- Contents of payto edit can disappear
+        unexpectedly when selecting with mouse on a single-liner."""
         vb = self.verticalScrollBar()
         docLineCount = self.document().lineCount()
-        if docLineCount == 1 and vb.maximum()-vb.minimum() == 1 and value != vb.minimum():
-            self.print_error(f"Workaround #1521: forcing scrollbar value back to {vb.minimum()} for single line payto_e.")
+        if (
+            docLineCount == 1
+            and vb.maximum() - vb.minimum() == 1
+            and value != vb.minimum()
+        ):
+            self.print_error(
+                f"Workaround #1521: forcing scrollbar value back to {vb.minimum()} for single line payto_e."
+            )
             vb.setValue(vb.minimum())
 
     def setCompleter(self, completer):
@@ -246,7 +265,6 @@ class PayToEdit(PrintError, ScanQRTextEdit):
         self.c.setWidget(self)
         self.c.setCompletionMode(QtWidgets.QCompleter.PopupCompletion)
         self.c.activated.connect(self.insertCompletion)
-
 
     def insertCompletion(self, completion):
         if self.c.widget() != self:
@@ -299,7 +317,10 @@ class PayToEdit(PrintError, ScanQRTextEdit):
             self.c.popup().setCurrentIndex(self.c.completionModel().index(0, 0))
 
         cr = self.cursorRect()
-        cr.setWidth(self.c.popup().sizeHintForColumn(0) + self.c.popup().verticalScrollBar().sizeHint().width())
+        cr.setWidth(
+            self.c.popup().sizeHintForColumn(0)
+            + self.c.popup().verticalScrollBar().sizeHint().width()
+        )
         self.c.complete(cr)
 
     def qr_input(self):
@@ -307,10 +328,11 @@ class PayToEdit(PrintError, ScanQRTextEdit):
             if result and result.startswith(networks.net.CASHADDR_PREFIX + ":"):
                 self.scan_f(result)
                 # TODO: update fee
-        super(PayToEdit,self).qr_input(_on_qr_success)
 
-    def resolve(self, *, force_if_has_focus = False):
-        ''' This is called by the main window periodically from a timer. See
+        super(PayToEdit, self).qr_input(_on_qr_success)
+
+    def resolve(self, *, force_if_has_focus=False):
+        """This is called by the main window periodically from a timer. See
         main_window.py function `timer_actions`.
 
         It will resolve OpenAliases in the send tab.
@@ -328,8 +350,11 @@ class PayToEdit(PrintError, ScanQRTextEdit):
         Electrum.  It's my opinion that this mechanism is a bit complex for what
         it is since it requires the progremmer to spend considerable time
         reading this code to modfy/enhance it.  But we will work with that
-        we have for now. -Calin '''
-        prev_vals = self.is_alias, self.validated  # used only if early return due to unchanged text below
+        we have for now. -Calin"""
+        prev_vals = (
+            self.is_alias,
+            self.validated,
+        )  # used only if early return due to unchanged text below
         self.is_alias, self.validated = False, False
         if not force_if_has_focus and self.hasFocus():
             return
@@ -344,25 +369,25 @@ class PayToEdit(PrintError, ScanQRTextEdit):
             self.is_alias, self.validated = prev_vals
             return self.is_alias
         self.previous_payto = key
-        if '.' not in key or '<' in key or ' ' in key:
+        if "." not in key or "<" in key or " " in key:
             # not an openalias or an openalias with extra info in it, bail..!
             return
-        parts = key.split(sep=',')  # assuming single line
+        parts = key.split(sep=",")  # assuming single line
         if parts and len(parts) > 0 and Address.is_valid(parts[0]):
             return
         try:
             data = self.win.contacts.resolve(key)
         except Exception as e:
-            self.print_error(f'error resolving alias: {repr(e)}')
+            self.print_error(f"error resolving alias: {repr(e)}")
             return
         if not data:
             return
 
-        address = data.get('address')
-        name = data.get('name')
-        _type = data.get('type')
+        address = data.get("address")
+        name = data.get("name")
+        _type = data.get("type")
 
-        if _type != 'openalias':
+        if _type != "openalias":
             return
 
         address_str = None
@@ -371,21 +396,25 @@ class PayToEdit(PrintError, ScanQRTextEdit):
         elif isinstance(address, Address):
             address_str = address.to_ui_string()
         else:
-            raise RuntimeError('unknown address type')
+            raise RuntimeError("unknown address type")
 
         self.is_alias = True
 
-        new_url = key + ' <' + address_str + '>'
+        new_url = key + " <" + address_str + ">"
         self.setText(new_url)
         self.previous_payto = new_url
 
-        self.win.contacts.add(Contact(name=name, address=key, type='openalias'), unique=True)
-        self.win.contacts.add(Contact(name=name, address=key, type='openalias'), unique=True)
+        self.win.contacts.add(
+            Contact(name=name, address=key, type="openalias"), unique=True
+        )
+        self.win.contacts.add(
+            Contact(name=name, address=key, type="openalias"), unique=True
+        )
         self.win.contact_list.update()
 
         self.setFrozen(True)
 
-        self.validated = bool(data.get('validated'))
+        self.validated = bool(data.get("validated"))
         if self.validated:
             self.setGreen()
         else:

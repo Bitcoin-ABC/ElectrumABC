@@ -1,64 +1,66 @@
+import os
 import os.path
-import time
-import sys
 import platform
 import queue
+import sys
 import threading
-import os
+import time
 import webbrowser
 from collections import namedtuple
 from functools import partial, wraps
 from locale import atof
 
-from electroncash.simple_config import SimpleConfig
-from electroncash.util import print_error, PrintError, Weak, finalization_print_error
-from electroncash.wallet import Abstract_Wallet
-
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import QObject, Qt, QThread, QTimer, pyqtSignal
 from PyQt5.QtGui import (
     QColor,
     QCursor,
-    QIcon,
     QFocusEvent,
     QFontMetrics,
+    QIcon,
     QKeyEvent,
     QKeySequence,
     QPalette,
     QPixmap,
 )
-from PyQt5.QtCore import QObject, Qt, QThread, QTimer, pyqtSignal
-from PyQt5 import QtWidgets
 
-if platform.system() == 'Windows':
-    MONOSPACE_FONT = 'Consolas'
-elif platform.system() == 'Darwin':
-    MONOSPACE_FONT = 'Monaco'
+from electroncash.simple_config import SimpleConfig
+from electroncash.util import PrintError, Weak, finalization_print_error, print_error
+from electroncash.wallet import Abstract_Wallet
+
+if platform.system() == "Windows":
+    MONOSPACE_FONT = "Consolas"
+elif platform.system() == "Darwin":
+    MONOSPACE_FONT = "Monaco"
 else:
-    MONOSPACE_FONT = 'monospace'
+    MONOSPACE_FONT = "monospace"
 
 
 dialogs = []
 
-from electroncash.paymentrequest import PR_UNCONFIRMED, PR_UNPAID, PR_PAID, PR_EXPIRED
+from electroncash.paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNPAID
 
 pr_icons = {
-    PR_UNPAID:":icons/unpaid.svg",
-    PR_PAID:":icons/confirmed.svg",
-    PR_EXPIRED:":icons/expired.svg",
-    PR_UNCONFIRMED: ":icons/unconfirmed.svg"
+    PR_UNPAID: ":icons/unpaid.svg",
+    PR_PAID: ":icons/confirmed.svg",
+    PR_EXPIRED: ":icons/expired.svg",
+    PR_UNCONFIRMED: ":icons/unconfirmed.svg",
 }
 
-def _(message): return message
+
+def _(message):
+    return message
+
 
 expiration_values = [
-    (_('1 hour'), 60*60),
-    (_('1 day'), 24*60*60),
-    (_('1 week'), 7*24*60*60),
-    (_('Never'), None)
+    (_("1 hour"), 60 * 60),
+    (_("1 day"), 24 * 60 * 60),
+    (_("1 week"), 7 * 24 * 60 * 60),
+    (_("Never"), None),
 ]
 
 del _
 from electroncash.i18n import _
-
 
 
 class EnterButton(QtWidgets.QPushButton):
@@ -96,24 +98,33 @@ class ThreadedButton(QtWidgets.QPushButton):
 
 
 class WWLabel(QtWidgets.QLabel):
-    def __init__ (self, text="", parent=None):
+    def __init__(self, text="", parent=None):
         QtWidgets.QLabel.__init__(self, text, parent)
         self.setWordWrap(True)
-        self.setTextInteractionFlags(self.textInteractionFlags() | Qt.TextSelectableByMouse)
+        self.setTextInteractionFlags(
+            self.textInteractionFlags() | Qt.TextSelectableByMouse
+        )
+
 
 # --- Help widgets
 class HelpMixin:
     def __init__(self, help_text, *, custom_parent=None):
-        assert isinstance(self, QtWidgets.QWidget), "HelpMixin must be a QWidget instance!"
+        assert isinstance(
+            self, QtWidgets.QWidget
+        ), "HelpMixin must be a QWidget instance!"
         self.help_text = help_text
         self.custom_parent = custom_parent
         if isinstance(self, QtWidgets.QLabel):
             self.setTextInteractionFlags(
                 (self.textInteractionFlags() | Qt.TextSelectableByMouse)
-                & ~Qt.TextSelectableByKeyboard)
+                & ~Qt.TextSelectableByKeyboard
+            )
 
     def show_help(self):
-        QtWidgets.QMessageBox.information(self.custom_parent or self, _('Help'), self.help_text)
+        QtWidgets.QMessageBox.information(
+            self.custom_parent or self, _("Help"), self.help_text
+        )
+
 
 class HelpLabel(HelpMixin, QtWidgets.QLabel):
     def __init__(self, text, help_text, *, custom_parent=None):
@@ -137,9 +148,17 @@ class HelpLabel(HelpMixin, QtWidgets.QLabel):
 
 
 class HelpButton(HelpMixin, QtWidgets.QPushButton):
-    def __init__(self, text, *, button_text='?', fixed_size=True, icon=None,
-                 tool_tip=None, custom_parent=None):
-        QtWidgets.QPushButton.__init__(self, button_text or '')
+    def __init__(
+        self,
+        text,
+        *,
+        button_text="?",
+        fixed_size=True,
+        icon=None,
+        tool_tip=None,
+        custom_parent=None,
+    ):
+        QtWidgets.QPushButton.__init__(self, button_text or "")
         HelpMixin.__init__(self, text, custom_parent=custom_parent)
         self.setToolTip(tool_tip or _("Show help"))
         self.setCursor(QCursor(Qt.PointingHandCursor))
@@ -154,6 +173,7 @@ class HelpButton(HelpMixin, QtWidgets.QPushButton):
         # Delete this line some day.
         self.onclick = self.show_help
 
+
 # --- /Help widgets
 
 
@@ -164,11 +184,13 @@ class Buttons(QtWidgets.QHBoxLayout):
         for b in buttons:
             self.addWidget(b)
 
+
 class CloseButton(QtWidgets.QPushButton):
     def __init__(self, dialog):
         QtWidgets.QPushButton.__init__(self, _("C&lose"))
         self.clicked.connect(dialog.close)
         self.setDefault(True)
+
 
 class CopyButton(QtWidgets.QPushButton):
     def __init__(self, text_getter, app=None, callback=None):
@@ -179,6 +201,7 @@ class CopyButton(QtWidgets.QPushButton):
         if callback:
             self.clicked.connect(callback)
 
+
 class CopyCloseButton(QtWidgets.QPushButton):
     def __init__(self, text_getter, app, dialog):
         QtWidgets.QPushButton.__init__(self, _("&Copy and Close"))
@@ -186,42 +209,63 @@ class CopyCloseButton(QtWidgets.QPushButton):
         self.clicked.connect(dialog.close)
         self.setDefault(True)
 
+
 class OkButton(QtWidgets.QPushButton):
     def __init__(self, dialog, label=None):
         QtWidgets.QPushButton.__init__(self, label or _("&OK"))
         self.clicked.connect(dialog.accept)
         self.setDefault(True)
 
+
 class CancelButton(QtWidgets.QPushButton):
     def __init__(self, dialog, label=None):
         QtWidgets.QPushButton.__init__(self, label or _("C&ancel"))
         self.clicked.connect(dialog.reject)
 
+
 class MessageBoxMixin:
     def top_level_window_recurse(self, window=None):
         window = window or self
         for n, child in enumerate(window.children()):
-            if (isinstance(child, QtWidgets.QWidget) and child.isWindow()
-                    and child.windowModality() != Qt.NonModal
-                    # Test for visibility as old closed dialogs may not be GC-ed
-                    and child.isVisible()):
+            if (
+                isinstance(child, QtWidgets.QWidget)
+                and child.isWindow()
+                and child.windowModality() != Qt.NonModal
+                # Test for visibility as old closed dialogs may not be GC-ed
+                and child.isVisible()
+            ):
                 return self.top_level_window_recurse(child)
         return window
 
     def top_level_window(self):
         return self.top_level_window_recurse()
 
-    def question(self, msg, parent=None, title=None, icon=None, defaultButton=QtWidgets.QMessageBox.No, **kwargs):
+    def question(
+        self,
+        msg,
+        parent=None,
+        title=None,
+        icon=None,
+        defaultButton=QtWidgets.QMessageBox.No,
+        **kwargs,
+    ):
         Yes, No = QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No
-        if icon is None: icon = QtWidgets.QMessageBox.Question
-        retval = self.msg_box(icon,
-                              parent, title or '',
-                              msg, buttons=Yes|No, defaultButton=defaultButton, **kwargs)
+        if icon is None:
+            icon = QtWidgets.QMessageBox.Question
+        retval = self.msg_box(
+            icon,
+            parent,
+            title or "",
+            msg,
+            buttons=Yes | No,
+            defaultButton=defaultButton,
+            **kwargs,
+        )
         if isinstance(retval, (list, tuple)):
             # do some mogrification for new api
             x, *etc = retval
             # old-style API compat. result button is transformed to bool
-            x = (x == Yes)
+            x = x == Yes
             retval = (x, *etc)
         else:
             # old-style api -- simple result returned
@@ -229,45 +273,53 @@ class MessageBoxMixin:
         return retval
 
     def show_warning(self, msg, parent=None, title=None, **kwargs):
-        icon = kwargs.pop('icon', None)  # may be 0
-        if icon is None: icon = QtWidgets.QMessageBox.Warning
-        return self.msg_box(icon, parent,
-                            title or _('Warning'), msg, **kwargs)
+        icon = kwargs.pop("icon", None)  # may be 0
+        if icon is None:
+            icon = QtWidgets.QMessageBox.Warning
+        return self.msg_box(icon, parent, title or _("Warning"), msg, **kwargs)
 
     def show_error(self, msg, parent=None, title=None, **kwargs):
-        icon = kwargs.pop('icon', None)  # may be 0
-        if icon is None: icon = QtWidgets.QMessageBox.Warning
-        return self.msg_box(icon, parent,
-                            title or _('Error'), msg, **kwargs)
+        icon = kwargs.pop("icon", None)  # may be 0
+        if icon is None:
+            icon = QtWidgets.QMessageBox.Warning
+        return self.msg_box(icon, parent, title or _("Error"), msg, **kwargs)
 
     def show_critical(self, msg, parent=None, title=None, **kwargs):
-        icon = kwargs.pop('icon', None)  # may be 0
-        if icon is None: icon = QtWidgets.QMessageBox.Critical
-        return self.msg_box(icon, parent,
-                            title or _('Critical Error'), msg, **kwargs)
+        icon = kwargs.pop("icon", None)  # may be 0
+        if icon is None:
+            icon = QtWidgets.QMessageBox.Critical
+        return self.msg_box(icon, parent, title or _("Critical Error"), msg, **kwargs)
 
     def show_message(self, msg, parent=None, title=None, **kwargs):
-        icon = kwargs.pop('icon', None)  # may be 0
-        if icon is None: icon = QtWidgets.QMessageBox.Information
-        return self.msg_box(icon, parent,
-                            title or _('Information'), msg, **kwargs)
+        icon = kwargs.pop("icon", None)  # may be 0
+        if icon is None:
+            icon = QtWidgets.QMessageBox.Information
+        return self.msg_box(icon, parent, title or _("Information"), msg, **kwargs)
 
-    def msg_box(self, icon, parent, title, text,
-                buttons=QtWidgets.QMessageBox.Ok,  # Also accepts a list/tuple of str's (for custom buttons)
-                defaultButton=QtWidgets.QMessageBox.NoButton,  # IFF buttons is a list, use a string appearing in the list to specify this
-                rich_text=False, detail_text=None, informative_text=None,
-                checkbox_text=None, checkbox_ischecked=False,  # If checkbox_text is set, will add a checkbox, and return value becomes a tuple (result(), isChecked())
-                escapeButton=QtWidgets.QMessageBox.NoButton,  # IFF buttons is a list, use a string appearing in the list to specify this
-                app_modal=False  # IFF true, set the popup window to be application modal
-                ):
-        ''' Note about 'new' msg_box API (this applies to all of the above functions that call into this as well):
-            - `icon' may not be either a standard QMessageBox.Icon or a QPixmap for a custom icon.
-            - `buttons' may be a list of translated button texts to use, or the old-style QMessageBox.StandardButtons bitfields
-            - If `buttons' is a list, the result returned will be an index (int) into this list, signifying which button was clicked.
-            - If `buttons' is a list of button texts, then defaultButton= and escapeButton= must also be the text of the button you want to give the designated property to
-            - If the `checkbox_text' arg is set, the return value will be a tuple of: ( result(), checkbox.isChecked() )
-              (otherwise it's just simple value: result(), if no checkbox_text is specified)
-        '''
+    def msg_box(
+        self,
+        icon,
+        parent,
+        title,
+        text,
+        buttons=QtWidgets.QMessageBox.Ok,  # Also accepts a list/tuple of str's (for custom buttons)
+        defaultButton=QtWidgets.QMessageBox.NoButton,  # IFF buttons is a list, use a string appearing in the list to specify this
+        rich_text=False,
+        detail_text=None,
+        informative_text=None,
+        checkbox_text=None,
+        checkbox_ischecked=False,  # If checkbox_text is set, will add a checkbox, and return value becomes a tuple (result(), isChecked())
+        escapeButton=QtWidgets.QMessageBox.NoButton,  # IFF buttons is a list, use a string appearing in the list to specify this
+        app_modal=False,  # IFF true, set the popup window to be application modal
+    ):
+        """Note about 'new' msg_box API (this applies to all of the above functions that call into this as well):
+        - `icon' may not be either a standard QMessageBox.Icon or a QPixmap for a custom icon.
+        - `buttons' may be a list of translated button texts to use, or the old-style QMessageBox.StandardButtons bitfields
+        - If `buttons' is a list, the result returned will be an index (int) into this list, signifying which button was clicked.
+        - If `buttons' is a list of button texts, then defaultButton= and escapeButton= must also be the text of the button you want to give the designated property to
+        - If the `checkbox_text' arg is set, the return value will be a tuple of: ( result(), checkbox.isChecked() )
+          (otherwise it's just simple value: result(), if no checkbox_text is specified)
+        """
         parent = parent or self.top_level_window()
         d = QMessageBoxMixin(parent)
         d.setWindowModality(Qt.ApplicationModal if app_modal else Qt.WindowModal)
@@ -277,8 +329,14 @@ class MessageBoxMixin:
             # defaultButton must match which button to be default
             # Return value will be the index of the button push in this list!
             for b in buttons:
-                assert isinstance(b, (str, QtWidgets.QAbstractButton)), "MessageBoxMixin msg_box API usage error: expected a list of str's or QAbstractButtons!"
-                role = QtWidgets.QMessageBox.AcceptRole if defaultButton == b else QtWidgets.QMessageBox.RejectRole
+                assert isinstance(
+                    b, (str, QtWidgets.QAbstractButton)
+                ), "MessageBoxMixin msg_box API usage error: expected a list of str's or QAbstractButtons!"
+                role = (
+                    QtWidgets.QMessageBox.AcceptRole
+                    if defaultButton == b
+                    else QtWidgets.QMessageBox.RejectRole
+                )
                 but = d.addButton(b, role)
                 if b == defaultButton:
                     d.setDefaultButton(but)
@@ -299,7 +357,11 @@ class MessageBoxMixin:
         if informative_text and isinstance(informative_text, str):
             d.setInformativeText(informative_text)
         if rich_text:
-            d.setTextInteractionFlags(d.textInteractionFlags()|Qt.TextSelectableByMouse|Qt.LinksAccessibleByMouse)
+            d.setTextInteractionFlags(
+                d.textInteractionFlags()
+                | Qt.TextSelectableByMouse
+                | Qt.LinksAccessibleByMouse
+            )
             d.setTextFormat(Qt.RichText)
         else:
             d.setTextInteractionFlags(Qt.TextSelectableByMouse)
@@ -308,41 +370,55 @@ class MessageBoxMixin:
         if checkbox_text and isinstance(checkbox_text, str):
             chk = QtWidgets.QCheckBox(checkbox_text)
             d.setCheckBox(chk)
+
             def on_chk(b):
                 nonlocal checkbox_ischecked
                 checkbox_ischecked = bool(b)
+
             chk.setChecked(bool(checkbox_ischecked))
             chk.clicked.connect(on_chk)
             res = d.exec_()
-            ret = res, checkbox_ischecked # new API returns a tuple if a checkbox is specified
+            ret = (
+                res,
+                checkbox_ischecked,
+            )  # new API returns a tuple if a checkbox is specified
         else:
-            ret = d.exec_() # old/no checkbox api
+            ret = d.exec_()  # old/no checkbox api
         try:
-            d.setParent(None) # Force GC sooner rather than later.
+            d.setParent(None)  # Force GC sooner rather than later.
         except RuntimeError as e:
             # C++ object deleted -- can happen with misbehaving client code that kills parent from dialog ok
-            print_error("MsgBoxMixin WARNING: client code is killing the dialog box's parent before function return:", str(e))
+            print_error(
+                "MsgBoxMixin WARNING: client code is killing the dialog box's parent before function return:",
+                str(e),
+            )
         return ret
 
+
 class QMessageBoxMixin(QtWidgets.QMessageBox, MessageBoxMixin):
-    ''' This class's sole purpose is so that MessageBoxMixin.msg_box() always
+    """This class's sole purpose is so that MessageBoxMixin.msg_box() always
     presents a message box that has the mixin methods.
-    See https://github.com/Electron-Cash/Electron-Cash/issues/980. '''
+    See https://github.com/Electron-Cash/Electron-Cash/issues/980."""
+
     pass
 
+
 class WindowModalDialog(QtWidgets.QDialog, MessageBoxMixin):
-    '''Handy wrapper; window modal dialogs are better for our multi-window
-    daemon model as other wallet windows can still be accessed.'''
+    """Handy wrapper; window modal dialogs are better for our multi-window
+    daemon model as other wallet windows can still be accessed."""
+
     def __init__(self, parent, title=None):
         QtWidgets.QDialog.__init__(self, parent)
         self.setWindowModality(Qt.WindowModal)
         if title:
             self.setWindowTitle(title)
 
+
 class AppModalDialog(MessageBoxMixin, QtWidgets.QDialog):
-    ''' Convenience class -- like the WindowModalDialog but is app-modal.
+    """Convenience class -- like the WindowModalDialog but is app-modal.
     Has all the MessageBoxMixin convenience methods.  Is always top-level and
-    parentless.'''
+    parentless."""
+
     def __init__(self, parent=None, title=None, windowFlags=None):
         QtWidgets.QDialog.__init__(self, parent=parent)
         self.setWindowModality(Qt.ApplicationModal)
@@ -353,18 +429,32 @@ class AppModalDialog(MessageBoxMixin, QtWidgets.QDialog):
 
 
 class WaitingDialog(WindowModalDialog):
-    '''Shows a please wait dialog whilst running a task.  It is not
+    """Shows a please wait dialog whilst running a task.  It is not
     necessary to maintain a reference to this dialog.
 
     Note if disable_escape_key is not set, user can hit cancel to prematurely
     close the dialog. Sometimes this is desirable, and sometimes it isn't, hence
-    why the option is offered.'''
+    why the option is offered."""
 
     _update_progress_sig = pyqtSignal(int)
 
-    def __init__(self, parent, message, task, on_success=None, on_error=None, auto_cleanup=True,
-                 *, auto_show=True, auto_exec=False, title=None, disable_escape_key=False,
-                 progress_bar=None, progress_min=0, progress_max=0):
+    def __init__(
+        self,
+        parent,
+        message,
+        task,
+        on_success=None,
+        on_error=None,
+        auto_cleanup=True,
+        *,
+        auto_show=True,
+        auto_exec=False,
+        title=None,
+        disable_escape_key=False,
+        progress_bar=None,
+        progress_min=0,
+        progress_max=0,
+    ):
         assert parent
         if isinstance(parent, MessageBoxMixin):
             parent = parent.top_level_window()
@@ -378,7 +468,7 @@ class WaitingDialog(WindowModalDialog):
         self.rejected.connect(self.on_rejected)
         self._pbar = None
         if progress_bar:
-            self._pbar = p =QtWidgets.QProgressBar()
+            self._pbar = p = QtWidgets.QProgressBar()
             p.setMinimum(progress_min)
             p.setMaximum(progress_max)
             if isinstance(progress_bar, str):
@@ -409,18 +499,20 @@ class WaitingDialog(WindowModalDialog):
     def on_accepted(self):
         self.thread.stop()
         if self.auto_cleanup:
-            self.wait() # wait for thread to complete so that we can get cleaned up
-            self.setParent(None) # this causes GC to happen sooner rather than later. Before this call was added the WaitingDialogs would stick around in memory until the ElectrumWindow was closed and would never get GC'd before then. (as of PyQt5 5.11.3)
+            self.wait()  # wait for thread to complete so that we can get cleaned up
+            self.setParent(
+                None
+            )  # this causes GC to happen sooner rather than later. Before this call was added the WaitingDialogs would stick around in memory until the ElectrumWindow was closed and would never get GC'd before then. (as of PyQt5 5.11.3)
 
     def on_rejected(self):
         if self.auto_cleanup:
             self.setParent(None)
 
     def keyPressEvent(self, e):
-        ''' The user can hit Cancel to close the dialog before the task is done.
+        """The user can hit Cancel to close the dialog before the task is done.
         If self.disable_escape_key, then we suppress this unwanted behavior.
         Note: Do not enable self.disable_escape_key for extremely long
-        operations.'''
+        operations."""
         if e.matches(QKeySequence.Cancel) and self.disable_escape_key:
             e.ignore()
         else:
@@ -429,6 +521,7 @@ class WaitingDialog(WindowModalDialog):
 
 def text_dialog(parent, title, label, ok_label, default=None, allow_multi=False):
     from .qrtextedit import ScanQRTextEdit
+
     dialog = WindowModalDialog(parent, title)
     dialog.setMinimumWidth(500)
     l = QtWidgets.QVBoxLayout()
@@ -441,6 +534,7 @@ def text_dialog(parent, title, label, ok_label, default=None, allow_multi=False)
     l.addLayout(Buttons(CancelButton(dialog), OkButton(dialog, ok_label)))
     if dialog.exec_():
         return txt.toPlainText()
+
 
 class ChoicesLayout(object):
     def __init__(self, msg, choices, on_clicked=None, checked_index=0):
@@ -455,13 +549,13 @@ class ChoicesLayout(object):
         gb2.setLayout(vbox2)
 
         self.group = group = QtWidgets.QButtonGroup()
-        for i,c in enumerate(choices):
+        for i, c in enumerate(choices):
             button = QtWidgets.QRadioButton(gb2)
             button.setText(c)
             vbox2.addWidget(button)
             group.addButton(button)
             group.setId(button, i)
-            if i==checked_index:
+            if i == checked_index:
                 button.setChecked(True)
 
         if on_clicked:
@@ -475,13 +569,14 @@ class ChoicesLayout(object):
     def selected_index(self):
         return self.group.checkedId()
 
+
 def address_combo(addresses):
     addr_combo = QtWidgets.QComboBox()
     addr_combo.addItems(addr.to_ui_string() for addr in addresses)
     addr_combo.setCurrentIndex(0)
 
     hbox = QtWidgets.QHBoxLayout()
-    hbox.addWidget(QtWidgets.QLabel(_('Address to sweep to:')))
+    hbox.addWidget(QtWidgets.QLabel(_("Address to sweep to:")))
     hbox.addWidget(addr_combo)
     return hbox, addr_combo
 
@@ -504,19 +599,25 @@ def filename_field(config, defaultname, select_msg):
 
     hbox = QtWidgets.QHBoxLayout()
 
-    directory = config.get('io_dir', os.path.expanduser('~'))
+    directory = config.get("io_dir", os.path.expanduser("~"))
     path = os.path.join(directory, defaultname)
     filename_e = QtWidgets.QLineEdit()
     filename_e.setText(path)
 
     def func():
         text = filename_e.text()
-        _filter = "*.csv" if text.endswith(".csv") else "*.json" if text.endswith(".json") else None
+        _filter = (
+            "*.csv"
+            if text.endswith(".csv")
+            else "*.json"
+            if text.endswith(".json")
+            else None
+        )
         p, __ = QtWidgets.QFileDialog.getSaveFileName(None, select_msg, text, _filter)
         if p:
             filename_e.setText(p)
 
-    button = QtWidgets.QPushButton(_('File'))
+    button = QtWidgets.QPushButton(_("File"))
     button.clicked.connect(func)
     hbox.addWidget(button)
     hbox.addWidget(filename_e)
@@ -524,7 +625,7 @@ def filename_field(config, defaultname, select_msg):
 
     def set_csv(v):
         text = filename_e.text()
-        text = text.replace(".json",".csv") if v else text.replace(".csv",".json")
+        text = text.replace(".json", ".csv") if v else text.replace(".csv", ".json")
         filename_e.setText(text)
 
     b1.clicked.connect(lambda: set_csv(True))
@@ -539,14 +640,13 @@ class ElectrumItemDelegate(QtWidgets.QStyledItemDelegate):
 
 
 class MyTreeWidget(QtWidgets.QTreeWidget):
-
     class SortSpec(namedtuple("SortSpec", "column, qt_sort_order")):
         """Used to specify member: default_sort"""
 
     # Specify this in subclasses to apply a default sort order to the widget.
     # If None, nothing is applied (items are presented in the order they are
     # added).
-    default_sort : SortSpec = None
+    default_sort: SortSpec = None
 
     # Specify this in subclasses to enable substring search/filtering (Ctrl+F)
     # (if this and filter_data_columns are both empty, no search is applied)
@@ -564,7 +664,7 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
     # method.
     filter_data_columns = []
     # the QTreeWidgetItem data role to use when searching data columns
-    filter_data_role : int = Qt.UserRole
+    filter_data_role: int = Qt.UserRole
 
     edited = pyqtSignal()
 
@@ -578,7 +678,7 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
         editable_columns=None,
         *,
         deferred_updates=False,
-        save_sort_settings=False
+        save_sort_settings=False,
     ):
         QtWidgets.QTreeWidget.__init__(self, parent)
         self.config = config
@@ -609,19 +709,26 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
     def _setup_save_sort_mechanism(self):
         if self._save_sort_settings:
             storage = self.wallet.storage
-            key = f'mytreewidget_default_sort_{type(self).__name__}'
+            key = f"mytreewidget_default_sort_{type(self).__name__}"
             default = (storage and storage.get(key, None)) or self.default_sort
-            if default and isinstance(default, (tuple, list)) and len(default) >= 2 and all(isinstance(i, int) for i in default):
+            if (
+                default
+                and isinstance(default, (tuple, list))
+                and len(default) >= 2
+                and all(isinstance(i, int) for i in default)
+            ):
                 self.setSortingEnabled(True)
                 self.sortByColumn(default[0], default[1])
             if storage:
                 # Paranoia; hold a weak reference just in case subclass code
                 # does unusual things.
                 weakStorage = Weak.ref(storage)
+
                 def save_sort(column, qt_sort_order):
                     storage = weakStorage()
                     if storage:
                         storage.put(key, [column, qt_sort_order])
+
                 self.header().sortIndicatorChanged.connect(save_sort)
         elif self.default_sort:
             self.setSortingEnabled(True)
@@ -632,7 +739,11 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
         self.setHeaderLabels(headers)
         self.header().setStretchLastSection(False)
         for col in range(len(headers)):
-            sm = QtWidgets.QHeaderView.Stretch if col == self.stretch_column else QtWidgets.QHeaderView.ResizeToContents
+            sm = (
+                QtWidgets.QHeaderView.Stretch
+                if col == self.stretch_column
+                else QtWidgets.QHeaderView.ResizeToContents
+            )
             self.header().setSectionResizeMode(col, sm)
 
     def editItem(self, item, column):
@@ -652,8 +763,7 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
             super().keyPressEvent(event)
 
     def permit_edit(self, item, column):
-        return (column in self.editable_columns
-                and self.on_permit_edit(item, column))
+        return column in self.editable_columns and self.on_permit_edit(item, column)
 
     def on_permit_edit(self, item, column):
         return True
@@ -669,8 +779,9 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
         self.customContextMenuRequested.emit(pt)
 
     def createEditor(self, parent, option, index):
-        self.editor = QtWidgets.QStyledItemDelegate.createEditor(self.itemDelegate(),
-                                                       parent, option, index)
+        self.editor = QtWidgets.QStyledItemDelegate.createEditor(
+            self.itemDelegate(), parent, option, index
+        )
         self.editor.editingFinished.connect(self.editing_finished)
         return self.editor
 
@@ -686,7 +797,7 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
             if self.editor.text() == prior_text:
                 self.editor = None  # Unchanged - ignore any 2nd call
             elif item.text(column) == prior_text:
-                pass # Buggy first call on Enter key, item not yet updated
+                pass  # Buggy first call on Enter key, item not yet updated
             else:
                 # What we want - the updated item
                 self.on_edited(*self.editing_itemcol)
@@ -706,8 +817,7 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
         self.edited.emit()
 
     def should_defer_update_incr(self):
-        ret = (self.deferred_updates and not self.isVisible()
-               and not self._forced_update )
+        ret = self.deferred_updates and not self.isVisible() and not self._forced_update
         if ret:
             self.deferred_update_ct += 1
         return ret
@@ -724,17 +834,25 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
             if self.should_defer_update_incr():
                 return
             self.setUpdatesEnabled(False)
-            scroll_pos_val = self.verticalScrollBar().value() # save previous scroll bar position
+            scroll_pos_val = (
+                self.verticalScrollBar().value()
+            )  # save previous scroll bar position
             self.on_update()
             self.deferred_update_ct = 0
             weakSelf = Weak.ref(self)
+
             def restoreScrollBar():
                 slf = weakSelf()
                 if slf:
                     slf.updateGeometry()
-                    slf.verticalScrollBar().setValue(scroll_pos_val) # restore scroll bar to previous
+                    slf.verticalScrollBar().setValue(
+                        scroll_pos_val
+                    )  # restore scroll bar to previous
                     slf.setUpdatesEnabled(True)
-            QTimer.singleShot(0, restoreScrollBar) # need to do this from a timer some time later due to Qt quirks
+
+            QTimer.singleShot(
+                0, restoreScrollBar
+            )  # need to do this from a timer some time later due to Qt quirks
         if self.current_filter:
             self.filter(self.current_filter)
 
@@ -774,16 +892,19 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
         bad_data_column = False
         data_role = self.__class__.filter_data_role
         for item in self.get_leaves(self.invisibleRootItem()):
-            no_match_text = all(item.text(column).lower().find(p) == -1
-                                for column in columns)
+            no_match_text = all(
+                item.text(column).lower().find(p) == -1 for column in columns
+            )
             no_match_data = True
             if no_match_text and not bad_data_column and data_columns:
                 try:
                     # data matching is different -- it must match exactly the
                     # specified search string. This was originally designed
                     # to allow for tx-hash searching of the history list.
-                    no_match_data = all(item.data(column, data_role).strip().lower() != p
-                                        for column in data_columns)
+                    no_match_data = all(
+                        item.data(column, data_role).strip().lower() != p
+                        for column in data_columns
+                    )
                 except (AttributeError, TypeError, ValueError):
                     # flag so we don't keep raising for each iteration of this
                     # loop.  Programmer error here in subclass, silently ignore.
@@ -792,20 +913,20 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
 
 
 class OverlayControlMixin:
-    STYLE_SHEET_COMMON = '''
+    STYLE_SHEET_COMMON = """
     QPushButton { border-width: 1px; padding: 0px; margin: 0px; }
-    '''
+    """
 
-    STYLE_SHEET_LIGHT = '''
+    STYLE_SHEET_LIGHT = """
     QPushButton { border: 1px solid transparent; }
     QPushButton:hover { border: 1px solid #3daee9; }
-    '''
+    """
 
-    STYLE_SHEET_MAC = '''
+    STYLE_SHEET_MAC = """
     QPushButton { border-width: 1px; padding: 0px; margin: 2px; }
     QPushButton { border: 1px solid transparent; }
     QPushButton:hover { border: 1px solid #3daee9; }
-    '''
+    """
 
     def __init__(self, middle: bool = False):
         assert isinstance(self, QtWidgets.QWidget)
@@ -818,7 +939,7 @@ class OverlayControlMixin:
         self._updateOverlayPos()
 
     def _updateSverlayStyleSheet(self):
-        if sys.platform in ('darwin',):
+        if sys.platform in ("darwin",):
             # On Mac, in Mojave dark mode, we get some strange button spacing
             # if we use the regular common sheet, so we must use a custom sheet.
             style_sheet = self.STYLE_SHEET_MAC
@@ -842,14 +963,16 @@ class OverlayControlMixin:
         x = self.rect().right() - frame_width - overlay_size.width()
         y = self.rect().bottom() - overlay_size.height()
         middle = self.middle
-        if hasattr(self, 'document'):
+        if hasattr(self, "document"):
             # Keep the buttons centered if we have less than 2 lines in the editor
             line_spacing = QFontMetrics(self.document().defaultFont()).lineSpacing()
             if self.rect().height() < (line_spacing * 2):
                 middle = True
         y = (y // 2) + frame_width if middle else y - frame_width
-        if hasattr(self, 'verticalScrollBar') and self.verticalScrollBar().isVisible():
-            scrollbar_width = self.style().pixelMetric(QtWidgets.QStyle.PM_ScrollBarExtent)
+        if hasattr(self, "verticalScrollBar") and self.verticalScrollBar().isVisible():
+            scrollbar_width = self.style().pixelMetric(
+                QtWidgets.QStyle.PM_ScrollBarExtent
+            )
             x -= scrollbar_width
         self.overlay_widget.move(x, y)
 
@@ -859,15 +982,22 @@ class OverlayControlMixin:
         else:
             self.overlay_layout.addWidget(widget)
 
-    def addButton(self, icon_name: str, on_click, tooltip: str, index : int = None,
-                  *, text : str = None) -> QtWidgets.QAbstractButton:
-        ''' icon_name may be None but then you must define text (which is
+    def addButton(
+        self,
+        icon_name: str,
+        on_click,
+        tooltip: str,
+        index: int = None,
+        *,
+        text: str = None,
+    ) -> QtWidgets.QAbstractButton:
+        """icon_name may be None but then you must define text (which is
         hopefully then some nice Unicode character). Both cannot be None.
 
         `on_click` is the callable to connect to the button.clicked signal.
 
         Use `index` to insert it not at the end of the layout by anywhere in the
-        layout. If None, it will be appended to the right of the layout. '''
+        layout. If None, it will be appended to the right of the layout."""
         button = QtWidgets.QPushButton(self.overlay_widget)
         button.setToolTip(tooltip)
         button.setCursor(QCursor(Qt.PointingHandCursor))
@@ -876,7 +1006,9 @@ class OverlayControlMixin:
         elif text:
             button.setText(text)
         if not icon_name and not text:
-            raise AssertionError('OverlayControlMixin.addButton: Button must have either icon_name or text defined!')
+            raise AssertionError(
+                "OverlayControlMixin.addButton: Button must have either icon_name or text defined!"
+            )
         button.clicked.connect(on_click)
         self.addWidget(button, index)
         return button
@@ -923,8 +1055,8 @@ class PasswordLineEdit(QtWidgets.QLineEdit):
 
 
 class TaskThread(PrintError, QThread):
-    '''Thread that runs background tasks.  Callbacks are guaranteed
-    to happen in the context of its parent.'''
+    """Thread that runs background tasks.  Callbacks are guaranteed
+    to happen in the context of its parent."""
 
     Task = namedtuple("Task", "task cb_success cb_done cb_error")
     doneSig = pyqtSignal(object, object, object)
@@ -945,9 +1077,9 @@ class TaskThread(PrintError, QThread):
 
     def diagnostic_name(self):
         name = self.__class__.__name__
-        o = self.objectName() or ''
+        o = self.objectName() or ""
         if o:
-            name += '/' + o
+            name += "/" + o
         return name
 
     def run(self):
@@ -972,9 +1104,9 @@ class TaskThread(PrintError, QThread):
         if cb:
             cb(result)
 
-    def stop(self, *, waitTime = None):
-        ''' pass optional time to wait in seconds (float).  If no waitTime
-        specified, will not wait. '''
+    def stop(self, *, waitTime=None):
+        """pass optional time to wait in seconds (float).  If no waitTime
+        specified, will not wait."""
         self.tasks.put(None)
         if waitTime is not None and self.isRunning():
             if not self.wait(int(waitTime * 1e3)):  # secs -> msec
@@ -1006,11 +1138,14 @@ class _ColorScheme:
         self._dark_scheme = False
 
         from .utils import darkdetect
+
         self._dark_detector = darkdetect.isDark
 
         self.DEEPGREEN = ColorSchemeItem("#335c33", "#7ac276")
         self.GREEN = ColorSchemeItem("#117c11", "#8af296")
-        self.SLPGREEN = ColorSchemeItem("#25863f", "#8af296") # darker alternative: ColorSchemeItem("#25863f", "#60bc70")
+        self.SLPGREEN = ColorSchemeItem(
+            "#25863f", "#8af296"
+        )  # darker alternative: ColorSchemeItem("#25863f", "#60bc70")
         self.YELLOW = ColorSchemeItem("#897b2a", "#ffff00")
         self.PINK = ColorSchemeItem("#9c4444", "#ffbaba")
         self.RED = ColorSchemeItem("#7c1111", "#f18c8c")
@@ -1023,16 +1158,16 @@ class _ColorScheme:
 
     def has_dark_background(self, widget):
         brightness = sum(widget.palette().color(QPalette.Background).getRgb()[0:3])
-        return brightness < (255*3/2)
+        return brightness < (255 * 3 / 2)
 
     def update_from_widget(self, widget, *, force_dark=False):
         self.dark_scheme = bool(force_dark or self.has_dark_background(widget))
 
     @property
     def dark_scheme(self):
-        '''Getter. We rely on the _dark_detector function. If it returns None
+        """Getter. We rely on the _dark_detector function. If it returns None
         we know the _dark_detector is invalid so we just use the cached
-        setting.'''
+        setting."""
         detected = self._dark_detector()
         if detected is not None:
             return detected
@@ -1041,12 +1176,13 @@ class _ColorScheme:
 
     @dark_scheme.setter
     def dark_scheme(self, b):
-        '''Note that the setter may not actually take effect if using the
-        system-specific dark detector (MacOS Mojave+ only).'''
+        """Note that the setter may not actually take effect if using the
+        system-specific dark detector (MacOS Mojave+ only)."""
         self._dark_scheme = b
 
 
 ColorScheme = _ColorScheme()
+
 
 class SortableTreeWidgetItem(QtWidgets.QTreeWidgetItem):
     DataRole = Qt.UserRole + 1
@@ -1064,19 +1200,21 @@ class SortableTreeWidgetItem(QtWidgets.QTreeWidgetItem):
             # If not, we will just do string comparison
             return self.text(column) < other.text(column)
 
+
 class RateLimiter(PrintError):
-    ''' Manages the state of a @rate_limited decorated function, collating
+    """Manages the state of a @rate_limited decorated function, collating
     multiple invocations. This class is not intended to be used directly. Instead,
     use the @rate_limited decorator (for instance methods).
 
     This state instance gets inserted into the instance attributes of the target
     object wherever a @rate_limited decorator appears.
 
-    The inserted attribute is named "__FUNCNAME__RateLimiter". '''
+    The inserted attribute is named "__FUNCNAME__RateLimiter"."""
+
     # some defaults
     last_ts = 0.0
     timer = None
-    saved_args = (tuple(),dict())
+    saved_args = (tuple(), dict())
     ctr = 0
 
     def __init__(self, rate, ts_after, obj, func):
@@ -1084,44 +1222,55 @@ class RateLimiter(PrintError):
         self.qn = func.__qualname__
         self.rate = rate
         self.ts_after = ts_after
-        self.obj = Weak.ref(obj) # keep a weak reference to the object to prevent cycles
+        self.obj = Weak.ref(
+            obj
+        )  # keep a weak reference to the object to prevent cycles
         self.func = func
-        #self.print_error("*** Created: func=",func,"obj=",obj,"rate=",rate)
+        # self.print_error("*** Created: func=",func,"obj=",obj,"rate=",rate)
 
     def diagnostic_name(self):
-        return "{}:{}".format("rate_limited",self.qn)
+        return "{}:{}".format("rate_limited", self.qn)
 
     def kill_timer(self):
         if self.timer:
-            #self.print_error("deleting timer")
+            # self.print_error("deleting timer")
             try:
                 self.timer.stop()
                 self.timer.deleteLater()
             except RuntimeError as e:
-                if 'c++ object' in str(e).lower():
+                if "c++ object" in str(e).lower():
                     # This can happen if the attached object which actually owns
                     # QTimer is deleted by Qt before this call path executes.
                     # This call path may be executed from a queued connection in
                     # some circumstances, hence the crazyness (I think).
-                    self.print_error("advisory: QTimer was already deleted by Qt, ignoring...")
+                    self.print_error(
+                        "advisory: QTimer was already deleted by Qt, ignoring..."
+                    )
                 else:
                     raise
             finally:
                 self.timer = None
 
     @classmethod
-    def attr_name(cls, func): return "__{}__{}".format(func.__name__, cls.__name__)
+    def attr_name(cls, func):
+        return "__{}__{}".format(func.__name__, cls.__name__)
 
     @classmethod
     def invoke(cls, rate, ts_after, func, args, kwargs):
-        ''' Calls _invoke() on an existing RateLimiter object (or creates a new
-        one for the given function on first run per target object instance). '''
-        assert args and isinstance(args[0], object), "@rate_limited decorator may only be used with object instance methods"
-        assert threading.current_thread() is threading.main_thread(), "@rate_limited decorator may only be used with functions called in the main thread"
+        """Calls _invoke() on an existing RateLimiter object (or creates a new
+        one for the given function on first run per target object instance)."""
+        assert args and isinstance(
+            args[0], object
+        ), "@rate_limited decorator may only be used with object instance methods"
+        assert (
+            threading.current_thread() is threading.main_thread()
+        ), "@rate_limited decorator may only be used with functions called in the main thread"
         obj = args[0]
         a_name = cls.attr_name(func)
-        #print_error("*** a_name =",a_name,"obj =",obj)
-        rl = getattr(obj, a_name, None) # we hide the RateLimiter state object in an attribute (name based on the wrapped function name) in the target object
+        # print_error("*** a_name =",a_name,"obj =",obj)
+        rl = getattr(
+            obj, a_name, None
+        )  # we hide the RateLimiter state object in an attribute (name based on the wrapped function name) in the target object
         if rl is None:
             # must be the first invocation, create a new RateLimiter state instance.
             rl = cls(rate, ts_after, obj, func)
@@ -1129,64 +1278,85 @@ class RateLimiter(PrintError):
         return rl._invoke(args, kwargs)
 
     def _invoke(self, args, kwargs):
-        self._push_args(args, kwargs)  # since we're collating, save latest invocation's args unconditionally. any future invocation will use the latest saved args.
-        self.ctr += 1 # increment call counter
-        #self.print_error("args_saved",args,"kwarg_saved",kwargs)
-        if not self.timer: # check if there's a pending invocation already
+        self._push_args(
+            args, kwargs
+        )  # since we're collating, save latest invocation's args unconditionally. any future invocation will use the latest saved args.
+        self.ctr += 1  # increment call counter
+        # self.print_error("args_saved",args,"kwarg_saved",kwargs)
+        if not self.timer:  # check if there's a pending invocation already
             now = time.time()
             diff = float(self.rate) - (now - self.last_ts)
             if diff <= 0:
                 # Time since last invocation was greater than self.rate, so call the function directly now.
-                #self.print_error("calling directly")
+                # self.print_error("calling directly")
                 return self._doIt()
             else:
                 # Time since last invocation was less than self.rate, so defer to the future with a timer.
-                self.timer = QTimer(self.obj() if isinstance(self.obj(), QObject) else None)
+                self.timer = QTimer(
+                    self.obj() if isinstance(self.obj(), QObject) else None
+                )
                 self.timer.timeout.connect(self._doIt)
-                #self.timer.destroyed.connect(lambda x=None,qn=self.qn: print(qn,"Timer deallocated"))
+                # self.timer.destroyed.connect(lambda x=None,qn=self.qn: print(qn,"Timer deallocated"))
                 self.timer.setSingleShot(True)
-                self.timer.start(int(diff*1e3))
-                #self.print_error("deferring")
+                self.timer.start(int(diff * 1e3))
+                # self.print_error("deferring")
         else:
             # We had a timer active, which means as future call will occur. So return early and let that call happenin the future.
             # Note that a side-effect of this aborted invocation was to update self.saved_args.
             pass
-            #self.print_error("ignoring (already scheduled)")
+            # self.print_error("ignoring (already scheduled)")
 
     def _pop_args(self):
-        args, kwargs = self.saved_args # grab the latest collated invocation's args. this attribute is always defined.
-        self.saved_args = (tuple(),dict()) # clear saved args immediately
+        (
+            args,
+            kwargs,
+        ) = (
+            self.saved_args
+        )  # grab the latest collated invocation's args. this attribute is always defined.
+        self.saved_args = (tuple(), dict())  # clear saved args immediately
         return args, kwargs
 
     def _push_args(self, args, kwargs):
         self.saved_args = (args, kwargs)
 
     def _doIt(self):
-        #self.print_error("called!")
+        # self.print_error("called!")
         t0 = time.time()
         args, kwargs = self._pop_args()
-        #self.print_error("args_actually_used",args,"kwarg_actually_used",kwargs)
-        ctr0 = self.ctr # read back current call counter to compare later for reentrancy detection
-        retval = self.func(*args, **kwargs) # and.. call the function. use latest invocation's args
-        was_reentrant = self.ctr != ctr0 # if ctr is not the same, func() led to a call this function!
-        del args, kwargs # deref args right away (allow them to get gc'd)
+        # self.print_error("args_actually_used",args,"kwarg_actually_used",kwargs)
+        ctr0 = (
+            self.ctr
+        )  # read back current call counter to compare later for reentrancy detection
+        retval = self.func(
+            *args, **kwargs
+        )  # and.. call the function. use latest invocation's args
+        was_reentrant = (
+            self.ctr != ctr0
+        )  # if ctr is not the same, func() led to a call this function!
+        del args, kwargs  # deref args right away (allow them to get gc'd)
         tf = time.time()
-        time_taken = tf-t0
+        time_taken = tf - t0
         if self.ts_after:
             self.last_ts = tf
         else:
             if time_taken > float(self.rate):
-                self.print_error("method took too long: {} > {}. Fudging timestamps to compensate.".format(time_taken, self.rate))
-                self.last_ts = tf # Hmm. This function takes longer than its rate to complete. so mark its last run time as 'now'. This breaks the rate but at least prevents this function from starving the CPU (benforces a delay).
+                self.print_error(
+                    "method took too long: {} > {}. Fudging timestamps to compensate.".format(
+                        time_taken, self.rate
+                    )
+                )
+                self.last_ts = tf  # Hmm. This function takes longer than its rate to complete. so mark its last run time as 'now'. This breaks the rate but at least prevents this function from starving the CPU (benforces a delay).
             else:
-                self.last_ts = t0 # Function takes less than rate to complete, so mark its t0 as when we entered to keep the rate constant.
+                self.last_ts = t0  # Function takes less than rate to complete, so mark its t0 as when we entered to keep the rate constant.
 
-        if self.timer: # timer is not None if and only if we were a delayed (collated) invocation.
+        if (
+            self.timer
+        ):  # timer is not None if and only if we were a delayed (collated) invocation.
             if was_reentrant:
                 # we got a reentrant call to this function as a result of calling func() above! re-schedule the timer.
                 self.print_error("*** detected a re-entrant call, re-starting timer")
                 time_left = float(self.rate) - (tf - self.last_ts)
-                self.timer.start(time_left*1e3)
+                self.timer.start(time_left * 1e3)
             else:
                 # We did not get a reentrant call, so kill the timer so subsequent calls can schedule the timer and/or call func() immediately.
                 self.kill_timer()
@@ -1197,7 +1367,7 @@ class RateLimiter(PrintError):
 
 
 class RateLimiterClassLvl(RateLimiter):
-    ''' This RateLimiter object is used if classlevel=True is specified to the
+    """This RateLimiter object is used if classlevel=True is specified to the
     @rate_limited decorator.  It inserts the __RateLimiterClassLvl state object
     on the class level and collates calls for all instances to not exceed rate.
 
@@ -1214,16 +1384,22 @@ class RateLimiterClassLvl(RateLimiter):
     a.foo(2) # latest arg taken, collapsed to 1 call
     b.foo(3) # latest arg taken, collapsed to 1 call
 
-    '''
+    """
 
     @classmethod
     def invoke(cls, rate, ts_after, func, args, kwargs):
-        assert args and not isinstance(args[0], type), "@rate_limited decorator may not be used with static or class methods"
+        assert args and not isinstance(
+            args[0], type
+        ), "@rate_limited decorator may not be used with static or class methods"
         obj = args[0]
         objcls = obj.__class__
         args = list(args)
-        args.insert(0, objcls) # prepend obj class to trick super.invoke() into making this state object be class-level.
-        return super(RateLimiterClassLvl, cls).invoke(rate, ts_after, func, args, kwargs)
+        args.insert(
+            0, objcls
+        )  # prepend obj class to trick super.invoke() into making this state object be class-level.
+        return super(RateLimiterClassLvl, cls).invoke(
+            rate, ts_after, func, args, kwargs
+        )
 
     def _push_args(self, args, kwargs):
         objcls, obj = args[0:2]
@@ -1233,14 +1409,14 @@ class RateLimiterClassLvl(RateLimiter):
     def _pop_args(self):
         weak_dict = self.saved_args
         self.saved_args = Weak.KeyDictionary()
-        return (weak_dict,),dict()
+        return (weak_dict,), dict()
 
     def _call_func_for_all(self, weak_dict):
         for ref in weak_dict.keyrefs():
             obj = ref()
             if obj:
-                args,kwargs = weak_dict[obj]
-                #self.print_error("calling for",obj.diagnostic_name() if hasattr(obj, "diagnostic_name") else obj,"timer=",bool(self.timer))
+                args, kwargs = weak_dict[obj]
+                # self.print_error("calling for",obj.diagnostic_name() if hasattr(obj, "diagnostic_name") else obj,"timer=",bool(self.timer))
                 self.func_target(obj, *args, **kwargs)
 
     def __init__(self, rate, ts_after, obj, func):
@@ -1248,44 +1424,49 @@ class RateLimiterClassLvl(RateLimiter):
         super().__init__(rate, ts_after, obj, func)
         self.func_target = func
         self.func = self._call_func_for_all
-        self.saved_args = Weak.KeyDictionary() # we don't use a simple arg tuple, but instead an instance -> args,kwargs dictionary to store collated calls, per instance collated
+        self.saved_args = (
+            Weak.KeyDictionary()
+        )  # we don't use a simple arg tuple, but instead an instance -> args,kwargs dictionary to store collated calls, per instance collated
 
 
 def rate_limited(rate, *, classlevel=False, ts_after=False):
-    """ A Function decorator for rate-limiting GUI event callbacks. Argument
-        rate in seconds is the minimum allowed time between subsequent calls of
-        this instance of the function. Calls that arrive more frequently than
-        rate seconds will be collated into a single call that is deferred onto
-        a QTimer. It is preferable to use this decorator on QObject subclass
-        instance methods. This decorator is particularly useful in limiting
-        frequent calls to GUI update functions.
+    """A Function decorator for rate-limiting GUI event callbacks. Argument
+    rate in seconds is the minimum allowed time between subsequent calls of
+    this instance of the function. Calls that arrive more frequently than
+    rate seconds will be collated into a single call that is deferred onto
+    a QTimer. It is preferable to use this decorator on QObject subclass
+    instance methods. This decorator is particularly useful in limiting
+    frequent calls to GUI update functions.
 
-        params:
-            rate - calls are collated to not exceed rate (in seconds)
-            classlevel - if True, specify that the calls should be collated at
-                1 per `rate` secs. for *all* instances of a class, otherwise
-                calls will be collated on a per-instance basis.
-            ts_after - if True, mark the timestamp of the 'last call' AFTER the
-                target method completes.  That is, the collation of calls will
-                ensure at least `rate` seconds will always elapse between
-                subsequent calls. If False, the timestamp is taken right before
-                the collated calls execute (thus ensuring a fixed period for
-                collated calls).
-                TL;DR: ts_after=True : `rate` defines the time interval you want
-                                        from last call's exit to entry into next
-                                        call.
-                       ts_adter=False: `rate` defines the time between each
-                                        call's entry.
+    params:
+        rate - calls are collated to not exceed rate (in seconds)
+        classlevel - if True, specify that the calls should be collated at
+            1 per `rate` secs. for *all* instances of a class, otherwise
+            calls will be collated on a per-instance basis.
+        ts_after - if True, mark the timestamp of the 'last call' AFTER the
+            target method completes.  That is, the collation of calls will
+            ensure at least `rate` seconds will always elapse between
+            subsequent calls. If False, the timestamp is taken right before
+            the collated calls execute (thus ensuring a fixed period for
+            collated calls).
+            TL;DR: ts_after=True : `rate` defines the time interval you want
+                                    from last call's exit to entry into next
+                                    call.
+                   ts_adter=False: `rate` defines the time between each
+                                    call's entry.
 
-        (See on_fx_quotes & on_fx_history in main_window.py for example usages
-        of this decorator). """
+    (See on_fx_quotes & on_fx_history in main_window.py for example usages
+    of this decorator)."""
+
     def wrapper0(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             if classlevel:
                 return RateLimiterClassLvl.invoke(rate, ts_after, func, args, kwargs)
             return RateLimiter.invoke(rate, ts_after, func, args, kwargs)
+
         return wrapper
+
     return wrapper0
 
 
@@ -1293,9 +1474,11 @@ debug_destroyed = False  # Set this to True to debug QObject "destroyed" signals
 
 
 def destroyed_print_error(qobject, msg=None):
-    """ Supply a message to be printed via print_error when obj is destroyed (Qt C++ deleted).
+    """Supply a message to be printed via print_error when obj is destroyed (Qt C++ deleted).
     This is useful for debugging memory leaks. Note that this function is a no-op unless debug_destroyed is True."""
-    assert isinstance(qobject, QObject), "destroyed_print_error can only be used on QObject instances!"
+    assert isinstance(
+        qobject, QObject
+    ), "destroyed_print_error can only be used on QObject instances!"
     if not debug_destroyed:
         return
     if msg is None:
@@ -1311,7 +1494,10 @@ def destroyed_print_error(qobject, msg=None):
                 name = "QMenu: " + qobject.title()
             else:
                 try:
-                    name = (qobject.parent().objectName() or qobject.parent().__class__.__qualname__) + "."
+                    name = (
+                        qobject.parent().objectName()
+                        or qobject.parent().__class__.__qualname__
+                    ) + "."
                 except:
                     pass  # some of the code in this project overrites .parent or it may not have a parent
                 name += qobject.__class__.__qualname__
@@ -1324,17 +1510,23 @@ def destroyed_print_error(qobject, msg=None):
 
 
 def webopen(url: str):
-    if (sys.platform == 'linux' and os.environ.get('APPIMAGE')
-            and os.environ.get('LD_LIBRARY_PATH') is not None):
+    if (
+        sys.platform == "linux"
+        and os.environ.get("APPIMAGE")
+        and os.environ.get("LD_LIBRARY_PATH") is not None
+    ):
         # When on Linux webbrowser.open can fail in AppImage because it can't find the correct libdbus.
         # We just fork the process and unset LD_LIBRARY_PATH before opening the URL.
         # See https://github.com/spesmilo/electrum/issues/5425
         if os.fork() == 0:
-            del os.environ['LD_LIBRARY_PATH']
+            del os.environ["LD_LIBRARY_PATH"]
             webbrowser.open(url)
-            os._exit(0)  # Python docs advise doing this after forking to prevent atexit handlers from executing.
+            os._exit(
+                0
+            )  # Python docs advise doing this after forking to prevent atexit handlers from executing.
     else:
         webbrowser.open(url)
+
 
 class TextBrowserKeyboardFocusFilter(QtWidgets.QTextBrowser):
     """
@@ -1347,15 +1539,25 @@ class TextBrowserKeyboardFocusFilter(QtWidgets.QTextBrowser):
         super().__init__(parent)
 
     def focusInEvent(self, e: QFocusEvent):
-        if e.reason() in (Qt.TabFocusReason, Qt.BacktabFocusReason, Qt.ShortcutFocusReason):
+        if e.reason() in (
+            Qt.TabFocusReason,
+            Qt.BacktabFocusReason,
+            Qt.ShortcutFocusReason,
+        ):
             # Focused because of Tab, Shift+Tab or keyboard accelerator
-            self.setTextInteractionFlags(self.textInteractionFlags() | Qt.TextSelectableByKeyboard)
+            self.setTextInteractionFlags(
+                self.textInteractionFlags() | Qt.TextSelectableByKeyboard
+            )
         else:
-            self.setTextInteractionFlags(self.textInteractionFlags() & ~Qt.TextSelectableByKeyboard)
+            self.setTextInteractionFlags(
+                self.textInteractionFlags() & ~Qt.TextSelectableByKeyboard
+            )
         super().focusInEvent(e)
 
     def keyPressEvent(self, e: QKeyEvent):
-        self.setTextInteractionFlags(self.textInteractionFlags() | Qt.TextSelectableByKeyboard)
+        self.setTextInteractionFlags(
+            self.textInteractionFlags() | Qt.TextSelectableByKeyboard
+        )
         super().keyPressEvent(e)
 
 
@@ -1367,6 +1569,11 @@ def char_width_in_lineedit() -> int:
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
-    t = WaitingDialog(None, 'testing ...', lambda: [time.sleep(1)], lambda x: QtWidgets.QMessageBox.information(None, 'done', "done"))
+    t = WaitingDialog(
+        None,
+        "testing ...",
+        lambda: [time.sleep(1)],
+        lambda x: QtWidgets.QMessageBox.information(None, "done", "done"),
+    )
     t.start()
     app.exec_()

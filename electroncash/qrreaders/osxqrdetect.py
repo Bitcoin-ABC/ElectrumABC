@@ -24,38 +24,40 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import sys
-import os
 import ctypes
+import os
+import sys
 from typing import List
 
-if sys.platform != 'darwin':
-    raise RuntimeError('osxqrdetect may only be used on macOS!')
+if sys.platform != "darwin":
+    raise RuntimeError("osxqrdetect may only be used on macOS!")
 
 
+from ..util import PrintError, is_verbose, print_error
 from . import MissingLib
-from ..util import print_error, is_verbose, PrintError
-
 from .abstract_base import AbstractQrCodeReader, QrCodeResult
 
+
 class DetectionResult(ctypes.Structure):
-    '''
+    """
      struct DetectionResult {
         double topLeftX, topLeftY; ///< note these are in pixels, despite being a double
         double width, height; ///< pixels
         char str[4096]; ///< detection result is UTF8 encoded, always NUL terminated
     };
-    '''
+    """
+
     _fields_ = [
-        ('topLeftX', ctypes.c_double),
-        ('topLeftY', ctypes.c_double),
-        ('width', ctypes.c_double),
-        ('height', ctypes.c_double),
-        ('str', ctypes.c_char * 4096)
+        ("topLeftX", ctypes.c_double),
+        ("topLeftY", ctypes.c_double),
+        ("width", ctypes.c_double),
+        ("height", ctypes.c_double),
+        ("str", ctypes.c_char * 4096),
     ]
 
+
 class OSXQRDetect(AbstractQrCodeReader, PrintError):
-    LIBNAME = 'libosxqrdetect.dylib'
+    LIBNAME = "libosxqrdetect.dylib"
     LIB = None
 
     @classmethod
@@ -63,25 +65,28 @@ class OSXQRDetect(AbstractQrCodeReader, PrintError):
         assert cls.LIB
         cls.LIB.context_create.restype = ctypes.c_void_p
         cls.LIB.context_create.argtypes = [ctypes.c_int]
-        cls.LIB.context_destroy.restype = ctypes.c_int  # it's actually void, but is ignored
+        cls.LIB.context_destroy.restype = (
+            ctypes.c_int
+        )  # it's actually void, but is ignored
         cls.LIB.context_destroy.argtypes = [ctypes.c_void_p]
-        '''
+        """
         // img must be 8-bit grayscale. returns 1 on success, 0 on no detection. If 1, detectionResult is valid.
         extern int detect_qr(void *context, ///< pointer obtained by calling context_create()
                              const void *img, ///< pointer to img buffer
                              int width, int height, ///< x,y size in pixels
                              int rowsize_bytes, ///< row length in bytes (should be >= width)
                              struct DetectionResult *detectionResult);
-        '''
+        """
         cls.LIB.detect_qr.restype = ctypes.c_int
         cls.LIB.detect_qr.argtypes = [
             ctypes.c_void_p,  # ctx
             ctypes.c_void_p,  # img buffer
-            ctypes.c_int, ctypes.c_int,  # Width, Height pix
+            ctypes.c_int,
+            ctypes.c_int,  # Width, Height pix
             ctypes.c_int,  # rowsize bytes
-            ctypes.POINTER(DetectionResult)
+            ctypes.POINTER(DetectionResult),
         ]
-        print_error('[OSXQRDetect] Lib initialized:', cls.LIB)
+        print_error("[OSXQRDetect] Lib initialized:", cls.LIB)
 
     def __init__(self):
         cls = type(self)
@@ -89,8 +94,13 @@ class OSXQRDetect(AbstractQrCodeReader, PrintError):
         try:
             if not cls.LIB:
                 import electroncash
-                root_ec_dir = os.path.abspath(os.path.join(electroncash.__path__[0], '..'))
-                lib_dir = os.path.join(root_ec_dir, "contrib", "osx", "OSXQRDetect", "build", "Release")
+
+                root_ec_dir = os.path.abspath(
+                    os.path.join(electroncash.__path__[0], "..")
+                )
+                lib_dir = os.path.join(
+                    root_ec_dir, "contrib", "osx", "OSXQRDetect", "build", "Release"
+                )
                 cls.LIB = ctypes.cdll.LoadLibrary(os.path.join(lib_dir, self.LIBNAME))
                 cls._init_func_args()
         except OSError as e:
@@ -109,9 +119,15 @@ class OSXQRDetect(AbstractQrCodeReader, PrintError):
             self.print_error("context destroyed", self.ctx)
             self.ctx = None
 
-    def read_qr_code(self, buffer: ctypes.c_void_p, buffer_size: int,
-                     rowlen_bytes : int,
-                     width: int, height: int, frame_id: int = -1) -> List[QrCodeResult]:
+    def read_qr_code(
+        self,
+        buffer: ctypes.c_void_p,
+        buffer_size: int,
+        rowlen_bytes: int,
+        width: int,
+        height: int,
+        frame_id: int = -1,
+    ) -> List[QrCodeResult]:
         """
         Reads a QR code from an image buffer in Y800 / GREY format.
         Returns a list of detected QR codes which includes their data and positions.
@@ -123,16 +139,19 @@ class OSXQRDetect(AbstractQrCodeReader, PrintError):
         retList = []
         if retval:
             self.print_error("Got", res.width, res.height, res.str)
-            qrstring = res.str.decode('utf-8')
-            res.topLeftY = height - res.topLeftY - res.height  # flip vertically as y=0 in this coordinate space and in OSX coordinate space are flipped
-            center = (int(res.topLeftX+res.width/2), int(res.topLeftY+res.height/2))
+            qrstring = res.str.decode("utf-8")
+            res.topLeftY = (
+                height - res.topLeftY - res.height
+            )  # flip vertically as y=0 in this coordinate space and in OSX coordinate space are flipped
+            center = (
+                int(res.topLeftX + res.width / 2),
+                int(res.topLeftY + res.height / 2),
+            )
             pts = [
                 (int(res.topLeftX), int(res.topLeftY)),
                 (int(res.topLeftX + res.width), int(res.topLeftY)),
                 (int(res.topLeftX + res.width), int(res.topLeftY + res.height)),
                 (int(res.topLeftX), int(res.topLeftY + res.height)),
             ]
-            retList += [
-                QrCodeResult(qrstring, center, pts)
-            ]
+            retList += [QrCodeResult(qrstring, center, pts)]
         return retList

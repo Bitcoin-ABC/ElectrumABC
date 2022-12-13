@@ -21,40 +21,42 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import inspect
 import os
 import re
+import shutil
+import socket
 import subprocess
 import sys
 import threading
-import shutil
-import socket
-import inspect
 from enum import IntEnum, unique
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
-import stem.socket
-import stem.process
-import stem.control
 import stem
+import stem.control
+import stem.process
+import stem.socket
 
 from .. import util, version
+from ..simple_config import SimpleConfig
 from ..util import PrintError
 from ..utils import Event
-from ..simple_config import SimpleConfig
-
 
 # Python 3.10 workaround for stem package which is using collections.Iterable (removed in 3.10)
 if sys.version_info >= (3, 10):
-    if hasattr(stem, '__version__') and version.parse_package_version(stem.__version__)[:2] <= (1, 8):
+    if hasattr(stem, "__version__") and version.parse_package_version(stem.__version__)[
+        :2
+    ] <= (1, 8):
         import collections.abc
+
         # monkey-patch collections.Iterable back since stem.control expects to see this name
         stem.control.collections.Iterable = collections.abc.Iterable
 
 
-_TOR_ENABLED_KEY = 'tor_enabled'
+_TOR_ENABLED_KEY = "tor_enabled"
 _TOR_ENABLED_DEFAULT = False
 
-_TOR_SOCKS_PORT_KEY = 'tor_socks_port'
+_TOR_SOCKS_PORT_KEY = "tor_socks_port"
 _TOR_SOCKS_PORT_DEFAULT = 0
 
 
@@ -69,7 +71,7 @@ def check_proxy_bypass_tor_control(*args, **kwargs) -> bool:
         # [2] is _socksocket_filtered and [3] is the caller. In newer stem
         # versions socket is not called directly but through asyncio.
         for s in stack[3:7]:
-            caller_self = stack[3].frame.f_locals.get('self')
+            caller_self = stack[3].frame.f_locals.get("self")
             if caller_self and type(caller_self) is stem.socket.ControlPort:
                 return True
     return False
@@ -107,7 +109,7 @@ class TorController(PrintError):
 
     def __init__(self, config: SimpleConfig):
         if not config:
-            raise AssertionError('TorController: config must be set')
+            raise AssertionError("TorController: config must be set")
 
         self._config = config
 
@@ -115,8 +117,7 @@ class TorController(PrintError):
             self.print_error("Tor enabled but no usable Tor binary found, disabling")
             self.set_enabled(False)
 
-        socks_port = self._config.get(
-            _TOR_SOCKS_PORT_KEY, _TOR_SOCKS_PORT_DEFAULT)
+        socks_port = self._config.get(_TOR_SOCKS_PORT_KEY, _TOR_SOCKS_PORT_DEFAULT)
         if not socks_port or not self._check_port(int(socks_port)):
             # If no valid SOCKS port is set yet, we set the default
             self._config.set_key(_TOR_SOCKS_PORT_KEY, _TOR_SOCKS_PORT_DEFAULT)
@@ -141,11 +142,15 @@ class TorController(PrintError):
     # [notice] Control listener listening on port 36104.
     # [notice] Opened Control listener on 127.0.0.1:36104
 
-    _listener_re = re.compile(r".*\[notice\] ([^ ]*) listener listening on port ([0-9]+)\.?$")
+    _listener_re = re.compile(
+        r".*\[notice\] ([^ ]*) listener listening on port ([0-9]+)\.?$"
+    )
 
     # If a log string matches any of the included regex it is ignored
     _ignored_res = [
-        re.compile(r".*This port is not an HTTP proxy.*"), # This is caused by the network dialog TorDetector
+        re.compile(
+            r".*This port is not an HTTP proxy.*"
+        ),  # This is caused by the network dialog TorDetector
     ]
 
     def _tor_msg_handler(self, message: str):
@@ -159,9 +164,9 @@ class TorController(PrintError):
         if listener_match:
             listener_type = listener_match.group(1)
             listener_port = int(listener_match.group(2))
-            if listener_type == 'Socks':
+            if listener_type == "Socks":
                 self.active_socks_port = listener_port
-            elif listener_type == 'Control':
+            elif listener_type == "Control":
                 self.active_control_port = listener_port
                 # The control port is the last port opened, so only notify after it
                 self.active_port_changed(self)
@@ -169,7 +174,11 @@ class TorController(PrintError):
     def _read_tor_msg(self):
         try:
             while self._tor_process and not self._tor_process.poll():
-                line = self._tor_process.stdout.readline().decode('utf-8', 'replace').strip()
+                line = (
+                    self._tor_process.stdout.readline()
+                    .decode("utf-8", "replace")
+                    .strip()
+                )
                 if not line:
                     break
                 self._tor_msg_handler(line)
@@ -180,27 +189,28 @@ class TorController(PrintError):
 
     @staticmethod
     def _popen_monkey_patch(*args, **kwargs):
-        if sys.platform in ('win32'):
-            if hasattr(subprocess, 'CREATE_NO_WINDOW'):
-                kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
+        if sys.platform in ("win32"):
+            if hasattr(subprocess, "CREATE_NO_WINDOW"):
+                kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
             else:
-                kwargs['creationflags'] = 0x08000000 # CREATE_NO_WINDOW, for < Python 3.7
-        kwargs['start_new_session'] = True
+                kwargs[
+                    "creationflags"
+                ] = 0x08000000  # CREATE_NO_WINDOW, for < Python 3.7
+        kwargs["start_new_session"] = True
         return TorController._orig_subprocess_popen(*args, **kwargs)
 
     @staticmethod
     def _get_tor_binary() -> Tuple[Optional[str], BinaryType]:
         # Try to locate a bundled tor binary
-        if sys.platform in ('windows', 'win32'):
-            res = os.path.join(os.path.dirname(
-                __file__), '..', '..', 'tor.exe')
+        if sys.platform in ("windows", "win32"):
+            res = os.path.join(os.path.dirname(__file__), "..", "..", "tor.exe")
         else:
-            res = os.path.join(os.path.dirname(__file__), 'bin', 'tor')
+            res = os.path.join(os.path.dirname(__file__), "bin", "tor")
         if os.path.isfile(res):
             return (res, TorController.BinaryType.INTEGRATED)
 
         # Tor is not packaged / built, try to locate a system tor
-        res = shutil.which('tor')
+        res = shutil.which("tor")
         if res and os.path.isfile(res):
             return (res, TorController.BinaryType.SYSTEM)
 
@@ -232,8 +242,8 @@ class TorController(PrintError):
 
         # When the socks port is set to zero, we let tor choose one
         socks_port = str(self.get_socks_port())
-        if socks_port == '0':
-            socks_port = 'auto'
+        if socks_port == "0":
+            socks_port = "auto"
 
         try:
             subprocess.Popen = TorController._popen_monkey_patch
@@ -244,11 +254,11 @@ class TorController(PrintError):
                 take_ownership=True,
                 close_output=False,
                 config={
-                    'SocksPort': socks_port,
-                    'ControlPort': 'auto',
-                    'CookieAuthentication': '1',
-                    'DataDirectory': os.path.join(self._config.path, 'tor'),
-                    'Log': 'NOTICE stdout',
+                    "SocksPort": socks_port,
+                    "ControlPort": "auto",
+                    "CookieAuthentication": "1",
+                    "DataDirectory": os.path.join(self._config.path, "tor"),
+                    "Log": "NOTICE stdout",
                 },
             )
         except:
@@ -261,7 +271,8 @@ class TorController(PrintError):
             subprocess.Popen = TorController._orig_subprocess_popen
 
         self._tor_read_thread = threading.Thread(
-            target=self._read_tor_msg, name="Tor message reader")
+            target=self._read_tor_msg, name="Tor message reader"
+        )
         self._tor_read_thread.start()
 
         self.status = TorController.Status.STARTED
@@ -269,17 +280,21 @@ class TorController(PrintError):
 
         try:
             self._tor_controller = stem.control.Controller.from_port(
-                port=self.active_control_port)
+                port=self.active_control_port
+            )
             self._tor_controller.authenticate()
             self._tor_controller.add_event_listener(
-                self._handle_network_liveliness_event, stem.control.EventType.NETWORK_LIVENESS) # pylint: disable=no-member
+                self._handle_network_liveliness_event,
+                stem.control.EventType.NETWORK_LIVENESS,
+            )  # pylint: disable=no-member
         except:
             self.print_exception("Failed to connect to Tor control port")
             self.stop()
             return
 
-        self.print_error("started (Tor version {})".format(
-            self._tor_controller.get_version()))
+        self.print_error(
+            "started (Tor version {})".format(self._tor_controller.get_version())
+        )
 
     def stop(self):
         if not self._tor_process:
@@ -295,7 +310,7 @@ class TorController(PrintError):
 
         if self._tor_controller:
             # tell tor to shut down
-            self._tor_controller.signal(stem.Signal.HALT) # pylint: disable=no-member
+            self._tor_controller.signal(stem.Signal.HALT)  # pylint: disable=no-member
             self._tor_controller.close()
             self._tor_controller = None
 
@@ -320,9 +335,15 @@ class TorController(PrintError):
         self.status_changed(self)
         self.print_error("stopped")
 
-    def _handle_network_liveliness_event(self, event: stem.response.events.NetworkLivenessEvent):
+    def _handle_network_liveliness_event(
+        self, event: stem.response.events.NetworkLivenessEvent
+    ):
         old_status = self.status
-        self.status = TorController.Status.READY if event.status == 'UP' else TorController.Status.STARTED
+        self.status = (
+            TorController.Status.READY
+            if event.status == "UP"
+            else TorController.Status.STARTED
+        )
         if old_status != self.status:
             self.status_changed(self)
 
@@ -348,15 +369,14 @@ class TorController(PrintError):
 
     def set_socks_port(self, port: int):
         if not self._check_port(port):
-            raise AssertionError('TorController: invalid port')
+            raise AssertionError("TorController: invalid port")
 
         self.stop()
         self._config.set_key(_TOR_SOCKS_PORT_KEY, port)
         self.start()
 
     def get_socks_port(self) -> int:
-        socks_port = self._config.get(
-            _TOR_SOCKS_PORT_KEY, _TOR_SOCKS_PORT_DEFAULT)
+        socks_port = self._config.get(_TOR_SOCKS_PORT_KEY, _TOR_SOCKS_PORT_DEFAULT)
         if not self._check_port(int(socks_port)):
-            raise AssertionError('TorController: invalid port')
+            raise AssertionError("TorController: invalid port")
         return int(socks_port)

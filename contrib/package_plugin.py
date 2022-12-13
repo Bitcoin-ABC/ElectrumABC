@@ -42,13 +42,17 @@ import tempfile
 import traceback
 import urllib.parse
 
-from PyQt5.QtCore import Qt
 from PyQt5 import QtWidgets
+from PyQt5.QtCore import Qt
+
 
 ## Start copied from .util
 def versiontuple(v):
     return tuple(map(int, (v.split("."))))
+
+
 ## End copied from .util
+
 
 def write_plugin_archive(metadata, source_package_path, archive_file_path):
     suffixless_path = archive_file_path.strip()
@@ -64,28 +68,39 @@ def write_plugin_archive(metadata, source_package_path, archive_file_path):
 
         # Copy the selected Python package into place.
         dest_package_path = os.path.join(temp_path, package_directory_name)
-        shutil.copytree(source_package_path,  dest_package_path)
+        shutil.copytree(source_package_path, dest_package_path)
         # Python bytecode cannot be written into the zip archive as Electrum ABC runs it.
         # So we precompile it before creating the archived form.
         compileall.compile_dir(dest_package_path)
-        shutil.make_archive(suffixless_path, 'zip', temp_path)
+        shutil.make_archive(suffixless_path, "zip", temp_path)
 
-    plugin_path = suffixless_path +".zip"
+    plugin_path = suffixless_path + ".zip"
     hasher = hashlib.sha256()
     with open(plugin_path, "rb") as f:
         hasher.update(f.read())
 
     base_name = os.path.basename(plugin_path)
-    with open(plugin_path +".sha256", "w") as f:
+    with open(plugin_path + ".sha256", "w") as f:
         f.write("{0} *{1}".format(hasher.hexdigest(), base_name))
 
     return hasher.hexdigest()
+
 
 def write_manifest(metadata, manifest_file_path):
     with open(manifest_file_path, "w") as f:
         json.dump(metadata, f, indent=4)
 
-def build_manifest(display_name, version, project_url, description, minimum_ec_version, package_name, available_for_qt, available_for_cmdline):
+
+def build_manifest(
+    display_name,
+    version,
+    project_url,
+    description,
+    minimum_ec_version,
+    package_name,
+    available_for_qt,
+    available_for_cmdline,
+):
     metadata = {}
     metadata["display_name"] = display_name
     version_value = version.strip()
@@ -113,13 +128,14 @@ def build_manifest(display_name, version, project_url, description, minimum_ec_v
 
     return metadata
 
+
 class App(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
 
         self.directory_path = None
 
-        self.setWindowTitle('Electrum ABC Plugin Packager')
+        self.setWindowTitle("Electrum ABC Plugin Packager")
         self.setMinimumWidth(500)
         self.setMaximumWidth(500)
 
@@ -140,23 +156,31 @@ class App(QtWidgets.QWidget):
         groupBox.setLayout(groupLayout)
         self.displayNameEdit = QtWidgets.QLineEdit()
         self.displayNameEdit.setPlaceholderText("Scheduled Payments")
-        groupLayout.addRow('Display Name', self.displayNameEdit)
+        groupLayout.addRow("Display Name", self.displayNameEdit)
         self.versionEdit = QtWidgets.QLineEdit()
         self.versionEdit.setMaximumWidth(50)
         self.versionEdit.setPlaceholderText("1.0")
-        groupLayout.addRow('Version', self.versionEdit)
+        groupLayout.addRow("Version", self.versionEdit)
         self.projectUrlEdit = QtWidgets.QLineEdit()
-        self.projectUrlEdit.setPlaceholderText("https://github.com/rt121212121/electron_cash_scheduled_payments_plugin")
-        groupLayout.addRow('Project Url', self.projectUrlEdit)
+        self.projectUrlEdit.setPlaceholderText(
+            "https://github.com/rt121212121/electron_cash_scheduled_payments_plugin"
+        )
+        groupLayout.addRow("Project Url", self.projectUrlEdit)
         self.descriptionEdit = QtWidgets.QTextEdit()
-        self.descriptionEdit.setPlaceholderText("Add scheduled payments at a fixed time either on a given day every week, or a specific day every month.")
+        self.descriptionEdit.setPlaceholderText(
+            "Add scheduled payments at a fixed time either on a given day every week, or a specific day every month."
+        )
         self.descriptionEdit.setAcceptRichText(False)
-        groupLayout.addRow('Description', self.descriptionEdit)
+        groupLayout.addRow("Description", self.descriptionEdit)
         self.minimumElectronCashVersionEdit = QtWidgets.QLineEdit()
         self.minimumElectronCashVersionEdit.setPlaceholderText("3.2")
         self.minimumElectronCashVersionEdit.setMaximumWidth(50)
-        self.minimumElectronCashVersionEdit.setToolTip("This is the lowest version of Electrum ABC which this plugin can be installed with.")
-        groupLayout.addRow('Minimum Electrum ABC Version', self.minimumElectronCashVersionEdit)
+        self.minimumElectronCashVersionEdit.setToolTip(
+            "This is the lowest version of Electrum ABC which this plugin can be installed with."
+        )
+        groupLayout.addRow(
+            "Minimum Electrum ABC Version", self.minimumElectronCashVersionEdit
+        )
 
         availableVLayout = QtWidgets.QVBoxLayout()
         self.qtAvailableCheckBox = QtWidgets.QCheckBox("Supports the Qt user interface")
@@ -167,12 +191,14 @@ class App(QtWidgets.QWidget):
 
         self.packageNameEdit = QtWidgets.QLineEdit()
         self.packageNameEdit.setEnabled(False)
-        self.packageNameEdit.setToolTip("This is the name of the folder in the zip archve that contains the Python plugin package.\nIt is necessary in the case that there are other folders containing Python code, or other supporting data like images.")
+        self.packageNameEdit.setToolTip(
+            "This is the name of the folder in the zip archve that contains the Python plugin package.\nIt is necessary in the case that there are other folders containing Python code, or other supporting data like images."
+        )
         self.selectDirectoryButton = QtWidgets.QPushButton("Select Package Directory")
         contentsVLayout = QtWidgets.QVBoxLayout()
         contentsVLayout.addWidget(self.packageNameEdit)
         contentsVLayout.addWidget(self.selectDirectoryButton)
-        groupLayout.addRow('Package Name', contentsVLayout)
+        groupLayout.addRow("Package Name", contentsVLayout)
 
         self.packageButton = QtWidgets.QPushButton("Make Plugin Archive")
         self.exportManifestButton = QtWidgets.QPushButton("Export Manifest")
@@ -183,7 +209,9 @@ class App(QtWidgets.QWidget):
         outerVLayout.addLayout(buttonsHLayout)
 
         self.closeButton = QtWidgets.QPushButton("Close")
-        self.checksumLabel = QtWidgets.QLabel("Computed SHA256 checksum of plugin archive..")
+        self.checksumLabel = QtWidgets.QLabel(
+            "Computed SHA256 checksum of plugin archive.."
+        )
         self.checksumLabel.setMinimumWidth(350)
         buttonsHLayout = QtWidgets.QHBoxLayout()
         buttonsHLayout.addWidget(self.checksumLabel)
@@ -200,7 +228,9 @@ class App(QtWidgets.QWidget):
         self.versionEdit.textEdited.connect(self.on_required_text_change)
         self.projectUrlEdit.textEdited.connect(self.on_required_text_change)
         self.descriptionEdit.textChanged.connect(self.on_required_text_change)
-        self.minimumElectronCashVersionEdit.textEdited.connect(self.on_required_text_change)
+        self.minimumElectronCashVersionEdit.textEdited.connect(
+            self.on_required_text_change
+        )
 
         self.refresh_ui()
         self.show()
@@ -212,7 +242,9 @@ class App(QtWidgets.QWidget):
         except ValueError:
             versionText = ""
 
-        minimumElectronCashVersionText = self.minimumElectronCashVersionEdit.text().strip()
+        minimumElectronCashVersionText = (
+            self.minimumElectronCashVersionEdit.text().strip()
+        )
         try:
             versiontuple(minimumElectronCashVersionText)
         except ValueError:
@@ -220,15 +252,24 @@ class App(QtWidgets.QWidget):
 
         projectUrlText = self.projectUrlEdit.text().strip()
         url_components = urllib.parse.urlparse(projectUrlText)
-        projectUrlText = projectUrlText if len(url_components.scheme) and len(url_components.netloc) else projectUrlText
+        projectUrlText = (
+            projectUrlText
+            if len(url_components.scheme) and len(url_components.netloc)
+            else projectUrlText
+        )
 
         have_basics = True
         have_basics = have_basics and len(self.displayNameEdit.text().strip()) > 3
         have_basics = have_basics and len(versionText) > 0
         have_basics = have_basics and len(projectUrlText) > 0
-        have_basics = have_basics and len(self.descriptionEdit.toPlainText().strip()) > 3
+        have_basics = (
+            have_basics and len(self.descriptionEdit.toPlainText().strip()) > 3
+        )
         have_basics = have_basics and len(minimumElectronCashVersionText) > 0
-        have_basics = have_basics and (self.qtAvailableCheckBox.checkState() == Qt.Checked or self.cmdlineAvailableCheckBox.checkState() == Qt.Checked)
+        have_basics = have_basics and (
+            self.qtAvailableCheckBox.checkState() == Qt.Checked
+            or self.cmdlineAvailableCheckBox.checkState() == Qt.Checked
+        )
 
         can_export = have_basics
         can_package = have_basics and self.have_valid_directory(self.directory_path)
@@ -247,7 +288,13 @@ class App(QtWidgets.QWidget):
         self.refresh_ui()
 
     def on_read_directory(self):
-        directory_path = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Package Parent Directory", None, QtWidgets.QFileDialog.ShowDirsOnly | QtWidgets.QFileDialog.DontResolveSymlinks)
+        directory_path = QtWidgets.QFileDialog.getExistingDirectory(
+            self,
+            "Select Package Parent Directory",
+            None,
+            QtWidgets.QFileDialog.ShowDirsOnly
+            | QtWidgets.QFileDialog.DontResolveSymlinks,
+        )
         if len(directory_path):
             if self.have_valid_directory(directory_path):
                 self.directory_path = directory_path
@@ -255,20 +302,30 @@ class App(QtWidgets.QWidget):
                 self.packageNameEdit.setText(directory_name)
                 self.refresh_ui()
             else:
-                QtWidgets.QMessageBox.information(self, 'Invalid Directory', 'The directory needs to be a Python package.')
+                QtWidgets.QMessageBox.information(
+                    self,
+                    "Invalid Directory",
+                    "The directory needs to be a Python package.",
+                )
 
     def on_package_plugin(self):
-        self.archive_file_path, used_filter = QtWidgets.QFileDialog.getSaveFileName(self, "Save Plugin Archive", None, "Plugin archive (*.zip)")
+        self.archive_file_path, used_filter = QtWidgets.QFileDialog.getSaveFileName(
+            self, "Save Plugin Archive", None, "Plugin archive (*.zip)"
+        )
         if not len(self.archive_file_path):
             return
 
         metadata = self.build_manifest()
-        checksumText = write_plugin_archive(metadata, self.directory_path, self.archive_file_path)
+        checksumText = write_plugin_archive(
+            metadata, self.directory_path, self.archive_file_path
+        )
         self.checksumLabel.setText(checksumText)
         self.checksumLabel.setTextInteractionFlags(Qt.TextSelectableByMouse)
 
         file_name = os.path.basename(self.archive_file_path)
-        QtWidgets.QMessageBox.information(self, 'Success!', 'Created plugin archive '+ file_name +'.')
+        QtWidgets.QMessageBox.information(
+            self, "Success!", "Created plugin archive " + file_name + "."
+        )
 
     def build_manifest(self):
         display_name = self.displayNameEdit.text().strip()
@@ -282,29 +339,49 @@ class App(QtWidgets.QWidget):
         available_for_qt = self.qtAvailableCheckBox.checkState() == Qt.Checked
         available_for_cmdline = self.cmdlineAvailableCheckBox.checkState() == Qt.Checked
 
-        return build_manifest(display_name, version, project_url, description, minimum_ec_version, package_name, available_for_qt, available_for_cmdline)
+        return build_manifest(
+            display_name,
+            version,
+            project_url,
+            description,
+            minimum_ec_version,
+            package_name,
+            available_for_qt,
+            available_for_cmdline,
+        )
 
     def write_manifest(self, manifest_file_path):
         metadata = self.build_manifest()
         write_manifest(metadata, manifest_file_path)
 
     def on_export_manifest_clicked(self):
-        self.manifest_file_path, used_filter = QtWidgets.QFileDialog.getSaveFileName(self, "Save Plugin Manifest", None, "Plugin manifest (manifest.json)")
+        self.manifest_file_path, used_filter = QtWidgets.QFileDialog.getSaveFileName(
+            self, "Save Plugin Manifest", None, "Plugin manifest (manifest.json)"
+        )
         if not len(self.manifest_file_path):
             return
 
         try:
             self.write_manifest(self.manifest_file_path)
         except OSError:
-            QtWidgets.QMessageBox.critical(self, 'File Error', 'Unable to write to selected file.')
+            QtWidgets.QMessageBox.critical(
+                self, "File Error", "Unable to write to selected file."
+            )
             return
         except:
-            QtWidgets.QMessageBox.critical(self, 'Encoding Error', 'Problem serialising json data.')
+            QtWidgets.QMessageBox.critical(
+                self, "Encoding Error", "Problem serialising json data."
+            )
             traceback.print_exc()
             return
 
     def on_import_clicked(self):
-        self.manifest_file_path, used_filter = QtWidgets.QFileDialog.getOpenFileName(self, "Select Existing Plugin Manifest", None, "Plugin manifest (manifest.json)")
+        self.manifest_file_path, used_filter = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            "Select Existing Plugin Manifest",
+            None,
+            "Plugin manifest (manifest.json)",
+        )
         if not len(self.manifest_file_path):
             return
 
@@ -312,14 +389,18 @@ class App(QtWidgets.QWidget):
             try:
                 metadata = json.load(f)
             except json.JSONDecodeError:
-                QtWidgets.QMessageBox.critical(self, 'Invalid JSON File', 'Unable to load the file as valid JSON.')
+                QtWidgets.QMessageBox.critical(
+                    self, "Invalid JSON File", "Unable to load the file as valid JSON."
+                )
                 return
 
         self.displayNameEdit.setText(str(metadata.get("display_name", "")))
         self.versionEdit.setText(str(metadata.get("version", "")))
         self.projectUrlEdit.setText(str(metadata.get("project_url", "")))
         self.descriptionEdit.setText(str(metadata.get("description", "")))
-        self.minimumElectronCashVersionEdit.setText(str(metadata.get("minimum_ec_version", "")))
+        self.minimumElectronCashVersionEdit.setText(
+            str(metadata.get("minimum_ec_version", ""))
+        )
         package_name = str(metadata.get("package_name", "")).strip()
         if len(package_name):
             manifest_path, manifest_filename = os.path.split(self.manifest_file_path)
@@ -335,7 +416,7 @@ class App(QtWidgets.QWidget):
         self.refresh_ui()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     ex = App()
     sys.exit(app.exec_())

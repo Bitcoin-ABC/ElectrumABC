@@ -26,7 +26,6 @@
 from __future__ import annotations
 
 import concurrent
-from concurrent import futures
 import json
 import os
 import pkgutil
@@ -35,28 +34,47 @@ import sys
 import threading
 import time
 import traceback
-from typing import Any, Union, Set, TYPE_CHECKING, Tuple, Dict, Iterable, List
-from warnings import warn
 import zipimport
-
-from collections import namedtuple, defaultdict
+from collections import defaultdict, namedtuple
+from concurrent import futures
 from enum import IntEnum
-from typing import Callable, NamedTuple, Optional
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    NamedTuple,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+)
+from warnings import warn
 
-from . import bitcoin
-from . import version
+from . import bitcoin, version
 from .constants import PROJECT_NAME, SCRIPT_NAME
 from .i18n import _
 from .simple_config import SimpleConfig
-from .util import (print_error, print_stderr, make_dir, profiler,
-                   DaemonThread, PrintError, ThreadJob, UserCancelled)
+from .util import (
+    DaemonThread,
+    PrintError,
+    ThreadJob,
+    UserCancelled,
+    make_dir,
+    print_error,
+    print_stderr,
+    profiler,
+)
 
 if TYPE_CHECKING:
     from electroncash_plugins.hw_wallet import (
-        HW_PluginBase,
         HardwareClientBase,
         HardwareHandlerBase,
+        HW_PluginBase,
     )
+
     from .keystore import Hardware_KeyStore
 
 plugin_loaders = {}
@@ -79,17 +97,19 @@ class ExternalPluginCodes(IntEnum):
     INVALID_MAMIFEST_PACKAGE_NAME = 12
     UNSPECIFIED_ERROR = 13
 
-INTERNAL_USE_PREFIX = 'use_'
-EXTERNAL_USE_PREFIX = 'use_external_'
+
+INTERNAL_USE_PREFIX = "use_"
+EXTERNAL_USE_PREFIX = "use_external_"
 
 
 class Plugins(DaemonThread):
-
     @profiler
     def __init__(self, config, gui_name):
         DaemonThread.__init__(self)
-        internal_plugins_namespace = __import__('electroncash_plugins')
-        self.internal_plugins_pkgpath = os.path.dirname(internal_plugins_namespace.__file__)
+        internal_plugins_namespace = __import__("electroncash_plugins")
+        self.internal_plugins_pkgpath = os.path.dirname(
+            internal_plugins_namespace.__file__
+        )
         self.config = config
         self.gui_name = gui_name
         self.hw_wallets = {}
@@ -105,50 +125,58 @@ class Plugins(DaemonThread):
         self.start()
 
     def register_plugin(self, name, metadata, is_external=False):
-        gui_good = self.gui_name in metadata.get('available_for', [])
+        gui_good = self.gui_name in metadata.get("available_for", [])
         if not gui_good:
             return False
-        details = metadata.get('registers_wallet_type')
+        details = metadata.get("registers_wallet_type")
         if details:
             self.register_wallet_type(name, gui_good, details, is_external)
-        details = metadata.get('registers_keystore')
+        details = metadata.get("registers_keystore")
         if details:
             self.register_keystore(name, gui_good, details, is_external)
         return True
 
     def retranslate_internal_plugin_metadata(self, name):
-        """ Retranslate: "fullname" and "description". We need to do this
+        """Retranslate: "fullname" and "description". We need to do this
         because the static _("some text") strings in the plugin's __init__.py is
         not translated at startup even though it has a _() decorator because
         gettext language is set *after* internal plugin modules are loaded.
 
-        This needs to be called once at startup and then again from the GUI. """
+        This needs to be called once at startup and then again from the GUI."""
         d = self.internal_plugin_metadata.get(name)
         if not d:
             return
-        ut_prefix = '_untranslated_'
-        for key in ('fullname', 'description'):
+        ut_prefix = "_untranslated_"
+        for key in ("fullname", "description"):
             ut_key = ut_prefix + key
-            ut_val = val = d.get(ut_key)  # first see if saved original untranslated metadata is available
+            ut_val = val = d.get(
+                ut_key
+            )  # first see if saved original untranslated metadata is available
             if val is None:
                 ut_val = val = d.get(key)
                 if not val:
                     continue
-            delim = d.get(key + '_delimiter', ' ')
+            delim = d.get(key + "_delimiter", " ")
             if isinstance(val, (list, tuple)):
                 val = delim.join([_(x) for x in val])  # retranslate each list item
             elif isinstance(val, str):
                 val = _(val)  # retranslate
             if not isinstance(val, str):
-                self.print_error(f'Warning: plugin "{name}" metadata key "{key}" expected str, instead got {type(val)}')
+                self.print_error(
+                    f'Warning: plugin "{name}" metadata key "{key}" expected str, instead got {type(val)}'
+                )
             else:
                 d[key] = val  # rewrite translated string
-                d[ut_key] = ut_val # save untranslated metadata for later so that this function may be called again from GUI
+                d[
+                    ut_key
+                ] = ut_val  # save untranslated metadata for later so that this function may be called again from GUI
 
     def load_internal_plugins(self):
-        for loader, name, ispkg in pkgutil.iter_modules([self.internal_plugins_pkgpath]):
+        for loader, name, ispkg in pkgutil.iter_modules(
+            [self.internal_plugins_pkgpath]
+        ):
             # do not load deprecated plugins
-            if name in ['plot', 'exchange_rate']:
+            if name in ["plot", "exchange_rate"]:
                 continue
             # do not load plugins that rely on untrusted servers, for now
             if name in ["labels", "cosigner_pool"]:
@@ -161,7 +189,7 @@ class Plugins(DaemonThread):
             self.retranslate_internal_plugin_metadata(name)
             conf_key = INTERNAL_USE_PREFIX + name
             conf_value = self.config.get(conf_key)
-            if conf_value is None and d.get('default_on'):
+            if conf_value is None and d.get("default_on"):
                 # An internal plugin wants to be on by default (default_on =
                 # True in its __init__.py). This only applies if no config value
                 # was specified for the plugin (e.g. a new install). If the user
@@ -169,7 +197,7 @@ class Plugins(DaemonThread):
                 # not None), and this branch will not be taken.
                 conf_value = True
                 self.config.set_key(conf_key, conf_value)
-            if not d.get('requires_wallet_type') and conf_value:
+            if not d.get("requires_wallet_type") and conf_value:
                 try:
                     self.load_internal_plugin(name)
                 except BaseException as e:
@@ -187,23 +215,32 @@ class Plugins(DaemonThread):
             leading_name, ext = os.path.splitext(file_name)
             if ext.lower() != ".zip" or not os.path.isfile(plugin_file_path):
                 continue
-            metadata, error_code = self.get_metadata_from_external_plugin_zip_file(plugin_file_path)
+            metadata, error_code = self.get_metadata_from_external_plugin_zip_file(
+                plugin_file_path
+            )
             if metadata is None:
                 continue
-            package_name = metadata['package_name']
+            package_name = metadata["package_name"]
             if package_name in self.internal_plugin_metadata:
-                self.print_error("internal plugin also named '%s', external '%s' rejected" % (package_name, file_name))
+                self.print_error(
+                    "internal plugin also named '%s', external '%s' rejected"
+                    % (package_name, file_name)
+                )
                 continue
             if not self.register_plugin(package_name, metadata, is_external=True):
                 continue
             metadata["__file__"] = plugin_file_path
             self.external_plugin_metadata[package_name] = metadata
 
-            if not metadata.get('requires_wallet_type') and self.config.get(EXTERNAL_USE_PREFIX + package_name):
+            if not metadata.get("requires_wallet_type") and self.config.get(
+                EXTERNAL_USE_PREFIX + package_name
+            ):
                 try:
                     self.load_external_plugin(package_name)
                 except BaseException as e:
-                    traceback.print_exc(file=sys.stdout) # shouldn't this be... suppressed unless -v?
+                    traceback.print_exc(
+                        file=sys.stdout
+                    )  # shouldn't this be... suppressed unless -v?
                     self.print_error(f"cannot initialize plugin {package_name} {e!r}")
 
     def get_internal_plugin(self, name, force_load=False):
@@ -226,11 +263,12 @@ class Plugins(DaemonThread):
         if name in self.internal_plugins:
             return self.internal_plugins[name]
 
-        full_name = 'electroncash_plugins.' + name + '.' + self.gui_name
+        full_name = "electroncash_plugins." + name + "." + self.gui_name
         loader = pkgutil.find_loader(full_name)
         if not loader:
-            raise RuntimeError("%s implementation for %s plugin not found"
-                               % (self.gui_name, name))
+            raise RuntimeError(
+                "%s implementation for %s plugin not found" % (self.gui_name, name)
+            )
         p = loader.load_module(full_name)
         plugin = p.Plugin(self, self.config, name)
         plugin.set_enabled_prefix(INTERNAL_USE_PREFIX)
@@ -259,16 +297,21 @@ class Plugins(DaemonThread):
         try:
             module = zipfile.load_module(name)
         except zipimport.ZipImportError as e:
-            self.print_error("unable to load zip plugin '%s' package '%s'" % (plugin_file_path, name), str(e))
+            self.print_error(
+                "unable to load zip plugin '%s' package '%s'"
+                % (plugin_file_path, name),
+                str(e),
+            )
             return
 
-        sys.modules['electroncash_external_plugins.'+ name] = module
+        sys.modules["electroncash_external_plugins." + name] = module
 
-        full_name = 'electroncash_external_plugins.' + name + '.' + self.gui_name
+        full_name = "electroncash_external_plugins." + name + "." + self.gui_name
         loader = pkgutil.find_loader(full_name)
         if not loader:
-            raise RuntimeError("%s implementation for %s plugin not found"
-                               % (self.gui_name, name))
+            raise RuntimeError(
+                "%s implementation for %s plugin not found" % (self.gui_name, name)
+            )
         p = loader.load_module(full_name)
         plugin = p.Plugin(self, self.config, name)
         plugin.set_enabled_prefix(EXTERNAL_USE_PREFIX)
@@ -308,22 +351,30 @@ class Plugins(DaemonThread):
 
     def toggle_internal_plugin(self, name):
         p = self.get_internal_plugin(name)
-        return self.disable_internal_plugin(name) if p else self.enable_internal_plugin(name)
+        return (
+            self.disable_internal_plugin(name)
+            if p
+            else self.enable_internal_plugin(name)
+        )
 
     def toggle_external_plugin(self, name):
         p = self.get_external_plugin(name)
-        return self.disable_external_plugin(name) if p else self.enable_external_plugin(name)
+        return (
+            self.disable_external_plugin(name)
+            if p
+            else self.enable_external_plugin(name)
+        )
 
     def is_plugin_available(self, metadata, w):
         if not metadata:
             return False
-        deps = metadata.get('requires', [])
+        deps = metadata.get("requires", [])
         for dep, s in deps:
             try:
                 __import__(dep)
             except ImportError:
                 return False
-        requires = metadata.get('requires_wallet_type', [])
+        requires = metadata.get("requires_wallet_type", [])
         return not requires or w.wallet_type in requires
 
     def is_internal_plugin_available(self, name, w):
@@ -359,32 +410,45 @@ class Plugins(DaemonThread):
         try:
             metadata = json.loads(metadata_text)
         except json.JSONDecodeError:
-            self.print_error("invalid json in 'manifest.json' (zip plugin %s)" % file_name)
+            self.print_error(
+                "invalid json in 'manifest.json' (zip plugin %s)" % file_name
+            )
             return None, ExternalPluginCodes.INVALID_MANIFEST_JSON
 
         class Version:
             pass
 
         expected_keys = {
-            'display_name': (str, ExternalPluginCodes.INVALID_MAMIFEST_DISPLAY_NAME),
-            'description': (str, ExternalPluginCodes.INVALID_MAMIFEST_DESCRIPTION),
-            'version': (Version, ExternalPluginCodes.INVALID_MAMIFEST_VERSION),
-            'minimum_ec_version': (Version, ExternalPluginCodes.INVALID_MAMIFEST_MINIMUM_EC_VERSION),
-            'package_name': (str, ExternalPluginCodes.INVALID_MAMIFEST_PACKAGE_NAME),
+            "display_name": (str, ExternalPluginCodes.INVALID_MAMIFEST_DISPLAY_NAME),
+            "description": (str, ExternalPluginCodes.INVALID_MAMIFEST_DESCRIPTION),
+            "version": (Version, ExternalPluginCodes.INVALID_MAMIFEST_VERSION),
+            "minimum_ec_version": (
+                Version,
+                ExternalPluginCodes.INVALID_MAMIFEST_MINIMUM_EC_VERSION,
+            ),
+            "package_name": (str, ExternalPluginCodes.INVALID_MAMIFEST_PACKAGE_NAME),
         }
         for k, (expected_type, error_code) in expected_keys.items():
             v = metadata.get(k, None)
             if v is None:
-                self.print_error("missing metadata key %s (zip plugin %s)" % (k, file_name))
+                self.print_error(
+                    "missing metadata key %s (zip plugin %s)" % (k, file_name)
+                )
                 return None, error_code
             if expected_type is Version:
                 try:
                     v = version.parse_package_version(v)
                 except ValueError:
-                    self.print_error("metadata %s = %s, expected a.b.c version string (zip plugin %s)" % (k, v, file_name))
+                    self.print_error(
+                        "metadata %s = %s, expected a.b.c version string (zip plugin %s)"
+                        % (k, v, file_name)
+                    )
                     return None, error_code
             elif type(metadata[k]) is not expected_type:
-                self.print_error("metadata %s = %s, expected %s (zip plugin %s)" % (k, v, expected_type, file_name))
+                self.print_error(
+                    "metadata %s = %s, expected %s (zip plugin %s)"
+                    % (k, v, expected_type, file_name)
+                )
                 return None, error_code
 
         return metadata, ExternalPluginCodes.SUCCESS
@@ -392,7 +456,9 @@ class Plugins(DaemonThread):
     def install_external_plugin(self, plugin_original_path):
         # Do the minimum verification necessary to check if the archive looks
         # like a valid plugin zip archive.
-        metadata, error_code = self.get_metadata_from_external_plugin_zip_file(plugin_original_path)
+        metadata, error_code = self.get_metadata_from_external_plugin_zip_file(
+            plugin_original_path
+        )
         if metadata is None:
             return error_code
 
@@ -400,10 +466,16 @@ class Plugins(DaemonThread):
         leading_name, ext = os.path.splitext(file_name)
         package_name = metadata.get("package_name", leading_name)
         # Ensure it is not already installed.
-        if package_name in self.external_plugins or package_name in self.external_plugin_metadata:
+        if (
+            package_name in self.external_plugins
+            or package_name in self.external_plugin_metadata
+        ):
             return ExternalPluginCodes.NAME_ALREADY_IN_USE
 
-        if version.parse_package_version(metadata['minimum_ec_version'])[:-1] > version.parse_package_version(version.PACKAGE_VERSION)[:-1]:
+        if (
+            version.parse_package_version(metadata["minimum_ec_version"])[:-1]
+            > version.parse_package_version(version.PACKAGE_VERSION)[:-1]
+        ):
             return ExternalPluginCodes.INCOMPATIBLE_VERSION
 
         # Copy the original file to the external plugin hosting dir.
@@ -420,7 +492,7 @@ class Plugins(DaemonThread):
         self.external_plugin_metadata[package_name] = metadata
 
         # Not documented wallet type constraint.  Follow pattern elsewhere.
-        if metadata.get('requires_wallet_type'):
+        if metadata.get("requires_wallet_type"):
             return ExternalPluginCodes.SUCCESS
 
         # Otherwise, we enable all other installed plugins.  This causes the
@@ -429,15 +501,17 @@ class Plugins(DaemonThread):
             self.enable_external_plugin(package_name)
         except BaseException as e:
             traceback.print_exc(file=sys.stdout)
-            self.print_error("cannot enable/load external plugin %s:" % package_name, str(e))
+            self.print_error(
+                "cannot enable/load external plugin %s:" % package_name, str(e)
+            )
             return ExternalPluginCodes.INSTALLED_BUT_FAILED_LOAD
 
         return ExternalPluginCodes.SUCCESS
 
     def uninstall_external_plugin(self, name):
         self.disable_external_plugin(name)
-        if 'electroncash_external_plugins.'+ name in sys.modules:
-            del sys.modules['electroncash_external_plugins.'+ name]
+        if "electroncash_external_plugins." + name in sys.modules:
+            del sys.modules["electroncash_external_plugins." + name]
 
         metadata = self.external_plugin_metadata[name]
         plugin_file_path = metadata["__file__"]
@@ -460,32 +534,42 @@ class Plugins(DaemonThread):
                     if p.is_enabled():
                         out.append([name, details[2], p])
                 except:
-                    self.print_error("cannot load plugin for:", name, "exception:", repr(sys.exc_info()[1]))
+                    self.print_error(
+                        "cannot load plugin for:",
+                        name,
+                        "exception:",
+                        repr(sys.exc_info()[1]),
+                    )
         return out
 
     def register_wallet_type(self, name, gui_good, wallet_type, is_external):
-        from .wallet import register_wallet_type, register_constructor
+        from .wallet import register_constructor, register_wallet_type
+
         self.print_error("registering wallet type", (wallet_type, name))
+
         def loader():
             if is_external:
                 plugin = self.get_external_plugin(name, force_load=True)
             else:
                 plugin = self.get_internal_plugin(name, force_load=True)
             register_constructor(wallet_type, plugin.wallet_class)
+
         register_wallet_type(wallet_type)
         plugin_loaders[wallet_type] = loader
 
     def register_keystore(self, name, gui_good, details, is_external):
         from .keystore import register_keystore
+
         def dynamic_constructor(d):
             if is_external:
                 plugin = self.get_external_plugin(name, force_load=True)
             else:
                 plugin = self.get_internal_plugin(name, force_load=True)
             return plugin.keystore_class(d)
-        if details[0] == 'hardware':
+
+        if details[0] == "hardware":
             self.hw_wallets[name] = (gui_good, details)
-            self.print_error("registering hardware %s: %s" %(name, details))
+            self.print_error("registering hardware %s: %s" % (name, details))
             register_keystore(details[1], dynamic_constructor)
 
     def run(self):
@@ -499,6 +583,7 @@ def hook(func):
     func._is_ec_plugin_hook = True
     return func
 
+
 def _get_func_if_hook(plugin, attr_name) -> Optional[Callable]:
     cls = plugin.__class__
     # We examine the class-level attribute with name attr_name to see if it's a
@@ -511,8 +596,9 @@ def _get_func_if_hook(plugin, attr_name) -> Optional[Callable]:
     # attribute first, before proceeding to grabbing the instance-level
     # bound method if the checks pass.
     cls_func = getattr(cls, attr_name, None)
-    if (getattr(cls_func, '_is_ec_plugin_hook', False)
-            and not isinstance(cls_func, property)):  # just in case they did @hook @property!
+    if getattr(cls_func, "_is_ec_plugin_hook", False) and not isinstance(
+        cls_func, property
+    ):  # just in case they did @hook @property!
         # Ok, attr_name has the tag, and wasn't a property.
         # So it's safe to call getattr on it to grab the bound method, and
         # return it after one last callable check (for paranoia's sake).
@@ -520,8 +606,9 @@ def _get_func_if_hook(plugin, attr_name) -> Optional[Callable]:
         if callable(func):
             return func
 
+
 def run_hook(name, *args, **kwargs):
-    """ Invokes a named @hook on all enabled plugins. Not all plugins or hooks
+    """Invokes a named @hook on all enabled plugins. Not all plugins or hooks
     return values. Example follows:
 
     # in plugin A
@@ -553,16 +640,18 @@ def run_hook(name, *args, **kwargs):
             the result set if multi=True. The empty list is returned if no
             plugins returned any non-None results. multi=False will return a
             single item: the first non-None result encountered, or None if no
-            such result was returned from any invoked hooks. """
-    multi = bool(kwargs.get('multi', False))
+            such result was returned from any invoked hooks."""
+    multi = bool(kwargs.get("multi", False))
 
     this_thread = threading.current_thread()
     if this_thread is not threading.main_thread():
-        warn(f'run_hook "{name}" being called from outside the main'
-             f' thread (thr: {this_thread.name}) may lead to undefined'
-             ' behavior. Please use util.do_in_main_thread to call run_hook'
-             ' if the hook in question does not return any results.',
-             stacklevel=2)
+        warn(
+            f'run_hook "{name}" being called from outside the main'
+            f" thread (thr: {this_thread.name}) may lead to undefined"
+            " behavior. Please use util.do_in_main_thread to call run_hook"
+            " if the hook in question does not return any results.",
+            stacklevel=2,
+        )
     f_list = hooks.get(name)
     if not f_list:
         # short-circuit return: most of the time this code path is taken
@@ -583,11 +672,14 @@ def run_hook(name, *args, **kwargs):
         return results
     if results:
         if len(results) > 1:
-            print_error(f"run_hook: got more than 1 result from @hook '{name}':", results)
+            print_error(
+                f"run_hook: got more than 1 result from @hook '{name}':", results
+            )
         return results[0]
 
+
 def daemon_command(func):
-    f""" Method decorator for BasePlugin subclasses to add a remote command
+    f"""Method decorator for BasePlugin subclasses to add a remote command
     to the daemon. Usage:
 
         class MyPlugin(BasePlugin):
@@ -627,21 +719,27 @@ class BasePlugin(PrintError):
             func = _get_func_if_hook(self, aname)
             if func is not None:
                 hooks[aname].append((self, func))
-                self._hooks_i_registered.append((aname,func))
+                self._hooks_i_registered.append((aname, func))
 
         # collect names of all class attributes with ._is_daemon_command
-        self._daemon_commands = set(attrname for attrname in dir(type(self))
-                                    if getattr(getattr(type(self),attrname), '_is_daemon_command',False))
+        self._daemon_commands = set(
+            attrname
+            for attrname in dir(type(self))
+            if getattr(getattr(type(self), attrname), "_is_daemon_command", False)
+        )
         # we don't allow conflicting definitions of daemon command (between different plugins)
         for c in self._daemon_commands.intersection(self.parent.daemon_commands):
             self._daemon_commands.discard(c)
             try:
                 origclass = type(self.parent.daemon_commands[c].__self__)
             except (KeyError, AttributeError):
-                origclass = 'unknown'
-            print_stderr(f'Ignoring plugin daemon command {repr(c)} from {type(self)} (already exists from {origclass})')
-        self.parent.daemon_commands.update({ cmdname : getattr(self,cmdname)
-                                             for cmdname in self._daemon_commands })
+                origclass = "unknown"
+            print_stderr(
+                f"Ignoring plugin daemon command {repr(c)} from {type(self)} (already exists from {origclass})"
+            )
+        self.parent.daemon_commands.update(
+            {cmdname: getattr(self, cmdname) for cmdname in self._daemon_commands}
+        )
 
     def set_enabled_prefix(self, prefix):
         # This is set via a method in order not to break the existing API.
@@ -657,8 +755,10 @@ class BasePlugin(PrintError):
         # remove self from hooks
         for name, func in self._hooks_i_registered:
             l = hooks.get(name, [])
-            try: l.remove((self, func))
-            except ValueError: pass  # this should never happen but it pays to be paranoid.
+            try:
+                l.remove((self, func))
+            except ValueError:
+                pass  # this should never happen but it pays to be paranoid.
             if not l:
                 hooks.pop(name, None)
         self._hooks_i_registered.clear()  # just to kill strong refs to self ASAP, for GC
@@ -676,7 +776,10 @@ class BasePlugin(PrintError):
         return []
 
     def is_enabled(self):
-        return self.is_available() and self.config.get(self.enabled_use_prefix + self.name) is True
+        return (
+            self.is_available()
+            and self.config.get(self.enabled_use_prefix + self.name) is True
+        )
 
     def is_available(self):
         return True
@@ -711,6 +814,7 @@ class Device(NamedTuple):
     product_key: Any  # when using hid, often Tuple[int, int]
     usage_page: int
 
+
 class DeviceInfo(NamedTuple):
     device: Device
     label: Optional[str]
@@ -735,7 +839,7 @@ _hid_lock = threading.Lock()
 
 
 class DeviceMgr(ThreadJob):
-    '''Manages hardware clients.  A client communicates over a hardware
+    """Manages hardware clients.  A client communicates over a hardware
     channel with the device.
 
     In addition to tracking device HID IDs, the device manager tracks
@@ -763,7 +867,7 @@ class DeviceMgr(ThreadJob):
     the HID IDs.
 
     This plugin is thread-safe.  Currently only devices supported by
-    hidapi are implemented.'''
+    hidapi are implemented."""
 
     def __init__(self, config: SimpleConfig):
         super(DeviceMgr, self).__init__()
@@ -790,12 +894,14 @@ class DeviceMgr(ThreadJob):
         global _hid_executor
         if _hid_executor is None:
             _hid_executor = concurrent.futures.ThreadPoolExecutor(
-                max_workers=1, thread_name_prefix='hid_enumerate_thread')
+                max_workers=1, thread_name_prefix="hid_enumerate_thread"
+            )
 
     def with_scan_lock(func):
         def func_wrapper(self: DeviceMgr, *args, **kwargs):
             with self._scan_lock:
                 return func(self, *args, **kwargs)
+
         return func_wrapper
 
     def get_recognized_hardware(self) -> Set[Tuple[int, int]]:
@@ -806,8 +912,8 @@ class DeviceMgr(ThreadJob):
         return [self]
 
     def run(self):
-        '''Handle device timeouts.  Runs in the context of the Plugins
-        thread.'''
+        """Handle device timeouts.  Runs in the context of the Plugins
+        thread."""
         with self.lock:
             clients = list(self.clients.keys())
         cutoff = time.time() - self.config.get_session_timeout()
@@ -884,9 +990,9 @@ class DeviceMgr(ThreadJob):
     def client_by_id(
         self, id_, *, scan_now: bool = True
     ) -> Optional[HardwareClientBase]:
-        '''Returns a client for the device ID if one is registered.  If
+        """Returns a client for the device ID if one is registered.  If
         a device is wiped or in bootloader mode pairing is impossible;
-        in such cases we communicate by device ID and not wallet.'''
+        in such cases we communicate by device ID and not wallet."""
         if scan_now:
             self.scan_devices()
         return self._client_by_id(id_)
@@ -897,11 +1003,17 @@ class DeviceMgr(ThreadJob):
         plugin: HW_PluginBase,
         handler: Optional[HardwareHandlerBase],
         keystore: Hardware_KeyStore,
-        force_pair: bool
+        force_pair: bool,
     ) -> Optional[HardwareClientBase]:
         self.print_error("getting client for keystore")
         if handler is None:
-            raise BaseException(_("Handler not found for") + ' ' + plugin.name + '\n' + _("A library is probably missing."))
+            raise BaseException(
+                _("Handler not found for")
+                + " "
+                + plugin.name
+                + "\n"
+                + _("A library is probably missing.")
+            )
         handler.update_status(False)
         devices = self.scan_devices()
         xpub = keystore.xpub
@@ -920,8 +1032,8 @@ class DeviceMgr(ThreadJob):
         plugin: HW_PluginBase,
         xpub,
         handler: HardwareHandlerBase,
-        devices: Iterable[Device]
-    ) -> Optional['HardwareClientBase']:
+        devices: Iterable[Device],
+    ) -> Optional["HardwareClientBase"]:
         _id = self.xpub_id(xpub)
         client = self._client_by_id(_id)
         if client:
@@ -940,7 +1052,7 @@ class DeviceMgr(ThreadJob):
         handler: HardwareHandlerBase,
         info: DeviceInfo,
         xpub,
-        derivation
+        derivation,
     ) -> Optional[HardwareClientBase]:
         # The wallet has not been previously paired, so let the user
         # choose an unpaired device and compare its first address.
@@ -953,7 +1065,7 @@ class DeviceMgr(ThreadJob):
             try:
                 client_xpub = client.get_xpub(derivation, xtype)
             except (UserCancelled, RuntimeError):
-                 # Bad / cancelled PIN / passphrase
+                # Bad / cancelled PIN / passphrase
                 client_xpub = None
             if client_xpub == xpub:
                 self.pair_xpub(xpub, info.device.id_)
@@ -962,20 +1074,23 @@ class DeviceMgr(ThreadJob):
         # The user input has wrong PIN or passphrase, or cancelled input,
         # or it is not pairable
         raise DeviceUnpairableError(
-            _(f'{PROJECT_NAME} cannot pair with your {plugin.device}.\n\n'
-              'Before you request bitcoins to be sent to addresses in this '
-              'wallet, ensure you can pair with your device, or that you have '
-              'its seed (and passphrase, if any).  Otherwise all bitcoins you '
-              'receive will be unspendable.'))
+            _(
+                f"{PROJECT_NAME} cannot pair with your {plugin.device}.\n\n"
+                "Before you request bitcoins to be sent to addresses in this "
+                "wallet, ensure you can pair with your device, or that you have "
+                "its seed (and passphrase, if any).  Otherwise all bitcoins you "
+                "receive will be unspendable."
+            )
+        )
 
     def unpaired_device_infos(
         self,
         handler: Optional[HardwareHandlerBase],
         plugin: HW_PluginBase,
-        devices: List[Device] = None
-    ) -> List['DeviceInfo']:
-        '''Returns a list of DeviceInfo objects: one for each connected,
-        unpaired device accepted by the plugin.'''
+        devices: List[Device] = None,
+    ) -> List["DeviceInfo"]:
+        """Returns a list of DeviceInfo objects: one for each connected,
+        unpaired device accepted by the plugin."""
         if devices is None:
             devices = self.scan_devices()
         devices = [dev for dev in devices if not self.xpub_by_id(dev.id_)]
@@ -1002,7 +1117,8 @@ class DeviceMgr(ThreadJob):
         plugin: HW_PluginBase,
         handler: HardwareHandlerBase,
         keystore: Hardware_KeyStore,
-        devices: List['Device'] = None) -> DeviceInfo:
+        devices: List["Device"] = None,
+    ) -> DeviceInfo:
         """Ask the user to select a device to use if there is more than one,
         and return the DeviceInfo for the device."""
         # ideally this should not be called from the GUI thread...
@@ -1011,9 +1127,11 @@ class DeviceMgr(ThreadJob):
             infos = self.unpaired_device_infos(handler, plugin, devices)
             if infos:
                 break
-            msg = _('Please insert your {}.  Verify the cable is '
-                    'connected and that no other application is using it.\n\n'
-                    'Try to connect again?').format(plugin.device)
+            msg = _(
+                "Please insert your {}.  Verify the cable is "
+                "connected and that no other application is using it.\n\n"
+                "Try to connect again?"
+            ).format(plugin.device)
             if not handler.yes_no_question(msg):
                 raise UserCancelled()
             devices = None
@@ -1022,8 +1140,10 @@ class DeviceMgr(ThreadJob):
         # select device by label automatically;
         # but only if not a placeholder label and only if there is no collision
         device_labels = [info.label for info in infos]
-        if (keystore.label not in PLACEHOLDER_HW_CLIENT_LABELS
-                and device_labels.count(keystore.label) == 1):
+        if (
+            keystore.label not in PLACEHOLDER_HW_CLIENT_LABELS
+            and device_labels.count(keystore.label) == 1
+        ):
             for info in infos:
                 if info.label == keystore.label:
                     return info
@@ -1034,7 +1154,7 @@ class DeviceMgr(ThreadJob):
                 label=info.label,
                 init=_("initialized") if info.initialized else _("wiped"),
                 transport=str(
-                    (info.device and info.device.path) or 'unknown transport'
+                    (info.device and info.device.path) or "unknown transport"
                 )[:20],
                 maybe_model=f"{info.model_name}, " if info.model_name else "",
             )
@@ -1065,15 +1185,17 @@ class DeviceMgr(ThreadJob):
         hid_list_fut = _hid_executor.submit(hid_enumerate)
         try:
             hid_list = hid_list_fut.result()
-        except (concurrent.futures.CancelledError,
-                concurrent.futures.TimeoutError) as e:
+        except (
+            concurrent.futures.CancelledError,
+            concurrent.futures.TimeoutError,
+        ) as e:
             return []
 
         # First see what's connected that we know about
         devices = []
         for d in hid_list:
-            vendor_id = d['vendor_id']
-            product_key = (vendor_id, d['product_id'])
+            vendor_id = d["vendor_id"]
+            product_key = (vendor_id, d["product_id"])
             plugin = None
             if product_key in self._recognised_hardware:
                 plugin = self._recognised_hardware[product_key]
@@ -1088,7 +1210,7 @@ class DeviceMgr(ThreadJob):
         return devices
 
     @with_scan_lock
-    def scan_devices(self) -> List['Device']:
+    def scan_devices(self) -> List["Device"]:
         self.print_error("scanning devices...")
 
         # First see what's connected that we know about
@@ -1099,8 +1221,11 @@ class DeviceMgr(ThreadJob):
             try:
                 new_devices = f()
             except BaseException as e:
-                self.print_error('custom device enum failed. func {}, error {}'
-                                 .format(str(f), str(e)))
+                self.print_error(
+                    "custom device enum failed. func {}, error {}".format(
+                        str(f), str(e)
+                    )
+                )
             else:
                 devices.extend(new_devices)
 

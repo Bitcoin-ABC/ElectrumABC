@@ -41,6 +41,7 @@ def a2b_base64(s):
         raise SyntaxError("base64 error: %s" % e)
     return b
 
+
 def b2a_base64(b):
     return binascii.b2a_base64(b)
 
@@ -60,17 +61,18 @@ def dePem(s, name):
     The first such PEM block in the input will be found, and its
     payload will be base64 decoded and returned.
     """
-    prefix  = "-----BEGIN %s-----" % name
+    prefix = "-----BEGIN %s-----" % name
     postfix = "-----END %s-----" % name
     start = s.find(prefix)
     if start == -1:
         raise SyntaxError("Missing PEM prefix")
-    end = s.find(postfix, start+len(prefix))
+    end = s.find(postfix, start + len(prefix))
     if end == -1:
         raise SyntaxError("Missing PEM postfix")
-    s = s[start+len("-----BEGIN %s-----" % name) : end]
-    retBytes = a2b_base64(s) # May raise SyntaxError
+    s = s[start + len("-----BEGIN %s-----" % name) : end]
+    retBytes = a2b_base64(s)  # May raise SyntaxError
     return retBytes
+
 
 def dePemList(s, name):
     """Decode a sequence of PEM blocks into a list of bytearrays.
@@ -94,21 +96,22 @@ def dePemList(s, name):
 
     All such PEM blocks will be found, decoded, and return in an ordered list
     of bytearrays, which may have zero elements if not PEM blocks are found.
-     """
+    """
     bList = []
-    prefix  = "-----BEGIN %s-----" % name
+    prefix = "-----BEGIN %s-----" % name
     postfix = "-----END %s-----" % name
     while 1:
         start = s.find(prefix)
         if start == -1:
             return bList
-        end = s.find(postfix, start+len(prefix))
+        end = s.find(postfix, start + len(prefix))
         if end == -1:
             raise SyntaxError("Missing PEM postfix")
-        s2 = s[start+len(prefix) : end]
-        retBytes = a2b_base64(s2) # May raise SyntaxError
+        s2 = s[start + len(prefix) : end]
+        retBytes = a2b_base64(s2)  # May raise SyntaxError
         bList.append(retBytes)
-        s = s[end+len(postfix) : ]
+        s = s[end + len(postfix) :]
+
 
 def pem(b, name):
     """Encode a payload bytearray into a PEM string.
@@ -122,14 +125,18 @@ def pem(b, name):
     KoZIhvcNAQEFBQADAwA5kw==
     -----END CERTIFICATE-----
     """
-    s1 = b2a_base64(b)[:-1] # remove terminating \n
+    s1 = b2a_base64(b)[:-1]  # remove terminating \n
     s2 = b""
     while s1:
         s2 += s1[:64] + b"\n"
         s1 = s1[64:]
-    s = ("-----BEGIN %s-----\n" % name).encode('ascii') + s2 + \
-        ("-----END %s-----\n" % name).encode('ascii')
+    s = (
+        ("-----BEGIN %s-----\n" % name).encode("ascii")
+        + s2
+        + ("-----END %s-----\n" % name).encode("ascii")
+    )
     return s
+
 
 def pemSniff(inStr, name):
     searchStr = "-----BEGIN %s-----" % name
@@ -152,16 +159,16 @@ def _parsePKCS8(_bytes):
     s = ASN1_Node(_bytes)
     root = s.root()
     version_node = s.first_child(root)
-    version = bytestr_to_int(s.get_value_of_type(version_node, 'INTEGER'))
+    version = bytestr_to_int(s.get_value_of_type(version_node, "INTEGER"))
     if version != 0:
         raise SyntaxError("Unrecognized PKCS8 version")
     rsaOID_node = s.next_node(version_node)
     ii = s.first_child(rsaOID_node)
-    rsaOID = decode_OID(s.get_value_of_type(ii, 'OBJECT IDENTIFIER'))
-    if rsaOID != '1.2.840.113549.1.1.1':
+    rsaOID = decode_OID(s.get_value_of_type(ii, "OBJECT IDENTIFIER"))
+    if rsaOID != "1.2.840.113549.1.1.1":
         raise SyntaxError("Unrecognized AlgorithmIdentifier")
     privkey_node = s.next_node(rsaOID_node)
-    value = s.get_value_of_type(privkey_node, 'OCTET STRING')
+    value = s.get_value_of_type(privkey_node, "OCTET STRING")
     return _parseASN1PrivateKey(value)
 
 
@@ -177,7 +184,7 @@ def _parseASN1PrivateKey(s):
     s = ASN1_Node(s)
     root = s.root()
     version_node = s.first_child(root)
-    version = bytestr_to_int(s.get_value_of_type(version_node, 'INTEGER'))
+    version = bytestr_to_int(s.get_value_of_type(version_node, "INTEGER"))
     if version != 0:
         raise SyntaxError("Unrecognized RSAPrivateKey version")
     n = s.next_node(version_node)
@@ -188,5 +195,9 @@ def _parseASN1PrivateKey(s):
     dP = s.next_node(q)
     dQ = s.next_node(dP)
     qInv = s.next_node(dQ)
-    return list(map(lambda x: bytesToNumber(s.get_value_of_type(x, 'INTEGER')), [n, e, d, p, q, dP, dQ, qInv]))
-
+    return list(
+        map(
+            lambda x: bytesToNumber(s.get_value_of_type(x, "INTEGER")),
+            [n, e, d, p, q, dP, dQ, qInv],
+        )
+    )

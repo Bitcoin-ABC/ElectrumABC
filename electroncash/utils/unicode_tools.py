@@ -24,26 +24,26 @@
 
 
 def char_to_monospace(char: str) -> str:
-    if char >= 'A' and char <= 'Z':
-        return chr(ord(char) - ord('A') + 0x1d670)
-    elif char >= 'a' and char <= 'z':
-        return chr(ord(char) - ord('a') + 0x1d68a)
-    elif char >= '0' and char <= '9':
-        return chr(ord(char) - ord('0') + 0x1d7f6)
+    if char >= "A" and char <= "Z":
+        return chr(ord(char) - ord("A") + 0x1D670)
+    elif char >= "a" and char <= "z":
+        return chr(ord(char) - ord("a") + 0x1D68A)
+    elif char >= "0" and char <= "9":
+        return chr(ord(char) - ord("0") + 0x1D7F6)
     return char
 
 
 def str_to_monospace(text: str) -> str:
-    return ''.join(char_to_monospace(c) for c in text)
+    return "".join(char_to_monospace(c) for c in text)
 
 
 def char_to_fullwidth(char: str) -> str:
-    if char >= '!' and char <= '~':
-        return chr(ord(char) - ord('!') + 0xff01)
-    elif char == ' ':
+    if char >= "!" and char <= "~":
+        return chr(ord(char) - ord("!") + 0xFF01)
+    elif char == " ":
         return chr(0x2003)  # em space
     return char
 
 
 def str_to_fullwidth(text: str) -> str:
-    return ''.join(char_to_monospace(c) for c in text)
+    return "".join(char_to_monospace(c) for c in text)

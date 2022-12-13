@@ -1,9 +1,12 @@
 from electroncash.plugins import hook
-from .keepkey import KeepKeyPlugin
+
 from ..hw_wallet import CmdLineHandler
+from .keepkey import KeepKeyPlugin
+
 
 class Plugin(KeepKeyPlugin):
     handler = CmdLineHandler()
+
     @hook
     def init_keystore(self, keystore):
         if not isinstance(keystore, self.keystore_class):

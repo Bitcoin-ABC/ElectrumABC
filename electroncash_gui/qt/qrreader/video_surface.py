@@ -26,13 +26,18 @@
 
 from typing import List
 
-from PyQt5.QtMultimedia import (QVideoFrame, QAbstractVideoBuffer, QAbstractVideoSurface,
-                                QVideoSurfaceFormat)
-from PyQt5.QtGui import QImage
 from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtGui import QImage
+from PyQt5.QtMultimedia import (
+    QAbstractVideoBuffer,
+    QAbstractVideoSurface,
+    QVideoFrame,
+    QVideoSurfaceFormat,
+)
 
 from electroncash.i18n import _
 from electroncash.util import print_error
+
 
 class QrReaderVideoSurface(QAbstractVideoSurface):
     """
@@ -49,11 +54,11 @@ class QrReaderVideoSurface(QAbstractVideoSurface):
 
         image_format = QVideoFrame.imageFormatFromPixelFormat(frame.pixelFormat())
         if image_format == QVideoFrame.Format_Invalid:
-            print_error(_('QR code scanner for video frame with invalid pixel format'))
+            print_error(_("QR code scanner for video frame with invalid pixel format"))
             return False
 
         if not frame.map(QAbstractVideoBuffer.ReadOnly):
-            print_error(_('QR code scanner failed to map video frame'))
+            print_error(_("QR code scanner failed to map video frame"))
             return False
 
         try:
@@ -62,7 +67,9 @@ class QrReaderVideoSurface(QAbstractVideoSurface):
             # Check whether we need to flip the image on any axis
             surface_format = self.surfaceFormat()
             flip_x = surface_format.isMirrored()
-            flip_y = surface_format.scanLineDirection() == QVideoSurfaceFormat.BottomToTop
+            flip_y = (
+                surface_format.scanLineDirection() == QVideoSurfaceFormat.BottomToTop
+            )
 
             # Mirror the image if needed
             if flip_x or flip_y:
@@ -77,12 +84,20 @@ class QrReaderVideoSurface(QAbstractVideoSurface):
 
         return True
 
-    def supportedPixelFormats(self, handle_type: QAbstractVideoBuffer.HandleType) -> List[QVideoFrame.PixelFormat]:
+    def supportedPixelFormats(
+        self, handle_type: QAbstractVideoBuffer.HandleType
+    ) -> List[QVideoFrame.PixelFormat]:
         if handle_type == QAbstractVideoBuffer.NoHandle:
             # We support all pixel formats that can be understood by QImage directly
-            return [QVideoFrame.Format_ARGB32, QVideoFrame.Format_ARGB32_Premultiplied,
-                QVideoFrame.Format_RGB32, QVideoFrame.Format_RGB24, QVideoFrame.Format_RGB565,
-                QVideoFrame.Format_RGB555, QVideoFrame.Format_ARGB8565_Premultiplied]
+            return [
+                QVideoFrame.Format_ARGB32,
+                QVideoFrame.Format_ARGB32_Premultiplied,
+                QVideoFrame.Format_RGB32,
+                QVideoFrame.Format_RGB24,
+                QVideoFrame.Format_RGB565,
+                QVideoFrame.Format_RGB555,
+                QVideoFrame.Format_ARGB8565_Premultiplied,
+            ]
         return []
 
     frame_available = pyqtSignal(QImage)

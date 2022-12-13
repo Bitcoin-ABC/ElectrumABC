@@ -26,7 +26,7 @@
 import json
 import pkgutil
 
-from .asert_daa import ASERTDaa, Anchor
+from .asert_daa import Anchor, ASERTDaa
 from .constants import (
     CASHADDR_PREFIX,
     CASHADDR_PREFIX_BCH,
@@ -40,7 +40,7 @@ from .constants import (
 def _read_json_dict(filename):
     try:
         data = pkgutil.get_data(__name__, filename)
-        r = json.loads(data.decode('utf-8'))
+        r = json.loads(data.decode("utf-8"))
     except:
         r = {}
     return r
@@ -49,9 +49,11 @@ def _read_json_dict(filename):
 class AbstractNet:
     TESTNET = False
     REGTEST = False
-    LEGACY_POW_TARGET_TIMESPAN = 14 * 24 * 60 * 60   # 2 weeks
+    LEGACY_POW_TARGET_TIMESPAN = 14 * 24 * 60 * 60  # 2 weeks
     LEGACY_POW_TARGET_INTERVAL = 10 * 60  # 10 minutes
-    LEGACY_POW_RETARGET_BLOCKS = LEGACY_POW_TARGET_TIMESPAN // LEGACY_POW_TARGET_INTERVAL  # 2016 blocks
+    LEGACY_POW_RETARGET_BLOCKS = (
+        LEGACY_POW_TARGET_TIMESPAN // LEGACY_POW_TARGET_INTERVAL
+    )  # 2016 blocks
 
 
 class MainNet(AbstractNet):
@@ -62,13 +64,15 @@ class MainNet(AbstractNet):
     CASHADDR_PREFIX = CASHADDR_PREFIX
     CASHADDR_PREFIX_BCH = CASHADDR_PREFIX_BCH
     GENESIS = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
-    DEFAULT_PORTS = {'t': '50001', 's': '50002'}
-    DEFAULT_SERVERS = _read_json_dict('servers.json')  # DO NOT MODIFY IN CLIENT CODE
-    TITLE = 'Electrum ABC'
+    DEFAULT_PORTS = {"t": "50001", "s": "50002"}
+    DEFAULT_SERVERS = _read_json_dict("servers.json")  # DO NOT MODIFY IN CLIENT CODE
+    TITLE = "Electrum ABC"
 
     # Bitcoin Cash fork block specification
     BITCOIN_CASH_FORK_BLOCK_HEIGHT = 478559
-    BITCOIN_CASH_FORK_BLOCK_HASH = "000000000000000000651ef99cb9fcbe0dadde1d424bd9f15ff20136191a5eec"
+    BITCOIN_CASH_FORK_BLOCK_HASH = (
+        "000000000000000000651ef99cb9fcbe0dadde1d424bd9f15ff20136191a5eec"
+    )
 
     # Nov 13. 2017 HF to CW144 DAA height (height of last block mined on old DAA)
     CW144_HEIGHT = 504031
@@ -81,7 +85,9 @@ class MainNet(AbstractNet):
     #    network.synchronous_get(("blockchain.block.header", [height, height]))
     #
     # Consult the ElectrumX documentation for more details.
-    VERIFICATION_BLOCK_MERKLE_ROOT = "33dc6713c2fc5613a4524f1b0039c755e32169e8cec177b41389ebf0b4c07b04"
+    VERIFICATION_BLOCK_MERKLE_ROOT = (
+        "33dc6713c2fc5613a4524f1b0039c755e32169e8cec177b41389ebf0b4c07b04"
+    )
     VERIFICATION_BLOCK_HEIGHT = 713661
     asert_daa = ASERTDaa(is_testnet=False)
     # Note: We *must* specify the anchor if the checkpoint is after the anchor, due to the way
@@ -92,11 +98,11 @@ class MainNet(AbstractNet):
     # Version numbers for BIP32 extended keys
     # standard: xprv, xpub
     XPRV_HEADERS = {
-        'standard': 0x0488ade4,
+        "standard": 0x0488ADE4,
     }
 
     XPUB_HEADERS = {
-        'standard': 0x0488b21e,
+        "standard": 0x0488B21E,
     }
 
 
@@ -104,40 +110,46 @@ class TestNet(AbstractNet):
     TESTNET = True
     asert_daa = ASERTDaa()
 
-    WIF_PREFIX = 0xef
+    WIF_PREFIX = 0xEF
     ADDRTYPE_P2PKH = 111
     ADDRTYPE_P2SH = 196
     CASHADDR_PREFIX = CASHADDR_TESTNET_PREFIX
     CASHADDR_PREFIX_BCH = CASHADDR_TESTNET_PREFIX_BCH
     GENESIS = "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"
-    DEFAULT_PORTS = {'t':'51001', 's':'51002'}
-    DEFAULT_SERVERS = _read_json_dict('servers_testnet.json')  # DO NOT MODIFY IN CLIENT CODE
-    TITLE = 'Electrum ABC Testnet'
+    DEFAULT_PORTS = {"t": "51001", "s": "51002"}
+    DEFAULT_SERVERS = _read_json_dict(
+        "servers_testnet.json"
+    )  # DO NOT MODIFY IN CLIENT CODE
+    TITLE = "Electrum ABC Testnet"
 
     # Nov 13. 2017 HF to CW144 DAA height (height of last block mined on old DAA)
     CW144_HEIGHT = 1155875
 
     # Bitcoin Cash fork block specification
     BITCOIN_CASH_FORK_BLOCK_HEIGHT = 1155876
-    BITCOIN_CASH_FORK_BLOCK_HASH = "00000000000e38fef93ed9582a7df43815d5c2ba9fd37ef70c9a0ea4a285b8f5"
+    BITCOIN_CASH_FORK_BLOCK_HASH = (
+        "00000000000e38fef93ed9582a7df43815d5c2ba9fd37ef70c9a0ea4a285b8f5"
+    )
 
-    VERIFICATION_BLOCK_MERKLE_ROOT = "3f8ec0f193d3213a23812e688309a8547da64b48d424dd122bd930c5f061148b"
+    VERIFICATION_BLOCK_MERKLE_ROOT = (
+        "3f8ec0f193d3213a23812e688309a8547da64b48d424dd122bd930c5f061148b"
+    )
     VERIFICATION_BLOCK_HEIGHT = 1477500
 
     # Version numbers for BIP32 extended keys
     # standard: tprv, tpub
     XPRV_HEADERS = {
-        'standard': 0x04358394,
+        "standard": 0x04358394,
     }
 
     XPUB_HEADERS = {
-        'standard': 0x043587cf,
+        "standard": 0x043587CF,
     }
 
 
 class RegtestNet(TestNet):
     GENESIS = "0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"
-    TITLE = 'Electrum ABC Regtest'
+    TITLE = "Electrum ABC Regtest"
     CASHADDR_PREFIX = CASHADDR_REGTEST_PREFIX
     CASHADDR_PREFIX_BCH = CASHADDR_REGTEST_PREFIX_BCH
     REGTEST = True
@@ -147,9 +159,11 @@ class RegtestNet(TestNet):
 
     VERIFICATION_BLOCK_HEIGHT = 100
     VERIFICATION_BLOCK_MERKLE_ROOT = None
-    asert_daa = ASERTDaa(is_testnet=True) # not used on regtest
+    asert_daa = ASERTDaa(is_testnet=True)  # not used on regtest
 
-    DEFAULT_SERVERS = _read_json_dict('servers_regtest.json')  # DO NOT MODIFY IN CLIENT CODE
+    DEFAULT_SERVERS = _read_json_dict(
+        "servers_regtest.json"
+    )  # DO NOT MODIFY IN CLIENT CODE
 
 
 # All new code should access this to get the current network config.
@@ -178,16 +192,21 @@ def _instancer(cls):
 
 @_instancer
 class NetworkConstants:
-    ''' Compatibility class for old code such as extant plugins.
+    """Compatibility class for old code such as extant plugins.
 
     Client code can just do things like:
     NetworkConstants.ADDRTYPE_P2PKH, NetworkConstants.DEFAULT_PORTS, etc.
 
     We have transitioned away from this class. All new code should use the
-    'net' global variable above instead. '''
+    'net' global variable above instead."""
+
     def __getattribute__(self, name):
         return getattr(net, name)
 
     def __setattr__(self, name, value):
-        raise RuntimeError('NetworkConstants does not support setting attributes! ({}={})'.format(name,value))
-        #setattr(net, name, value)
+        raise RuntimeError(
+            "NetworkConstants does not support setting attributes! ({}={})".format(
+                name, value
+            )
+        )
+        # setattr(net, name, value)

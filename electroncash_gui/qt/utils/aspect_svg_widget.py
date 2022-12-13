@@ -27,6 +27,7 @@
 from PyQt5.QtCore import QObject, QSize
 from PyQt5.QtSvg import QSvgWidget
 
+
 class FixedAspectRatioSvgWidget(QSvgWidget):
     def __init__(self, width: int, file: str = None, parent: QObject = None):
         if file:

@@ -27,7 +27,8 @@
 from typing import List
 
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt, QSize, QRect, QPoint
+from PyQt5.QtCore import QPoint, QRect, QSize, Qt
+
 
 class FixedAspectRatioLayout(QtWidgets.QLayout):
     def __init__(self, parent: QtWidgets.QWidget = None, aspect_ratio: float = 1.0):
@@ -70,10 +71,17 @@ class FixedAspectRatioLayout(QtWidgets.QLayout):
         else:
             c_aratio = 1
         s_aratio = self.aspect_ratio
-        item_rect = QRect(QPoint(0, 0), QSize(
-            contents.width() if c_aratio < s_aratio else int(contents.height() * s_aratio),
-            contents.height() if c_aratio > s_aratio else int(contents.width() / s_aratio)
-        ))
+        item_rect = QRect(
+            QPoint(0, 0),
+            QSize(
+                contents.width()
+                if c_aratio < s_aratio
+                else int(contents.height() * s_aratio),
+                contents.height()
+                if c_aratio > s_aratio
+                else int(contents.width() / s_aratio),
+            ),
+        )
 
         content_margins = self.contentsMargins()
         free_space = contents.size() - item_rect.size()
@@ -83,7 +91,9 @@ class FixedAspectRatioLayout(QtWidgets.QLayout):
                 if item.alignment() & Qt.AlignRight:
                     item_rect.moveRight(contents.width() + content_margins.right())
                 else:
-                    item_rect.moveLeft(content_margins.left() + (free_space.width() // 2))
+                    item_rect.moveLeft(
+                        content_margins.left() + (free_space.width() // 2)
+                    )
             else:
                 item_rect.moveLeft(content_margins.left())
 
@@ -91,7 +101,9 @@ class FixedAspectRatioLayout(QtWidgets.QLayout):
                 if item.alignment() & Qt.AlignBottom:
                     item_rect.moveBottom(contents.height() + content_margins.bottom())
                 else:
-                    item_rect.moveTop(content_margins.top() + (free_space.height() // 2))
+                    item_rect.moveTop(
+                        content_margins.top() + (free_space.height() // 2)
+                    )
             else:
                 item_rect.moveTop(content_margins.top())
 

@@ -25,17 +25,19 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Iterable, Sequence, Optional, Type
 
-from electroncash.plugins import BasePlugin, hook, Device, DeviceInfo, DeviceMgr
-from electroncash.i18n import _, ngettext
+from typing import TYPE_CHECKING, Any, Iterable, Optional, Sequence, Type
+
 from electroncash import Transaction
-from electroncash.bitcoin import TYPE_SCRIPT
-from electroncash.util import finalization_print_error
 from electroncash.address import OpCodes, Script
+from electroncash.bitcoin import TYPE_SCRIPT
+from electroncash.i18n import _, ngettext
+from electroncash.plugins import BasePlugin, Device, DeviceInfo, DeviceMgr, hook
+from electroncash.util import finalization_print_error
 
 if TYPE_CHECKING:
     import threading
+
     from electroncash.base_wizard import BaseWizard
     from electroncash.keystore import Hardware_KeyStore
     from electroncash.wallet import Abstract_Wallet
@@ -63,20 +65,25 @@ class HW_PluginBase(BasePlugin):
         return self.parent.device_manager
 
     def create_device_from_hid_enumeration(
-        self, d: dict, *, product_key,
+        self,
+        d: dict,
+        *,
+        product_key,
     ) -> Optional[Device]:
         # Older versions of hid don't provide interface_number
-        interface_number = d.get('interface_number', -1)
-        usage_page = d['usage_page']
-        id_ = d['serial_number']
+        interface_number = d.get("interface_number", -1)
+        usage_page = d["usage_page"]
+        id_ = d["serial_number"]
         if len(id_) == 0:
-            id_ = str(d['path'])
+            id_ = str(d["path"])
         id_ += str(interface_number) + str(usage_page)
-        device = Device(path=d['path'],
-                        interface_number=interface_number,
-                        id_=id_,
-                        product_key=product_key,
-                        usage_page=usage_page)
+        device = Device(
+            path=d["path"],
+            interface_number=interface_number,
+            id_=id_,
+            product_key=product_key,
+            usage_page=usage_page,
+        )
         return device
 
     @hook
@@ -87,17 +94,15 @@ class HW_PluginBase(BasePlugin):
                 self._cleanup_keystore_extra(keystore)
 
     def scan_and_create_client_for_device(
-        self,
-        *,
-        device_id: str,
-        wizard: BaseWizard
+        self, *, device_id: str, wizard: BaseWizard
     ) -> HardwareClientBase:
         devmgr = self.device_manager()
         client = devmgr.client_by_id(device_id)
         if client is None:
             raise Exception(
-                _('Failed to create a client for this device.') + '\n' +
-                _('Make sure it is in the correct state.')
+                _("Failed to create a client for this device.")
+                + "\n"
+                + _("Make sure it is in the correct state.")
             )
         client.handler = self.create_handler(wizard)
         return client
@@ -116,7 +121,7 @@ class HW_PluginBase(BasePlugin):
     def _cleanup_keystore_extra(self, keystore):
         # awkward cleanup code for the keystore 'thread' object (see qt.py)
         finalization_print_error(keystore)  # track object lifecycle
-        if callable(getattr(keystore.thread, 'stop', None)):
+        if callable(getattr(keystore.thread, "stop", None)):
             keystore.thread.stop()
 
     def show_address(self, wallet, address, keystore=None):
@@ -126,7 +131,7 @@ class HW_PluginBase(BasePlugin):
         if keystore is None:
             keystore = wallet.get_keystore()
         if not wallet.is_mine(address):
-            keystore.handler.show_error(_('Address not in wallet.'))
+            keystore.handler.show_error(_("Address not in wallet."))
             return False
         if type(keystore) != self.keystore_class:
             return False
@@ -136,7 +141,9 @@ class HW_PluginBase(BasePlugin):
         return self.SUPPORTS_XEC_BIP44_DERIVATION
 
     def create_client(
-        self, device: Device, handler: Optional[HardwareHandlerBase],
+        self,
+        device: Device,
+        handler: Optional[HardwareHandlerBase],
     ) -> Optional[HardwareClientBase]:
         raise NotImplementedError()
 
@@ -202,20 +209,20 @@ class HardwareClientBase:
         return None
 
 
-
 class HardwareHandlerBase:
     """An interface between the GUI and the device handling logic for handling I/O."""
+
     win = None
     device: str
 
     def get_wallet(self) -> Optional[Abstract_Wallet]:
         if self.win is not None:
-            if hasattr(self.win, 'wallet'):
+            if hasattr(self.win, "wallet"):
                 return self.win.wallet
 
     def get_gui_thread(self) -> Optional[threading.Thread]:
         if self.win is not None:
-            if hasattr(self.win, 'gui_thread'):
+            if hasattr(self.win, "gui_thread"):
                 return self.win.gui_thread
 
     def update_status(self, paired: bool) -> None:
@@ -253,10 +260,12 @@ def is_any_tx_output_on_change_branch(tx: Transaction) -> bool:
                 return True
     return False
 
-def validate_op_return_output_and_get_data(output: tuple,        # tuple(typ, 'address', amount)
-                                           max_size: int = 220,  # in bytes
-                                           max_pushes: int = 1   # number of pushes supported after the OP_RETURN, most HW wallets support only 1 push, some more than 1.  Specify None to omit the number-of-pushes check.
-                                           ) -> bytes:  # will return address.script[2:] (everyting after the first OP_RETURN & PUSH bytes)
+
+def validate_op_return_output_and_get_data(
+    output: tuple,  # tuple(typ, 'address', amount)
+    max_size: int = 220,  # in bytes
+    max_pushes: int = 1,  # number of pushes supported after the OP_RETURN, most HW wallets support only 1 push, some more than 1.  Specify None to omit the number-of-pushes check.
+) -> bytes:  # will return address.script[2:] (everyting after the first OP_RETURN & PUSH bytes)
     _type, address, _amount = output
 
     if max_pushes is None:
@@ -277,25 +286,40 @@ def validate_op_return_output_and_get_data(output: tuple,        # tuple(typ, 'a
     if len(ops) < 1 or ops[0][0] != OpCodes.OP_RETURN:
         raise RuntimeError(_("Only OP_RETURN scripts are supported."))
 
-    if num_pushes < 1 or num_pushes > max_pushes or any(ops[i+1][1] is None for i in range(num_pushes)):
-        raise RuntimeError(ngettext("OP_RETURN is limited to {max_pushes} data push.",
-                                    "OP_RETURN is limited to {max_pushes} data pushes.",
-                                    max_pushes).format(max_pushes=max_pushes))
+    if (
+        num_pushes < 1
+        or num_pushes > max_pushes
+        or any(ops[i + 1][1] is None for i in range(num_pushes))
+    ):
+        raise RuntimeError(
+            ngettext(
+                "OP_RETURN is limited to {max_pushes} data push.",
+                "OP_RETURN is limited to {max_pushes} data pushes.",
+                max_pushes,
+            ).format(max_pushes=max_pushes)
+        )
 
-    data = address.script[2:]  # caller expects everything after the OP_RETURN and PUSHDATA op
+    data = address.script[
+        2:
+    ]  # caller expects everything after the OP_RETURN and PUSHDATA op
 
     if len(data) > max_size:
-        raise RuntimeError(_("OP_RETURN data size exceeds the maximum of {} bytes.".format(max_size)))
+        raise RuntimeError(
+            _("OP_RETURN data size exceeds the maximum of {} bytes.".format(max_size))
+        )
 
     if _amount != 0:
         raise RuntimeError(_("Amount for OP_RETURN output must be zero."))
 
     return data
 
+
 def only_hook_if_libraries_available(func):
     # note: this decorator must wrap @hook, not the other way around,
     # as 'hook' uses the name of the function it wraps
     def wrapper(self: HW_PluginBase, *args, **kwargs):
-        if not self.libraries_available: return None
+        if not self.libraries_available:
+            return None
         return func(self, *args, **kwargs)
+
     return wrapper

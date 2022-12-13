@@ -1,12 +1,12 @@
 #!/usr/bin/python
 
-import os
 import getpass
+import os
 import subprocess
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     os.chdir("dist")
-    fnames = os.listdir('.')
+    fnames = os.listdir(".")
     version_str = None
     for fname in fnames:
         if fname.startswith("ElectrumABC-") and fname.endswith(".tar.gz"):
@@ -31,5 +31,3 @@ if __name__ == '__main__':
     os.system(f'gpg --sign --detach --passphrase "{password}" {fname}')
     os.chdir("..")
     print(f"Signature file: {fname}.sig")
-
-

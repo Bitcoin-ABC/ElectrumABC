@@ -22,36 +22,39 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 from abc import ABC, abstractmethod
-from .util import ThreadJob
-from .bitcoin import Hash, hash_decode, hash_encode
+
 from . import networks
+from .bitcoin import Hash, hash_decode, hash_encode
+from .util import ThreadJob
 
 
-class BadResponse(Exception): pass
+class BadResponse(Exception):
+    pass
+
 
 class SPVDelegate(ABC):
-    ''' Abstract base class for an object that is SPV-able, such as a wallet.
+    """Abstract base class for an object that is SPV-able, such as a wallet.
     wallet.py 'Abstract_Wallet' implements this interface, as does the
     CashAccount subsystem which also has its own private SPV verifier running.
 
     The verifier (SPV) class later in this file relies on this interface to
-    know what to verify. '''
+    know what to verify."""
 
     @abstractmethod
     def get_unverified_txs(self) -> dict:
-        ''' Return a dict of tx_hash (hex encoded) -> height (int)'''
+        """Return a dict of tx_hash (hex encoded) -> height (int)"""
 
     @abstractmethod
-    def add_verified_tx(self, tx_hash : str, height_ts_pos_tup : tuple) -> None:
-        ''' Called when a verification is successful.
+    def add_verified_tx(self, tx_hash: str, height_ts_pos_tup: tuple) -> None:
+        """Called when a verification is successful.
         Params:
             #1 tx_hash - hex string
             #2 tuple of: (tx_height: int, timestamp: int, pos : int)
-        '''
+        """
 
     @abstractmethod
     def is_up_to_date(self) -> bool:
-        ''' Called periodically to determine if more verifications are forth-
+        """Called periodically to determine if more verifications are forth-
         coming.
 
         If True is returned:
@@ -59,28 +62,31 @@ class SPVDelegate(ABC):
                 2. and the network 'wallet_updated' callback will fire.
 
         Return False if you do not want the above to happen and/or if you
-        have more work for the SPV to do in the near future. '''
+        have more work for the SPV to do in the near future."""
 
     @abstractmethod
-    def save_verified_tx(self, write : bool = False):
-        ''' Called if is_up_to_date returns True to tell wallet to save verified
-        tx's '''
+    def save_verified_tx(self, write: bool = False):
+        """Called if is_up_to_date returns True to tell wallet to save verified
+        tx's"""
 
     @abstractmethod
-    def undo_verifications(self, blkchain : object, height : int) -> set:
-        ''' Called when the blockchain has changed to tell the wallet to undo
+    def undo_verifications(self, blkchain: object, height: int) -> set:
+        """Called when the blockchain has changed to tell the wallet to undo
         verifications when a reorg has happened. Returns a set of tx_hashes that
-        were undone.'''
+        were undone."""
 
     @abstractmethod
     def diagnostic_name(self):
-        ''' Make sure delegate classes have this method (PrintError interface). '''
+        """Make sure delegate classes have this method (PrintError interface)."""
+
 
 class SPV(ThreadJob):
-    """ Simple Payment Verification """
+    """Simple Payment Verification"""
 
     def __init__(self, network, wallet):
-        assert isinstance(wallet, SPVDelegate), "Verifier instance needs to be passed a wallet that is an object implementing the SPVDelegate interface."
+        assert isinstance(
+            wallet, SPVDelegate
+        ), "Verifier instance needs to be passed a wallet that is an object implementing the SPVDelegate interface."
         self.wallet = wallet  # despite the name, might not always be a wallet instance, may be SPVDelete (CashAcct)
         self.network = network
         self.blockchain = network.blockchain()
@@ -95,17 +101,17 @@ class SPV(ThreadJob):
         return f"{__class__.__name__}/{self.wallet.diagnostic_name()}"
 
     def _release(self):
-        ''' Called from the Network (DaemonThread) -- to prevent race conditions
+        """Called from the Network (DaemonThread) -- to prevent race conditions
         with network, we remove data structures related to the network and
-        unregister ourselves as a job from within the Network thread itself. '''
+        unregister ourselves as a job from within the Network thread itself."""
         self._need_release = False
         self.cleaned_up = True
         self.network.cancel_requests(self.verify_merkle)
         self.network.remove_jobs([self])
 
     def release(self):
-        ''' Called from main thread, enqueues a 'release' to happen in the
-        Network thread. '''
+        """Called from main thread, enqueues a 'release' to happen in the
+        Network thread."""
         self._need_release = True
 
     def run(self):
@@ -147,16 +153,21 @@ class SPV(ThreadJob):
                     # currently designed for catching up post-checkpoint headers.
                     index = tx_height // 2016
                     if self.network.request_chunk(interface, index):
-                        interface.print_error("verifier requesting chunk {} for height {}".format(index, tx_height))
+                        interface.print_error(
+                            "verifier requesting chunk {} for height {}".format(
+                                index, tx_height
+                            )
+                        )
                 continue
             # enqueue request
-            msg_id = self.network.get_merkle_for_transaction(tx_hash, tx_height,
-                                                             self.verify_merkle)
+            msg_id = self.network.get_merkle_for_transaction(
+                tx_hash, tx_height, self.verify_merkle
+            )
             self.qbusy = msg_id is None
             if self.qbusy:
                 # interface queue busy, will try again later
                 break
-            self.print_error('requested merkle', tx_hash)
+            self.print_error("requested merkle", tx_hash)
             self.requested_merkle.add(tx_hash)
 
         if self.network.blockchain() != self.blockchain:
@@ -167,16 +178,19 @@ class SPV(ThreadJob):
         if self.cleaned_up:
             return  # we have been killed, this was just a delayed callback
         try:
-            params = response.get('params')
+            params = response.get("params")
             tx_hash = params and params[0]
-            if response.get('error'):
-                e = str(response.get('error'))
-                if 'not in block' in e.lower():
-                    raise BadResponse('tx_not_found', str(response))
-                raise BadResponse('received an error response: ' + str(response))
-            merkle = response.get('result')
-            if (not isinstance(merkle, dict) or not tx_hash
-                    or any(k not in merkle for k in ('block_height', 'merkle', 'pos'))):
+            if response.get("error"):
+                e = str(response.get("error"))
+                if "not in block" in e.lower():
+                    raise BadResponse("tx_not_found", str(response))
+                raise BadResponse("received an error response: " + str(response))
+            merkle = response.get("result")
+            if (
+                not isinstance(merkle, dict)
+                or not tx_hash
+                or any(k not in merkle for k in ("block_height", "merkle", "pos"))
+            ):
                 raise BadResponse(f"missing data in response {response}")
         except BadResponse as e:
             self.print_error("verify_merkle:", str(e))
@@ -185,9 +199,9 @@ class SPV(ThreadJob):
         try:
             # Verify the hash of the server-provided merkle branch to a
             # transaction matches the merkle root of its block
-            tx_height = merkle['block_height']
-            pos = merkle['pos']
-            merkle_root = self.hash_merkle_root(merkle['merkle'], tx_hash, pos)
+            tx_height = merkle["block_height"]
+            pos = merkle["pos"]
+            merkle_root = self.hash_merkle_root(merkle["merkle"], tx_hash, pos)
         except Exception as e:
             self.print_error(f"exception while verifying tx {tx_hash}: {repr(e)}")
             return
@@ -198,13 +212,17 @@ class SPV(ThreadJob):
         # recover from this, as this TX will now never verify
         if not header:
             self.print_error(
-                "merkle verification failed for {} (missing header {})"
-                .format(tx_hash, tx_height))
+                "merkle verification failed for {} (missing header {})".format(
+                    tx_hash, tx_height
+                )
+            )
             return
-        if header.get('merkle_root') != merkle_root:
+        if header.get("merkle_root") != merkle_root:
             self.print_error(
-                "merkle verification failed for {} (merkle root mismatch {} != {})"
-                .format(tx_hash, header.get('merkle_root'), merkle_root))
+                "merkle verification failed for {} (merkle root mismatch {} != {})".format(
+                    tx_hash, header.get("merkle_root"), merkle_root
+                )
+            )
             return
         # we passed all the tests
         self.merkle_roots[tx_hash] = merkle_root
@@ -212,16 +230,22 @@ class SPV(ThreadJob):
         # this proof again in case of verification failure from the same server
         self.requested_merkle.discard(tx_hash)
         self.print_error("verified %s" % tx_hash)
-        self.wallet.add_verified_tx(tx_hash, (tx_height, header.get('timestamp'), pos))
+        self.wallet.add_verified_tx(tx_hash, (tx_height, header.get("timestamp"), pos))
         if self.is_up_to_date() and self.wallet.is_up_to_date() and not self.qbusy:
             self.wallet.save_verified_tx(write=True)
-            self.network.trigger_callback('wallet_updated', self.wallet)  # This callback will happen very rarely.. mostly right as the last tx is verified. It's to ensure GUI is updated fully.
+            self.network.trigger_callback(
+                "wallet_updated", self.wallet
+            )  # This callback will happen very rarely.. mostly right as the last tx is verified. It's to ensure GUI is updated fully.
 
     @classmethod
     def hash_merkle_root(cls, merkle_s, target_hash, pos):
         h = hash_decode(target_hash)
         for i, item in enumerate(merkle_s):
-            h = Hash(hash_decode(item) + h) if ((pos >> i) & 1) else Hash(h + hash_decode(item))
+            h = (
+                Hash(hash_decode(item) + h)
+                if ((pos >> i) & 1)
+                else Hash(h + hash_decode(item))
+            )
             # An attack was once upon a time possible for SPV, before Nov. 2018
             # which is described here:
             #

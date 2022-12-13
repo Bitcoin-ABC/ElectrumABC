@@ -27,14 +27,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from electroncash.address import Address
-from electroncash.i18n import _
-from electroncash.util import format_time, age
-from electroncash.plugins import run_hook
-from electroncash.paymentrequest import pr_tooltips, PR_UNKNOWN
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-from PyQt5 import QtWidgets
+
+from electroncash.address import Address
+from electroncash.i18n import _
+from electroncash.paymentrequest import PR_UNKNOWN, pr_tooltips
+from electroncash.plugins import run_hook
+from electroncash.util import age, format_time
+
 from .util import MyTreeWidget, pr_icons
 
 if TYPE_CHECKING:
@@ -49,7 +51,7 @@ class RequestList(MyTreeWidget):
         MyTreeWidget.__init__(
             self,
             main_window,
-            [_('Date'), _('Address'), '', _('Description'), _('Amount'), _('Status')],
+            [_("Date"), _("Address"), "", _("Description"), _("Amount"), _("Status")],
             config=main_window.config,
             wallet=main_window.wallet,
             stretch_column=3,
@@ -72,11 +74,11 @@ class RequestList(MyTreeWidget):
         req = self.wallet.receive_requests.get(addr)
         if not req:
             return
-        expires = age(req['time'] + req['exp']) if req.get('exp') else _('Never')
-        amount = req['amount']
-        opr = req.get('op_return') or req.get('op_return_raw')
-        opr_is_raw = bool(req.get('op_return_raw'))
-        message = self.wallet.labels.get(addr.to_storage_string(), '')
+        expires = age(req["time"] + req["exp"]) if req.get("exp") else _("Never")
+        amount = req["amount"]
+        opr = req.get("op_return") or req.get("op_return_raw")
+        opr_is_raw = bool(req.get("op_return_raw"))
+        message = self.wallet.labels.get(addr.to_storage_string(), "")
         self.main_window.receive_address = addr
         self.main_window.receive_address_e.setText(addr.to_ui_string())
         self.main_window.receive_message_e.setText(message)
@@ -85,7 +87,7 @@ class RequestList(MyTreeWidget):
         self.main_window.expires_label.show()
         self.main_window.expires_label.setText(expires)
         self.main_window.receive_opreturn_rawhex_cb.setChecked(opr_is_raw)
-        self.main_window.receive_opreturn_e.setText(opr or '')
+        self.main_window.receive_opreturn_e.setText(opr or "")
         self.main_window.save_request_button.setEnabled(False)
 
     def select_item_by_address(self, address):
@@ -97,8 +99,8 @@ class RequestList(MyTreeWidget):
                 return
 
     def on_edited(self, item, column, prior):
-        '''Called only when the text in the memo field actually changes.
-        Updates the UI and re-saves the request. '''
+        """Called only when the text in the memo field actually changes.
+        Updates the UI and re-saves the request."""
         super().on_edited(item, column, prior)
         self.setCurrentItem(item)
         addr = item.data(0, Qt.UserRole)
@@ -120,7 +122,11 @@ class RequestList(MyTreeWidget):
 
         # update the receive address if necessary
         current_address_string = self.main_window.receive_address_e.text().strip()
-        current_address = Address.from_string(current_address_string) if len(current_address_string) else None
+        current_address = (
+            Address.from_string(current_address_string)
+            if len(current_address_string)
+            else None
+        )
         domain = self.wallet.get_receiving_addresses()
         addr = self.wallet.get_unused_address()
         if current_address not in domain and addr:
@@ -131,24 +137,32 @@ class RequestList(MyTreeWidget):
         prev_sel = item.data(0, Qt.UserRole) if item else None
         self.clear()
         for req in self.wallet.get_sorted_requests(self.config):
-            address = req['address']
+            address = req["address"]
             if address not in domain:
                 continue
-            timestamp = req.get('time', 0)
-            amount = req.get('amount')
-            expiration = req.get('exp', None)
-            message = req.get('memo', '')
+            timestamp = req.get("time", 0)
+            amount = req.get("amount")
+            expiration = req.get("exp", None)
+            message = req.get("memo", "")
             date = format_time(timestamp)
-            status = req.get('status')
-            signature = req.get('sig')
-            requestor = req.get('name', '')
+            status = req.get("status")
+            signature = req.get("sig")
+            requestor = req.get("name", "")
             amount_str = self.main_window.format_amount(amount) if amount else ""
-            item = QtWidgets.QTreeWidgetItem([date, address.to_ui_string(), '', message,
-                                    amount_str, _(pr_tooltips.get(status,''))])
+            item = QtWidgets.QTreeWidgetItem(
+                [
+                    date,
+                    address.to_ui_string(),
+                    "",
+                    message,
+                    amount_str,
+                    _(pr_tooltips.get(status, "")),
+                ]
+            )
             item.setData(0, Qt.UserRole, address)
             if signature is not None:
                 item.setIcon(2, QIcon(":icons/seal.svg"))
-                item.setToolTip(2, 'signed by '+ requestor)
+                item.setToolTip(2, "signed by " + requestor)
             if status is not PR_UNKNOWN:
                 item.setIcon(6, QIcon(pr_icons.get(status)))
             self.addTopLevelItem(item)
@@ -168,20 +182,20 @@ class RequestList(MyTreeWidget):
         menu = QtWidgets.QMenu(self)
         menu.addAction(
             _("Copy {}").format(column_title),
-            lambda: self.main_window.app.clipboard().setText(column_data.strip())
+            lambda: self.main_window.app.clipboard().setText(column_data.strip()),
         )
         menu.addAction(
             _("Copy URI"),
             lambda: self.main_window.view_and_paste(
-                'URI', '', self.main_window.get_request_URI(addr)
-            )
+                "URI", "", self.main_window.get_request_URI(addr)
+            ),
         )
         menu.addAction(
             _("Save as BIP70 file"),
-            lambda: self.main_window.export_payment_request(addr)
+            lambda: self.main_window.export_payment_request(addr),
         )
         menu.addAction(
             _("Delete"), lambda: self.main_window.delete_payment_request(addr)
         )
-        run_hook('receive_list_menu', menu, addr)
+        run_hook("receive_list_menu", menu, addr)
         menu.exec_(self.viewport().mapToGlobal(position))

@@ -22,20 +22,25 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtGui import QIntValidator, QValidator
-from PyQt5 import QtWidgets
-
 import warnings
 
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtGui import QIntValidator, QValidator
+
+
 class PortValidator(QIntValidator):
-    ''' A generic IP port validator.  Accepts any number in the range [1,65535]
-    by default. '''
+    """A generic IP port validator.  Accepts any number in the range [1,65535]
+    by default."""
+
     stateChanged = pyqtSignal(QValidator.State)
+
     def __init__(self, parent, minimum=1, accept_zero=False):
         super().__init__(0, 65535, parent)
         if not isinstance(parent, QtWidgets.QLineEdit):
-            warnings.warn(RuntimeWarning('PortValidator must be passed a QLineEdit parent'))
+            warnings.warn(
+                RuntimeWarning("PortValidator must be passed a QLineEdit parent")
+            )
         self.minimum = minimum
         self.accept_zero = accept_zero
         self.stateChanged.connect(self.setRedBorder)
@@ -56,14 +61,16 @@ class PortValidator(QIntValidator):
         parent = self.parent()
         if isinstance(parent, QtWidgets.QLineEdit):
             if state == QValidator.Acceptable:
-                parent.setStyleSheet('')
+                parent.setStyleSheet("")
             else:
-                parent.setStyleSheet('QLineEdit { border: 1px solid red }')
+                parent.setStyleSheet("QLineEdit { border: 1px solid red }")
+
 
 class UserPortValidator(PortValidator):
     """
     Checks that a given port is either a high port (from 1024 to 65535) or zero.
     Additionally provides a callback for when the validation state changes.
     """
+
     def __init__(self, parent, accept_zero=False):
         super().__init__(parent, 1024, accept_zero)

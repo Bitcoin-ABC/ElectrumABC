@@ -1,5 +1,6 @@
 import weakref
 
+
 # Based on: https://stackoverflow.com/a/2022629
 # By Longpoke (https://stackoverflow.com/users/80243)
 class Event(list):
@@ -33,14 +34,21 @@ class Event(list):
     g(2)
 
     """
+
     def __call__(self, *args, **kwargs):
-        for method in self.copy():  # prevent mutation while invoking, in case callbacks themselves add to this list
+        for (
+            method
+        ) in (
+            self.copy()
+        ):  # prevent mutation while invoking, in case callbacks themselves add to this list
             if isinstance(method, weakref.WeakMethod):
                 strong_method = method()
                 if not strong_method:
                     # This weak reference is dead, remove it from the list
-                    try: self.remove(method)
-                    except ValueError: pass  # allow for the possibility some other callback removed it already while we were iterating
+                    try:
+                        self.remove(method)
+                    except ValueError:
+                        pass  # allow for the possibility some other callback removed it already while we were iterating
                     continue
                 else:
                     # it's good, proceed with dereferenced strong_method

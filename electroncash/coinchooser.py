@@ -26,7 +26,7 @@
 from collections import defaultdict, namedtuple
 from math import floor, log10
 
-from electroncash.bitcoin import sha256, CASH, TYPE_ADDRESS
+from electroncash.bitcoin import CASH, TYPE_ADDRESS, sha256
 from electroncash.transaction import Transaction
 from electroncash.util import NotEnoughFunds, PrintError
 
@@ -65,23 +65,24 @@ class PRNG:
     def shuffle(self, x):
         for i in reversed(range(1, len(x))):
             # pick an element in x[:i+1] with which to exchange x[i]
-            j = self.randint(0, i+1)
+            j = self.randint(0, i + 1)
             x[i], x[j] = x[j], x[i]
 
 
-Bucket = namedtuple('Bucket', ['desc', 'size', 'value', 'coins', 'min_height'])
+Bucket = namedtuple("Bucket", ["desc", "size", "value", "coins", "min_height"])
+
 
 def strip_unneeded(bkts, sufficient_funds):
-    '''Remove buckets that are unnecessary in achieving the spend amount'''
-    bkts = sorted(bkts, key = lambda bkt: bkt.value)
+    """Remove buckets that are unnecessary in achieving the spend amount"""
+    bkts = sorted(bkts, key=lambda bkt: bkt.value)
     for i in range(len(bkts)):
-        if not sufficient_funds(bkts[i + 1:]):
+        if not sufficient_funds(bkts[i + 1 :]):
             return bkts[i:]
     # Shouldn't get here
     return bkts
 
-class CoinChooserBase(PrintError):
 
+class CoinChooserBase(PrintError):
     def keys(self, coins):
         raise NotImplementedError()
 
@@ -92,10 +93,12 @@ class CoinChooserBase(PrintError):
             buckets[key].append(coin)
 
         def make_Bucket(desc, coins):
-            size = sum(Transaction.estimated_input_size(coin, sign_schnorr=sign_schnorr)
-                       for coin in coins)
-            value = sum(coin['value'] for coin in coins)
-            min_height = min(coin['height'] for coin in coins)
+            size = sum(
+                Transaction.estimated_input_size(coin, sign_schnorr=sign_schnorr)
+                for coin in coins
+            )
+            value = sum(coin["value"] for coin in coins)
+            min_height = min(coin["height"] for coin in coins)
             return Bucket(desc, size, value, coins, min_height)
 
         return list(map(make_Bucket, buckets.keys(), buckets.values()))
@@ -103,6 +106,7 @@ class CoinChooserBase(PrintError):
     def penalty_func(self, tx):
         def penalty(candidate):
             return 0
+
         return penalty
 
     def change_amounts(self, tx, count, fee_estimator, dust_threshold):
@@ -122,7 +126,7 @@ class CoinChooserBase(PrintError):
         # change to look similar
         def trailing_zeroes(val):
             s = str(val)
-            return len(s) - len(s.rstrip('0'))
+            return len(s) - len(s.rstrip("0"))
 
         zeroes = [trailing_zeroes(i) for i in output_amounts]
         min_zeroes = min(zeroes)
@@ -152,31 +156,40 @@ class CoinChooserBase(PrintError):
         return amounts
 
     def change_outputs(self, tx, change_addrs, fee_estimator, dust_threshold):
-        amounts = self.change_amounts(tx, len(change_addrs), fee_estimator,
-                                      dust_threshold)
+        amounts = self.change_amounts(
+            tx, len(change_addrs), fee_estimator, dust_threshold
+        )
         assert min(amounts) >= 0
         assert len(change_addrs) >= len(amounts)
         # If change is above dust threshold after accounting for the
         # size of the change output, add it to the transaction.
         dust = sum(amount for amount in amounts if amount < dust_threshold)
         amounts = [amount for amount in amounts if amount >= dust_threshold]
-        change = [(TYPE_ADDRESS, addr, amount)
-                  for addr, amount in zip(change_addrs, amounts)]
-        self.print_error('change:', change)
+        change = [
+            (TYPE_ADDRESS, addr, amount) for addr, amount in zip(change_addrs, amounts)
+        ]
+        self.print_error("change:", change)
         if dust:
-            self.print_error('not keeping dust', dust)
+            self.print_error("not keeping dust", dust)
         return change, dust
 
-    def make_tx(self, coins, outputs, change_addrs, fee_estimator,
-                dust_threshold, sign_schnorr=False):
-        '''Select unspent coins to spend to pay outputs.  If the change is
+    def make_tx(
+        self,
+        coins,
+        outputs,
+        change_addrs,
+        fee_estimator,
+        dust_threshold,
+        sign_schnorr=False,
+    ):
+        """Select unspent coins to spend to pay outputs.  If the change is
         greater than dust_threshold (after adding the change output to
         the transaction) it is kept, otherwise none is sent and it is
-        added to the transaction fee.'''
+        added to the transaction fee."""
 
         # Deterministic randomness from coins
-        utxos = [c['prevout_hash'] + str(c['prevout_n']) for c in coins]
-        self.p = PRNG(''.join(sorted(utxos)))
+        utxos = [c["prevout_hash"] + str(c["prevout_n"]) for c in coins]
+        self.p = PRNG("".join(sorted(utxos)))
 
         # Copy the outputs so when adding change we don't modify "outputs"
         tx = Transaction.from_io([], outputs, sign_schnorr=sign_schnorr)
@@ -185,16 +198,15 @@ class CoinChooserBase(PrintError):
         spent_amount = tx.output_value()
 
         def sufficient_funds(buckets):
-            '''Given a list of buckets, return True if it has enough
-            value to pay for the transaction'''
+            """Given a list of buckets, return True if it has enough
+            value to pay for the transaction"""
             total_input = sum(bucket.value for bucket in buckets)
             total_size = sum(bucket.size for bucket in buckets) + base_size
             return total_input >= spent_amount + fee_estimator(total_size)
 
         # Collect the coins into buckets, choose a subset of the buckets
         buckets = self.bucketize_coins(coins, sign_schnorr=sign_schnorr)
-        buckets = self.choose_buckets(buckets, sufficient_funds,
-                                      self.penalty_func(tx))
+        buckets = self.choose_buckets(buckets, sufficient_funds, self.penalty_func(tx))
 
         tx.add_inputs([coin for b in buckets for coin in b.coins])
         tx_size = base_size + sum(bucket.size for bucket in buckets)
@@ -204,7 +216,7 @@ class CoinChooserBase(PrintError):
         fee = lambda count: fee_estimator(tx_size + count * 34)
         change, dust = self.change_outputs(tx, change_addrs, fee, dust_threshold)
         tx.add_outputs(change)
-        tx.ephemeral['dust_to_fee'] = dust
+        tx.ephemeral["dust_to_fee"] = dust
 
         self.print_error("using %d inputs" % len(tx.inputs()))
         self.print_error("using buckets:", [bucket.desc for bucket in buckets])
@@ -212,12 +224,12 @@ class CoinChooserBase(PrintError):
         return tx
 
     def choose_buckets(self, buckets, sufficient_funds, penalty_func):
-        raise NotImplementedError('To be subclassed')
+        raise NotImplementedError("To be subclassed")
+
 
 class CoinChooserRandom(CoinChooserBase):
-
     def bucket_candidates_any(self, buckets, sufficient_funds):
-        '''Returns a list of bucket sets.'''
+        """Returns a list of bucket sets."""
         if not buckets:
             raise NotEnoughFunds()
 
@@ -239,7 +251,7 @@ class CoinChooserRandom(CoinChooserBase):
             for count, index in enumerate(permutation):
                 bkts.append(buckets[index])
                 if sufficient_funds(bkts):
-                    candidates.add(tuple(sorted(permutation[:count + 1])))
+                    candidates.add(tuple(sorted(permutation[: count + 1])))
                     break
             else:
                 raise NotEnoughFunds()
@@ -268,6 +280,7 @@ class CoinChooserRandom(CoinChooserBase):
 
         for bkts_choose_from in bucket_sets:
             try:
+
                 def sfunds(bkts):
                     return sufficient_funds(already_selected_buckets + bkts)
 
@@ -289,18 +302,19 @@ class CoinChooserRandom(CoinChooserBase):
         self.print_error("Winning penalty:", min(penalties))
         return winner
 
+
 class CoinChooserPrivacy(CoinChooserRandom):
-    '''Attempts to better preserve user privacy.  First, if any coin is
+    """Attempts to better preserve user privacy.  First, if any coin is
     spent from a user address, all coins are.  Compared to spending
     from other addresses to make up an amount, this reduces
     information leakage about sender holdings.  It also helps to
     reduce blockchain UTXO bloat, and reduce future privacy loss that
     would come from reusing that address' remaining UTXOs.  Second, it
     penalizes change that is quite different to the sent amount.
-    Third, it penalizes change that is too big.'''
+    Third, it penalizes change that is too big."""
 
     def keys(self, coins):
-        return [coin['address'] for coin in coins]
+        return [coin["address"] for coin in coins]
 
     def penalty_func(self, tx):
         min_change = min(o[2] for o in tx.outputs()) * 0.75
@@ -325,11 +339,12 @@ class CoinChooserPrivacy(CoinChooserRandom):
 
 
 COIN_CHOOSERS = {
-    'Privacy': CoinChooserPrivacy,
+    "Privacy": CoinChooserPrivacy,
 }
 
+
 def get_name(config):
-    kind = config.get('coin_chooser')
+    kind = config.get("coin_chooser")
     if not kind in COIN_CHOOSERS:
-        kind = 'Privacy'
+        kind = "Privacy"
     return kind

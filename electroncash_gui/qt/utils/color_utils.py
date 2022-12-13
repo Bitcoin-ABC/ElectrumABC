@@ -26,6 +26,7 @@
 
 from PyQt5.QtGui import QColor
 
+
 def QColorLerp(a: QColor, b: QColor, t: float):
     """
     Blends two QColors. t=0 returns a. t=1 returns b. t=0.5 returns evenly mixed.
@@ -33,8 +34,8 @@ def QColorLerp(a: QColor, b: QColor, t: float):
     t = max(min(t, 1.0), 0.0)
     i_t = 1.0 - t
     return QColor(
-        int((a.red()   * i_t) + (b.red()   * t)),
+        int((a.red() * i_t) + (b.red() * t)),
         int((a.green() * i_t) + (b.green() * t)),
-        int((a.blue()  * i_t) + (b.blue()  * t)),
+        int((a.blue() * i_t) + (b.blue() * t)),
         int((a.alpha() * i_t) + (b.alpha() * t)),
     )

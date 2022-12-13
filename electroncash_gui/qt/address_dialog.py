@@ -24,21 +24,15 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from electroncash.i18n import _
-from electroncash.address import Address
-
-from PyQt5.QtCore import QTimer
 from PyQt5 import QtWidgets
+from PyQt5.QtCore import QTimer
+
+from electroncash.address import Address
+from electroncash.i18n import _
 
 from .history_list import HistoryList
 from .qrtextedit import ShowQRTextEdit
-from .util import (
-    Buttons,
-    CloseButton,
-    ButtonsLineEdit,
-    ColorScheme,
-    WindowModalDialog
-)
+from .util import Buttons, ButtonsLineEdit, CloseButton, ColorScheme, WindowModalDialog
 
 
 class AddressDialog(WindowModalDialog):
@@ -57,13 +51,21 @@ class AddressDialog(WindowModalDialog):
         self.app = parent.app
         self.saved = True
 
-        self.setMinimumWidth(self.MIN_WIDTH_FX_HIST if self.parent.fx and self.parent.fx.show_history() else self.MIN_WIDTH_NO_FX_HIST)
+        self.setMinimumWidth(
+            self.MIN_WIDTH_FX_HIST
+            if self.parent.fx and self.parent.fx.show_history()
+            else self.MIN_WIDTH_NO_FX_HIST
+        )
         vbox = QtWidgets.QVBoxLayout()
         self.setLayout(vbox)
 
         vbox.addWidget(QtWidgets.QLabel(_("Address:")))
         self.addr_e = ButtonsLineEdit()
-        icon = ":icons/qrcode_white.svg" if ColorScheme.dark_scheme else ":icons/qrcode.svg"
+        icon = (
+            ":icons/qrcode_white.svg"
+            if ColorScheme.dark_scheme
+            else ":icons/qrcode.svg"
+        )
         self.addr_e.addButton(icon, self.show_qr, _("Show QR Code"))
         self.addr_e.addCopyButton()
         self.addr_e.setReadOnly(True)
@@ -82,7 +84,7 @@ class AddressDialog(WindowModalDialog):
                 # watching only wallets (totally lacks a private/public key pair for this address)
                 pubkeys = None
         if pubkeys:
-            vbox.addWidget(QtWidgets.QLabel(_("Public keys") + ':'))
+            vbox.addWidget(QtWidgets.QLabel(_("Public keys") + ":"))
             for pubkey in pubkeys:
                 pubkey_e = ButtonsLineEdit(pubkey)
                 pubkey_e.addCopyButton()
@@ -93,7 +95,7 @@ class AddressDialog(WindowModalDialog):
         except BaseException as e:
             redeem_script = None
         if redeem_script:
-            vbox.addWidget(QtWidgets.QLabel(_("Redeem Script") + ':'))
+            vbox.addWidget(QtWidgets.QLabel(_("Redeem Script") + ":"))
             redeem_e = ShowQRTextEdit(text=redeem_script)
             redeem_e.addCopyButton()
             vbox.addWidget(redeem_e)
@@ -115,17 +117,25 @@ class AddressDialog(WindowModalDialog):
         self.parent.network_signal.connect(self.got_verified_tx)
 
     def disconnect_signals(self):
-        try: self.parent.history_updated_signal.disconnect(self.hw.update)
-        except TypeError: pass
-        try: self.parent.network_signal.disconnect(self.got_verified_tx)
-        except TypeError: pass
-        try: self.parent.gui_object.addr_fmt_changed.disconnect(self.update_addr)
-        except TypeError: pass
-        try: self.parent.labels_updated_signal.disconnect(self.hw.update_labels)
-        except TypeError: pass
+        try:
+            self.parent.history_updated_signal.disconnect(self.hw.update)
+        except TypeError:
+            pass
+        try:
+            self.parent.network_signal.disconnect(self.got_verified_tx)
+        except TypeError:
+            pass
+        try:
+            self.parent.gui_object.addr_fmt_changed.disconnect(self.update_addr)
+        except TypeError:
+            pass
+        try:
+            self.parent.labels_updated_signal.disconnect(self.hw.update_labels)
+        except TypeError:
+            pass
 
     def got_verified_tx(self, event, args):
-        if event == 'verified2' and args[0] is self.wallet:
+        if event == "verified2" and args[0] is self.wallet:
             self.hw.update_item(*args[1:])
 
     def update_addr(self):
@@ -137,15 +147,18 @@ class AddressDialog(WindowModalDialog):
     def show_qr(self):
         text = self.address.to_ui_string()
         try:
-            self.parent.show_qrcode(text, 'Address', parent=self)
+            self.parent.show_qrcode(text, "Address", parent=self)
         except Exception as e:
             self.show_message(str(e))
 
     def exec_(self):
-        ''' Overrides super class and does some cleanup after exec '''
+        """Overrides super class and does some cleanup after exec"""
         self.connect_signals()
         retval = super().exec_()
         self.disconnect_signals()
         import gc
-        QTimer.singleShot(10, lambda: gc.collect()) # run GC in 10 ms. Otherwise this window sticks around in memory for way too long
+
+        QTimer.singleShot(
+            10, lambda: gc.collect()
+        )  # run GC in 10 ms. Otherwise this window sticks around in memory for way too long
         return retval

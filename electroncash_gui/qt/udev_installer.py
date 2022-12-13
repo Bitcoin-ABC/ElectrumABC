@@ -26,27 +26,27 @@
 Only import this on linux platforms, the module imports linux specific modules
 """
 
+import grp
 import os
 import tempfile
-import grp
 
-from PyQt5.QtCore import Qt
 from PyQt5 import QtWidgets
+from PyQt5.QtCore import Qt
 
-from electroncash.util import _, PrintError
-from electroncash.plugins import Plugins
-from electroncash_gui.qt.util import WindowModalDialog
 from electroncash.constants import PROJECT_NAME
+from electroncash.plugins import Plugins
+from electroncash.util import PrintError, _
+from electroncash_gui.qt.util import WindowModalDialog
 
 
 class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
-    UDEV_RULES_FILE = '/etc/udev/rules.d/20-electrum-abc-hw-wallets.rules'
-    GRAPHICAL_SUDOS = ['pkexec', 'gksudo', 'kdesudo']
+    UDEV_RULES_FILE = "/etc/udev/rules.d/20-electrum-abc-hw-wallets.rules"
+    GRAPHICAL_SUDOS = ["pkexec", "gksudo", "kdesudo"]
 
     ADDITIONAL_HARDWARE_IDS = {
-        (0x534c, 0x0001),  # TREZOR
-        (0x1209, 0x53c0),  # TREZOR V2
-        (0x1209, 0x53c1),  # TREZOR V2
+        (0x534C, 0x0001),  # TREZOR
+        (0x1209, 0x53C0),  # TREZOR V2
+        (0x1209, 0x53C1),  # TREZOR V2
     }
 
     def __init__(self, parent: QtWidgets.QWidget, plugins: Plugins):
@@ -57,24 +57,27 @@ class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
         plugins.get_hardware_support()
         self.device_manager = plugins.device_manager
 
-        self.setWindowTitle(_('Hardware Wallet Support'))
+        self.setWindowTitle(_("Hardware Wallet Support"))
 
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
-        layout.setContentsMargins(20,20,20,20)
+        layout.setContentsMargins(20, 20, 20, 20)
 
         info_label = QtWidgets.QLabel()
         info_label.setText(
-            _('This tool installs hardware wallet "udev rules" on your '
-              'system.') +
-            ' ' +
-            _(f'Correct udev rules are required in order for a hardware wallet'
-              f' to be accessed by {PROJECT_NAME}.') +
-            '\n\n' +
-            _('Note: Installing udev rules requires root access via "sudo", '
-              'so make sure you are in the sudoers file and/or have '
-              'Administrator rights on this system!')
+            _('This tool installs hardware wallet "udev rules" on your ' "system.")
+            + " "
+            + _(
+                f"Correct udev rules are required in order for a hardware wallet"
+                f" to be accessed by {PROJECT_NAME}."
             )
+            + "\n\n"
+            + _(
+                'Note: Installing udev rules requires root access via "sudo", '
+                "so make sure you are in the sudoers file and/or have "
+                "Administrator rights on this system!"
+            )
+        )
         info_label.setWordWrap(True)
 
         layout.addWidget(info_label)
@@ -82,7 +85,7 @@ class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
         hbox = QtWidgets.QHBoxLayout()
         hbox.addStretch(2)
         status_title = QtWidgets.QLabel()
-        status_title.setText(_('udev Rules Status:'))
+        status_title.setText(_("udev Rules Status:"))
         status_title.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         hbox.addWidget(status_title)
         hbox.addStretch(1)
@@ -98,40 +101,39 @@ class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
         button_layout = QtWidgets.QHBoxLayout()
         layout.addLayout(button_layout)
 
-        close_button = QtWidgets.QPushButton(_('&Close'))
+        close_button = QtWidgets.QPushButton(_("&Close"))
         close_button.clicked.connect(self.reject)
         button_layout.addWidget(close_button)
         button_layout.addStretch(1)
         self.uninstall_button = QtWidgets.QPushButton()
-        self.uninstall_button.setText(_('&Uninstall'))
+        self.uninstall_button.setText(_("&Uninstall"))
         self.uninstall_button.clicked.connect(self.uninstallClicked)
         button_layout.addWidget(self.uninstall_button)
 
         self.install_button = QtWidgets.QPushButton()
-        self.install_button.setText(_('&Install'))
+        self.install_button.setText(_("&Install"))
         self.install_button.clicked.connect(self.installClicked)
         button_layout.addWidget(self.install_button)
 
         self.install_button.setMinimumWidth(100)
         self.uninstall_button.setMinimumWidth(100)
 
-
         self.updateStatus()
 
-        self.resize(400,300)
+        self.resize(400, 300)
 
     def setStatus(self, text: str, bold: bool = False):
-        self.status_label.setText(text if not bold else ('<b>{}</b>'.format(text)))
+        self.status_label.setText(text if not bold else ("<b>{}</b>".format(text)))
         self.status_label.setTextFormat(Qt.RichText)
 
     def updateStatus(self):
         if not os.path.isfile(self.UDEV_RULES_FILE):
             self.install_button.setEnabled(True)
             self.uninstall_button.setEnabled(False)
-            self.setStatus(_('Not installed'), True)
+            self.setStatus(_("Not installed"), True)
             return
 
-        with open(self.UDEV_RULES_FILE, 'r') as rules_file:
+        with open(self.UDEV_RULES_FILE, "r") as rules_file:
             rules_installed = rules_file.read()
 
         rules = self.generateRulesFile()
@@ -139,19 +141,19 @@ class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
         if rules_installed != rules:
             self.install_button.setEnabled(True)
             self.uninstall_button.setEnabled(True)
-            self.setStatus(_('Needs update'), True)
+            self.setStatus(_("Needs update"), True)
             return
 
         self.install_button.setEnabled(False)
         self.uninstall_button.setEnabled(True)
-        self.setStatus(_('Installed'), False)
+        self.setStatus(_("Installed"), False)
 
     def generateRulesFile(self) -> str:
-        line_format='SUBSYSTEMS=="usb", ATTRS{{idVendor}}=="{:04x}", ATTRS{{idProduct}}=="{:04x}"'
+        line_format = 'SUBSYSTEMS=="usb", ATTRS{{idVendor}}=="{:04x}", ATTRS{{idProduct}}=="{:04x}"'
 
         try:
             # Add the plugdev group if it exists
-            grp.getgrnam('plugdev')
+            grp.getgrnam("plugdev")
             line_format += ', GROUP="plugdev"'
         except KeyError:
             pass
@@ -159,24 +161,28 @@ class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
         # Add the uaccess tag. On most distros this is all that is needed for users to access USB devices
         line_format += ', TAG+="uaccess"'
 
-        ids_set = self.device_manager.get_recognized_hardware().union(self.ADDITIONAL_HARDWARE_IDS)
+        ids_set = self.device_manager.get_recognized_hardware().union(
+            self.ADDITIONAL_HARDWARE_IDS
+        )
         lines = [line_format.format(ids[0], ids[1]) for ids in ids_set]
-        return f'# {PROJECT_NAME} hardware wallet rules file\n' + '\n'.join(lines) + '\n'
+        return (
+            f"# {PROJECT_NAME} hardware wallet rules file\n" + "\n".join(lines) + "\n"
+        )
 
     def _runScriptAsRoot(self, script: str) -> bool:
         assert script
 
-        with tempfile.NamedTemporaryFile(mode='w', prefix='electrumabc') as tf:
+        with tempfile.NamedTemporaryFile(mode="w", prefix="electrumabc") as tf:
             tf.write(script)
             tf.flush()
 
             if os.getuid() == 0:
-                if os.spawnvp(os.P_WAIT, 'sh', ['sh', tf.name]) == 0:
+                if os.spawnvp(os.P_WAIT, "sh", ["sh", tf.name]) == 0:
                     return True
                 return False
 
             for sudo in self.GRAPHICAL_SUDOS:
-                if os.spawnvp(os.P_WAIT, sudo, [sudo, 'sh', tf.name]) == 0:
+                if os.spawnvp(os.P_WAIT, sudo, [sudo, "sh", tf.name]) == 0:
                     return True
 
         return False
@@ -186,33 +192,32 @@ class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
         # It appears unnecessary on most distros, according to @EchtarAgo (Axel Gembe)
         # If you find it is necessary, comment it back in.
         # Also note: on Tails Linux it did cause a system shutdown as well.
-        #script = script + 'udevadm trigger\n'
-        script = script + 'udevadm control --reload-rules\n'
+        # script = script + 'udevadm trigger\n'
+        script = script + "udevadm control --reload-rules\n"
         return script
 
     def installClicked(self):
-        script = 'set -e\n'
-        script += 'umask 022\n'
+        script = "set -e\n"
+        script += "umask 022\n"
         script += 'cat << EOF > "{}"\n'.format(self.UDEV_RULES_FILE)
         script += self.generateRulesFile()
-        script += 'EOF\n'
+        script += "EOF\n"
         script = self._addUdevAdmCommands(script)
         self.print_error(script)
         success = self._runScriptAsRoot(script)
         self.updateStatus()
         if success:
-            msg = _('HW wallet udev rules have been successfully installed!')
+            msg = _("HW wallet udev rules have been successfully installed!")
             info = (
-                _('Note: You may now need to disconnect & reconnect your HW wallet.')
+                _("Note: You may now need to disconnect & reconnect your HW wallet.")
                 # Commented the below out as it's no longer relevant after our
                 # removal of `udevadm trigger` above.
-                #+ "\n\n" + _('(Your display resolution may also have changed as a result of this process. This is harmless; simply set it back.)')
+                # + "\n\n" + _('(Your display resolution may also have changed as a result of this process. This is harmless; simply set it back.)')
             )
             self.show_message(msg, informative_text=info, rich_text=True)
         else:
-            msg = _('Error installing udev rules and/or user canceled.')
+            msg = _("Error installing udev rules and/or user canceled.")
             self.show_warning(msg)
-
 
     def uninstallClicked(self):
         script = 'rm -f "{}"\n'.format(self.UDEV_RULES_FILE)
@@ -221,8 +226,8 @@ class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
         success = self._runScriptAsRoot(script)
         self.updateStatus()
         if success:
-            msg = _('HW wallet udev rules have been successfully uninstalled!')
+            msg = _("HW wallet udev rules have been successfully uninstalled!")
             self.show_message(msg)
         else:
-            msg = _('Error uninstalling udev rules and/or user canceled.')
+            msg = _("Error uninstalling udev rules and/or user canceled.")
             self.show_warning(msg)

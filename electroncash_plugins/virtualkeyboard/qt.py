@@ -1,9 +1,11 @@
-from PyQt5.QtGui import QFont
-from PyQt5 import QtWidgets
-from electroncash.plugins import BasePlugin, hook
-from electroncash.i18n import _
-from electroncash_gui.qt.util import MONOSPACE_FONT
 import random
+
+from PyQt5 import QtWidgets
+from PyQt5.QtGui import QFont
+
+from electroncash.i18n import _
+from electroncash.plugins import BasePlugin, hook
+from electroncash_gui.qt.util import MONOSPACE_FONT
 
 
 class Plugin(BasePlugin):
@@ -29,11 +31,11 @@ class Plugin(BasePlugin):
     def virtual_keyboard(self, i, pw):
         i = i % 3
         if i == 0:
-            chars = 'abcdefghijklmnopqrstuvwxyz '
+            chars = "abcdefghijklmnopqrstuvwxyz "
         elif i == 1:
-            chars = 'ABCDEFGHIJKLMNOPQRTSUVWXYZ '
+            chars = "ABCDEFGHIJKLMNOPQRTSUVWXYZ "
         elif i == 2:
-            chars = '1234567890!?.,;:/%&()[]{}+-'
+            chars = "1234567890!?.,;:/%&()[]{}+-"
 
         s = list(chars)
         random.shuffle(s)
@@ -45,7 +47,7 @@ class Plugin(BasePlugin):
         grid = QtWidgets.QGridLayout()
         grid.setSpacing(2)
         font = QFont(MONOSPACE_FONT)
-        for i,c in enumerate(s):
+        for i, c in enumerate(s):
             l_button = QtWidgets.QPushButton(c)
             l_button.setFont(font)
             l_button.clicked.connect(add_target(c))

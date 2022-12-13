@@ -21,10 +21,16 @@ for p in sys.stdin.read().split():
     p = p.strip()
     if not p:
         continue
-    assert "==" in p, "This script expects a list of packages with pinned version, e.g. package==1.2.3, not {}".format(p)
+    assert (
+        "==" in p
+    ), "This script expects a list of packages with pinned version, e.g. package==1.2.3, not {}".format(
+        p
+    )
     p, v = p.rsplit("==", 1)
     try:
-        data = requests.get("https://pypi.org/pypi/{}/{}/json".format(p, v)).json()["info"]
+        data = requests.get("https://pypi.org/pypi/{}/{}/json".format(p, v)).json()[
+            "info"
+        ]
     except ValueError:
         raise Exception("Package could not be found: {}=={}".format(p, v))
     try:
@@ -34,8 +40,12 @@ for p in sys.stdin.read().split():
             d, restricted = r.split(";", 1)
             if check_restriction(d, restricted):
                 print(d, sep=" ")
-                print("Installing {} from {} although it is only needed for {}".format(d, p, restricted), file=sys.stderr)
+                print(
+                    "Installing {} from {} although it is only needed for {}".format(
+                        d, p, restricted
+                    ),
+                    file=sys.stderr,
+                )
     except TypeError:
         # Has no dependencies at all
         continue
-

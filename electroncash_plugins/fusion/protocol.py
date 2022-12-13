@@ -35,13 +35,14 @@ having loss of function, or theoretical privacy loss.
 
 from . import pedersen
 
+
 # this class doesn't get instantiated, it's just a bag of values.
 class Protocol:
-    VERSION = b'alpha13'
-    PEDERSEN = pedersen.PedersenSetup(b'\x02CashFusion gives us fungibility.')
+    VERSION = b"alpha13"
+    PEDERSEN = pedersen.PedersenSetup(b"\x02CashFusion gives us fungibility.")
 
     # 4-byte 'lokad' identifier at start of OP_RETURN
-    FUSE_ID = b'FUZ\x00'
+    FUSE_ID = b"FUZ\x00"
 
     # The server only enforces dust limits, but clients should not make outputs
     # smaller than this.
@@ -57,9 +58,11 @@ class Protocol:
     # What timespan to make covert submissions over.
     COVERT_SUBMIT_WINDOW = 5.0
 
-    COVERT_CONNECT_SPARES = 6 # how many spare connections to make
+    COVERT_CONNECT_SPARES = 6  # how many spare connections to make
 
-    MAX_CLOCK_DISCREPANCY = 5.0 # how much the server's time is allowed to differ from client
+    MAX_CLOCK_DISCREPANCY = (
+        5.0  # how much the server's time is allowed to differ from client
+    )
 
     ### Critical timeline ###
     # (For early phases in a round)
@@ -69,8 +72,10 @@ class Protocol:
 
     # Parameters for the 'warmup period' during which clients attempt Tor connections.
     # It is long since Tor circuits can take a while to establish.
-    WARMUP_TIME = 30. # time interval between fusionbegin and first startround message.
-    WARMUP_SLOP = 3.  # allowed discrepancy in warmup interval, and in clock sync.
+    WARMUP_TIME = (
+        30.0  # time interval between fusionbegin and first startround message.
+    )
+    WARMUP_SLOP = 3.0  # allowed discrepancy in warmup interval, and in clock sync.
 
     # T_* are client times measured from receipt of startround message.
     # TS_* are server times measured from send of startround message.
@@ -105,18 +110,17 @@ class Protocol:
     # When to start closing covert connections if .stop() is called. It is
     # likely the server has already closed, but client needs to do this just
     # in case.
-    T_START_CLOSE = +45.0 # before conclusion
-    T_START_CLOSE_BLAME = +80.0 # after conclusion, during blame phase.
+    T_START_CLOSE = +45.0  # before conclusion
+    T_START_CLOSE_BLAME = +80.0  # after conclusion, during blame phase.
 
     ### (End critical timeline) ###
-
 
     # For non-critical messages like during blame phase, just regular relative timeouts are needed.
     # Note that when clients send a result and expect a 'gathered' response from server, they wait
     # twice this long to allow for other slow clients.
-    STANDARD_TIMEOUT = 3.
+    STANDARD_TIMEOUT = 3.0
     # How much extra time to allow for a peer to check blames (this may involve querying blockchain).
-    BLAME_VERIFY_TIME = 5.
+    BLAME_VERIFY_TIME = 5.0
 
 
 del pedersen

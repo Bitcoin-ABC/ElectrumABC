@@ -1652,7 +1652,8 @@ words = [
     "total",
     "unseen",
     "weapon",
-    "weary"]
+    "weary",
+]
 
 
 n = 1626
@@ -1664,31 +1665,33 @@ n = 1626
 def mn_encode(message):
     assert len(message) % 8 == 0
     out = []
-    for i in range(len(message)//8):
-        word = message[8*i:8*i+8]
+    for i in range(len(message) // 8):
+        word = message[8 * i : 8 * i + 8]
         x = int(word, 16)
-        w1 = (x%n)
-        w2 = ((x//n) + w1)%n
-        w3 = ((x//n//n) + w2)%n
+        w1 = x % n
+        w2 = ((x // n) + w1) % n
+        w3 = ((x // n // n) + w2) % n
         out += [words[w1], words[w2], words[w3]]
     return out
 
 
 def mn_decode(wlist):
-    out = ''
-    for i in range(len(wlist)//3):
-        word1, word2, word3 = wlist[3*i:3*i+3]
-        w1 =  words.index(word1)
-        w2 = (words.index(word2))%n
-        w3 = (words.index(word3))%n
-        x = w1 +n*((w2-w1)%n) +n*n*((w3-w2)%n)
-        out += '%08x'%x
+    out = ""
+    for i in range(len(wlist) // 3):
+        word1, word2, word3 = wlist[3 * i : 3 * i + 3]
+        w1 = words.index(word1)
+        w2 = (words.index(word2)) % n
+        w3 = (words.index(word3)) % n
+        x = w1 + n * ((w2 - w1) % n) + n * n * ((w3 - w2) % n)
+        out += "%08x" % x
     return out
 
+
 def mn_is_seed(seed: str) -> bool:
-    """ Returns True if seed is a valid "old" seed phrase of 12 or 24 words *OR*
-    if it's a hex string encoding 16 or 32 bytes. """
+    """Returns True if seed is a valid "old" seed phrase of 12 or 24 words *OR*
+    if it's a hex string encoding 16 or 32 bytes."""
     from electroncash import mnemo
+
     seed = mnemo.normalize_text(seed)
     words = seed.split()
     try:
@@ -1699,17 +1702,18 @@ def mn_is_seed(seed: str) -> bool:
         uses_electrum_words = False
     try:
         seed = bytes.fromhex(seed)
-        is_hex = (len(seed) == 16 or len(seed) == 32)
+        is_hex = len(seed) == 16 or len(seed) == 32
     except Exception:
         is_hex = False
     return is_hex or (uses_electrum_words and (len(words) == 12 or len(words) == 24))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
+
     if len(sys.argv) == 1:
-        print('I need arguments: a hex string to encode, or a list of words to decode')
+        print("I need arguments: a hex string to encode, or a list of words to decode")
     elif len(sys.argv) == 2:
-        print(' '.join(mn_encode(sys.argv[1])))
+        print(" ".join(mn_encode(sys.argv[1])))
     else:
         print(mn_decode(sys.argv[1:]))
