@@ -70,9 +70,13 @@ task:
     - container:
         image: python:3.7
     - container:
+        image: python:3.8
+    - container:
         image: python:3.9
     - container:
         image: python:3.10
+    - container:
+        image: python:3.11
 
 task:
   name: "Tests (secp256k1)"
@@ -89,6 +93,10 @@ task:
     - container:
         image: python:3.7
     - container:
+        image: python:3.8
+    - container:
         image: python:3.9
     - container:
         image: python:3.10
+    - container:
+        image: python:3.11
