@@ -27,7 +27,7 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from typing import TYPE_CHECKING, List, NamedTuple, Optional
+from typing import TYPE_CHECKING, List, NamedTuple, Optional, Tuple
 
 from electroncash.plugins import daemon_command
 from electroncash.util import InvalidPassword
@@ -64,6 +64,26 @@ def find_password_in_list(
 
 
 class Plugin(FusionPlugin):
+    def _get_fusable_wallets(
+        self, daemon: Daemon, passwords: List[str]
+    ) -> Tuple[int, int, List[WalletToFuse]]:
+        wallets_to_fuse: List[WalletToFuse] = []
+        num_hardware_wallets = 0
+        num_wallets_without_password = 0
+        for name, wallet in daemon.wallets.items():
+            if wallet.is_hardware():
+                num_hardware_wallets += 1
+                continue
+
+            password = None
+            if wallet.storage.is_encrypted():
+                password = find_password_in_list(wallet, passwords)
+                if password is None:
+                    num_wallets_without_password += 1
+                    continue
+            wallets_to_fuse.append(WalletToFuse(name, wallet, password))
+        return num_hardware_wallets, num_wallets_without_password, wallets_to_fuse
+
     @daemon_command
     def enable_autofuse(self, daemon: Daemon, config: SimpleConfig):
         """Usage:
@@ -79,32 +99,31 @@ class Plugin(FusionPlugin):
             ./electrum-abc daemon enable_autofuse 'password1'
         """
         passwords = config.get("subargs")
-
-        wallets_to_fuse: List[WalletToFuse] = []
-        for name, wallet in daemon.wallets.items():
-            if wallet.is_hardware():
-                print(f"Error: Cannot add hardware wallet {name} to Cash Fusion.")
-                continue
-
-            password = None
-            if wallet.storage.is_encrypted():
-                password = find_password_in_list(wallet, passwords)
-                if password is None:
-                    print(
-                        f"Error: No valid password provided for wallet {name}. Skipping."
-                    )
-                    continue
-            wallets_to_fuse.append(WalletToFuse(name, wallet, password))
-
+        num_hw, num_without_pwd, wallets_to_fuse = self._get_fusable_wallets(
+            daemon, passwords
+        )
+        if not (num_hw + num_without_pwd + len(wallets_to_fuse)):
+            return "No wallet currently loaded. Use the `load_wallet` command."
         ret = ""
-        for w in wallets_to_fuse:
-            ret += f"adding wallet {w.name} to Cash Fusion\n"
-            super().add_wallet(w.wallet, w.password)
-            super().enable_autofusing(w.wallet, w.password)
+        if num_hw:
+            ret += f"Ignoring {num_hw} hardware wallets.\n"
+        if num_without_pwd:
+            ret += (
+                f"Ignoring {num_without_pwd} encrypted wallets with no password or an "
+                "incorrect password specified on the command line.\n"
+            )
+        if not wallets_to_fuse:
+            ret += "None of the loaded wallets are eligible for running Cash Fusion.\n"
+            return ret
 
         if self.tor_port_good is None:
-            ret += "Enabling tor for Cash Fusion\n"
+            ret += "Enabling tor for Cash Fusion.\n"
             self._enable_tor(daemon)
+
+        for w in wallets_to_fuse:
+            ret += f"Adding wallet {w.name} to Cash Fusion.\n"
+            super().add_wallet(w.wallet, w.password)
+            super().enable_autofusing(w.wallet, w.password)
         return ret
 
     def _enable_tor(self, daemon: Daemon):
@@ -132,6 +151,11 @@ class Plugin(FusionPlugin):
     @daemon_command
     def fusion_status(self, daemon: Daemon, config: SimpleConfig):
         """Print a table showing the status for all fusions."""
+        if not daemon.wallets:
+            return (
+                "No wallet currently loaded or fusing. Try `load_wallet` and "
+                "`daemon enable_autofuse`"
+            )
         ret = "Wallet                    Status          Status Extra\n"
         for fusion in reversed(self.get_all_fusions()):
             wname = fusion.target_wallet.diagnostic_name()
