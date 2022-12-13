@@ -266,8 +266,8 @@ class Commands:
     @command('')
     def restore(self, text, passphrase=None, password=None, encrypt_file=True, wallet_path=None):
         """Restore a wallet from text. Text can be a seed phrase, a master
-        public key, a master private key, a list of bitcoin cash addresses
-        or bitcoin cash private keys.
+        public key, a master private key, a list of eCash addresses
+        or private keys.
         If you want to be prompted for an argument, type '?' or ':' (concealed)
         """
         d = restore_wallet_from_text(text,
@@ -923,8 +923,8 @@ class Commands:
 param_descriptions = {
     'wallet_path': 'Wallet path(create/restore commands)',
     'privkey': 'Private key. Type \'?\' to get a prompt.',
-    'destination': 'Bitcoin Cash address, contact or alias',
-    'address': 'Bitcoin Cash address',
+    'destination': 'eCash address, contact or alias',
+    'address': 'eCash address',
     'seed': 'Seed phrase',
     'txid': 'Transaction ID',
     'pos': 'Position',

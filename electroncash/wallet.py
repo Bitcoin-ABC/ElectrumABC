@@ -2114,7 +2114,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         address = txin['address']
         if self.is_mine(address):
             txin['type'] = self.get_txin_type(address)
-            # Bitcoin Cash needs value to sign
+            # eCash needs value to sign
             received, spent = self.get_addr_io(address)
             item = received.get(txin['prevout_hash']+':%d'%txin['prevout_n'])
             tx_height, value, is_cb = item

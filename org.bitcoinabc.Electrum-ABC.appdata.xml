@@ -4,7 +4,7 @@
 <name>Electrum ABC</name>
 	<summary>Lightweight eCash Client</summary>
 	<description>
-		<p>Electrum ABC is an SPV wallet for Bitcoin Cash</p>
+		<p>Electrum ABC is an SPV wallet for eCash</p>
 		<p>Control your own private keys. Easily back up your wallet with a mnemonic seed phrase. Enjoy high security without downloading the blockchain or running a full node.</p>
 	</description>
 	<keywords>
