@@ -664,7 +664,7 @@ class FusionController(threading.Thread, PrintError):
             self.print_error("Ended successfully!")
         except FusionError as e:
             self.print_error(f"Ended with error: {e}")
-        except Exception as e:
+        except Exception:
             self.print_error("Failed with exception!")
             traceback.print_exc(file=sys.stderr)
             for c in self.clients:
@@ -904,7 +904,6 @@ class FusionController(threading.Thread, PrintError):
                     self.network.broadcast_transaction2(tx, timeout=3)
                 except ServerError as e:
                     (nice_msg,) = e.args
-                    server_msg = e.server_msg
                     self.print_error(f"could not broadcast the transaction! {nice_msg}")
                 except TimeoutException:
                     self.print_error(

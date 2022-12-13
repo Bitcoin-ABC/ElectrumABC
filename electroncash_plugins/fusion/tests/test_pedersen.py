@@ -49,13 +49,13 @@ def fastslowcase(testmethod):
 def TestBadSetup(self):
     # a particularly bad choice: H = -G
     with self.assertRaises(pedersen.InsecureHPoint):
-        setup = pedersen.PedersenSetup(
+        pedersen.PedersenSetup(
             bytes.fromhex(
                 "0379be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
             )
         )
     with self.assertRaises(pedersen.InsecureHPoint):
-        setup = pedersen.PedersenSetup(
+        pedersen.PedersenSetup(
             bytes.fromhex(
                 "0479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798b7c52588d95c3b9aa25b0403f1eef75702e84bb7597aabe663b82f6f04ef2777"
             )
@@ -63,7 +63,7 @@ def TestBadSetup(self):
 
     # a non-point
     with self.assertRaises(ValueError):
-        setup = pedersen.PedersenSetup(
+        pedersen.PedersenSetup(
             bytes.fromhex(
                 "030000000000000000000000000000000000000000000000000000000000000007"
             )

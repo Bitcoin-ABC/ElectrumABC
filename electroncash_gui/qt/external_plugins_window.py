@@ -167,7 +167,6 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
                     "I accept responsibility for any harm that comes from installing this plugin, and acknowledge:"
                 )
             )
-            rows = QtWidgets.QVBoxLayout()
             self.liabilityCheckbox1 = QtWidgets.QCheckBox(
                 _(f"The {PROJECT_NAME} Developers do NOT audit or vet " f"any plugins.")
             )
@@ -248,7 +247,6 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
 
     def refresh_plugin(self):
         plugin_path = self.plugin_path
-        metadata = self.plugin_metadata
 
         hasher = hashlib.sha256()
         with open(plugin_path, "rb") as f:

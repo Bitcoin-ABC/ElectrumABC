@@ -963,7 +963,7 @@ class EC_KEY(object):
             try:
                 self.verify_message(sig, message, sigtype)
                 return sig
-            except Exception as e:
+            except Exception:
                 continue
         else:
             raise Exception("error: cannot sign message")
@@ -1016,7 +1016,7 @@ class EC_KEY(object):
             raise Exception("invalid ciphertext: invalid magic bytes")
         try:
             ephemeral_pubkey = ser_to_point(ephemeral_pubkey)
-        except AssertionError as e:
+        except AssertionError:
             raise Exception("invalid ciphertext: invalid ephemeral pubkey")
         if not ecdsa.ecdsa.point_is_valid(
             generator_secp256k1, ephemeral_pubkey.x(), ephemeral_pubkey.y()
@@ -1085,7 +1085,6 @@ def CKD_pub(cK, c, n):
 
 # helper function, callable with arbitrary string
 def _CKD_pub(cK, c, s):
-    order = generator_secp256k1.order()
     I = hmac.new(c, cK + s, hashlib.sha512).digest()
     curve = SECP256k1
     pubkey_point = string_to_number(I[0:32]) * curve.generator + ser_to_point(cK)
@@ -1533,7 +1532,7 @@ class Bip38Key:
         try:
             cls(bip38_enc_key, net=net)
             return True  # if we get to this point the key was successfully decoded.
-        except cls.Error as e:
+        except cls.Error:
             # print_error("[Bip38Key.isBip38] {}:".format(bip38_enc_key), e)
             return False
 

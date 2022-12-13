@@ -144,7 +144,7 @@ try:
     from PyQt5.QtMultimedia import QCameraInfo
 
     del QCameraInfo  # defensive programming: not always available so don't keep name around
-except ImportError as e:
+except ImportError:
     pass  # we tried to pre-load it, failure is ok; camera just won't be available
 
 if TYPE_CHECKING:
@@ -702,7 +702,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             )
 
             try:
-                xp = deserialize_xpub(xkey)
+                deserialize_xpub(xkey)
             except InvalidXKeyNotBase58:
                 pass  # old_keystore uses some other key format, so we will let it slide.
             except InvalidXKeyFormat:
@@ -959,9 +959,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         )
         tools_menu.addSeparator()
 
-        paytomany_menu = tools_menu.addAction(
-            _("&Pay to Many"), self.paytomany, QKeySequence("Ctrl+M")
-        )
+        tools_menu.addAction(_("&Pay to Many"), self.paytomany, QKeySequence("Ctrl+M"))
 
         raw_transaction_menu = tools_menu.addMenu(_("&Load Transaction"))
         raw_transaction_menu.addAction(
@@ -1697,7 +1695,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     def sign_payment_request(self, addr):
         alias = self.config.get("alias")
-        alias_privkey = None
         if alias and self.alias_info:
             alias_addr, alias_name, validated = self.alias_info
             if alias_addr:
@@ -3395,7 +3392,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             if not fn:
                 return
             with open(fn, "wb") as f:
-                data = f.write(pr.export_file_data())
+                f.write(pr.export_file_data())
             self.show_message(_("Invoice saved as" + " " + fn))
 
         exportButton = EnterButton(_("Save"), do_export)
@@ -3473,7 +3470,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         sb = QtWidgets.QStatusBar()
         sb.setFixedHeight(35)
-        qtVersion = qVersion()
 
         self.balance_label = QtWidgets.QLabel("")
         sb.addWidget(self.balance_label)
@@ -4019,7 +4015,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         from .qrreader import QrReaderCameraDialog
 
-        data = ""
         self._qr_dialog = None
         try:
             self._qr_dialog = QrReaderCameraDialog(parent=self.top_level_window())
@@ -4062,7 +4057,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             with open(filename, "r", encoding="utf-8") as f:
                 file_content = f.read()
             file_content = file_content.strip()
-            tx_file_dict = json.loads(str(file_content))
+            json.loads(str(file_content))
         except (ValueError, IOError, OSError, json.decoder.JSONDecodeError) as reason:
             self.show_critical(
                 _(f"{PROJECT_NAME} was unable to open your transaction file")

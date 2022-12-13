@@ -125,7 +125,7 @@ def check_playercommit(msg, min_excess_fee, max_excess_fee, num_components):
         claimed_commit = Protocol.PEDERSEN.commit(
             msg.excess_fee, int.from_bytes(msg.pedersen_total_nonce, "big")
         )
-    except Exception as e:
+    except Exception:
         raise ValidationError("pedersen commitment verification error")
     check(pointsum == claimed_commit.P_uncompressed, "pedersen commitment mismatch")
 
@@ -228,7 +228,6 @@ def validate_blame(
     """
     dest_commit = pb.InitialCommitment()
     dest_commit.ParseFromString(dest_commit_blob)
-    dest_pubkey = dest_commit.communication_key
 
     src_commit = pb.InitialCommitment()
     src_commit.ParseFromString(src_commit_blob)

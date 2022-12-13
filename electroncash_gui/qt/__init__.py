@@ -1149,7 +1149,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
             return
         except GoBack:
             return
-        except BaseException as e:
+        except BaseException:
             traceback.print_exc(file=sys.stdout)
             return
         self.timer.start()

@@ -93,7 +93,7 @@ def recv_pb(connection, pb_class, *expected_field_names, timeout=None):
 
     msg = pb_class()
     try:
-        length = msg.ParseFromString(blob)
+        msg.ParseFromString(blob)
     except DecodeError as e:
         raise FusionError("message decoding error") from e
 
@@ -266,7 +266,7 @@ class GenericServer(threading.Thread, PrintError):
                 eport = eport + 1
                 r = upnp.getspecificportmapping(eport, "TCP")
 
-            b = upnp.addportmapping(
+            upnp.addportmapping(
                 eport, "TCP", upnp.lanaddr, self.local_port, "CashFusion", ""
             )
 

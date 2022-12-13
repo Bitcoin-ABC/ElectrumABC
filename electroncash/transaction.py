@@ -245,7 +245,7 @@ def safe_parse_pubkey(x):
 def parse_scriptSig(d, _bytes):
     try:
         decoded = Script.get_ops(_bytes)
-    except Exception as e:
+    except Exception:
         # coinbase transactions raise an exception
         print_error("cannot find address in input script", bh2u(_bytes))
         return
@@ -420,7 +420,6 @@ def deserialize(raw):
     vds = BCDataStream()
     vds.write(bfh(raw))
     d = {}
-    start = vds.read_cursor
     d["version"] = vds.read_int32()
     n_vin = vds.read_compact_size()
     d["inputs"] = [parse_input(vds) for i in range(n_vin)]
@@ -653,7 +652,7 @@ class Transaction:
                 return 0x21
             elif x_pubkey[0:2] == "fe":  # old electrum extended pubkey
                 return 0x41
-        except Exception as e:
+        except Exception:
             pass
         return 0x21  # just guess it is compressed
 

@@ -104,7 +104,7 @@ class ScanQRTextEdit(_QrCodeTextEdit, MessageBoxMixin):
         try:
             with open(fileName, "r", encoding="utf-8") as f:
                 data = f.read()
-        except UnicodeDecodeError as reason:
+        except UnicodeDecodeError:
             self.show_error(
                 _("The selected file appears to be a binary file.")
                 + "\n"

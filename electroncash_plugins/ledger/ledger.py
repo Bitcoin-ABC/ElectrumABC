@@ -385,7 +385,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
         message = message.encode("utf8")
         message_hash = hashlib.sha256(message).hexdigest().upper()
         # prompt for the PIN before displaying the dialog if necessary
-        client = self.get_client()
+        self.get_client()
         address_path = self.get_derivation()[2:] + "/{:d}/{:d}".format(*sequence)
         self.handler.show_message(
             _("Signing message...") + "\n" + _("Message hash: {}").format(message_hash)
@@ -632,7 +632,6 @@ class Ledger_KeyStore(Hardware_KeyStore):
                 b"", 0, 0, changePath, bfh(tx.serialize(True))
             )
             outputData["outputData"] = txOutput
-            transactionOutput = outputData["outputData"]
             if outputData["confirmationNeeded"]:
                 outputData["address"] = output
                 self.handler.finished()

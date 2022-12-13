@@ -303,8 +303,6 @@ class Daemon(DaemonThread):
             wallet.stop_threads()
 
     def run_cmdline(self, config_options):
-        password = config_options.get("password")
-        new_password = config_options.get("new_password")
         config = SimpleConfig(config_options)
         cmdname = config.get("cmd")
         cmd = known_commands[cmdname]

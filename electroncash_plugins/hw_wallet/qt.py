@@ -326,7 +326,7 @@ class QtPluginBase(object):
 
     def show_settings_dialog(self, window: ElectrumWindow, keystore: Hardware_KeyStore):
         def connect():
-            device_id = self.choose_device(window, keystore)
+            self.choose_device(window, keystore)
 
         keystore.thread.add(connect)
 

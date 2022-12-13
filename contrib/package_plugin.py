@@ -152,7 +152,7 @@ class App(QtWidgets.QWidget):
         groupBox = QtWidgets.QGroupBox("Metadata")
         groupLayout = QtWidgets.QFormLayout()
         outerVLayout.addWidget(groupBox)
-        label = QtWidgets.QLabel("This is a test")
+        QtWidgets.QLabel("This is a test")
         groupBox.setLayout(groupLayout)
         self.displayNameEdit = QtWidgets.QLineEdit()
         self.displayNameEdit.setPlaceholderText("Scheduled Payments")

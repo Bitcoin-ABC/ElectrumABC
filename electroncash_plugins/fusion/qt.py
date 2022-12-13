@@ -1643,7 +1643,6 @@ class WalletSettingsDialog(WindowModalDialog):
 
     def _maybe_switch_page(self):
         mode = self.conf.fusion_mode
-        oldidx = self.stacked_layout.currentIndex()
         try:
             idx = self.confkey2idx[mode]
             idx_custom = self.confkey2idx["custom"]

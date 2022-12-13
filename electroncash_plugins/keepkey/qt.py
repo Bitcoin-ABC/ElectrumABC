@@ -347,7 +347,6 @@ class SettingsDialog(WindowModalDialog):
 
         devmgr = plugin.device_manager()
         config = devmgr.config
-        handler = keystore.handler
         thread = keystore.thread
 
         def invoke_client(method, *args, **kw_args):

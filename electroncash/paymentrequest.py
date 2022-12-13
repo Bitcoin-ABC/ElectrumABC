@@ -490,9 +490,6 @@ def check_ssl_config(config):
     bList = pem.dePemList(s, "CERTIFICATE")
     # verify chain
     x, ca = verify_cert_chain(bList)
-    # verify that privkey and pubkey match
-    privkey = rsakey.RSAKey(*params)
-    pubkey = rsakey.RSAKey(x.modulus, x.exponent)
     assert x.modulus == params[0]
     assert x.exponent == params[1]
     # return requestor
@@ -912,7 +909,7 @@ class PaymentRequest_BitPay20(PaymentRequest, PrintError):
         # Grab Signing keys either from cache or from BitPay
         try:
             ts, owner, signing_pubkeys = self._get_signing_keys(timeout=timeout)
-        except Exception as e:
+        except Exception:
             # Error retrieving signing pubkeys, try using cached values
             # if that fails.. just abort.
             ts, owner, signing_pubkeys = self._signing_keys

@@ -123,8 +123,8 @@ class JsonDB(PrintError):
         except:
             try:
                 d = ast.literal_eval(s)
-                labels = d.get("labels", {})
-            except Exception as e:
+                d.get("labels", {})
+            except Exception:
                 raise IOError("Cannot read wallet file")
             self.data = {}
             for key, value in d.items():

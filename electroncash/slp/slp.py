@@ -451,9 +451,6 @@ class Message:
             # keep ticker, token name, document url, document hash as bytes
             # (their textual encoding is not relevant for SLP consensus)
             # but do enforce consensus length limits
-            dummy = self.ticker  # ensure this parses
-            dummy = self.token_name  # ensure parses
-            dummy = self.token_doc_url  # ensure parses
             if len(self.token_doc_hash) not in (0, 32):
                 raise InvalidOutputMessage("Token document hash is incorrect length")
 
@@ -471,13 +468,13 @@ class Message:
                 )
 
             # handle initial token quantity issuance
-            dummy = self.initial_token_mint_quantity  # ensure parses
+            self.initial_token_mint_quantity  # ensure parses
         elif transaction_type == "SEND":
             if len(self) < 4:
                 raise InvalidOutputMessage("SEND with too few parameters")
             if len(self.token_id) != 32:
                 raise InvalidOutputMessage("token_id is wrong length")
-            # dummy = chunks.token_id_hex  # ensure parses
+            # chunks.token_id_hex  # ensure parses
 
             # Note that we put an explicit 0 for token_output[0] since it
             # corresponds to vout=0, which is the OP_RETURN tx output.
@@ -497,14 +494,14 @@ class Message:
                 raise InvalidOutputMessage("MINT with incorrect number of parameters")
             if len(self.token_id) != 32:
                 raise InvalidOutputMessage("token_id is wrong length")
-            # dummy = chunks.token_id_hex  # ensure parse
+            # chunks.token_id_hex  # ensure parse
             v = self.mint_baton_vout
             if v is not None and v < 2:
                 raise InvalidOutputMessage("Mint baton cannot be on vout=0 or 1")
-            dummy = self.additional_token_quantity  # ensure parse
+            self.additional_token_quantity  # ensure parse
         elif transaction_type == "COMMIT":
             # We don't know how to handle this right now, just return slpMsg of 'COMMIT' type
-            dummy = self.info  # ensure parse
+            self.info  # ensure parse
         else:
             raise InvalidOutputMessage("Bad transaction type")
         return True

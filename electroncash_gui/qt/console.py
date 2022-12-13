@@ -178,7 +178,7 @@ class ConsoleTextEdit(QtWidgets.QPlainTextEdit):
                 self.parent().completions()
                 return
 
-        closed_completions = self.parent().hide_completions()
+        self.parent().hide_completions()
 
         if event.key() in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
             self.parent().runCommand()
@@ -280,7 +280,7 @@ class Console(QtWidgets.QWidget):
             script = f.read()
 
         # eval is generally considered bad practice. use it wisely!
-        result = eval(script, self.namespace, self.namespace)
+        eval(script, self.namespace, self.namespace)
 
     def updateNamespace(self, namespace):
         self.namespace.update(namespace)

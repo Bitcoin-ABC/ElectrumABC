@@ -237,7 +237,6 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
         network = wallet.network
         assert network
         found = []
-        searched = 0
         recv_begin = len(wallet.get_receiving_addresses())
         change_begin = len(wallet.get_change_addresses())
         paths = (False, recv_begin), (True, change_begin)

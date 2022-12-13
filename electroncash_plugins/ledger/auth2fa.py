@@ -178,6 +178,6 @@ class LedgerAuthDialog(QtWidgets.QDialog):
         try:
             mode = self.dongle.exchange(bytearray(apdu))
             return mode
-        except BTChipException as e:
+        except BTChipException:
             print_error("Device getMode Failed")
         return 0x11

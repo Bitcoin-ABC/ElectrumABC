@@ -146,7 +146,6 @@ class ElectrumGui:
             + "s"
         )
 
-        b = 0
         self.history = []
         for item in self.wallet.get_history():
             tx_hash, height, conf, timestamp, value, balance = item
@@ -339,7 +338,7 @@ class ElectrumGui:
 
     def run_history_tab(self, c):
         if c == 10:
-            out = self.run_popup("", ["blah", "foo"])
+            self.run_popup("", ["blah", "foo"])
 
     def edit_str(self, target, c, is_num=False):
         # detect backspace
@@ -368,7 +367,7 @@ class ElectrumGui:
 
     def run_receive_tab(self, c):
         if c == 10:
-            out = self.run_popup("Address", ["Edit label", "Freeze", "Prioritize"])
+            self.run_popup("Address", ["Edit label", "Freeze", "Prioritize"])
 
     def run_contacts_tab(self, c):
         if c == 10 and self.contacts:
@@ -463,7 +462,7 @@ class ElectrumGui:
             w.addstr(2 + i, 2, line)
         w.refresh()
         if getchar:
-            c = self.stdscr.getch()
+            self.stdscr.getch()
 
     def run_popup(self, title, items):
         return self.run_dialog(

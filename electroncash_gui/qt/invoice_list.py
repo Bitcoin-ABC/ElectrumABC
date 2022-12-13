@@ -116,7 +116,7 @@ class InvoiceList(MyTreeWidget):
         column = self.currentColumn()
         column_title = self.headerItem().text(column)
         column_data = item.text(column)
-        pr = self.main_window.invoices.get(key)
+        self.main_window.invoices.get(key)
         status = self.main_window.invoices.get_status(key)
         if column_data:
             menu.addAction(

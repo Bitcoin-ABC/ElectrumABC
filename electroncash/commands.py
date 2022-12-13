@@ -1081,7 +1081,7 @@ class Commands:
             serialized_data = util.to_bytes(json.dumps(data))
             try:
                 req = urllib.request.Request(URL, serialized_data, headers)
-                response_stream = urllib.request.urlopen(req, timeout=5)
+                urllib.request.urlopen(req, timeout=5)
                 util.print_error("Got Response for %s" % address)
             except BaseException as e:
                 util.print_error(str(e))

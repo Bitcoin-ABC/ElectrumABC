@@ -265,7 +265,7 @@ class DaemonThread(threading.Thread, PrintError):
             for job in self.jobs:
                 try:
                     job.run()
-                except Exception as e:
+                except Exception:
                     # Don't let a throwing job disrupt the thread, future runs of
                     # itself, or other jobs.  This is useful protection against
                     # malformed or malicious server responses

@@ -334,7 +334,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
                             HWD_SETUP_DECRYPT_WALLET,
                             storage=self.temp_storage,
                         )
-                    except InvalidPassword as e:
+                    except InvalidPassword:
                         QtWidgets.QMessageBox.information(
                             None,
                             _("Error"),
@@ -478,7 +478,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         """Reimplemented from basewizard superclass. Expected to return the pw
         dict or None."""
         d = Bip38Importer(bip38_keys, parent=self.top_level_window())
-        res = d.exec_()
+        d.exec_()
         d.setParent(None)  # python GC quicker if this happens
         return d.decoded_keys  # dict will be empty if user cancelled
 

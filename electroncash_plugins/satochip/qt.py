@@ -103,8 +103,6 @@ class SatochipSettingsDialog(WindowModalDialog):
         self.setMaximumWidth(540)
 
         devmgr = plugin.device_manager()
-        config = devmgr.config
-        handler = keystore.handler
         self.thread = thread = keystore.thread
 
         def connect_and_doit():
@@ -350,7 +348,7 @@ class SatochipSettingsDialog(WindowModalDialog):
             # decrypt and parse reply to extract challenge response
             try:
                 reply_encrypt = d["reply_encrypt"]
-            except Exception as e:
+            except Exception:
                 self.give_error(
                     "No response received from 2FA.\nPlease ensure that the Satochip-2FA plugin is enabled in Tools>Optional Features",
                     True,
@@ -457,7 +455,7 @@ class SatochipSettingsDialog(WindowModalDialog):
             # decrypt and parse reply to extract challenge response
             try:
                 reply_encrypt = d["reply_encrypt"]
-            except Exception as e:
+            except Exception:
                 self.give_error("No response received from 2FA!", True)
             reply_decrypt = client.cc.card_crypt_transaction_2FA(reply_encrypt, False)
             print_error("challenge:response= " + reply_decrypt)
@@ -502,7 +500,6 @@ class SatochipSettingsDialog(WindowModalDialog):
         if is_authentic:
             txt_result = "Device authenticated successfully!"
             txt_result += "\n\n" + text_cert_chain
-            txt_color = "green"
             client.handler.show_message(txt_result)
         else:
             txt_result = "".join(
@@ -516,7 +513,6 @@ class SatochipSettingsDialog(WindowModalDialog):
                 ]
             )
             txt_result += "\n\n" + text_cert_chain
-            txt_color = "red"
             client.handler.show_error(txt_result)
 
     def card_verify_authenticity(self, client):  # todo: add this function in pysatochip
@@ -524,14 +520,14 @@ class SatochipSettingsDialog(WindowModalDialog):
         try:
             cert_pem = client.cc.card_export_perso_certificate()
             print_error("Cert PEM: " + str(cert_pem))
-        except CardError as ex:
+        except CardError:
             txt_error = "".join(
                 [
                     "Unable to get device certificate: feature unsupported! \n",
                     "Authenticity validation is only available starting with Satochip v0.12 and higher",
                 ]
             )
-        except CardNotPresentError as ex:
+        except CardNotPresentError:
             txt_error = "No card found! Please insert card."
         except UnexpectedSW12Error as ex:
             txt_error = "Exception during device certificate export: " + str(ex)

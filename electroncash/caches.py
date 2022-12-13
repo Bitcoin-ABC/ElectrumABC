@@ -202,7 +202,7 @@ class _ExpiringCacheMgr(PrintError):
         try:
             while True:
                 try:
-                    x = self.q.get(timeout=self.tick_interval)
+                    self.q.get(timeout=self.tick_interval)
                     return  # we got a stop signal
                 except queue.Empty:
                     # normal condition, we slept with nothing to do

@@ -30,7 +30,7 @@ import sys
 from enum import IntEnum
 from typing import List
 
-from ..util import _, is_verbose, print_error
+from ..util import _, print_error
 from . import MissingLib
 from .abstract_base import AbstractQrCodeReader, QrCodeResult
 
@@ -46,7 +46,7 @@ try:
         LIBZBAR = ctypes.cdll.LoadLibrary(
             os.path.join(os.path.dirname(__file__), "..", LIBNAME)
         )
-    except OSError as e:
+    except OSError:
         LIBZBAR = ctypes.cdll.LoadLibrary(LIBNAME)
 
     LIBZBAR.zbar_image_create.restype = ctypes.c_void_p

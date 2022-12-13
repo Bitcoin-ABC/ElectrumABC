@@ -1,21 +1,17 @@
 import sys
 import traceback
-from binascii import hexlify, unhexlify
-from collections import defaultdict
+from binascii import unhexlify
 
-from electroncash.address import ScriptOutput
 from electroncash.bitcoin import (
     TYPE_ADDRESS,
     TYPE_SCRIPT,
     SignatureType,
-    b58_address_to_hash160,
     deserialize_xpub,
-    xpub_from_pubkey,
 )
 from electroncash.i18n import _
 from electroncash.keystore import Hardware_KeyStore, is_xpubkey, parse_xpubkey
 from electroncash.networks import NetworkConstants
-from electroncash.plugins import BasePlugin, Device
+from electroncash.plugins import Device
 from electroncash.transaction import deserialize
 from electroncash.util import UserCancelled, bfh, bh2u, versiontuple
 
@@ -46,9 +42,7 @@ try:
     from trezorlib.client import PASSPHRASE_ON_DEVICE
 
     TREZORLIB = True
-except Exception as e:
-    import traceback
-
+except Exception:
     traceback.print_exc()
     TREZORLIB = False
 

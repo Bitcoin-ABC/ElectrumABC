@@ -452,7 +452,7 @@ class Interface(util.PrintError):
         except self.pipe.Closed as e:
             self.print_error(str(e))
             return False
-        except Exception as e:
+        except Exception:
             traceback.print_exc(file=sys.stderr)
             return False
 
@@ -497,7 +497,7 @@ class Interface(util.PrintError):
                 break
             except self.pipe.Closed as e:
                 self.print_error(str(e))
-            except Exception as e:
+            except Exception:
                 traceback.print_exc(file=sys.stderr)
 
             if type(response) is not dict:

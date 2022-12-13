@@ -423,7 +423,7 @@ class BaseWizard(util.PrintError):
         except (GoBack, util.UserCancelled):
             self.choose_hw_device(purpose, storage=storage)
             return
-        except BaseException as e:
+        except BaseException:
             self.choose_hw_device(purpose, storage=storage)
             return
 

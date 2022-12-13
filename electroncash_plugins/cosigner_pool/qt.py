@@ -218,7 +218,7 @@ class Plugin(BasePlugin):
             )
             return
         if isinstance(wallet, Multisig_Wallet):
-            window.cosigner_pool_state = state = State(self, window)
+            window.cosigner_pool_state = State(self, window)
             self.windows.append(window)
             self.update(window)
             # un-gray-out buttons for tx dialogs left around related to this window
@@ -358,7 +358,7 @@ class Plugin(BasePlugin):
             message = bitcoin.encrypt_message(bfh(tx.raw), bh2u(K)).decode("ascii")
             try:
                 state.server.put(_hash, message)
-            except Exception as e:
+            except Exception:
                 traceback.print_exc(file=sys.stdout)
                 window.show_error(_("Failed to send transaction to cosigning pool."))
                 return

@@ -203,7 +203,7 @@ class Plugin(LabelsPlugin):
 
     def stop_wallet(self, wallet):
         ret = super().stop_wallet(wallet)
-        window = self.wallet_windows.pop(wallet, None)
+        self.wallet_windows.pop(wallet, None)
         return ret
 
     def on_pulled(self, wallet):

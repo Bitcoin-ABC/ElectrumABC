@@ -142,7 +142,6 @@ class RequestList(MyTreeWidget):
                 continue
             timestamp = req.get("time", 0)
             amount = req.get("amount")
-            expiration = req.get("exp", None)
             message = req.get("memo", "")
             date = format_time(timestamp)
             status = req.get("status")
@@ -175,7 +174,6 @@ class RequestList(MyTreeWidget):
             return
         self.setCurrentItem(item)  # sometimes it's not the current item.
         addr = item.data(0, Qt.UserRole)
-        req = self.wallet.receive_requests[addr]
         column = self.currentColumn()
         column_title = self.headerItem().text(column)
         column_data = item.text(column)

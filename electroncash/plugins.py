@@ -1185,10 +1185,7 @@ class DeviceMgr(ThreadJob):
         hid_list_fut = _hid_executor.submit(hid_enumerate)
         try:
             hid_list = hid_list_fut.result()
-        except (
-            concurrent.futures.CancelledError,
-            concurrent.futures.TimeoutError,
-        ) as e:
+        except (concurrent.futures.CancelledError, concurrent.futures.TimeoutError):
             return []
 
         # First see what's connected that we know about

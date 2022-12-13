@@ -379,7 +379,7 @@ class Satochip_KeyStore(Hardware_KeyStore):
             # decrypt and parse reply to extract challenge response
             try:
                 reply_encrypt = d["reply_encrypt"]
-            except Exception as e:
+            except Exception:
                 # Note the below give_error call will itself raise Message. :/
                 self.give_error(
                     "No response received from 2FA.\nPlease ensure that the Satochip-2FA plugin is enabled in Tools>Optional Features",
@@ -444,9 +444,6 @@ class Satochip_KeyStore(Hardware_KeyStore):
             if txin["type"] == "coinbase":
                 self.give_error("Coinbase not supported")  # should never happen
 
-            if txin["type"] in ["p2sh"]:
-                p2shTransaction = True
-
             pubkeys, x_pubkeys = tx.get_sorted_pubkeys(txin)
             for j, x_pubkey in enumerate(x_pubkeys):
                 self.print_error(
@@ -456,7 +453,6 @@ class Satochip_KeyStore(Hardware_KeyStore):
                     break
 
                 if x_pubkey in derivations:
-                    signingPos = j
                     s = derivations.get(x_pubkey)
                     address_path = "%s/%d/%d" % (self.get_derivation()[2:], s[0], s[1])
 
@@ -531,7 +527,7 @@ class Satochip_KeyStore(Hardware_KeyStore):
                         try:
                             reply_encrypt = None  # init it in case of exc below
                             reply_encrypt = d["reply_encrypt"]
-                        except Exception as e:
+                        except Exception:
                             # Note: give_error here will raise again.. :/
                             self.give_error(
                                 "No response received from 2FA.\nPlease ensure that the Satochip-2FA plugin is enabled in Tools>Optional Features",
@@ -626,7 +622,7 @@ class SatochipPlugin(HW_PluginBase):
         self.cardtype = AnyCardType()
         try:
             cardrequest = CardRequest(timeout=0.1, cardType=self.cardtype)
-            cardservice = cardrequest.waitforcard()
+            cardrequest.waitforcard()
             self.print_error("detect_smartcard_reader: found card!")  # debugSatochip
             return [
                 Device(

@@ -51,7 +51,7 @@ try:
     from ..hw_wallet import HardwareClientBase, HW_PluginBase
 
     DIGIBOX = True
-except ImportError as e:
+except ImportError:
     DIGIBOX = False
 
 
@@ -441,8 +441,8 @@ class DigitalBitbox_Client(HardwareClientBase):
     def hid_read_frame(self):
         # INIT response
         read = bytearray(self.dbb_hid.read(self.usbReportSize))
-        cid = ((read[0] * 256 + read[1]) * 256 + read[2]) * 256 + read[3]
-        cmd = read[4]
+        # cid = ((read[0] * 256 + read[1]) * 256 + read[2]) * 256 + read[3]
+        # cmd = read[4]
         data_len = read[5] * 256 + read[6]
         data = read[7:]
         idx = len(read) - 7

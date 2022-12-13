@@ -665,12 +665,12 @@ class Network(util.DaemonThread):
         Arguments:
         server_key --- server specifier in the form of '<host>:<port>:<protocol>'
         """
-        if not server_key in self.interfaces and not server_key in self.connecting:
+        if server_key not in self.interfaces and server_key not in self.connecting:
             if server_key == self.default_server:
                 self.print_error("connecting to %s as new interface" % server_key)
                 self.set_status("connecting")
             self.connecting.add(server_key)
-            c = Connection(
+            Connection(
                 server_key,
                 self.socket_queue,
                 self.config.path,
@@ -889,7 +889,7 @@ class Network(util.DaemonThread):
         error = response.get("error")
         result = response.get("result")
         method = response.get("method")
-        params = response.get("params")
+        # params = response.get("params")
 
         # FIXME:
         # Do more to enforce result correctness, has the right data type, etc.
@@ -1550,8 +1550,6 @@ class Network(util.DaemonThread):
             self.connection_down(interface.server)
             return
 
-        proof_was_provided = False
-        hexheader = None
         if "root" in result and "branch" in result and "header" in result:
             hexheader = result["header"]
             if not self.validate_checkpoint_result(
@@ -1565,7 +1563,6 @@ class Network(util.DaemonThread):
                 )
                 self.connection_down(interface.server)
                 return
-            proof_was_provided = True
         else:
             hexheader = result
 
@@ -1923,7 +1920,6 @@ class Network(util.DaemonThread):
         if interface.server not in self.checkpoint_servers_verified:
             interface.print_error("request_initial_proof_and_headers pending")
 
-            top_height = self.checkpoint_height
             # If there is no known checkpoint height for this network, we look to get
             # a given number of confirmations for the same conservative height.
             if self.checkpoint_height is None:

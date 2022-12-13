@@ -95,7 +95,7 @@ def get_upnp():
         raise RuntimeError("can't find UPnP server")
     try:
         u.selectigd()
-    except Exception as e:
+    except Exception:
         raise RuntimeError("failed to connect to UPnP IGD")
     pnp = u
     return u
