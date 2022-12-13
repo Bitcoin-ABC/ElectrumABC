@@ -128,7 +128,7 @@ class SatochipClient(HardwareClientBase, PrintError):
         return LIBS_AVAILABLE
 
     def has_usable_connection_with_device(self):
-        self.print_error(f"has_usable_connection_with_device()")  # debugSatochip
+        self.print_error("has_usable_connection_with_device()")  # debugSatochip
         try:
             atr = self.cc.card_get_ATR()
             self.print_error("Card ATR: " + bytes(atr).hex())

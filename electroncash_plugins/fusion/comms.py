@@ -205,7 +205,7 @@ class ClientHandlerThread(threading.Thread, PrintError):
         if reason is not None:
             c.send_error(reason)
             raise FusionError(f"killed: {reason}")
-        raise FusionError(f"killed")
+        raise FusionError("killed")
 
     def kill(self, reason=None):
         """Kill this connection. If no reason provided then the connection

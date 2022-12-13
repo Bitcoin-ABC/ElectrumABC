@@ -233,7 +233,7 @@ class SeedLayout(QtWidgets.QVBoxLayout):
         else:
             is_valid = self._mnem.check(words)
             status = "valid" if is_valid else "invalid"
-            label = f"BIP39" + f" ({status})"
+            label = f"BIP39 ({status})"
         self.seed_type_label.setText(label)
         self.parent.next_button.setEnabled(b)
         if may_clear_warning:

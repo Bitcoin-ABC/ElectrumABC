@@ -435,7 +435,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
                     break
             if len(errors) >= len(whitelisted_prefixes):
                 raise AddressError(
-                    f"Unable to decode CashAddr with supported prefixes.\n"
+                    "Unable to decode CashAddr with supported prefixes.\n"
                     "\n".join([f"{err}" for err in errors]) + "\n"
                 )
 

@@ -478,7 +478,7 @@ class SatochipSettingsDialog(WindowModalDialog):
                 msg = _(f"Failed to reset 2FA with error code: {hex(256*sw1+sw2)}")
                 client.handler.show_error(msg)
         else:
-            msg = _(f"2FA is already disabled!")
+            msg = _("2FA is already disabled!")
             client.handler.show_error(msg)
 
     def verify_card(self, client):

@@ -83,8 +83,8 @@ os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 if sys.version_info < (3, 7):
     sys.exit(
-        f"*** Support for Python 3.6 has been discontinued.\n"
-        f"*** Please run the application with Python 3.7 or above."
+        "*** Support for Python 3.6 has been discontinued.\n"
+        "*** Please run the application with Python 3.7 or above."
     )
 
 # from https://gist.github.com/tito/09c42fb4767721dc323d
