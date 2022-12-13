@@ -13,19 +13,10 @@ vulnerabilities, and must not be used in an automated-signing environment.
 """
 import hashlib
 import hmac
-from ctypes import (
-    byref,
-    c_char_p,
-    c_int,
-    c_size_t,
-    c_void_p,
-    cast,
-    create_string_buffer,
-)
+from ctypes import byref, c_int, c_size_t, c_void_p, cast, create_string_buffer
 
 # for pure-python -- TODO refactor these out of bitcoin.py
 import ecdsa
-from ecdsa.numbertheory import jacobi
 
 from . import secp256k1
 from .bitcoin import point_to_ser, ser_to_point
