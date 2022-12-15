@@ -8,7 +8,7 @@ REPOSITORY_OWNER: str = "Bitcoin-ABC"
 REPOSITORY_NAME: str = "ElectrumABC"
 REPOSITORY_URL: str = f"https://github.com/{REPOSITORY_OWNER}/{REPOSITORY_NAME}"
 RELEASES_JSON_URL: str = (
-    f"https://raw.github.com/{REPOSITORY_OWNER}/"
+    f"https://raw.githubusercontent.com/{REPOSITORY_OWNER}/"
     f"{REPOSITORY_NAME}/master/contrib/update_checker"
     f"/releases.json"
 )
