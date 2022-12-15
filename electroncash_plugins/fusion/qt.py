@@ -921,10 +921,11 @@ class PasswordDialog(WindowModalDialog):
 
 class DisabledFusionButton(StatusBarButton):
     def __init__(self, wallet, message):
-        super().__init__(get_icon_fusion_logo_gray(), "Fusion", self.show_message)
+        super().__init__(get_icon_fusion_logo_gray(), "Fusion")
         self.wallet = wallet
         self.message = message
         self.setToolTip(_("CashFusion (disabled)"))
+        self.clicked.connect(self.show_message)
 
     def show_message(self):
         QtWidgets.QMessageBox.information(
@@ -936,7 +937,8 @@ class DisabledFusionButton(StatusBarButton):
 
 class FusionButton(StatusBarButton):
     def __init__(self, plugin, wallet):
-        super().__init__(QIcon(), "Fusion", self.toggle_autofuse)
+        super().__init__(QIcon(), "Fusion")
+        self.clicked.connect(self.toggle_autofuse)
 
         self.plugin = plugin
         self.wallet = wallet

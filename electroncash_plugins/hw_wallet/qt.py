@@ -289,8 +289,8 @@ class QtPluginBase(object):
                 window.show_error(message)
                 return
             tooltip = self.device + "\n" + (keystore.label or "unnamed")
-            cb = partial(self.show_settings_dialog, window, keystore)
-            button = StatusBarButton(QIcon(self.icon_unpaired), tooltip, cb)
+            button = StatusBarButton(QIcon(self.icon_unpaired), tooltip)
+            button.clicked.connect(partial(self.show_settings_dialog, window, keystore))
             button.icon_paired = self.icon_paired
             button.icon_unpaired = self.icon_unpaired
             window.statusBar().addPermanentWidget(button)

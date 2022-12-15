@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sys
-from typing import TYPE_CHECKING, Callable, Optional
+from typing import TYPE_CHECKING
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QSize, Qt
@@ -20,26 +20,13 @@ if TYPE_CHECKING:
 
 
 class StatusBarButton(QtWidgets.QPushButton):
-    def __init__(self, icon, tooltip, func: Optional[Callable] = None):
+    def __init__(self, icon, tooltip):
         QtWidgets.QPushButton.__init__(self, icon, "")
         self.setToolTip(tooltip)
         self.setFlat(True)
         self.setMaximumWidth(25)
-        self.clicked.connect(self.onPress)
-        self.func = func
         self.setIconSize(QSize(25, 25))
         self.setCursor(Qt.PointingHandCursor)
-
-    def onPress(self, checked=False):
-        """Drops the unwanted PyQt5 "checked" argument"""
-        if self.func is not None:
-            self.func()
-
-    def keyPressEvent(self, e):
-        if e.key() == Qt.Key_Return and self.func is not None:
-            self.func()
-        else:
-            super().keyPressEvent(e)
 
 
 class StatusBar(QtWidgets.QStatusBar):
