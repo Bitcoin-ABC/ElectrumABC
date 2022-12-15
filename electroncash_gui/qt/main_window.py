@@ -45,7 +45,6 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import (
     QObject,
     QRect,
-    QSize,
     QStringListModel,
     Qt,
     QTimer,
@@ -108,7 +107,6 @@ from .password_dialog import (
     PasswordDialog,
 )
 from .paytoedit import PayToEdit
-from .popup_widget import KillPopupLabel, ShowPopupLabel
 from .qrcodewidget import QRCodeWidget, QRDialog
 from .qrreader import QrReaderCameraDialog
 from .qrtextedit import ScanQRTextEdit, ShowQRTextEdit
@@ -116,6 +114,7 @@ from .request_list import RequestList
 from .scan_beyond_gap import ScanBeyondGap
 from .seed_dialog import SeedDialog
 from .sign_verify_dialog import SignVerifyDialog
+from .statusbar import StatusBar
 from .transaction_dialog import show_transaction
 from .udev_installer import InstallHardwareWalletSupportDialog
 from .util import (
@@ -162,28 +161,6 @@ except ImportError:
 
 if TYPE_CHECKING:
     from . import ElectrumGui
-
-
-class StatusBarButton(QtWidgets.QPushButton):
-    def __init__(self, icon, tooltip, func):
-        QtWidgets.QPushButton.__init__(self, icon, "")
-        self.setToolTip(tooltip)
-        self.setFlat(True)
-        self.setMaximumWidth(25)
-        self.clicked.connect(self.onPress)
-        self.func = func
-        self.setIconSize(QSize(25, 25))
-        self.setCursor(Qt.PointingHandCursor)
-
-    def onPress(self, checked=False):
-        """Drops the unwanted PyQt5 "checked" argument"""
-        self.func()
-
-    def keyPressEvent(self, e):
-        if e.key() == Qt.Key_Return:
-            self.func()
-        else:
-            super().keyPressEvent(e)
 
 
 def windows_qt_use_freetype(config):
@@ -285,7 +262,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             Weak.Set()
         )  # keep track of shortcuts and disable them on close
 
-        self.create_status_bar()
+        self.status_bar = self.create_status_bar()
+
         self.need_update = threading.Event()
         self.labels_need_update = threading.Event()
 
@@ -401,11 +379,12 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 )
             )
 
-        self.gui_object.addr_fmt_changed.connect(self.update_cashaddr_icon)
         self.payment_request_ok_signal.connect(self.payment_request_ok)
         self.payment_request_error_signal.connect(self.payment_request_error)
-        # shows/hides the update_available_button, emitted by update check mechanism when a new version is available
-        self.gui_object.update_available_signal.connect(self.on_update_available)
+        self.gui_object.addr_fmt_changed.connect(self.status_bar.update_cashaddr_icon)
+        self.gui_object.update_available_signal.connect(
+            self.status_bar.on_update_available
+        )
         self.history_list.setFocus(True)
 
         # update fee slider in case we missed the callback
@@ -634,7 +613,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.need_update.set()
         # update menus
         self.seed_menu.setEnabled(self.wallet.has_seed())
-        self.update_lock_icon()
+        self.status_bar.update_lock_icon(self.wallet.has_password())
         self.update_buttons_on_seed()
         self.update_console()
         self.clear_receive_tab()
@@ -906,7 +885,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         hist_menu.addAction(_("Export") + "...", self.export_history_dialog)
 
         wallet_menu.addSeparator()
-        wallet_menu.addAction(_("&Find"), self.toggle_search, QKeySequence("Ctrl+F"))
+        wallet_menu.addAction(
+            _("&Find"), self.status_bar.toggle_search, QKeySequence("Ctrl+F")
+        )
         wallet_menu.addAction(
             _("Refresh GUI"), self.update_wallet, QKeySequence("Ctrl+R")
         )
@@ -1415,9 +1396,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             status_tip = status_tip_dict["status_disconnected"]
 
         self.tray.setToolTip("%s (%s)" % (text, self.wallet.basename()))
-        self.balance_label.setText(text)
-        self.status_button.setIcon(icon)
-        self.status_button.setStatusTip(status_tip)
+        self.status_bar.balance_label.setText(text)
+        self.status_bar.status_button.setIcon(icon)
+        self.status_bar.status_button.setStatusTip(status_tip)
         run_hook("window_update_status", self)
 
     def update_wallet(self):
@@ -3456,121 +3437,25 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         console.updateNamespace(methods)
 
-    def create_status_bar(self):
-
-        sb = QtWidgets.QStatusBar()
-        sb.setFixedHeight(35)
-
-        self.balance_label = QtWidgets.QLabel("")
-        sb.addWidget(self.balance_label)
-
-        self._search_box_spacer = QtWidgets.QWidget()
-        self._search_box_spacer.setFixedWidth(6)  # 6 px spacer
-        self.search_box = QtWidgets.QLineEdit()
-        self.search_box.setPlaceholderText(
-            _("Search wallet, {key}F to hide").format(
-                key="Ctrl+" if sys.platform != "darwin" else "⌘"
-            )
-        )
-        self.search_box.textChanged.connect(self.do_search)
-        self.search_box.hide()
-        sb.addPermanentWidget(self.search_box, 1)
-
-        self.update_available_button = StatusBarButton(
-            QIcon(":icons/electrumABC-update.svg"),
-            _("Update available, click for details"),
-            lambda: self.gui_object.show_update_checker(self, skip_check=True),
-        )
-        self.update_available_button.setStatusTip(
-            _(f"An {PROJECT_NAME} update is available")
-        )
-        sb.addPermanentWidget(self.update_available_button)
-        self.update_available_button.setVisible(
-            bool(self.gui_object.new_version_available)
-        )  # if hidden now gets unhidden by on_update_available when a new version comes in
-
-        self.lock_icon = QIcon()
-        self.password_button = StatusBarButton(
-            self.lock_icon, _("Password"), self.change_password_dialog
-        )
-        sb.addPermanentWidget(self.password_button)
-
-        self.addr_converter_button = StatusBarButton(
-            self.cashaddr_icon(),
-            _("Toggle CashAddr Display"),
-            self.toggle_cashaddr_status_bar,
-        )
-        self.update_cashaddr_icon()
-        sb.addPermanentWidget(self.addr_converter_button)
-        self.addr_converter_button.setHidden(
-            self.gui_object.is_cashaddr_status_button_hidden()
-        )
-        self.gui_object.cashaddr_status_button_hidden_signal.connect(
-            self.addr_converter_button.setHidden
-        )
-
-        q_icon_prefs = (
-            QIcon(":icons/preferences.svg"),
-            _("Preferences"),
-            self.settings_dialog,
-        )
-        sb.addPermanentWidget(StatusBarButton(*q_icon_prefs))
-        q_icon_seed = (
-            QIcon(":icons/seed.png"),
-            _("Seed"),
-            self.show_seed_dialog,
-        )
-        self.seed_button = StatusBarButton(*q_icon_seed)
-        sb.addPermanentWidget(self.seed_button)
-        weakSelf = Weak.ref(self)
-        gui_object = self.gui_object
-        self.status_button = StatusBarButton(
-            QIcon(":icons/status_disconnected.svg"),
-            _("Network"),
-            lambda: gui_object.show_network_dialog(weakSelf()),
-        )
-        sb.addPermanentWidget(self.status_button)
-        run_hook("create_status_bar", sb)
+    def create_status_bar(self) -> StatusBar:
+        sb = StatusBar(self.gui_object)
         self.setStatusBar(sb)
-
-    def on_update_available(self, b):
-        self.update_available_button.setVisible(bool(b))
-
-        # The popup label won't really be shown unless this window is
-        # on top.. but regardless we give each label a unique internal name
-        # so they dont interfere with each other.
-        lblName = "UpdateAvailable_" + self.diagnostic_name()
-
-        if b:
-            ShowPopupLabel(
-                name=lblName,
-                text="<center><b>{}</b><br><small>{}</small></center>".format(
-                    _("Update Available"), _("Click for details")
-                ),
-                target=self.update_available_button,
-                timeout=20000,
-                onClick=self.update_available_button.click,
-                onRightClick=self.update_available_button.click,
-                dark_mode=ColorScheme.dark_scheme,
-            )
-        else:
-            # Immediately kills any extant labels
-            KillPopupLabel(lblName)
-
-    def update_lock_icon(self):
-        icon = (
-            QIcon(":icons/lock.svg")
-            if self.wallet.has_password()
-            else QIcon(":icons/unlock.svg")
+        sb.search_box.textChanged.connect(self.do_search)
+        sb.password_button.clicked.connect(self.change_password_dialog)
+        sb.preferences_button.clicked.connect(self.settings_dialog)
+        sb.seed_button.clicked.connect(lambda _checked: self.show_seed_dialog())
+        sb.status_button.clicked.connect(
+            lambda: self.gui_object.show_network_dialog(self)
         )
-        tip = _("Wallet Password") + " - "
-        tip += _("Enabled") if self.wallet.has_password() else _("Disabled")
-        self.password_button.setIcon(icon)
-        self.password_button.setStatusTip(tip)
+        sb.update_available_button.clicked.connect(
+            lambda: self.gui_object.show_update_checker(self, skip_check=True)
+        )
+        return sb
 
     def update_buttons_on_seed(self):
-        self.seed_button.setVisible(self.wallet.has_seed())
-        self.password_button.setVisible(self.wallet.may_have_password())
+        self.status_bar.update_buttons_on_seed(
+            self.wallet.has_seed(), self.wallet.may_have_password()
+        )
         self.send_button.setVisible(not self.wallet.is_watching_only())
         self.preview_button.setVisible(True)
 
@@ -3619,7 +3504,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             else _("Password is disabled, this wallet is not protected")
         )
         self.show_message(msg, title=_("Success"))
-        self.update_lock_icon()
+        self.status_bar.update_lock_icon(self.wallet.has_password())
 
     def get_passphrase_dialog(
         self, msg: str, title: str = None, *, permit_empty=False
@@ -3629,22 +3514,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         )
         return d.run()
 
-    def toggle_search(self):
-        self.search_box.setHidden(not self.search_box.isHidden())
-        if not self.search_box.isHidden():
-            self.balance_label.setHidden(True)
-            self.statusBar().insertWidget(0, self._search_box_spacer)
-            self._search_box_spacer.show()
-            self.search_box.setFocus(1)
-            if self.search_box.text():
-                self.do_search(self.search_box.text())
-        else:
-            self._search_box_spacer.hide()
-            self.statusBar().removeWidget(self._search_box_spacer)
-            self.balance_label.setHidden(False)
-            self.do_search("")
-
-    def do_search(self, t):
+    def do_search(self, t: str):
         """Apply search text to all tabs. FIXME: if a plugin later is loaded
         it will not receive the search filter -- but most plugins I know about
         do not support searchable_list anyway, so hopefully it's a non-issue."""
@@ -4913,26 +4783,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.address_list.update()
         self.update_status()
 
-    def cashaddr_icon(self):
-        if self.gui_object.is_cashaddr():
-            return QIcon(":icons/tab_converter.svg")
-        else:
-            return QIcon(":icons/tab_converter_bw.svg")
-
-    def cashaddr_status_tip(self):
-        if self.gui_object.is_cashaddr():
-            return _("Address Format") + " - " + _("CashAddr")
-        else:
-            return _("Address Format") + " - " + _("Legacy")
-
-    def update_cashaddr_icon(self):
-        self.addr_converter_button.setIcon(self.cashaddr_icon())
-        self.addr_converter_button.setStatusTip(self.cashaddr_status_tip())
-
-    def toggle_cashaddr_status_bar(self):
-        self.gui_object.toggle_cashaddr()
-        self.statusBar().showMessage(self.cashaddr_status_tip(), 2000)
-
     def settings_dialog(self):
         class SettingsModalDialog(WindowModalDialog):
             shown_signal = pyqtSignal()
@@ -5881,7 +5731,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             # but Axel Gembe got a crash related to this on Python 3.7.3, PyQt 5.12.3
             # so here we are. See #1531
             try:
-                self.gui_object.addr_fmt_changed.disconnect(self.update_cashaddr_icon)
+                self.gui_object.addr_fmt_changed.disconnect(
+                    self.status_bar.update_cashaddr_icon
+                )
             except TypeError:
                 pass
             try:
@@ -5892,13 +5744,13 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 pass
             try:
                 self.gui_object.cashaddr_status_button_hidden_signal.disconnect(
-                    self.addr_converter_button.setHidden
+                    self.status_bar.addr_converter_button.setHidden
                 )
             except TypeError:
                 pass
             try:
                 self.gui_object.update_available_signal.disconnect(
-                    self.on_update_available
+                    self.status_bar.on_update_available
                 )
             except TypeError:
                 pass

@@ -60,6 +60,7 @@ repos:
               electroncash_gui/qt/invoice_dialog.py|
               electroncash_gui/qt/multi_transactions_dialog.py|
               electroncash_gui/qt/sign_verify_dialog.py|
+              electroncash_gui/qt/statusbar.py|
               electroncash_gui/qt/utxo_list.py|
               electroncash_plugins/fusion/cmdline.py
           )$
