@@ -24,6 +24,7 @@ from PyQt5.QtGui import (
     QPixmap,
 )
 
+from electroncash.paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNPAID
 from electroncash.simple_config import SimpleConfig
 from electroncash.util import PrintError, Weak, finalization_print_error, print_error
 from electroncash.wallet import Abstract_Wallet
@@ -38,8 +39,6 @@ else:
 
 dialogs = []
 
-from electroncash.paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNPAID
-
 pr_icons = {
     PR_UNPAID: ":icons/unpaid.svg",
     PR_PAID: ":icons/confirmed.svg",
@@ -48,6 +47,7 @@ pr_icons = {
 }
 
 
+# https://docs.python.org/3/library/gettext.html#deferred-translations
 def _(message):
     return message
 
@@ -60,7 +60,7 @@ expiration_values = [
 ]
 
 del _
-from electroncash.i18n import _
+from electroncash.i18n import _  # noqa: E402
 
 
 class EnterButton(QtWidgets.QPushButton):

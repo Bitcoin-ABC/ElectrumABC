@@ -30,6 +30,8 @@ support, however a server admin may run an SSL server proxy such as nginx for
 that purpose.
 """
 
+# used for non-cryptographic purposes
+import random
 import secrets
 import sys
 import threading
@@ -152,9 +154,6 @@ class Params:
 # - how long from first connection to last possible Tor component submission?
 # - how long from one round's component submission to the next round's component submission?
 COVERT_CLIENT_TIMEOUT = 40
-
-# used for non-cryptographic purposes
-import random
 
 rng = random.Random()
 rng.seed(secrets.token_bytes(32))

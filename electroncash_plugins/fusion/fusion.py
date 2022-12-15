@@ -40,6 +40,10 @@ import weakref
 from collections import defaultdict
 from math import ceil
 
+# not cryptographically secure! we only use it to generate a few floating point
+# numbers, with cryptographically secure seed.
+from random import Random
+
 from google.protobuf.message import DecodeError
 
 from electroncash import schnorr
@@ -118,12 +122,6 @@ def can_fuse_to(wallet):
 
 
 # Some internal stuff
-
-# not cryptographically secure!
-# we only use it to generate a few floating point numbers, with cryptographically secure seed.
-from random import Random
-
-
 def random_outputs_for_tier(
     rng, input_amount, scale, offset, max_count, allow_extra_change=False
 ):

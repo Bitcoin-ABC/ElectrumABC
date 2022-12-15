@@ -44,7 +44,7 @@ from .mnemo import Mnemonic_Electrum, make_bip39_words
 from .paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNKNOWN, PR_UNPAID
 from .plugins import run_hook
 from .simple_config import SimpleConfig
-from .transaction import OPReturn, Transaction, multisig_script
+from .transaction import OPReturn, Transaction, multisig_script, tx_from_str
 from .util import format_satoshis, json_decode, to_bytes
 from .version import PACKAGE_VERSION
 from .wallet import create_new_wallet, restore_wallet_from_text
@@ -1207,10 +1207,6 @@ command_options = {
     "wallet_path": (None, "Wallet path(create/restore commands)"),
     "year": (None, "Show history for a given year"),
 }
-
-
-# don't use floats because of rounding errors
-from .transaction import tx_from_str
 
 json_loads = lambda x: json.loads(x, parse_float=lambda x: str(PyDecimal(x)))
 arg_types = {

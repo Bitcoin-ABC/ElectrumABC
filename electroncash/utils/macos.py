@@ -8,6 +8,7 @@
 #
 # License: MIT
 
+import pathlib
 import sys
 
 if sys.platform != "darwin":
@@ -216,8 +217,6 @@ def CFArrayGetIndex(array: CFArray_p, idx: int, default=_Void) -> c_void_p:
             "CoreFramework array index is out range: {} <= {}".format(length, idx)
         )
 
-
-import pathlib
 
 # NSArray<NSString*>* NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directory, NSSearchPathDomainMask domainMask, BOOL expandTilde);
 foundation.NSSearchPathForDirectoriesInDomains.restype = CFArray_p

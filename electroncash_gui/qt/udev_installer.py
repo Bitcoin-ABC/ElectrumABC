@@ -34,8 +34,9 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 
 from electroncash.constants import PROJECT_NAME
+from electroncash.i18n import _
 from electroncash.plugins import Plugins
-from electroncash.util import PrintError, _
+from electroncash.util import PrintError
 from electroncash_gui.qt.util import WindowModalDialog
 
 

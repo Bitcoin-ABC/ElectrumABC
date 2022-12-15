@@ -37,6 +37,7 @@
 import hashlib
 import math
 import os
+import zlib
 
 
 def SHA1(x):
@@ -48,8 +49,6 @@ def SHA1(x):
 # **************************************************************************
 
 # Check that os.urandom works
-import zlib
-
 length = len(zlib.compress(os.urandom(1000)))
 assert length > 900
 

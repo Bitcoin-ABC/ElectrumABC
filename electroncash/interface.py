@@ -37,12 +37,11 @@ from typing import Optional, Tuple
 import requests
 from pathvalidate import sanitize_filename
 
+from . import pem, util, x509
 from .util import print_error
 from .utils import Event
 
 ca_path = requests.certs.where()
-
-from . import pem, util, x509
 
 PING_INTERVAL = 300
 

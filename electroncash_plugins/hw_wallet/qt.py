@@ -26,6 +26,8 @@
 # SOFTWARE.
 from __future__ import annotations
 
+import queue
+import sys
 import threading
 from functools import partial
 from typing import TYPE_CHECKING, Optional, Union
@@ -35,9 +37,10 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtGui import QIcon
 
 from electroncash.i18n import _
-from electroncash.util import PrintError
+from electroncash.plugins import hook
+from electroncash.util import PrintError, UserCancelled
 from electroncash_gui.qt.installwizard import InstallWizard
-from electroncash_gui.qt.main_window import ElectrumWindow
+from electroncash_gui.qt.main_window import ElectrumWindow, StatusBarButton
 from electroncash_gui.qt.password_dialog import PW_PASSPHRASE, PasswordLayout
 from electroncash_gui.qt.util import (
     Buttons,
@@ -211,14 +214,6 @@ class QtHandlerBase(HardwareHandlerBase, QObject, PrintError):
     def win_yes_no_question(self, msg):
         self.ok = self.win.question(msg)
         self.done.set()
-
-
-import queue
-import sys
-
-from electroncash.plugins import hook
-from electroncash.util import UserCancelled
-from electroncash_gui.qt.main_window import StatusBarButton
 
 
 class ThreadJob_TaskThread_Facade(TaskThread):

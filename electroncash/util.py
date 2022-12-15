@@ -23,6 +23,7 @@
 # SOFTWARE.
 
 import binascii
+import builtins
 import hmac
 import inspect
 import itertools
@@ -48,10 +49,7 @@ from traceback import format_exception
 from .constants import POSIX_DATA_DIR, PROJECT_NAME_NO_SPACES
 
 
-def inv_dict(d):
-    return {v: k for k, v in d.items()}
-
-
+# https://docs.python.org/3/library/gettext.html#deferred-translations
 def _(message):
     return message
 
@@ -65,7 +63,11 @@ fee_levels = [
 ]
 
 del _
-from .i18n import _, ngettext
+from .i18n import _, ngettext  # noqa: E402
+
+
+def inv_dict(d):
+    return {v: k for k, v in d.items()}
 
 
 class NotEnoughFunds(Exception):
@@ -763,8 +765,6 @@ def raw_input(prompt=None):
         sys.stdout.write(prompt)
     return builtin_raw_input()
 
-
-import builtins
 
 builtin_raw_input = builtins.input
 builtins.input = raw_input

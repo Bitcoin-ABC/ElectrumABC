@@ -24,6 +24,10 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtGui import QBrush, QColor, QPainter, QPalette, QPen
 
+from electroncash.util import finalization_print_error
+
+from .util import destroyed_print_error
+
 
 class PopupWidget(QtWidgets.QWidget):
 
@@ -365,11 +369,6 @@ class PopupLabel(PopupWidget):
     def setPopupText(self, text):
         self.label.setText(text)
 
-
-from electroncash.util import finalization_print_error
-
-### Helpers for EC integration
-from .util import destroyed_print_error
 
 _extant_popups = dict()
 

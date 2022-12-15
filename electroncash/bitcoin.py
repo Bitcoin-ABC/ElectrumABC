@@ -34,6 +34,10 @@ from typing import TYPE_CHECKING, Optional, Tuple, Union
 
 import ecdsa
 import pyaes
+from ecdsa.curves import SECP256k1
+from ecdsa.ecdsa import curve_secp256k1, generator_secp256k1
+from ecdsa.ellipticcurve import Point
+from ecdsa.util import number_to_string, string_to_number
 
 from . import networks
 from .ecc_fast import do_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1
@@ -765,12 +769,6 @@ def is_minikey(text):
 
 def minikey_to_private_key(text):
     return sha256(text)
-
-
-from ecdsa.curves import SECP256k1
-from ecdsa.ecdsa import curve_secp256k1, generator_secp256k1
-from ecdsa.ellipticcurve import Point
-from ecdsa.util import number_to_string, string_to_number
 
 
 class SignatureType(Enum):

@@ -43,6 +43,7 @@ from . import bitcoin, blockchain, networks, util, version
 from .constants import DUST_THRESHOLD
 from .i18n import _
 from .interface import Connection, Interface
+from .simple_config import SimpleConfig
 from .tor import TorController, check_proxy_bypass_tor_control
 from .utils import Event
 
@@ -155,8 +156,6 @@ def hostmap_to_servers(hostmap):
     """The inverse of servers_to_hostmap"""
     return filter_protocol(hostmap, protocol="st")
 
-
-from .simple_config import SimpleConfig
 
 proxy_modes = ["socks4", "socks5", "http"]
 
