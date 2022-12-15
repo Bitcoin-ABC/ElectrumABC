@@ -145,7 +145,9 @@ class HistoryList(MyTreeWidget):
         h = self.wallet.get_history(self.get_domain(), reverse=True)
         sels = self.selectedItems()
         current_tx = sels[0].data(0, Qt.UserRole) if sels else None
-        del sels  #  make sure not to hold stale ref to C++ list of items which will be deleted in clear() call below
+        # make sure not to hold stale ref to C++ list of items which will be deleted
+        # in clear() call below
+        del sels
         self.clear()
         self.has_unknown_balances = False
         fx = self.main_window.fx
