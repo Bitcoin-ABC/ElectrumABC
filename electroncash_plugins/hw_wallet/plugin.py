@@ -28,11 +28,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Iterable, Optional, Sequence, Type
 
-from electroncash import Transaction
 from electroncash.address import OpCodes, Script
 from electroncash.bitcoin import TYPE_SCRIPT
 from electroncash.i18n import _, ngettext
 from electroncash.plugins import BasePlugin, Device, DeviceInfo, DeviceMgr, hook
+from electroncash.transaction import Transaction
 from electroncash.util import finalization_print_error
 
 if TYPE_CHECKING:

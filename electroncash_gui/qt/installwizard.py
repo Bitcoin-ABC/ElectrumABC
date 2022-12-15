@@ -14,11 +14,12 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import QEventLoop, QRect, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon, QPainter, QPalette, QPen
 
-from electroncash import WalletStorage, keystore
+from electroncash import keystore
 from electroncash.base_wizard import HWD_SETUP_DECRYPT_WALLET, BaseWizard, GoBack
 from electroncash.constants import PROJECT_NAME
 from electroncash.i18n import _
 from electroncash.network import Network
+from electroncash.storage import WalletStorage
 from electroncash.util import (
     InvalidPassword,
     TimeoutException,

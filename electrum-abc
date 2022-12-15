@@ -43,14 +43,16 @@ import threading
 from typing import Any
 
 import electroncash.web as web
-from electroncash import Network, SimpleConfig, daemon, keystore, mnemo, networks, util
+from electroncash import daemon, keystore, mnemo, networks, util
 from electroncash.commands import Commands, config_variables, get_parser, known_commands
 from electroncash.constants import PORTABLE_DATA_DIR, PROJECT_NAME, SCRIPT_NAME
 from electroncash.i18n import _
 from electroncash.keystore import bip44_derivation_xec
 from electroncash.migrate_data import migrate_data_from_ec, update_config
+from electroncash.network import Network
 from electroncash.plugins import Plugins
 from electroncash.printerror import print_msg, print_stderr, set_verbosity
+from electroncash.simple_config import SimpleConfig
 from electroncash.storage import WalletStorage
 from electroncash.util import InvalidPassword, json_decode, json_encode
 from electroncash.wallet import (

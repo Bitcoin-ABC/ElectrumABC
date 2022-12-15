@@ -35,13 +35,13 @@ from PyQt5.QtCore import PYQT_VERSION, QRect, QSize, Qt, pyqtSignal
 from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtMultimedia import QCamera, QCameraInfo, QCameraViewfinderSettings
 
-from electroncash import get_config
 from electroncash.i18n import _
 from electroncash.printerror import PrintError
 from electroncash.qrreaders import QrCodeResult, get_qr_reader
-from electroncash_gui.qt.utils import FixedAspectRatioLayout, ImageGraphicsEffect
+from electroncash.simple_config import get_config
 
 from ..util import MessageBoxMixin
+from ..utils import FixedAspectRatioLayout, ImageGraphicsEffect
 from .crop_blur_effect import QrReaderCropBlurEffect
 from .validator import (
     AbstractQrReaderValidator,

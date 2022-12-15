@@ -56,15 +56,7 @@ from PyQt5.QtGui import QColor, QCursor, QFont, QIcon, QKeySequence, QTextOption
 
 import electroncash.constants
 import electroncash.web as web
-from electroncash import (
-    bitcoin,
-    commands,
-    get_config,
-    keystore,
-    networks,
-    paymentrequest,
-    util,
-)
+from electroncash import bitcoin, commands, keystore, networks, paymentrequest, util
 from electroncash.address import Address
 from electroncash.bitcoin import TYPE_ADDRESS
 from electroncash.constants import CURRENCY, PROJECT_NAME, REPOSITORY_URL, SCRIPT_NAME
@@ -72,6 +64,7 @@ from electroncash.contacts import Contact
 from electroncash.i18n import _, ngettext, pgettext
 from electroncash.paymentrequest import PR_PAID
 from electroncash.plugins import run_hook
+from electroncash.simple_config import get_config
 from electroncash.transaction import (
     OPReturn,
     SerializationError,
