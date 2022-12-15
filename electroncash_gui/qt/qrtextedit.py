@@ -173,7 +173,7 @@ class ScanQRTextEdit(_QrCodeTextEdit, MessageBoxMixin):
 
         if ElectrumGui.instance.warn_if_cant_import_qrreader(self):
             return
-        from electroncash import get_config
+        from electroncash.simple_config import get_config
 
         from .qrreader import QrReaderCameraDialog
 

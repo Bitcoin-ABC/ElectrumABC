@@ -4,8 +4,8 @@ import json
 
 import util
 
-from electroncash import set_verbosity
 from electroncash.network import filter_version
+from electroncash.printerror import set_verbosity
 
 set_verbosity(False)
 

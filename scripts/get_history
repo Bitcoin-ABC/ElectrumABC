@@ -2,8 +2,8 @@
 
 import sys
 
-from electroncash import Network
 from electroncash.address import Address
+from electroncash.network import Network
 from electroncash.printerror import print_msg
 from electroncash.util import json_encode
 

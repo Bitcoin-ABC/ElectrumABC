@@ -34,11 +34,11 @@ import time
 import weakref
 from typing import Optional, Tuple
 
-from electroncash import Network
 from electroncash.address import Address, OpCodes
 from electroncash.bitcoin import COINBASE_MATURITY, TYPE_SCRIPT
 from electroncash.constants import PROJECT_NAME
 from electroncash.i18n import _
+from electroncash.network import Network
 from electroncash.plugins import BasePlugin, daemon_command, hook
 from electroncash.util import InvalidPassword
 

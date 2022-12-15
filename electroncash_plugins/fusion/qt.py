@@ -41,8 +41,9 @@ from electroncash.plugins import hook, run_hook
 from electroncash.util import InvalidPassword, do_in_main_thread, inv_dict
 from electroncash.wallet import Abstract_Wallet
 from electroncash_gui.qt.amountedit import XECAmountEdit
-from electroncash_gui.qt.main_window import ElectrumWindow, StatusBarButton
+from electroncash_gui.qt.main_window import ElectrumWindow
 from electroncash_gui.qt.popup_widget import KillPopupLabel, ShowPopupLabel
+from electroncash_gui.qt.statusbar import StatusBarButton
 from electroncash_gui.qt.util import (
     Buttons,
     CancelButton,
