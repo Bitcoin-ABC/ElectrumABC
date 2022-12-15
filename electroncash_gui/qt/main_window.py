@@ -70,6 +70,7 @@ from electroncash.bitcoin import TYPE_ADDRESS
 from electroncash.constants import CURRENCY, PROJECT_NAME, REPOSITORY_URL, SCRIPT_NAME
 from electroncash.contacts import Contact
 from electroncash.i18n import _, ngettext, pgettext
+from electroncash.paymentrequest import PR_PAID
 from electroncash.plugins import run_hook
 from electroncash.transaction import (
     OPReturn,
@@ -93,18 +94,37 @@ from electroncash.util import (
 )
 from electroncash.wallet import Abstract_Wallet, Multisig_Wallet, sweep_preparations
 
+from . import address_dialog, exception_window, external_plugins_window, qrwindow
+from .address_list import AddressList
 from .amountedit import AmountEdit, MyLineEdit, XECAmountEdit, XECSatsByteEdit
 from .avalanche.delegation_editor import AvaDelegationDialog
 from .avalanche.proof_editor import AvaProofDialog
 from .avalanche.util import AuxiliaryKeysDialog
+from .bip38_importer import Bip38Importer
+from .console import Console
+from .contact_list import ContactList
 from .fee_slider import FeeSlider
+from .history_list import HistoryList
 from .invoice_dialog import InvoiceDialog, load_invoice_from_file_and_show_error_message
+from .invoice_list import InvoiceList
 from .multi_transactions_dialog import MultiTransactionsDialog
+from .password_dialog import (
+    ChangePasswordDialogForHW,
+    ChangePasswordDialogForSW,
+    PassphraseDialog,
+    PasswordDialog,
+)
+from .paytoedit import PayToEdit
 from .popup_widget import KillPopupLabel, ShowPopupLabel
 from .qrcodewidget import QRCodeWidget, QRDialog
+from .qrreader import QrReaderCameraDialog
 from .qrtextedit import ScanQRTextEdit, ShowQRTextEdit
+from .request_list import RequestList
+from .scan_beyond_gap import ScanBeyondGap
+from .seed_dialog import SeedDialog
 from .sign_verify_dialog import SignVerifyDialog
 from .transaction_dialog import show_transaction
+from .udev_installer import InstallHardwareWalletSupportDialog
 from .util import (
     MONOSPACE_FONT,
     Buttons,
@@ -133,6 +153,7 @@ from .util import (
     rate_limited,
     text_dialog,
 )
+from .utxo_list import UTXOList
 
 try:
     # pre-load QtMultimedia at app start, if possible
@@ -170,9 +191,6 @@ class StatusBarButton(QtWidgets.QPushButton):
             self.func()
         else:
             super().keyPressEvent(e)
-
-
-from electroncash.paymentrequest import PR_PAID
 
 
 def windows_qt_use_freetype(config):
@@ -1459,8 +1477,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.labels_need_update.clear()  # clear flag
 
     def create_history_tab(self):
-        from .history_list import HistoryList
-
         self.history_list = HistoryList(self)
         self.history_list.edited.connect(self.update_labels)
         self.history_list.searchable_list = self.history_list
@@ -1468,8 +1484,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     def show_address(self, addr, *, parent=None):
         parent = parent or self.top_level_window()
-        from . import address_dialog
-
         d = address_dialog.AddressDialog(self, addr, windowParent=parent)
         d.exec_()
 
@@ -1612,9 +1626,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         grid.addLayout(buttons, 6, 2, 1, -1)
 
         self.receive_requests_label = QtWidgets.QLabel(_("Re&quests"))
-
-        from .request_list import RequestList
-
         self.request_list = RequestList(self)
         self.request_list.chkVisible()
 
@@ -1874,8 +1885,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.set_receive_address(self.wallet.get_receiving_address(frozen_ok=False))
 
     def show_qr_window(self):
-        from . import qrwindow
-
         if not self.qr_window:
             self.qr_window = qrwindow.QR_Window()
             self.qr_window.setAttribute(Qt.WA_DeleteOnClose, True)
@@ -1947,8 +1956,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.send_grid = grid = QtWidgets.QGridLayout()
         grid.setSpacing(8)
         grid.setColumnStretch(3, 1)
-
-        from .paytoedit import PayToEdit
 
         self.amount_e = XECAmountEdit(self.get_decimal_point())
         self.payto_e = PayToEdit(self)
@@ -2229,8 +2236,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.opreturn_rawhex_cb.stateChanged.connect(entry_changed)
 
         self.invoices_label = QtWidgets.QLabel(_("Invoices"))
-        from .invoice_list import InvoiceList
-
         self.invoice_list = InvoiceList(self)
         self.invoice_list.chkVisible()
 
@@ -3198,25 +3203,19 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         return w
 
     def create_addresses_tab(self):
-        from .address_list import AddressList
-
         self.address_list = AddressList(self)
         self.address_list.edited.connect(self.update_labels)
         return self.create_list_tab(self.address_list)
 
     def create_utxo_tab(self):
-        from .utxo_list import UTXOList
-
         self.utxo_list = UTXOList(self)
         self.gui_object.addr_fmt_changed.connect(self.utxo_list.update)
         self.utxo_list.edited.connect(self.update_labels)
         return self.create_list_tab(self.utxo_list)
 
     def create_contacts_tab(self):
-        from .contact_list import ContactList
-
-        self.contact_list = l = ContactList(self)
-        return self.create_list_tab(l)
+        self.contact_list = ContactList(self)
+        return self.create_list_tab(self.contact_list)
 
     def remove_address(self, addr):
         if self.question(
@@ -3423,10 +3422,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.payment_request_error()
 
     def create_console_tab(self):
-        from .console import Console
-
-        self.console = console = Console(wallet=self.wallet)
-        return console
+        self.console = Console(wallet=self.wallet)
+        return self.console
 
     def update_console(self):
         console = self.console
@@ -3588,8 +3585,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         from electroncash.storage import STO_EV_XPUB_PW
 
         if self.wallet.get_available_storage_encryption_version() == STO_EV_XPUB_PW:
-            from .password_dialog import ChangePasswordDialogForHW
-
             d = ChangePasswordDialogForHW(self, self.wallet)
             ok, encrypt_file = d.run()
             if not ok:
@@ -3606,8 +3601,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             old_password = hw_dev_pw if self.wallet.has_password() else None
             new_password = hw_dev_pw if encrypt_file else None
         else:
-            from .password_dialog import ChangePasswordDialogForSW
-
             d = ChangePasswordDialogForSW(self, self.wallet)
             ok, old_password, new_password, encrypt_file = d.run()
 
@@ -3638,8 +3631,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     def get_passphrase_dialog(
         self, msg: str, title: str = None, *, permit_empty=False
     ) -> str:
-        from .password_dialog import PassphraseDialog
-
         d = PassphraseDialog(
             self.wallet, self.top_level_window(), msg, title, permit_empty=permit_empty
         )
@@ -3788,7 +3779,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         except BaseException as e:
             self.show_error(str(e))
             return
-        from .seed_dialog import SeedDialog
 
         d = SeedDialog(self.top_level_window(), seed, passphrase, derivation, seed_type)
         d.exec_()
@@ -3967,8 +3957,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         d.exec_()
 
     def password_dialog(self, msg=None, parent=None):
-        from .password_dialog import PasswordDialog
-
         parent = parent or self
         return PasswordDialog(parent, msg).run()
 
@@ -4012,9 +4000,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             return
         if self.gui_object.warn_if_cant_import_qrreader(self):
             return
-        from electroncash import get_config
-
-        from .qrreader import QrReaderCameraDialog
 
         self._qr_dialog = None
         try:
@@ -4821,8 +4806,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                     bip38s[k] = i
             if bip38s:
                 # For all the BIP38s detected, prompt for password
-                from .bip38_importer import Bip38Importer
-
                 d2 = Bip38Importer(bip38s.keys(), parent=self.top_level_window())
                 d2.exec_()
                 d2.setParent(None)
@@ -4906,8 +4889,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         def func(key):
             if bitcoin.is_bip38_available() and bitcoin.is_bip38_key(key):
-                from .bip38_importer import Bip38Importer
-
                 d = Bip38Importer(
                     [key],
                     parent=self.top_level_window(),
@@ -5164,17 +5145,13 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         id_form.addRow(SSL_id_label, SSL_id_e)
 
         # Identity box in middle of this tab
-        misc_widgets.append(
-            (id_gb, None)
-        )  # commit id_form/id_gb to master layout via this data structure
-
-        from . import exception_window as ew
-
+        # commit id_form/id_gb to master layout via this data structure
+        misc_widgets.append((id_gb, None))
         cr_gb = QtWidgets.QGroupBox(_("Crash Reporter"))
         cr_grid = QtWidgets.QGridLayout(cr_gb)
         cr_chk = QtWidgets.QCheckBox()
-        cr_chk.setChecked(ew.is_enabled(self.config))
-        cr_chk.clicked.connect(lambda b: ew.set_enabled(self.config, b))
+        cr_chk.setChecked(exception_window.is_enabled(self.config))
+        cr_chk.clicked.connect(lambda b: exception_window.set_enabled(self.config, b))
         cr_help = HelpLabel(
             _("Crash reporter enabled"),
             _(
@@ -6169,7 +6146,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             # NB: reentrance here is possible due to the way the window menus work on MacOS.. so guard against it
             self.externalpluginsdialog.raise_()
             return
-        from . import external_plugins_window
 
         d = external_plugins_window.ExternalPluginsDialog(self, _("Plugin Manager"))
         self.externalpluginsdialog = d
@@ -6184,7 +6160,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             # NB: reentrance here is possible due to the way the window menus work on MacOS.. so guard against it
             self.hardwarewalletdialog.raise_()
             return
-        from .udev_installer import InstallHardwareWalletSupportDialog
 
         d = InstallHardwareWalletSupportDialog(
             self.top_level_window(), self.gui_object.plugins
@@ -6290,8 +6265,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     def scan_beyond_gap(self):
         if self.gui_object.warn_if_no_network(self):
             return
-        from .scan_beyond_gap import ScanBeyondGap
-
         d = ScanBeyondGap(self)
         d.exec_()
         d.setParent(None)  # help along Python by dropping refct to 0
@@ -6305,8 +6278,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     def _pick_address(self, *, title=None, icon=None) -> Address:
         """Returns None on user cancel, or a valid is_mine Address object
         from the Address list."""
-        from .address_list import AddressList
-
         # Show user address picker
         d = WindowModalDialog(self.top_level_window(), title or _("Choose an address"))
         d.setObjectName("Window Modal Dialog - " + d.windowTitle())
