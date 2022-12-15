@@ -38,14 +38,8 @@ from . import bitcoin, mnemo, networks
 from .address import Address, PublicKey
 from .bitcoin import SignatureType
 from .plugins import run_hook
-from .util import (
-    BitcoinException,
-    InvalidPassword,
-    PrintError,
-    WalletFileException,
-    bh2u,
-    print_error,
-)
+from .printerror import PrintError, print_error
+from .util import BitcoinException, InvalidPassword, WalletFileException, bh2u
 
 if TYPE_CHECKING:
     from electroncash_gui.qt.util import TaskThread

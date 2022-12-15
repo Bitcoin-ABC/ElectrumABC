@@ -39,8 +39,9 @@ from electroncash.address import Address, PublicKey, ScriptOutput
 from electroncash.bitcoin import base_encode
 from electroncash.i18n import _, ngettext
 from electroncash.plugins import run_hook
+from electroncash.printerror import PrintError
 from electroncash.transaction import InputValueMissing
-from electroncash.util import PrintError, Weak, bfh
+from electroncash.util import Weak, bfh
 
 from .util import (
     MONOSPACE_FONT,

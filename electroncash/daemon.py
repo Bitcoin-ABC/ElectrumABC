@@ -38,9 +38,10 @@ from .constants import PROJECT_NAME, SCRIPT_NAME
 from .exchange_rate import FxThread
 from .jsonrpc import VerifyingJSONRPCServer
 from .network import Network
+from .printerror import print_error, print_stderr
 from .simple_config import SimpleConfig
 from .storage import WalletStorage
-from .util import DaemonThread, json_decode, print_error, standardize_path, to_string
+from .util import DaemonThread, json_decode, standardize_path, to_string
 from .wallet import Wallet
 
 if TYPE_CHECKING:
@@ -158,7 +159,6 @@ def get_rpc_credentials(config):
         config.set_key("rpcuser", rpc_user)
         config.set_key("rpcpassword", rpc_password, save=True)
     elif rpc_password == "":
-        from .util import print_stderr
 
         print_stderr("WARNING: RPC authentication is disabled.")
     return rpc_user, rpc_password

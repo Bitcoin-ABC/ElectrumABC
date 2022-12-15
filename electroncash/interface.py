@@ -38,7 +38,7 @@ import requests
 from pathvalidate import sanitize_filename
 
 from . import pem, util, x509
-from .util import print_error
+from .printerror import PrintError, is_verbose, print_error, print_msg
 from .utils import Event
 
 ca_path = requests.certs.where()
@@ -64,7 +64,7 @@ def Connection(server, queue, config_path, callback=None):
     return c
 
 
-class TcpConnection(threading.Thread, util.PrintError):
+class TcpConnection(threading.Thread, PrintError):
     bad_certificate = Event()
 
     def __init__(self, server, queue, config_path):
@@ -281,7 +281,7 @@ class TcpConnection(threading.Thread, util.PrintError):
                         b = pem.dePem(cert, "CERTIFICATE")
                         x = x509.X509(b)
                     except:
-                        if util.is_verbose:
+                        if is_verbose:
                             self.print_error(
                                 "Error checking certificate, traceback follows"
                             )
@@ -319,7 +319,7 @@ class TcpConnection(threading.Thread, util.PrintError):
         try:
             socket = self.get_socket()
         except OSError:
-            if util.is_verbose:
+            if is_verbose:
                 self.print_error("Error getting socket, traceback follows")
                 traceback.print_exc(file=sys.stderr)
             socket = None
@@ -329,7 +329,7 @@ class TcpConnection(threading.Thread, util.PrintError):
         self.queue.put((self.server, socket))
 
 
-class Interface(util.PrintError):
+class Interface(PrintError):
     """The Interface class handles a socket connected to a single remote
     electrum server.  It's exposed API is:
 
@@ -559,7 +559,7 @@ def check_cert(host, cert):
         b = pem.dePem(cert, "CERTIFICATE")
         x = x509.X509(b)
     except:
-        if util.is_verbose:
+        if is_verbose:
             print_error("Error checking certificate, traceback follows")
             traceback.print_exc(file=sys.stderr)
         return
@@ -572,7 +572,7 @@ def check_cert(host, cert):
 
     m = "host: %s\n" % host
     m += "has_expired: %s\n" % expired
-    util.print_msg(m)
+    print_msg(m)
 
 
 # Used by tests

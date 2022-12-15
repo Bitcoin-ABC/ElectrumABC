@@ -5,10 +5,11 @@ from PyQt5.QtGui import QBrush, QColor, QCursor, QPainter, QPen
 
 from electroncash import util
 from electroncash.i18n import _
+from electroncash.printerror import PrintError
 from electroncash_gui.qt.util import CloseButton, MessageBoxMixin, WindowModalDialog
 
 
-class QRCodeWidget(QtWidgets.QWidget, util.PrintError):
+class QRCodeWidget(QtWidgets.QWidget, PrintError):
     def __init__(self, data=None, fixedSize=False):
         QtWidgets.QWidget.__init__(self)
         self.data = None

@@ -6,7 +6,8 @@ import sys
 import time
 
 from electroncash import Network, SimpleConfig
-from electroncash.util import json_encode, print_msg
+from electroncash.printerror import print_msg
+from electroncash.util import json_encode
 
 # start network
 c = SimpleConfig()

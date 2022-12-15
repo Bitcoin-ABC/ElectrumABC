@@ -50,15 +50,9 @@ from electroncash.i18n import _
 from electroncash.keystore import bip44_derivation_xec
 from electroncash.migrate_data import migrate_data_from_ec, update_config
 from electroncash.plugins import Plugins
+from electroncash.printerror import print_msg, print_stderr, set_verbosity
 from electroncash.storage import WalletStorage
-from electroncash.util import (
-    InvalidPassword,
-    json_decode,
-    json_encode,
-    print_msg,
-    print_stderr,
-    set_verbosity,
-)
+from electroncash.util import InvalidPassword, json_decode, json_encode
 from electroncash.wallet import (
     Abstract_Wallet,
     ImportedAddressWallet,

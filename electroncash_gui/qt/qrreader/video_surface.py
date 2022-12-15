@@ -36,7 +36,7 @@ from PyQt5.QtMultimedia import (
 )
 
 from electroncash.i18n import _
-from electroncash.util import print_error
+from electroncash.printerror import print_error
 
 
 class QrReaderVideoSurface(QAbstractVideoSurface):

@@ -48,15 +48,9 @@ from . import bitcoin, rsakey, transaction, util, x509
 from .address import Address, PublicKey
 from .bitcoin import TYPE_ADDRESS
 from .constants import PROJECT_NAME, PROJECT_NAME_NO_SPACES, XEC
+from .printerror import PrintError, print_error
 from .transaction import Transaction
-from .util import (
-    FileImportFailed,
-    FileImportFailedEncrypted,
-    PrintError,
-    bfh,
-    bh2u,
-    print_error,
-)
+from .util import FileImportFailed, FileImportFailedEncrypted, bfh, bh2u
 from .version import PACKAGE_VERSION
 
 
@@ -856,7 +850,7 @@ class PaymentRequest_BitPay20(PaymentRequest, PrintError):
                     d = r2.json()
                     exp = dateutil.parser.parse(d["expirationDate"]).timestamp()
                     if exp < time.time():
-                        self.print_error(
+                        print_error(
                             "Warning: BitPay returned expired keys expirationDate=",
                             d["expirationDate"],
                         )

@@ -35,8 +35,9 @@ from typing import TYPE_CHECKING, DefaultDict, Dict, Iterable, Optional, Set, Tu
 from . import networks
 from .address import Address
 from .bitcoin import InvalidXKeyFormat
+from .monotonic import Monotonic
 from .transaction import Transaction
-from .util import Monotonic, ThreadJob, bh2u
+from .util import ThreadJob, bh2u
 
 if TYPE_CHECKING:
     from .wallet import Abstract_Wallet

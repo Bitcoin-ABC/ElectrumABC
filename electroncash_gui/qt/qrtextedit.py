@@ -4,9 +4,9 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import QPoint, Qt
 from PyQt5.QtGui import QIcon, QImage, QPainter, QPixmap
 
-from electroncash import util
 from electroncash.i18n import _
 from electroncash.plugins import run_hook
+from electroncash.printerror import is_verbose, print_error
 from electroncash.qrreaders import get_qr_reader
 
 from .util import ButtonsTextEdit, ColorScheme, MessageBoxMixin
@@ -165,7 +165,7 @@ class ScanQRTextEdit(_QrCodeTextEdit, MessageBoxMixin):
             # taps the QR button and the modal dialog appears.  We want to
             # prevent multiple instances of the dialog from appearing, so we
             # must do this.
-            util.print_error(
+            print_error(
                 "[ScanQRTextEdit] Warning: QR dialog is already presented, ignoring."
             )
             return
@@ -201,7 +201,7 @@ class ScanQRTextEdit(_QrCodeTextEdit, MessageBoxMixin):
             self.qr_dialog.qr_finished.connect(_on_qr_reader_finished)
             self.qr_dialog.start_scan(get_config().get_video_device())
         except Exception as e:
-            if util.is_verbose:
+            if is_verbose:
                 import traceback
 
                 traceback.print_exc()

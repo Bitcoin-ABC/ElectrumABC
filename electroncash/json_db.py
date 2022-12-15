@@ -31,7 +31,8 @@ import threading
 from . import bitcoin, util
 from .address import Address
 from .keystore import bip44_derivation_btc
-from .util import PrintError, WalletFileException, multisig_type, profiler
+from .printerror import PrintError
+from .util import WalletFileException, multisig_type, profiler
 
 # seed_version is now used for the version of the wallet file
 

@@ -70,6 +70,7 @@ from electroncash.address import Address
 from electroncash.constants import PROJECT_NAME
 from electroncash.i18n import _
 from electroncash.plugins import run_hook
+from electroncash.printerror import PrintError, print_error
 from electroncash.util import (
     BitcoinException,
     Handlers,
@@ -92,11 +93,9 @@ from .update_checker import UpdateChecker
 from .util import (
     ColorScheme,
     MessageBoxMixin,
-    PrintError,
     QMessageBoxMixin,
     destroyed_print_error,
     finalization_print_error,
-    print_error,
 )
 
 if TYPE_CHECKING:

@@ -10,6 +10,7 @@ from PyQt5.QtGui import QFont
 from electroncash import address, bitcoin, util
 from electroncash.constants import PROJECT_NAME
 from electroncash.i18n import _
+from electroncash.printerror import PrintError
 
 from .util import (
     MONOSPACE_FONT,
@@ -23,7 +24,7 @@ from .util import (
 )
 
 
-class Bip38Importer(WindowModalDialog, util.PrintError):
+class Bip38Importer(WindowModalDialog, PrintError):
     """A drop-in GUI element for implementing a BIP38 import dialog.
     For each of the passed-in bip38 keys, it will prompt the user to enter their
     password and it will attempt to decrypt the keys.
@@ -296,7 +297,7 @@ class Bip38Importer(WindowModalDialog, util.PrintError):
         self.refresh()
 
 
-class _decrypt_thread(threading.Thread, util.PrintError):
+class _decrypt_thread(threading.Thread, PrintError):
     """Helper for the above Bip38Importer class. Does the computationally
     expensive scrypt-based decode of a bip38 key in another thread in order to
     keep the GUI responsive. Note that we create a new one of these each time

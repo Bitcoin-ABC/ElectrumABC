@@ -48,6 +48,8 @@ repos:
               electroncash/constants.py|
               electroncash/invoice.py|
               electroncash/keystore.py|
+              electroncash/monotonic.py|
+              electroncash/printerror.py|
               electroncash/uint256.py|
               electroncash/web.py|
               electroncash_gui/qt/address_list.py|

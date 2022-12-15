@@ -19,8 +19,9 @@ from electroncash.mnemo import (
     seed_type_name,
 )
 from electroncash.plugins import Device
+from electroncash.printerror import PrintError, is_verbose, print_error
 from electroncash.transaction import Transaction
-from electroncash.util import PrintError, bfh, bh2u, is_verbose, print_error
+from electroncash.util import bfh, bh2u
 from electroncash.wallet import Standard_Wallet
 from electroncash_gui.qt.qrcodewidget import QRDialog
 

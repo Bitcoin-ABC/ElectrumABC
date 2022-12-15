@@ -39,7 +39,8 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from electroncash import bitcoin, keystore, transaction, util
 from electroncash.i18n import _
 from electroncash.plugins import BasePlugin, hook
-from electroncash.util import InvalidPassword, Weak, bfh, bh2u, print_error
+from electroncash.printerror import print_error
+from electroncash.util import InvalidPassword, Weak, bfh, bh2u
 from electroncash.wallet import Multisig_Wallet
 from electroncash_gui.qt.transaction_dialog import TxDialog, show_transaction
 

@@ -39,7 +39,7 @@ from electroncash.constants import PROJECT_NAME, SCRIPT_NAME
 from electroncash.contacts import Contact, contact_types
 from electroncash.i18n import _
 from electroncash.plugins import run_hook
-from electroncash.util import PrintError
+from electroncash.printerror import PrintError
 
 from .util import MONOSPACE_FONT, ColorScheme, MyTreeWidget, rate_limited, webopen
 

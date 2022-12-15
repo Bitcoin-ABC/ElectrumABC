@@ -30,7 +30,8 @@ import sys
 from enum import IntEnum
 from typing import List
 
-from ..util import _, print_error
+from ..printerror import print_error
+from ..util import _
 from . import MissingLib
 from .abstract_base import AbstractQrCodeReader, QrCodeResult
 

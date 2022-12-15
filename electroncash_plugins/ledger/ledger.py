@@ -19,8 +19,9 @@ from electroncash.bitcoin import (
 from electroncash.i18n import _
 from electroncash.keystore import Hardware_KeyStore
 from electroncash.plugins import Device
+from electroncash.printerror import is_verbose, print_error
 from electroncash.transaction import Transaction
-from electroncash.util import bfh, bh2u, is_verbose, print_error, versiontuple
+from electroncash.util import bfh, bh2u, versiontuple
 from electroncash_plugins.hw_wallet import HardwareClientBase, HW_PluginBase
 from electroncash_plugins.hw_wallet.plugin import (
     is_any_tx_output_on_change_branch,

@@ -29,6 +29,8 @@ import queue
 import threading
 from collections import defaultdict
 
+from .printerror import PrintError
+
 try:
     from SimpleWebSocketServer import SimpleSSLWebSocketServer, WebSocket
 except ImportError:
@@ -42,7 +44,7 @@ from .address import Address
 request_queue = queue.Queue()
 
 
-class ElectrumWebSocket(WebSocket, util.PrintError):
+class ElectrumWebSocket(WebSocket, PrintError):
     def handleMessage(self):
         assert self.data[:3] == "id:"
         self.print_error("message received", self.data)

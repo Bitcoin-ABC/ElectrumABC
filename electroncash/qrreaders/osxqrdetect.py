@@ -32,8 +32,7 @@ from typing import List
 if sys.platform != "darwin":
     raise RuntimeError("osxqrdetect may only be used on macOS!")
 
-
-from ..util import PrintError, is_verbose, print_error
+from ..printerror import PrintError, is_verbose, print_error
 from . import MissingLib
 from .abstract_base import AbstractQrCodeReader, QrCodeResult
 

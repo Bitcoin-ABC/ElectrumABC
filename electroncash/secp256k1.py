@@ -11,7 +11,7 @@ import os
 import sys
 from ctypes import POINTER, c_char_p, c_int, c_size_t, c_uint, c_void_p
 
-from .util import print_stderr
+from .printerror import print_stderr
 
 SECP256K1_FLAGS_TYPE_MASK = (1 << 8) - 1
 SECP256K1_FLAGS_TYPE_CONTEXT = 1 << 0

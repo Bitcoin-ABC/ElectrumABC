@@ -196,8 +196,7 @@ if not hasattr(dns, "version"):
     dns.dnssec.SHA384 = PyCryptodomexHashAlike(hashlib.sha384)
     dns.dnssec.SHA512 = PyCryptodomexHashAlike(hashlib.sha512)
 
-
-from .util import print_error
+from .printerror import print_error
 
 # hard-coded trust anchors (root KSKs)
 trust_anchors = [

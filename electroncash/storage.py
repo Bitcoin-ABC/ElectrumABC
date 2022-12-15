@@ -33,13 +33,8 @@ import zlib
 from . import bitcoin
 from .json_db import JsonDB
 from .plugins import run_hook
-from .util import (
-    InvalidPassword,
-    PrintError,
-    WalletFileException,
-    profiler,
-    standardize_path,
-)
+from .printerror import PrintError
+from .util import InvalidPassword, WalletFileException, profiler, standardize_path
 
 TMP_SUFFIX = ".tmp.{}".format(os.getpid())
 

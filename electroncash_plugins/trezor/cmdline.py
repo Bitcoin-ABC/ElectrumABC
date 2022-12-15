@@ -1,6 +1,6 @@
 from electroncash.i18n import _
 from electroncash.plugins import hook
-from electroncash.util import print_stderr
+from electroncash.printerror import print_stderr
 
 from ..hw_wallet import CmdLineHandler
 from .trezor import PASSPHRASE_ON_DEVICE, TrezorPlugin

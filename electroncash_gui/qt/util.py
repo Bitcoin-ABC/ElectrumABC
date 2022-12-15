@@ -25,8 +25,9 @@ from PyQt5.QtGui import (
 )
 
 from electroncash.paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNPAID
+from electroncash.printerror import PrintError, print_error
 from electroncash.simple_config import SimpleConfig
-from electroncash.util import PrintError, Weak, finalization_print_error, print_error
+from electroncash.util import Weak, finalization_print_error
 from electroncash.wallet import Abstract_Wallet
 
 if platform.system() == "Windows":

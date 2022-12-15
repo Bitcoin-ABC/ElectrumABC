@@ -42,7 +42,8 @@ from collections import defaultdict
 import electroncash.schnorr as schnorr
 from electroncash import networks
 from electroncash.address import Address
-from electroncash.util import PrintError, ServerError, TimeoutException
+from electroncash.printerror import PrintError
+from electroncash.util import ServerError, TimeoutException
 
 from . import compatibility
 from . import fusion_pb2 as pb

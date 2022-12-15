@@ -43,6 +43,7 @@ from .constants import PROJECT_NAME, SCRIPT_NAME, XEC
 from .mnemo import Mnemonic_Electrum, make_bip39_words
 from .paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNKNOWN, PR_UNPAID
 from .plugins import run_hook
+from .printerror import print_error
 from .simple_config import SimpleConfig
 from .transaction import OPReturn, Transaction, multisig_script, tx_from_str
 from .util import format_satoshis, json_decode, to_bytes
@@ -1021,19 +1022,23 @@ class Commands:
     ):
         """Create a payment request, using the first unused address of the wallet.
         The address will be condidered as used after this operation.
-        If no payment is received, the address will be considered as unused if the payment request is deleted from the wallet."""
+        If no payment is received, the address will be considered as unused if the
+        payment request is deleted from the wallet."""
         addr = self.wallet.get_unused_address()
         if addr is None:
             if not self.wallet.is_deterministic():
                 self.wallet.print_error(
-                    "Unable to find an unused address. Please use a deteministic wallet to proceed, then run with the --force option to create new addresses."
+                    "Unable to find an unused address. Please use a deteministic "
+                    "wallet to proceed, then run with the --force option to create "
+                    "new addresses."
                 )
                 return False
             if force:
                 addr = self.wallet.create_new_address(False)
             else:
                 self.wallet.print_error(
-                    "Unable to find an unused address. Try running with the --force option to create new addresses."
+                    "Unable to find an unused address. Try running with the --force "
+                    "option to create new addresses."
                 )
                 return False
         amount = satoshis(amount)
@@ -1081,9 +1086,9 @@ class Commands:
             try:
                 req = urllib.request.Request(URL, serialized_data, headers)
                 urllib.request.urlopen(req, timeout=5)
-                util.print_error("Got Response for %s" % address)
+                print_error("Got Response for %s" % address)
             except BaseException as e:
-                util.print_error(str(e))
+                print_error(str(e))
 
         h = Address.from_string(address).to_scripthash_hex()
         self.network.send([("blockchain.scripthash.subscribe", [h])], callback)

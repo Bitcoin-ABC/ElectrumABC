@@ -5,7 +5,7 @@ It reads the current stylesheet, appends our modifications and sets the new styl
 
 from PyQt5 import QtWidgets
 
-from electroncash.util import print_error
+from electroncash.printerror import print_error
 
 OLD_QDARKSTYLE_PATCH = """
 QWidget:disabled {

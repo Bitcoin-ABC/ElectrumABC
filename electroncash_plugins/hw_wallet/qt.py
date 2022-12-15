@@ -38,7 +38,8 @@ from PyQt5.QtGui import QIcon
 
 from electroncash.i18n import _
 from electroncash.plugins import hook
-from electroncash.util import PrintError, UserCancelled
+from electroncash.printerror import PrintError
+from electroncash.util import UserCancelled
 from electroncash_gui.qt.installwizard import InstallWizard
 from electroncash_gui.qt.main_window import ElectrumWindow, StatusBarButton
 from electroncash_gui.qt.password_dialog import PW_PASSPHRASE, PasswordLayout

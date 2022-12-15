@@ -41,7 +41,8 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from electroncash.i18n import _
 from electroncash.paymentrequest import PaymentRequest
 from electroncash.plugins import BasePlugin, hook
-from electroncash.util import PrintError, Weak
+from electroncash.printerror import PrintError
+from electroncash.util import Weak
 from electroncash_gui.qt.util import (
     Buttons,
     CloseButton,

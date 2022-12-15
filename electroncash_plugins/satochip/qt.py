@@ -13,7 +13,7 @@ from pysatochip.version import (
 )
 
 from electroncash.i18n import _
-from electroncash.util import print_error
+from electroncash.printerror import print_error
 from electroncash_gui.qt.qrcodewidget import QRDialog
 from electroncash_gui.qt.util import (
     Buttons,

@@ -24,7 +24,7 @@ import os
 from collections import namedtuple
 from typing import Optional, Union
 
-from .util import print_error
+from .printerror import print_error
 
 
 def bits_to_target(bits: int) -> int:

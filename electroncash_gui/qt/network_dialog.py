@@ -45,8 +45,9 @@ from electroncash.network import (
     serialize_server,
 )
 from electroncash.plugins import run_hook
+from electroncash.printerror import PrintError, print_error
 from electroncash.tor import TorController
-from electroncash.util import PrintError, Weak, in_main_thread, print_error
+from electroncash.util import Weak, in_main_thread
 
 from .util import (
     Buttons,

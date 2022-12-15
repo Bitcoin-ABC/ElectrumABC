@@ -10,7 +10,7 @@ from PyQt5.QtGui import QIcon
 
 from electroncash.i18n import _
 from electroncash.plugins import BasePlugin, hook
-from electroncash.util import print_error, print_msg
+from electroncash.printerror import print_error, print_msg
 from electroncash_gui.qt.util import EnterButton, WaitingDialog, WindowModalDialog
 
 PLATFORM_LIBS = {

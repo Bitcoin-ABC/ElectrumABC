@@ -28,7 +28,8 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import QTimer, pyqtSignal
 
 from electroncash.i18n import _
-from electroncash.util import PrintError, ServerError
+from electroncash.printerror import PrintError
+from electroncash.util import ServerError
 
 from .util import Buttons, WindowModalDialog
 

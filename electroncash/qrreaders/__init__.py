@@ -26,7 +26,7 @@
 
 import sys
 
-from ..util import print_error
+from ..printerror import print_error
 from .abstract_base import AbstractQrCodeReader, QrCodeResult  # noqa: F401
 
 

@@ -27,7 +27,9 @@ import hashlib
 
 import ecdsa
 
-from . import util
+import electroncash.printerror
+
+from .printerror import print_error
 from .util import bh2u, profiler
 
 # algo OIDs
@@ -413,7 +415,7 @@ def load_certificates(ca_path):
         except BaseException as e:
             # with open('/tmp/tmp.txt', 'w') as f:
             #     f.write(pem.pem(b, 'CERTIFICATE').decode('ascii'))
-            util.print_error("cert error:", e)
+            print_error("cert error:", e)
             continue
 
         fp = x.getFingerprint()
@@ -426,6 +428,6 @@ def load_certificates(ca_path):
 if __name__ == "__main__":
     import requests
 
-    util.set_verbosity(True)
+    electroncash.printerror.set_verbosity(True)
     ca_path = requests.certs.where()
     ca_list, ca_keyID = load_certificates(ca_path)

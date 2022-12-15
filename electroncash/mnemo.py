@@ -41,7 +41,7 @@ import mnemonic
 
 from . import version
 from .bitcoin import hmac_sha_512
-from .util import PrintError
+from .printerror import PrintError
 
 # http://www.asahi-net.or.jp/~ax2s-kmtn/ref/unicode/e_asia.html
 CJK_INTERVALS = [

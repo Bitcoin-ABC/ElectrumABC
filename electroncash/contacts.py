@@ -31,8 +31,9 @@ from typing import List
 import dns
 from dns.exception import DNSException
 
-from . import dnssec, util
+from . import dnssec
 from .address import Address
+from .printerror import PrintError, print_error
 from .storage import WalletStorage
 
 
@@ -43,7 +44,7 @@ class Contact(namedtuple("Contact", "name address type")):
 contact_types = {"address", "openalias"}
 
 
-class Contacts(util.PrintError):
+class Contacts(PrintError):
     """Electron Cash Contacts subsystem 2.0. Lightweight class for saving/laoding
     contacts to/from storage. This system replaces the old system which was
     a dict keyed off address, and which was limited to 1 contact per address
@@ -249,7 +250,7 @@ class Contacts(util.PrintError):
         try:
             records, validated = dnssec.query(url, dns.rdatatype.TXT)
         except DNSException as e:
-            util.print_error("[Contacts] Error resolving openalias: ", str(e))
+            print_error("[Contacts] Error resolving openalias: ", str(e))
             return None
         prefix = "bch"
         for record in records:

@@ -76,6 +76,7 @@ from .paymentrequest import (
     InvoiceStore,
 )
 from .plugins import plugin_loaders, run_hook
+from .printerror import PrintError
 from .storage import STO_EV_PLAINTEXT, STO_EV_USER_PW, STO_EV_XPUB_PW, WalletStorage
 from .synchronizer import Synchronizer
 from .transaction import InputValueMissing, Transaction
@@ -83,7 +84,6 @@ from .util import (
     ExcessiveFee,
     InvalidPassword,
     NotEnoughFunds,
-    PrintError,
     TimeoutException,
     UserCancelled,
     WalletFileException,

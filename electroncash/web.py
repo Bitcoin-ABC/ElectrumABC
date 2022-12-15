@@ -36,7 +36,8 @@ from . import bitcoin, networks
 from .address import Address
 from .constants import WHITELISTED_PREFIXES
 from .i18n import _
-from .util import bfh, bh2u, do_in_main_thread, format_satoshis_plain, print_error
+from .printerror import print_error
+from .util import bfh, bh2u, do_in_main_thread, format_satoshis_plain
 
 
 class ExplorerUrlParts(enum.Enum):

@@ -40,8 +40,9 @@ try:
     )
     from electroncash.i18n import _
     from electroncash.keystore import Hardware_KeyStore
+    from electroncash.printerror import print_error
     from electroncash.transaction import Transaction
-    from electroncash.util import UserCancelled, print_error, to_string
+    from electroncash.util import UserCancelled, to_string
 
     from ..hw_wallet import HardwareClientBase, HW_PluginBase
 

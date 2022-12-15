@@ -50,8 +50,8 @@ from electroncash import schnorr
 from electroncash.bitcoin import public_key_from_private_key
 from electroncash.constants import XEC
 from electroncash.i18n import _
+from electroncash.printerror import PrintError
 from electroncash.util import (
-    PrintError,
     ServerError,
     TimeoutException,
     TxHashMismatch,

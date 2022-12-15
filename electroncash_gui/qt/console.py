@@ -9,6 +9,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 from electroncash import util
 from electroncash.i18n import _
+from electroncash.printerror import print_msg
 
 from .util import MONOSPACE_FONT, ColorScheme
 
@@ -442,7 +443,7 @@ class Console(QtWidgets.QWidget):
                     result = eval(command, self.namespace, self.namespace)
                     if result is not None:
                         if self.is_json:
-                            util.print_msg(util.json_encode(result))
+                            print_msg(util.json_encode(result))
                         else:
                             self.editor.appendPlainText(repr(result))
                 except SyntaxError:

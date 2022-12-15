@@ -27,6 +27,7 @@ import threading
 from typing import Optional
 
 from . import asert_daa, bitcoin, networks, util
+from .printerror import PrintError
 
 
 class VerifyError(Exception):
@@ -262,7 +263,7 @@ class HeaderChunk:
         return self.headers[index]
 
 
-class Blockchain(util.PrintError):
+class Blockchain(PrintError):
     """
     Manages blockchain headers and their verification
     """

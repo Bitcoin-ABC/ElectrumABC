@@ -10,7 +10,7 @@ from ctypes import byref, c_size_t, create_string_buffer
 import ecdsa
 
 from . import secp256k1
-from .util import print_msg
+from .printerror import print_msg
 
 
 class _patched_functions:

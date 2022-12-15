@@ -41,13 +41,13 @@ from ecdsa.util import number_to_string, string_to_number
 
 from . import networks
 from .ecc_fast import do_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1
+from .printerror import print_error
 from .util import (
     InvalidPassword,
     assert_bytes,
     bfh,
     bh2u,
     inv_dict,
-    print_error,
     to_bytes,
     to_string,
 )

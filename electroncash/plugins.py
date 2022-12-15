@@ -58,17 +58,9 @@ from warnings import warn
 from . import bitcoin, version
 from .constants import PROJECT_NAME, SCRIPT_NAME
 from .i18n import _
+from .printerror import PrintError, print_error, print_stderr
 from .simple_config import SimpleConfig
-from .util import (
-    DaemonThread,
-    PrintError,
-    ThreadJob,
-    UserCancelled,
-    make_dir,
-    print_error,
-    print_stderr,
-    profiler,
-)
+from .util import DaemonThread, ThreadJob, UserCancelled, make_dir, profiler
 
 if TYPE_CHECKING:
     from electroncash_plugins.hw_wallet import (

@@ -36,9 +36,9 @@ import stem.control
 import stem.process
 import stem.socket
 
-from .. import util, version
+from .. import version
+from ..printerror import PrintError, is_verbose
 from ..simple_config import SimpleConfig
-from ..util import PrintError
 from ..utils import Event
 
 # Python 3.10 workaround for stem package which is using collections.Iterable (removed in 3.10)
@@ -153,7 +153,7 @@ class TorController(PrintError):
     ]
 
     def _tor_msg_handler(self, message: str):
-        if util.is_verbose:
+        if is_verbose:
             if all(not regex.match(message) for regex in TorController._ignored_res):
                 self.print_msg(message)
 

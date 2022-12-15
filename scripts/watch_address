@@ -5,7 +5,8 @@ import time
 
 from electroncash import Network, SimpleConfig
 from electroncash.address import Address
-from electroncash.util import json_encode, print_msg
+from electroncash.printerror import print_msg
+from electroncash.util import json_encode
 
 try:
     addr = Address.from_string(sys.argv[1])

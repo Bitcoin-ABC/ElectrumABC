@@ -12,7 +12,7 @@ import time
 import weakref
 from collections import defaultdict
 
-from .util import PrintError, print_error
+from .printerror import PrintError, print_error
 
 
 class ExpiringCache:

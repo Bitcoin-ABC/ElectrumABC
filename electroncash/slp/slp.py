@@ -1,7 +1,8 @@
 from typing import List, Set, Tuple
 
 from .. import address  # for ScriptOutput, OpCodes, ScriptError, Script
-from .. import bitcoin, caches, util
+from .. import bitcoin, caches
+from ..printerror import PrintError
 from ..transaction import Transaction
 from .exceptions import (
     Error,
@@ -12,10 +13,11 @@ from .exceptions import (
     UnsupportedSlpTokenType,
 )
 
-lokad_id = b"SLP\x00"  # aka protocol code (prefix) -- this appears after the 'OP_RETURN + OP_PUSH(4)' bytes in the ScriptOutput for *ALL* SLP scripts
-valid_token_types = frozenset(
-    (1, 65, 129)
-)  # any token types not in this set will be rejected
+# protocol code (prefix) -- this appears after the 'OP_RETURN + OP_PUSH(4)' bytes in
+# the ScriptOutput for *ALL* SLP scripts
+lokad_id = b"SLP\x00"
+# any token types not in this set will be rejected
+valid_token_types = frozenset((1, 65, 129))
 
 
 def _i2b(val):
@@ -726,7 +728,7 @@ class Build:
 # ------------------------------------------------------------------------------
 # | WALLET DATA STRUCTURES                                                     |
 # ------------------------------------------------------------------------------
-class WalletData(util.PrintError):
+class WalletData(PrintError):
     """This lives in wallet instances as the .slp attribute
 
     This data layout is provisional for now. We will redo it to contain

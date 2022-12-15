@@ -46,7 +46,7 @@ from collections import deque
 
 import socks
 
-from electroncash.util import PrintError
+from electroncash.printerror import PrintError
 
 from .comms import FusionError, pb, recv_pb, send_pb
 from .connection import open_connection

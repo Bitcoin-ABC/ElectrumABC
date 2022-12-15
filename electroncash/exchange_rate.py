@@ -18,7 +18,8 @@ import requests
 
 from .constants import BASE_UNITS_BY_DECIMALS, PROJECT_NAME
 from .i18n import _
-from .util import PrintError, ThreadJob, print_error
+from .printerror import PrintError, print_error
+from .util import ThreadJob
 
 DEFAULT_ENABLED = False
 DEFAULT_CURRENCY = "USD"

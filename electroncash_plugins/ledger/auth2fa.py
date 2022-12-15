@@ -6,7 +6,7 @@ from PyQt5 import QtWidgets
 from electroncash import networks
 from electroncash.address import Address
 from electroncash.i18n import _
-from electroncash.util import print_error
+from electroncash.printerror import print_error
 from electroncash_gui.qt.util import PasswordLineEdit
 
 helpTxt = [

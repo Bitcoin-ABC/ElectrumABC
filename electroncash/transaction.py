@@ -49,7 +49,8 @@ from .caches import ExpiringCache
 # Workalike python implementation of Bitcoin's CDataStream class.
 #
 from .keystore import xpubkey_to_address, xpubkey_to_pubkey
-from .util import bfh, bh2u, print_error, profiler, to_bytes
+from .printerror import print_error
+from .util import bfh, bh2u, profiler, to_bytes
 
 # Note: The deserialization code originally comes from ABE.
 

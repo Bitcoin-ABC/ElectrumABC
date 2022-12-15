@@ -26,7 +26,6 @@ import binascii
 import builtins
 import hmac
 import inspect
-import itertools
 import json
 import locale
 import os
@@ -44,9 +43,10 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from datetime import datetime
 from decimal import Decimal
-from traceback import format_exception
 
+from .caches import ExpiringCache
 from .constants import POSIX_DATA_DIR, PROJECT_NAME_NO_SPACES
+from .printerror import PrintError, print_error, print_stderr
 
 
 # https://docs.python.org/3/library/gettext.html#deferred-translations
@@ -126,51 +126,6 @@ class MyEncoder(json.JSONEncoder):
         if isinstance(obj, set):
             return list(obj)
         return super(MyEncoder, self).default(obj)
-
-
-class PrintError:
-    """A handy base class for printing formatted log messages"""
-
-    def diagnostic_name(self):
-        return self.__class__.__name__
-
-    def print_error(self, *msg):
-        # only prints with --verbose flag
-        print_error("[%s]" % self.diagnostic_name(), *msg)
-
-    def print_stderr(self, *msg):
-        print_stderr("[%s]" % self.diagnostic_name(), *msg)
-
-    def print_msg(self, *msg):
-        print_msg("[%s]" % self.diagnostic_name(), *msg)
-
-    def print_exception(self, *msg):
-        text = " ".join(str(item) for item in msg)
-        text += ": "
-        text += "".join(format_exception(*sys.exc_info()))
-        self.print_error(text)
-
-    SPAM_MSG_RATE_LIMIT = 1.0  # Once every second
-    _print_error_last_spam_msg = 0.0
-
-    def _spam_common(self, method, *args):
-        """Used internally to control spam messages. *All* messages called with
-        spam_* are suppressed to max once every SPAM_MSG_RATE_LIMIT seconds"""
-        now = time.time()
-        if now - self._print_error_last_spam_msg >= self.SPAM_MSG_RATE_LIMIT:
-            method(*args)
-            self._print_error_last_spam_msg = now
-
-    def spam_error(self, *args):
-        """Like self.print_error except it only prints the supplied args
-        once every self.SPAM_MSG_RATE_LIMIT seconds."""
-        self._spam_common(self.print_error, *args)
-
-    def spam_msg(self, *args):
-        self._spam_common(self.print_msg, *args)
-
-    def spam_stderr(self, *args):
-        self._spam_common(self.print_stderr, *args)
 
 
 class ThreadJob(ABC, PrintError):
@@ -302,18 +257,6 @@ class DaemonThread(threading.Thread, PrintError):
         self.print_error("stopped")
 
 
-is_verbose = False
-verbose_timestamps = True
-verbose_thread_id = True
-
-
-def set_verbosity(b, *, timestamps=True, thread_id=True):
-    global is_verbose, verbose_timestamps, verbose_thread_id
-    is_verbose = b
-    verbose_timestamps = timestamps
-    verbose_thread_id = thread_id
-
-
 # Method decorator.  To be used for calculations that will always
 # deliver the same result.  The method cannot take any arguments
 # and should be accessed as an attribute.
@@ -326,66 +269,6 @@ class cachedproperty:
         value = self.f(obj)
         setattr(obj, self.f.__name__, value)
         return value
-
-
-class Monotonic:
-    """Returns a monotonically increasing int each time an instance is called
-    as a function. Optionally thread-safe."""
-
-    def __init__(self, locking=False):
-        self._counter = itertools.count()
-        self._lock = threading.Lock() if locking else None
-
-    def __call__(self):
-        if self._lock is not None:
-            with self._lock:
-                return next(self._counter)
-        return next(self._counter)
-
-
-_human_readable_thread_ids = defaultdict(
-    Monotonic(locking=False)
-)  # locking not needed on Monotonic instance as we lock the dict anyway
-_human_readable_thread_ids_lock = threading.Lock()
-_t0 = time.time()
-
-
-def print_error(*args):
-    if not is_verbose:
-        return
-    if verbose_thread_id:
-        with _human_readable_thread_ids_lock:
-            args = ("|%02d|" % _human_readable_thread_ids[threading.get_ident()], *args)
-    if verbose_timestamps:
-        args = ("|%7.3f|" % (time.time() - _t0), *args)
-    print_stderr(*args)
-
-
-_print_lock = (
-    threading.RLock()
-)  # use a recursive lock in extremely rare case a signal handler does a print_error while lock held by same thread as sighandler invocation's thread
-
-
-def _print_common(file, *args):
-    s_args = (
-        " ".join(str(item) for item in args) + "\n"
-    )  # newline at end *should* implicitly .flush() underlying stream, but not always if redirecting to file
-    with _print_lock:
-        # locking is required here as TextIOWrapper subclasses are not thread-safe;
-        # see: https://docs.python.org/3.6/library/io.html#multi-threading
-        try:
-            file.write(s_args)
-            file.flush()  # necessary if redirecting to file
-        except OSError:
-            """In very rare cases IO errors can occur here. We tolerate them. See #1595."""
-
-
-def print_stderr(*args):
-    _print_common(sys.stderr, *args)
-
-
-def print_msg(*args):
-    _print_common(sys.stdout, *args)
 
 
 def json_encode(obj):
@@ -583,9 +466,6 @@ def set_locale_has_thousands_separator(flag: bool):
     global LOCALE_HAS_THOUSANDS_SEPARATOR
     LOCALE_HAS_THOUSANDS_SEPARATOR = flag
 
-
-# fixme: circular import util -> caches -> util
-from .caches import ExpiringCache
 
 # This cache will eat about ~6MB of memory per 20,000 items, but it does make
 # format_satoshis() run over 3x faster.

@@ -1,4 +1,5 @@
-from electroncash.util import print_error, print_msg, raw_input
+from electroncash.printerror import print_error, print_msg
+from electroncash.util import raw_input
 
 from .plugin import HardwareHandlerBase
 

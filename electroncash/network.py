@@ -43,6 +43,8 @@ from . import bitcoin, blockchain, networks, util, version
 from .constants import DUST_THRESHOLD
 from .i18n import _
 from .interface import Connection, Interface
+from .monotonic import Monotonic
+from .printerror import print_error
 from .simple_config import SimpleConfig
 from .tor import TorController, check_proxy_bypass_tor_control
 from .utils import Event
@@ -83,7 +85,7 @@ def parse_servers(result):
                 out["version"] = version
                 servers[host] = out
         except (TypeError, ValueError, IndexError, KeyError) as e:
-            util.print_error("parse_servers:", item, repr(e))
+            print_error("parse_servers:", item, repr(e))
     return servers
 
 
@@ -94,7 +96,7 @@ def filter_version(servers):
                 version.PROTOCOL_VERSION
             )
         except Exception as e:
-            util.print_error("filter_version:", repr(e))
+            print_error("filter_version:", repr(e))
             return False
 
     return {k: v for k, v in servers.items() if is_recent(v.get("version"))}
@@ -133,7 +135,7 @@ def servers_to_hostmap(servers):
         try:
             host, port, protocol = deserialize_server(s)
         except (AssertionError, ValueError, TypeError) as e:
-            util.print_error(
+            print_error(
                 "[servers_to_hostmap] deserialization failure for server:",
                 s,
                 "error:",
@@ -296,7 +298,7 @@ class Network(util.DaemonThread):
         self.pending_sends_lock = threading.Lock()
 
         self.pending_sends = []
-        self.message_id = util.Monotonic(locking=True)
+        self.message_id = Monotonic(locking=True)
         self.verified_checkpoint = False
         self.verifications_required = 1
         # If the height is cleared from the network constants, we're
@@ -1077,7 +1079,7 @@ class Network(util.DaemonThread):
                     # check cached response for subscriptions
                     r = self.sub_cache.get(k)
                 if r is not None:
-                    util.print_error("cache hit", k)
+                    print_error("cache hit", k)
                     callback(r)
                 else:
                     self.queue_request(method, params, callback=callback)

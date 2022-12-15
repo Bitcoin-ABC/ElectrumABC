@@ -35,7 +35,7 @@ from PyQt5.QtGui import QFontMetrics, QTextCursor
 from electroncash import bitcoin, networks, web
 from electroncash.address import Address, AddressError, ScriptOutput
 from electroncash.contacts import Contact
-from electroncash.util import PrintError
+from electroncash.printerror import PrintError
 
 from . import util
 from .qrtextedit import ScanQRTextEdit

@@ -39,6 +39,7 @@ from .constants import CURRENCY, PROJECT_NAME, REPOSITORY_URL
 from .i18n import _
 from .keystore import Hardware_KeyStore
 from .plugins import BasePlugin, DeviceInfo
+from .printerror import PrintError
 from .simple_config import SimpleConfig
 from .storage import (
     STO_EV_USER_PW,
@@ -63,7 +64,7 @@ class WizardStackItem(NamedTuple):
     storage_data: dict
 
 
-class BaseWizard(util.PrintError):
+class BaseWizard(PrintError):
     def __init__(self, config: SimpleConfig):
         super(BaseWizard, self).__init__()
         self.config = config
