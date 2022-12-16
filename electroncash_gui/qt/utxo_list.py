@@ -32,7 +32,7 @@ from functools import wraps
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QPoint, Qt
 from PyQt5.QtGui import QColor, QFont
 
 from electroncash.address import Address
@@ -271,176 +271,177 @@ class UTXOList(MyTreeWidget):
         menu = QtWidgets.QMenu()
         selected_coins = self.get_selected()
 
-        def create_menu_inner():
-            if not selected_coins:
-                return
-            utxos = self.get_selected_utxos(
-                [coin.get_name() for coin in selected_coins]
-            )
-            if not utxos:
-                return
-            spendable_coins = self.get_selected_utxos(
-                [coin.get_name() for coin in selected_coins if coin.is_spendable()]
-            )
-            # Unconditionally add the "Spend" option but leave it disabled if there are no spendable_coins
-            spend_action = menu.addAction(
-                _("Spend"), lambda: self.main_window.spend_coins(spendable_coins)
-            )
-            spend_action.setEnabled(bool(spendable_coins))
-            menu.addAction(_("Export coin details"), lambda: self.dump_utxo(utxos))
-            avaproof_action = menu.addAction(
-                _("Build avalanche proof"), lambda: self.build_avaproof(utxos)
-            )
-            if not self.wallet.is_schnorr_possible() or self.wallet.is_watching_only():
-                avaproof_action.setEnabled(False)
-                avaproof_action.setToolTip(
-                    _(
-                        "Cannot build avalanche proof for hardware, multisig or "
-                        "watch-only wallet (Schnorr signature is required)."
-                    )
-                )
-            elif any(c["height"] <= 0 for c in utxos):
-                # A block height is required when serializing a stake.
-                avaproof_action.setEnabled(False)
-                avaproof_action.setToolTip(
-                    _("Cannot build avalanche proof with unconfirmed coins")
-                )
-
-            if len(selected_coins) == 1:
-                # "Copy ..."
-                item = self.itemAt(position)
-                if not item:
-                    return
-
-                col = self.currentColumn()
-                column_title = self.headerItem().text(col)
-                alt_column_title, alt_copy_text = None, None
-                coin: CoinDisplayData = item.data(0, Qt.UserRole)
-                if col == self.Col.output_point:
-                    copy_text = coin.get_name()
-                elif col == self.Col.address:
-                    # Determine the "alt copy text" "Legacy Address" or "Cash Address"
-                    copy_text = coin.address.to_ui_string()
-                    if Address.FMT_UI == Address.FMT_LEGACY:
-                        alt_copy_text, alt_column_title = coin.address.to_full_string(
-                            Address.FMT_CASHADDR
-                        ), _("Cash Address")
-                    else:
-                        alt_copy_text, alt_column_title = coin.address.to_full_string(
-                            Address.FMT_LEGACY
-                        ), _("Legacy Address")
-                else:
-                    copy_text = item.text(col)
-                if copy_text:
-                    copy_text = copy_text.strip()
-                menu.addAction(
-                    _("Copy {}").format(column_title),
-                    lambda: QtWidgets.QApplication.instance()
-                    .clipboard()
-                    .setText(copy_text),
-                )
-                if alt_copy_text and alt_column_title:
-                    menu.addAction(
-                        _("Copy {}").format(alt_column_title),
-                        lambda: QtWidgets.QApplication.instance()
-                        .clipboard()
-                        .setText(alt_copy_text),
-                    )
-
-                # single selection, offer them the "Details" option and also
-                # coin/address "freeze" status, if any
-                tx = self.wallet.transactions.get(coin.txid)
-                if tx:
-                    label = self.wallet.get_label(coin.txid) or None
-                    menu.addAction(
-                        _("Details"),
-                        lambda: self.main_window.show_transaction(tx, label),
-                    )
-                needsep = True
-                if coin.is_frozen:
-                    menu.addSeparator()
-                    menu.addAction(_("Coin is frozen"), lambda: None).setEnabled(False)
-                    menu.addAction(
-                        _("Unfreeze Coin"),
-                        lambda: self.set_frozen_coins([coin.get_name()], False),
-                    )
-                    menu.addSeparator()
-                    needsep = False
-                else:
-                    menu.addAction(
-                        _("Freeze Coin"),
-                        lambda: self.set_frozen_coins([coin.get_name()], True),
-                    )
-                if coin.is_address_frozen:
-                    if needsep:
-                        menu.addSeparator()
-                    menu.addAction(_("Address is frozen"), lambda: None).setEnabled(
-                        False
-                    )
-                    menu.addAction(
-                        _("Unfreeze Address"),
-                        lambda: self.set_frozen_addresses_for_coins(
-                            [coin.get_name()], False
-                        ),
-                    )
-                else:
-                    menu.addAction(
-                        _("Freeze Address"),
-                        lambda: self.set_frozen_addresses_for_coins(
-                            [coin.get_name()], True
-                        ),
-                    )
-                if not spend_action.isEnabled():
-                    if coin.slp_token is not None:
-                        spend_action.setText(_("SLP Token: Spend Locked"))
-                    elif coin.is_immature:
-                        spend_action.setText(_("Immature Coinbase: Spend Locked"))
-                menu.addAction(
-                    "Consolidate coins for address",
-                    lambda: self._open_consolidate_coins_dialog(coin.address),
-                )
-            else:
-                # multi-selection
-                menu.addSeparator()
-                selected_outpoints = [coin.get_name for coin in selected_coins]
-                if any(not coin.is_frozen for coin in selected_coins):
-                    # they have some coin-level non-frozen in the selection, so add the
-                    # menu action "Freeze coins"
-                    menu.addAction(
-                        _("Freeze Coins"),
-                        lambda: self.set_frozen_coins(selected_outpoints, True),
-                    )
-                if any(coin.is_frozen for coin in selected_coins):
-                    # they have some coin-level frozen in the selection, so add the
-                    # menu action "Unfreeze coins"
-                    menu.addAction(
-                        _("Unfreeze Coins"),
-                        lambda: self.set_frozen_coins(selected_outpoints, False),
-                    )
-                if any(not coin.is_address_frozen for coin in selected_coins):
-                    # they have some address-level non-frozen in the selection, so add
-                    # the menu action "Freeze addresses"
-                    menu.addAction(
-                        _("Freeze Addresses"),
-                        lambda: self.set_frozen_addresses_for_coins(
-                            selected_outpoints, True
-                        ),
-                    )
-                if any(coin.is_address_frozen for coin in selected_coins):
-                    # they have some address-level frozen in the selection, so add the
-                    # menu action "Unfreeze addresses"
-                    menu.addAction(
-                        _("Unfreeze Addresses"),
-                        lambda: self.set_frozen_addresses_for_coins(
-                            selected_outpoints, False
-                        ),
-                    )
-
-        create_menu_inner()
+        self.create_menu_inner(menu, selected_coins, position)
 
         run_hook("utxo_list_context_menu_setup", self, menu, selected_coins)
 
         menu.exec_(self.viewport().mapToGlobal(position))
+
+    def create_menu_inner(
+        self,
+        menu: QtWidgets.QMenu,
+        selected_coins: List[CoinDisplayData],
+        position: QPoint,
+    ):
+        if not selected_coins:
+            return
+        utxos = self.get_selected_utxos([coin.get_name() for coin in selected_coins])
+        if not utxos:
+            return
+        spendable_coins = self.get_selected_utxos(
+            [coin.get_name() for coin in selected_coins if coin.is_spendable()]
+        )
+        # Unconditionally add the "Spend" option but leave it disabled if there are no spendable_coins
+        spend_action = menu.addAction(
+            _("Spend"), lambda: self.main_window.spend_coins(spendable_coins)
+        )
+        spend_action.setEnabled(bool(spendable_coins))
+        menu.addAction(_("Export coin details"), lambda: self.dump_utxo(utxos))
+        avaproof_action = menu.addAction(
+            _("Build avalanche proof"), lambda: self.build_avaproof(utxos)
+        )
+        if not self.wallet.is_schnorr_possible() or self.wallet.is_watching_only():
+            avaproof_action.setEnabled(False)
+            avaproof_action.setToolTip(
+                _(
+                    "Cannot build avalanche proof for hardware, multisig or "
+                    "watch-only wallet (Schnorr signature is required)."
+                )
+            )
+        elif any(c["height"] <= 0 for c in utxos):
+            # A block height is required when serializing a stake.
+            avaproof_action.setEnabled(False)
+            avaproof_action.setToolTip(
+                _("Cannot build avalanche proof with unconfirmed coins")
+            )
+
+        if len(selected_coins) == 1:
+            # "Copy ..."
+            item = self.itemAt(position)
+            if not item:
+                return
+
+            col = self.currentColumn()
+            column_title = self.headerItem().text(col)
+            alt_column_title, alt_copy_text = None, None
+            coin: CoinDisplayData = item.data(0, Qt.UserRole)
+            if col == self.Col.output_point:
+                copy_text = coin.get_name()
+            elif col == self.Col.address:
+                # Determine the "alt copy text" "Legacy Address" or "Cash Address"
+                copy_text = coin.address.to_ui_string()
+                if Address.FMT_UI == Address.FMT_LEGACY:
+                    alt_copy_text, alt_column_title = coin.address.to_full_string(
+                        Address.FMT_CASHADDR
+                    ), _("Cash Address")
+                else:
+                    alt_copy_text, alt_column_title = coin.address.to_full_string(
+                        Address.FMT_LEGACY
+                    ), _("Legacy Address")
+            else:
+                copy_text = item.text(col)
+            if copy_text:
+                copy_text = copy_text.strip()
+            menu.addAction(
+                _("Copy {}").format(column_title),
+                lambda: QtWidgets.QApplication.instance()
+                .clipboard()
+                .setText(copy_text),
+            )
+            if alt_copy_text and alt_column_title:
+                menu.addAction(
+                    _("Copy {}").format(alt_column_title),
+                    lambda: QtWidgets.QApplication.instance()
+                    .clipboard()
+                    .setText(alt_copy_text),
+                )
+
+            # single selection, offer them the "Details" option and also
+            # coin/address "freeze" status, if any
+            tx = self.wallet.transactions.get(coin.txid)
+            if tx:
+                label = self.wallet.get_label(coin.txid) or None
+                menu.addAction(
+                    _("Details"),
+                    lambda: self.main_window.show_transaction(tx, label),
+                )
+            needsep = True
+            if coin.is_frozen:
+                menu.addSeparator()
+                menu.addAction(_("Coin is frozen"), lambda: None).setEnabled(False)
+                menu.addAction(
+                    _("Unfreeze Coin"),
+                    lambda: self.set_frozen_coins([coin.get_name()], False),
+                )
+                menu.addSeparator()
+                needsep = False
+            else:
+                menu.addAction(
+                    _("Freeze Coin"),
+                    lambda: self.set_frozen_coins([coin.get_name()], True),
+                )
+            if coin.is_address_frozen:
+                if needsep:
+                    menu.addSeparator()
+                menu.addAction(_("Address is frozen"), lambda: None).setEnabled(False)
+                menu.addAction(
+                    _("Unfreeze Address"),
+                    lambda: self.set_frozen_addresses_for_coins(
+                        [coin.get_name()], False
+                    ),
+                )
+            else:
+                menu.addAction(
+                    _("Freeze Address"),
+                    lambda: self.set_frozen_addresses_for_coins(
+                        [coin.get_name()], True
+                    ),
+                )
+            if not spend_action.isEnabled():
+                if coin.slp_token is not None:
+                    spend_action.setText(_("SLP Token: Spend Locked"))
+                elif coin.is_immature:
+                    spend_action.setText(_("Immature Coinbase: Spend Locked"))
+            menu.addAction(
+                "Consolidate coins for address",
+                lambda: self._open_consolidate_coins_dialog(coin.address),
+            )
+        else:
+            # multi-selection
+            menu.addSeparator()
+            selected_outpoints = [coin.get_name for coin in selected_coins]
+            if any(not coin.is_frozen for coin in selected_coins):
+                # they have some coin-level non-frozen in the selection, so add the
+                # menu action "Freeze coins"
+                menu.addAction(
+                    _("Freeze Coins"),
+                    lambda: self.set_frozen_coins(selected_outpoints, True),
+                )
+            if any(coin.is_frozen for coin in selected_coins):
+                # they have some coin-level frozen in the selection, so add the
+                # menu action "Unfreeze coins"
+                menu.addAction(
+                    _("Unfreeze Coins"),
+                    lambda: self.set_frozen_coins(selected_outpoints, False),
+                )
+            if any(not coin.is_address_frozen for coin in selected_coins):
+                # they have some address-level non-frozen in the selection, so add
+                # the menu action "Freeze addresses"
+                menu.addAction(
+                    _("Freeze Addresses"),
+                    lambda: self.set_frozen_addresses_for_coins(
+                        selected_outpoints, True
+                    ),
+                )
+            if any(coin.is_address_frozen for coin in selected_coins):
+                # they have some address-level frozen in the selection, so add the
+                # menu action "Unfreeze addresses"
+                menu.addAction(
+                    _("Unfreeze Addresses"),
+                    lambda: self.set_frozen_addresses_for_coins(
+                        selected_outpoints, False
+                    ),
+                )
 
     def on_permit_edit(self, item, column):
         # disable editing fields in this tab (labels)
