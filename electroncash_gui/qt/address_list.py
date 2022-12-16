@@ -130,8 +130,9 @@ class AddressList(MyTreeWidget):
         super().update()
 
     def get_selected_addresses(self) -> List[Address]:
-        addrs = [item.data(0, self.DataRoles.address) for item in self.selectedItems()]
-        return [addr for addr in addrs if isinstance(addr, Address)]
+        data = [item.data(0, self.DataRoles.address) for item in self.selectedItems()]
+        # item.data can return None for root nodes in the tree
+        return [a for a in data if a is not None]
 
     @profiler
     def on_update(self):
@@ -447,7 +448,9 @@ class AddressList(MyTreeWidget):
             for i in range(child_count):
                 item = root.child(i)
                 addr = item.data(0, self.DataRoles.address)
-                if isinstance(addr, Address):
+                if addr is not None:
+                    # The address tree has non-leaf nodes that are not addresses
+                    # ("Receiving", "Change", "Used", "Empty")
                     label = self.wallet.labels.get(addr.to_storage_string(), "")
                     item.setText(2, label)
                 if item.childCount():
@@ -460,7 +463,7 @@ class AddressList(MyTreeWidget):
             super(AddressList, self).on_doubleclick(item, column)
         else:
             addr = item.data(0, self.DataRoles.address)
-            if isinstance(addr, Address):
+            if addr is not None:
                 self.main_window.show_address(addr)
 
     def _open_consolidate_coins_dialog(self, addr):
