@@ -3118,6 +3118,12 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     def create_utxo_tab(self):
         self.utxo_list = UTXOList(self)
+        self.utxo_list.selection_cleared.connect(self.status_bar.clear_selected_amount)
+        self.utxo_list.selected_amount_changed.connect(
+            lambda satoshis: self.status_bar.set_selected_amount(
+                self.format_amount_and_units(satoshis)
+            )
+        )
         self.gui_object.addr_fmt_changed.connect(self.utxo_list.update)
         self.utxo_list.edited.connect(self.update_labels)
         return self.create_list_tab(self.utxo_list)

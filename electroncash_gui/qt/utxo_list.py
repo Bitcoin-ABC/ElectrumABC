@@ -32,7 +32,7 @@ from functools import wraps
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import QPoint, Qt
+from PyQt5.QtCore import QPoint, Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QFont
 
 from electroncash.address import Address
@@ -96,6 +96,10 @@ class UTXOList(MyTreeWidget):
     filter_columns = [Col.address, Col.label]
     # sort by amount, descending
     default_sort = MyTreeWidget.SortSpec(Col.amount, Qt.DescendingOrder)
+
+    # emits the total number of satoshis for selected coins
+    selected_amount_changed = pyqtSignal(int)
+    selection_cleared = pyqtSignal()
 
     def __init__(self, main_window: ElectrumWindow):
         columns = [
@@ -263,7 +267,7 @@ class UTXOList(MyTreeWidget):
         """
         return [x.data(0, Qt.UserRole) for x in self.selectedItems()]
 
-    def get_selected_utxos(self, selected_names: List[str]) -> List[Dict]:
+    def get_utxos_by_names(self, selected_names: List[str]) -> List[Dict]:
         return list(filter(lambda x: self.get_name(x) in selected_names, self.utxos))
 
     @if_not_dead
@@ -285,10 +289,10 @@ class UTXOList(MyTreeWidget):
     ):
         if not selected_coins:
             return
-        utxos = self.get_selected_utxos([coin.get_name() for coin in selected_coins])
+        utxos = self.get_utxos_by_names([coin.get_name() for coin in selected_coins])
         if not utxos:
             return
-        spendable_coins = self.get_selected_utxos(
+        spendable_coins = self.get_utxos_by_names(
             [coin.get_name() for coin in selected_coins if coin.is_spendable()]
         )
         # Unconditionally add the "Spend" option but leave it disabled if there are no spendable_coins
@@ -515,3 +519,11 @@ class UTXOList(MyTreeWidget):
         )
         if dialog.add_utxos(utxos):
             dialog.show()
+
+    def _on_selection_changed(self, *args, **kwargs):
+        utxos = self.get_utxos_by_names(
+            [coin.get_name() for coin in self.get_selected()]
+        )
+        self.selected_amount_changed.emit(sum(utxo["value"] for utxo in utxos))
+        if not utxos:
+            self.selection_cleared.emit()

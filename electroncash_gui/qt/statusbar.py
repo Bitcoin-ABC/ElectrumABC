@@ -58,6 +58,12 @@ class StatusBar(QtWidgets.QStatusBar):
         self.balance_label = QtWidgets.QLabel("")
         self.addWidget(self.balance_label)
 
+        # Add spacing
+        self.addWidget(QtWidgets.QLabel("     "))
+
+        self.selected_amount_label = QtWidgets.QLabel("")
+        self.addWidget(self.selected_amount_label)
+
         self._search_box_spacer = QtWidgets.QWidget()
         self._search_box_spacer.setFixedWidth(6)  # 6 px spacer
         self.search_box = QtWidgets.QLineEdit()
@@ -212,3 +218,9 @@ class StatusBar(QtWidgets.QStatusBar):
         if server_lag:
             status_tip += " " + _("Server is lagging ({} blocks)").format(server_lag)
         self.status_button.setStatusTip(status.value)
+
+    def clear_selected_amount(self):
+        self.selected_amount_label.clear()
+
+    def set_selected_amount(self, amount_and_unit: str):
+        self.selected_amount_label.setText(_("Selected amount: ") + amount_and_unit)
