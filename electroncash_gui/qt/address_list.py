@@ -28,10 +28,10 @@ from __future__ import annotations
 from contextlib import suppress
 from enum import IntEnum
 from functools import partial
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFont, QKeySequence
 
 import electroncash.web as web
@@ -65,6 +65,10 @@ class AddressList(MyTreeWidget):
         address = Qt.UserRole + 0
         can_edit_label = Qt.UserRole + 1
 
+    # emits the total number of satoshis for coins on selected addresses
+    selected_amount_changed = pyqtSignal(int)
+    selection_cleared = pyqtSignal()
+
     def __init__(self, main_window: ElectrumWindow, *, picker=False):
         super().__init__(
             main_window,
@@ -89,6 +93,7 @@ class AddressList(MyTreeWidget):
         self.cleaned_up = False
 
         self.main_window.gui_object.addr_fmt_changed.connect(self.update)
+        self.selectionModel().selectionChanged.connect(self._on_selection_changed)
 
     def clean_up(self):
         self.cleaned_up = True
@@ -123,6 +128,10 @@ class AddressList(MyTreeWidget):
             # short-cut return if window was closed and wallet is stopped
             return
         super().update()
+
+    def get_selected_addresses(self) -> List[Address]:
+        addrs = [item.data(0, self.DataRoles.address) for item in self.selectedItems()]
+        return [addr for addr in addrs if isinstance(addr, Address)]
 
     @profiler
     def on_update(self):
@@ -277,12 +286,10 @@ class AddressList(MyTreeWidget):
 
         is_multisig = isinstance(self.wallet, Multisig_Wallet)
         can_delete = self.wallet.can_delete_address()
-        selected = self.selectedItems()
-        multi_select = len(selected) > 1
-        addrs = [item.data(0, self.DataRoles.address) for item in selected]
+        addrs = self.get_selected_addresses()
+        multi_select = len(addrs) > 1
         if not addrs:
             return
-        addrs = [addr for addr in addrs if isinstance(addr, Address)]
 
         menu = QtWidgets.QMenu()
 
@@ -393,7 +400,7 @@ class AddressList(MyTreeWidget):
                     ]
                 )
             else:
-                texts = [i.text(col).strip() for i in selected]
+                texts = [i.text(col).strip() for i in self.selectedItems()]
                 # omit empty items
                 texts = [t for t in texts if t]
             if texts:
@@ -424,8 +431,8 @@ class AddressList(MyTreeWidget):
 
     def keyPressEvent(self, event):
         if event.matches(QKeySequence.Copy) and self.currentColumn() == 0:
-            addrs = [i.data(0, self.DataRoles.address) for i in self.selectedItems()]
-            if addrs and isinstance(addrs[0], Address):
+            addrs = self.get_selected_addresses()
+            if addrs:
                 text = addrs[0].to_ui_string()
                 self.main_window.app.clipboard().setText(text)
         else:
@@ -464,3 +471,11 @@ class AddressList(MyTreeWidget):
         d = InvoiceDialog(self, self.main_window.fx)
         d.set_address(address)
         d.show()
+
+    def _on_selection_changed(self, *args, **kwargs):
+        addrs = self.get_selected_addresses()
+        self.selected_amount_changed.emit(
+            sum(sum(self.wallet.get_addr_balance(addr)) for addr in addrs)
+        )
+        if not addrs:
+            self.selection_cleared.emit()

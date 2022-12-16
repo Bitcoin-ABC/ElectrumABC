@@ -3114,6 +3114,14 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     def create_addresses_tab(self):
         self.address_list = AddressList(self)
         self.address_list.edited.connect(self.update_labels)
+        self.address_list.selection_cleared.connect(
+            self.status_bar.clear_selected_amount
+        )
+        self.address_list.selected_amount_changed.connect(
+            lambda satoshis: self.status_bar.set_selected_amount(
+                self.format_amount_and_units(satoshis)
+            )
+        )
         return self.create_list_tab(self.address_list)
 
     def create_utxo_tab(self):
