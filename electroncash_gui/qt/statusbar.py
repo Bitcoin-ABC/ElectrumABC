@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import enum
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QSize, Qt
@@ -17,6 +18,24 @@ from .util import ColorScheme
 
 if TYPE_CHECKING:
     from . import ElectrumGui
+
+
+class NetworkStatus(enum.Enum):
+    """Network status. The values are strings that serve as status tips."""
+
+    # TODO: use a StrEnum when python >= 3.11
+    DISCONNECTED = "Offline"
+    UPDATING = "Updating"
+    LAGGING = ""
+    LAGGING_FORK = "Chain fork(s) detected"
+    CONNECTED = "Connected"
+    CONNECTED_FORK = "Connected - Chain fork(s) detected"
+    CONNECTED_PROXY = "Connected via proxy"
+    CONNECTED_PROXY_FORK = "Connected via proxy; Chain fork(s) detected"
+
+
+# The icons are created and added to this dict when needed
+NETWORK_ICONS: Dict[NetworkStatus, QIcon] = {}
 
 
 class StatusBarButton(QtWidgets.QPushButton):
@@ -96,6 +115,19 @@ class StatusBar(QtWidgets.QStatusBar):
         )
         self.addPermanentWidget(self.status_button)
 
+        self.network_icons: Dict[NetworkStatus, QIcon] = {
+            NetworkStatus.DISCONNECTED: QIcon(":icons/status_disconnected.svg"),
+            NetworkStatus.UPDATING: QIcon(":icons/status_waiting.svg"),
+            NetworkStatus.LAGGING: QIcon(":icons/status_lagging.svg"),
+            NetworkStatus.LAGGING_FORK: QIcon(":icons/status_lagging_fork.svg"),
+            NetworkStatus.CONNECTED: QIcon(":icons/status_connected.svg"),
+            NetworkStatus.CONNECTED_FORK: QIcon(":icons/status_connected_fork.svg"),
+            NetworkStatus.CONNECTED_PROXY: QIcon(":icons/status_connected_proxy.svg"),
+            NetworkStatus.CONNECTED_PROXY_FORK: QIcon(
+                ":icons/status_connected_proxy_fork.svg"
+            ),
+        }
+
         run_hook("create_status_bar", self)
 
     def cashaddr_icon(self):
@@ -172,3 +204,11 @@ class StatusBar(QtWidgets.QStatusBar):
     ):
         self.seed_button.setVisible(wallet_has_seed)
         self.password_button.setVisible(wallet_may_have_password)
+
+    def update_status(self, text: str, status: NetworkStatus, server_lag: int):
+        self.balance_label.setText(text)
+        self.status_button.setIcon(self.network_icons[status])
+        status_tip = status.value
+        if server_lag:
+            status_tip += " " + _("Server is lagging ({} blocks)").format(server_lag)
+        self.status_button.setStatusTip(status.value)

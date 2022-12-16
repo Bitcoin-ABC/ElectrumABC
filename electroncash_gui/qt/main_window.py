@@ -114,7 +114,7 @@ from .request_list import RequestList
 from .scan_beyond_gap import ScanBeyondGap
 from .seed_dialog import SeedDialog
 from .sign_verify_dialog import SignVerifyDialog
-from .statusbar import StatusBar
+from .statusbar import NetworkStatus, StatusBar
 from .transaction_dialog import show_transaction
 from .udev_installer import InstallHardwareWalletSupportDialog
 from .util import (
@@ -193,7 +193,8 @@ def set_windows_qt_use_freetype(config, b):
 
 class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
-    # Note: self.clean_up_connections automatically detects signals named XXX_signal and disconnects them on window close.
+    # Note: self.clean_up_connections automatically detects signals named XXX_signal
+    # and disconnects them on window close.
     payment_request_ok_signal = pyqtSignal()
     payment_request_error_signal = pyqtSignal()
     new_fx_quotes_signal = pyqtSignal()
@@ -201,16 +202,13 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     network_signal = pyqtSignal(str, object)
     alias_received_signal = pyqtSignal()
     history_updated_signal = pyqtSignal()
-    labels_updated_signal = (
-        pyqtSignal()
-    )  # note this signal occurs when an explicit update_labels() call happens. Interested GUIs should also listen for history_updated_signal as well which also indicates labels may have changed.
-    on_timer_signal = (
-        pyqtSignal()
-    )  # functions wanting to be executed from timer_actions should connect to this signal, preferably via Qt.DirectConnection
-
-    status_icon_dict = (
-        dict()
-    )  # app-globel cache of "status_*" -> QIcon instances (for update_status() speedup)
+    # note this signal occurs when an explicit update_labels() call happens. Interested
+    # GUIs should also listen for history_updated_signal as well which also indicates
+    # labels may have changed.
+    labels_updated_signal = pyqtSignal()
+    # functions wanting to be executed from timer_actions should connect to this
+    # signal, preferably via Qt.DirectConnection
+    on_timer_signal = pyqtSignal()
 
     def __init__(self, gui_object: ElectrumGui, wallet: Abstract_Wallet):
         QtWidgets.QMainWindow.__init__(self)
@@ -1251,62 +1249,14 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         btc_e.textChanged.connect(partial(edit_changed, btc_e))
         fiat_e.is_last_edited = False
 
-    _network_status_tip_dict = dict()
-
     def update_status(self):
         if not self.wallet:
             return
 
-        icon_dict = ElectrumWindow.status_icon_dict
-        if not icon_dict:
-            # cache the icons to save on CPU overhead per update_status call
-            icon_dict.update(
-                {
-                    "status_disconnected": QIcon(":icons/status_disconnected.svg"),
-                    "status_waiting": QIcon(":icons/status_waiting.svg"),
-                    "status_lagging": QIcon(":icons/status_lagging.svg"),
-                    "status_lagging_fork": QIcon(":icons/status_lagging_fork.svg"),
-                    "status_connected": QIcon(":icons/status_connected.svg"),
-                    "status_connected_fork": QIcon(":icons/status_connected_fork.svg"),
-                    "status_connected_proxy": QIcon(
-                        ":icons/status_connected_proxy.svg"
-                    ),
-                    "status_connected_proxy_fork": QIcon(
-                        ":icons/status_connected_proxy_fork.svg"
-                    ),
-                }
-            )
-        status_tip_dict = ElectrumWindow._network_status_tip_dict
-        if not status_tip_dict:
-            # Since we're caching stuff, might as well cache this too
-            status_tip_dict.update(
-                {
-                    "status_disconnected": _("Network Status") + " - " + _("Offline"),
-                    "status_waiting": _("Network Status") + " - " + _("Updating..."),
-                    "status_lagging": _("Network Status") + " - " + "",
-                    "status_lagging_fork": _("Network Status")
-                    + " - "
-                    + _("Chain fork(s) detected"),
-                    "status_connected": _("Network Status") + " - " + _("Connected"),
-                    "status_connected_fork": _("Network Status")
-                    + " - "
-                    + _("Chain fork(s) detected"),
-                    "status_connected_proxy": _("Network Status")
-                    + " - "
-                    + _("Connected via proxy"),
-                    "status_connected_proxy_fork": _("Network Status")
-                    + " - "
-                    + _("Connected via proxy")
-                    + "; "
-                    + _("Chain fork(s) detected"),
-                }
-            )
-
-        status_tip = ""
+        server_lag = 0
         if self.network is None or not self.network.is_running():
             text = _("Offline")
-            icon = icon_dict["status_disconnected"]
-            status_tip = status_tip_dict["status_disconnected"]
+            status = NetworkStatus.DISCONNECTED
 
         elif self.network.is_connected():
             server_height = self.network.get_server_height()
@@ -1317,16 +1267,13 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             # Display the synchronizing message in that case.
             if not self.wallet.up_to_date or server_height == 0:
                 text = _("Synchronizing...")
-                icon = icon_dict["status_waiting"]
-                status_tip = status_tip_dict["status_waiting"]
+                status = NetworkStatus.UPDATING
             elif server_lag > 1:
                 text = _("Server is lagging ({} blocks)").format(server_lag)
                 if num_chains <= 1:
-                    icon = icon_dict["status_lagging"]
-                    status_tip = status_tip_dict["status_lagging"] + text
+                    status = NetworkStatus.LAGGING
                 else:
-                    icon = icon_dict["status_lagging_fork"]
-                    status_tip = status_tip_dict["status_lagging_fork"] + "; " + text
+                    status = NetworkStatus.LAGGING_FORK
             else:
                 c, u, x = self.wallet.get_balance()
 
@@ -1367,38 +1314,26 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                         _("[{count} unverified TXs]").format(count=n_unverif)
                     )
                 if not self.network.proxy:
-                    icon = (
-                        icon_dict["status_connected"]
+                    status = (
+                        NetworkStatus.CONNECTED
                         if num_chains <= 1
-                        else icon_dict["status_connected_fork"]
-                    )
-                    status_tip = (
-                        status_tip_dict["status_connected"]
-                        if num_chains <= 1
-                        else status_tip_dict["status_connected_fork"]
+                        else NetworkStatus.CONNECTED_FORK
                     )
                 else:
-                    icon = (
-                        icon_dict["status_connected_proxy"]
+                    status = (
+                        NetworkStatus.CONNECTED_PROXY
                         if num_chains <= 1
-                        else icon_dict["status_connected_proxy_fork"]
-                    )
-                    status_tip = (
-                        status_tip_dict["status_connected_proxy"]
-                        if num_chains <= 1
-                        else status_tip_dict["status_connected_proxy_fork"]
+                        else NetworkStatus.CONNECTED_PROXY_FORK
                     )
 
                 text = " ".join(text_items)
         else:
             text = _("Not connected")
-            icon = icon_dict["status_disconnected"]
-            status_tip = status_tip_dict["status_disconnected"]
+            status = NetworkStatus.DISCONNECTED
 
+        # server lag
         self.tray.setToolTip("%s (%s)" % (text, self.wallet.basename()))
-        self.status_bar.balance_label.setText(text)
-        self.status_bar.status_button.setIcon(icon)
-        self.status_bar.status_button.setStatusTip(status_tip)
+        self.status_bar.update_status(text, status, server_lag)
         run_hook("window_update_status", self)
 
     def update_wallet(self):
