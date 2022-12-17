@@ -93,7 +93,7 @@ class AddressList(MyTreeWidget):
         self.cleaned_up = False
 
         self.main_window.gui_object.addr_fmt_changed.connect(self.update)
-        self.selectionModel().selectionChanged.connect(self._on_selection_changed)
+        self.selectionModel().selectionChanged.connect(self._emit_selection_signals)
 
     def clean_up(self):
         self.cleaned_up = True
@@ -475,10 +475,18 @@ class AddressList(MyTreeWidget):
         d.set_address(address)
         d.show()
 
-    def _on_selection_changed(self, *args, **kwargs):
+    def _emit_selection_signals(self, *args, **kwargs):
         addrs = self.get_selected_addresses()
         self.selected_amount_changed.emit(
             sum(sum(self.wallet.get_addr_balance(addr)) for addr in addrs)
         )
         if not addrs:
             self.selection_cleared.emit()
+
+    def hideEvent(self, e):
+        super().hideEvent(e)
+        self.selection_cleared.emit()
+
+    def showEvent(self, e):
+        super().showEvent(e)
+        self._emit_selection_signals()

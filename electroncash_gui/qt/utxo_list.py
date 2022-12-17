@@ -135,7 +135,7 @@ class UTXOList(MyTreeWidget):
         self.immatureColor = ColorScheme.BLUE.as_color(False)
         self.output_point_prefix_text = columns[self.Col.output_point]
 
-        self.selectionModel().selectionChanged.connect(self._on_selection_changed)
+        self.selectionModel().selectionChanged.connect(self._emit_selection_signals)
 
         self.cleaned_up = False
 
@@ -520,10 +520,18 @@ class UTXOList(MyTreeWidget):
         if dialog.add_utxos(utxos):
             dialog.show()
 
-    def _on_selection_changed(self, *args, **kwargs):
+    def _emit_selection_signals(self, *args, **kwargs):
         utxos = self.get_utxos_by_names(
             [coin.get_name() for coin in self.get_selected()]
         )
         self.selected_amount_changed.emit(sum(utxo["value"] for utxo in utxos))
         if not utxos:
             self.selection_cleared.emit()
+
+    def hideEvent(self, e):
+        super().hideEvent(e)
+        self.selection_cleared.emit()
+
+    def showEvent(self, e):
+        super().showEvent(e)
+        self._emit_selection_signals()
