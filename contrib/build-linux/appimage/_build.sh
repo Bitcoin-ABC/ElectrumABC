@@ -20,7 +20,6 @@ export GCC_STRIP_BINARIES="1"
 export GIT_SUBMODULE_FLAGS="--recommend-shallow --depth 1"
 
 # pinned versions
-SQUASHFSKIT_COMMIT="ae0d656efa2d0df2fcac795b6823b44462f19386"
 PKG2APPIMAGE_COMMIT="eb8f3acdd9f11ab19b78f5cb15daa772367daf15"
 
 
@@ -34,8 +33,8 @@ info "downloading some dependencies."
 download_if_not_exist "$CACHEDIR/functions.sh" "https://raw.githubusercontent.com/AppImage/pkg2appimage/$PKG2APPIMAGE_COMMIT/functions.sh"
 verify_hash "$CACHEDIR/functions.sh" "78b7ee5a04ffb84ee1c93f0cb2900123773bc6709e5d1e43c37519f590f86918"
 
-download_if_not_exist "$CACHEDIR/appimagetool" "https://github.com/AppImage/AppImageKit/releases/download/12/appimagetool-x86_64.AppImage"
-verify_hash "$CACHEDIR/appimagetool" "d918b4df547b388ef253f3c9e7f6529ca81a885395c31f619d9aaf7030499a13"
+download_if_not_exist "$CACHEDIR/appimagetool" "https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage"
+verify_hash "$CACHEDIR/appimagetool" "df3baf5ca5facbecfc2f3fa6713c29ab9cefa8fd8c1eac5d283b79cab33e4acb"
 
 download_if_not_exist "$CACHEDIR/Python-$PYTHON_VERSION.tar.xz" "https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tar.xz"
 verify_hash "$CACHEDIR/Python-$PYTHON_VERSION.tar.xz" $PYTHON_SRC_TARBALL_HASH
@@ -71,15 +70,6 @@ tar xf "$CACHEDIR/Python-$PYTHON_VERSION.tar.xz" -C "$BUILDDIR"
     sed -i -e 's/\.exe//g' "$PYDIR"/_sysconfigdata*
 )
 
-info "Building squashfskit"
-git clone "https://github.com/squashfskit/squashfskit.git" "$BUILDDIR/squashfskit"
-(
-    cd "$BUILDDIR/squashfskit"
-    git checkout -b pinned "$SQUASHFSKIT_COMMIT^{commit}" || fail "Could not find squashfskit commit $SQUASHFSKIT_COMMIT"
-    make -C squashfs-tools mksquashfs || fail "Could not build squashfskit"
-)
-MKSQUASHFS="$BUILDDIR/squashfskit/squashfs-tools/mksquashfs"
-
 appdir_python() {
   env \
     PYTHONNOUSERSITE=1 \
@@ -88,7 +78,6 @@ appdir_python() {
 }
 
 python='appdir_python'
-
 
 info "Installing pip"
 "$python" -m ensurepip
@@ -220,14 +209,15 @@ info "Creating the AppImage"
     chmod +x "$CACHEDIR/appimagetool_copy"
     "$CACHEDIR/appimagetool_copy" --appimage-extract
     # We build a small wrapper for mksquashfs that removes the -mkfs-fixed-time option
-    # that mksquashfs from squashfskit does not support. It is not needed for squashfskit.
-    cat > ./squashfs-root/usr/lib/appimagekit/mksquashfs << EOF
+    # as it conflicts with SOURCE_DATE_EPOCH.
+    mv "$BUILDDIR/squashfs-root/usr/lib/appimagekit/mksquashfs" "$BUILDDIR/squashfs-root/usr/lib/appimagekit/mksquashfs_orig"
+    cat > "$BUILDDIR/squashfs-root/usr/lib/appimagekit/mksquashfs" << EOF
 #!/bin/sh
-args=\$(echo "\$@" | sed -e 's/-mkfs-fixed-time 0//')
-"$MKSQUASHFS" \$args
+args=\$(echo "\$@" | sed -e 's/-mkfs-time 0//')
+"$BUILDDIR/squashfs-root/usr/lib/appimagekit/mksquashfs_orig" \$args
 EOF
-    env VERSION="$VERSION" ARCH=x86_64 SOURCE_DATE_EPOCH=1530212462 \
-                ./squashfs-root/AppRun --no-appstream --verbose "$APPDIR" "$APPIMAGE" \
+    chmod +x "$BUILDDIR/squashfs-root/usr/lib/appimagekit/mksquashfs"
+    env VERSION="$VERSION" ARCH=x86_64 ./squashfs-root/AppRun --no-appstream --verbose "$APPDIR" "$APPIMAGE" \
                 || fail "AppRun failed"
 ) || fail "Could not create the AppImage"
 
