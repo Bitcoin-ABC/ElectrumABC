@@ -6,8 +6,10 @@ here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
 . "$here"/base.sh || (echo "Could not source contrib/base.sh" && exit 1)
 
 pkgname="secp256k1"
-info "Building $pkgname..."
+echo "Building $pkgname..."
 
+pushd "$here"
+git clone --depth 1 https://github.com/Bitcoin-ABC/secp256k1.git
 pushd "$here"/$pkgname || fail "Could not chdir to $here/$pkgname"
 if ! [ -x configure ] ; then
     echo "libsecp256k1_la_LDFLAGS = -no-undefined" >> Makefile.am
@@ -35,3 +37,5 @@ host_strip "$here/$pkgname/dist/lib/$dlname"
 cp -fpv "$here/$pkgname/dist/lib/$dlname" "$here/../electroncash/." || fail "Could not copy the $pkgname binary to its destination"
 info "$dlname has been placed in the 'electroncash' folder."
 popd
+popd
+rm -Rf "$here"/secp256k1
