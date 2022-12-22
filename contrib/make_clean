@@ -3,8 +3,9 @@
 set -e
 
 here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
+
+# We don't use anything in bash.sh, but this serves as a test that make_clean was
+# run from the root of the repository.
 . "$here"/base.sh || (echo "Could not source contrib/base.sh" && exit 1)
 
-git submodule foreach 'git reset --hard'
-git submodule foreach 'git clean -dfxq'
-git submodule update
+rm -Rf libevent openssl tor zlib zbar secp256k1
