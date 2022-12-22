@@ -1,6 +1,3 @@
 [submodule "contrib/electrum-locale"]
 	path = contrib/electrum-locale
 	url = https://github.com/Electron-Cash/electrum-locale
-[submodule "contrib/tor"]
-	path = contrib/tor
-	url = https://github.com/EchterAgo/tor.git

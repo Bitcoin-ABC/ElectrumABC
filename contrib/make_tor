@@ -8,7 +8,11 @@ here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
 pkgname="tor"
 info "Building $pkgname..."
 
+pushd "$here"
+git clone https://github.com/EchterAgo/tor.git
+
 pushd "$here"/$pkgname || fail "Could not chdir to $here/$pkgname"
+git checkout a08e549261b3dba0010e3238c9706b98a3840cda
 LDFLAGS="-s"
 EXTRA_FLAGS=""
 if [ "$BUILD_TYPE" = "windows" ] ; then
@@ -53,3 +57,5 @@ cp -fpv "$here/$pkgname/dist/bin/$binary" "$here/../electroncash/tor/bin/." || f
 $SHA256_PROG "$here/$pkgname/dist/bin/$binary"
 info "$binary has been placed in the 'electroncash' folder."
 popd
+popd
+rm -Rf "$here"/tor
