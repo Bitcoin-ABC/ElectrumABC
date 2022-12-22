@@ -21,7 +21,11 @@ here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
 pkgname="openssl"
 info "Building $pkgname..."
 
+pushd "$here"
+git clone https://github.com/openssl/openssl.git
+
 pushd "$here"/$pkgname || fail "Could not chdir to $here/$pkgname"
+git checkout fd78df59b0f656aefe96e39533130454aa957c00
 if ! [ -d dist ] ; then
     (
         case $BUILD_TYPE in
@@ -40,4 +44,5 @@ if ! [ -d dist ] ; then
 fi
 make -j$WORKER_COUNT || fail "Could not build $pkgname"
 make install_sw || fail "Could not install $pkgname"
+popd
 popd
