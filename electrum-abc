@@ -48,7 +48,7 @@ from electroncash.commands import Commands, config_variables, get_parser, known_
 from electroncash.constants import PORTABLE_DATA_DIR, PROJECT_NAME, SCRIPT_NAME
 from electroncash.i18n import _
 from electroncash.keystore import bip44_derivation_xec
-from electroncash.migrate_data import migrate_data_from_ec, update_config
+from electroncash.migrate_data import update_config
 from electroncash.network import Network
 from electroncash.plugins import Plugins
 from electroncash.printerror import print_msg, print_stderr, set_verbosity
@@ -532,9 +532,6 @@ def print_result(result: Any):
 def main():
     """Main entry point into this script"""
     logging.basicConfig(level=logging.INFO)
-    # This copies the Electron Cash data dir if we don't already
-    # have a Electrum ABC data directory.
-    migrate_data_from_ec()
     # update some config
     update_config()
 
