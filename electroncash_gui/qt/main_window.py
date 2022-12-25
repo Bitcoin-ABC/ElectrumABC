@@ -116,7 +116,6 @@ from .seed_dialog import SeedDialog
 from .sign_verify_dialog import SignVerifyDialog
 from .statusbar import NetworkStatus, StatusBar
 from .transaction_dialog import show_transaction
-from .udev_installer import InstallHardwareWalletSupportDialog
 from .util import (
     MONOSPACE_FONT,
     Buttons,
@@ -146,6 +145,9 @@ from .util import (
     text_dialog,
 )
 from .utxo_list import UTXOList
+
+if sys.platform.startswith("linux"):
+    from .udev_installer import InstallHardwareWalletSupportDialog
 
 try:
     # pre-load QtMultimedia at app start, if possible
