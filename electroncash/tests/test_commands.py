@@ -63,13 +63,14 @@ class TestArgParser(unittest.TestCase):
         self.parser = get_parser()
 
     def test_global_options(self):
-        args_no_command = self.parser.parse_args(["-w", "/path/to/wallet", "--verbose"])
-        self.assertEqual(args_no_command.wallet_path, "/path/to/wallet")
+        path_to_wallet = os.path.abspath("/path/to/wallet")
+        args_no_command = self.parser.parse_args(["-w", path_to_wallet, "--verbose"])
+        self.assertEqual(args_no_command.wallet_path, path_to_wallet)
         self.assertTrue(args_no_command.verbose)
         self.assertEqual(args_no_command.cmd, None)
 
-        args_with_command = self.parser.parse_args(["-w", "/path/to/wallet", "history"])
-        self.assertEqual(args_with_command.wallet_path, "/path/to/wallet")
+        args_with_command = self.parser.parse_args(["-w", path_to_wallet, "history"])
+        self.assertEqual(args_with_command.wallet_path, path_to_wallet)
         self.assertEqual(args_with_command.cmd, "history")
 
         # global options must be before any command or subparser
