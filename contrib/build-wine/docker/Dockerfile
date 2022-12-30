@@ -51,9 +51,9 @@ RUN echo "78b185fabdb323971d13bd329fefc8038e08559aa51c4996de18db0639a51df6 /tmp/
         # cabextract is needed for winetricks to install the .NET framework
         cabextract=1.9-3 \
         # xvfb is needed to launch the Visual Studio installer
-        xvfb=2:21.1.3-2ubuntu2.3 \
+        xvfb=2:21.1.3-2ubuntu2.5 \
         # winbind is needed for the Visual Studio installer and cl.exe PDB generation
-        winbind=2:4.15.9+dfsg-0ubuntu0.2
+        winbind=2:4.15.9+dfsg-0ubuntu0.3
 
 RUN rm -rf /var/lib/apt/lists/* && \
     apt-get autoremove -y && \
