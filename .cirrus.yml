@@ -59,13 +59,10 @@ docker_builder:
 task:
   name: "Tests"
   build_script:
-    - set -e
     - pip install -r contrib/requirements/requirements-ci.txt
   test_script:
-    - set -e
-    - coverage run -m electroncash.tests -v;
-    - coverage run -m electroncash_plugins.fusion.tests -v;
-    - coverage report --include="./electroncash*";
+    - python -m electroncash.tests -v
+    - python -m electroncash_plugins.fusion.tests -v
   matrix:
     - container:
         image: python:3.7
@@ -77,6 +74,9 @@ task:
         image: python:3.10
     - container:
         image: python:3.11
+    - windows_container:
+        image: "python:3.11-windowsservercore"
+
 
 task:
   name: "Tests (secp256k1)"
@@ -88,15 +88,8 @@ task:
     - set -e
     - coverage run -m electroncash.tests -v;
     - coverage run -m electroncash_plugins.fusion.tests -v;
-    - coverage report --include="./electroncash*";
+    # FIXME: coverage report no longer works on cirrus.
+    # - coverage report --include="./electroncash*";
   matrix:
-    - container:
-        image: python:3.7
-    - container:
-        image: python:3.8
-    - container:
-        image: python:3.9
-    - container:
-        image: python:3.10
     - container:
         image: python:3.11
