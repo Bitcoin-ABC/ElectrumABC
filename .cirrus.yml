@@ -16,7 +16,7 @@ task:
   name: "Build MacOS DMG"
   << : *COMMON_TEMPLATE
   macos_instance:
-    image: catalina-base
+    image: ghcr.io/cirruslabs/macos-monterey-xcode
   brew_script:
     - brew update
     - brew install coreutils gettext pyenv
