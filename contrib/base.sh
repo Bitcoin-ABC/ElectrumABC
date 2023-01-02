@@ -173,6 +173,20 @@ function setup_pkg()
 
     mkdir -p $parentbuilddir
     pushd $parentbuilddir
+    if [ -d "$pkgbuilddir" ] ; then
+        pushd "$pkgbuilddir"
+        local commit=`git rev-parse HEAD`
+        local branch=`git rev-parse --abbrev-ref`
+        local tag=`git describe --tags`
+        if [[ ${commit} = ${checkout_ref} || ${branch} = ${checkout_ref} || ${tag} = ${checkout_ref} ]] ; then
+            warn "$pkgname already cloned and $checkout_ref is already the current HEAD"
+            # Just make sure there are no accidental changes
+            git stash
+            return
+        fi
+        fail "$pkgname already cloned, but HEAD is not at expected ref ${checkout_ref}"
+        popd
+    fi
     git clone ${git_url}
 
     pushd "$pkgbuilddir" || fail "Could not chdir to $pkgbuilddir"
