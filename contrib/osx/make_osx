@@ -148,7 +148,7 @@ PYINSTALLER_COMMIT="e20e74c03768d432d48665b8ef1e02511b16e4be"
 #      we are using this version for now due to change in code-signing behaviour
 #      (https://github.com/pyinstaller/pyinstaller/pull/5581)
 (
-    if [ -f "$BUILDDIR/pyinstaller/PyInstaller/bootloader/Darwin-64bit/runw" ]; then
+    if [ -f "$BUILDDIR/pyinstaller/PyInstaller/bootloader/Darwin-64bit/runw" || -f "$BUILDDIR/pyinstaller/PyInstaller/bootloader/Darwin-64bit-arm/runw" ]; then
         info "pyinstaller already built, skipping"
         exit 0
     fi
@@ -173,7 +173,7 @@ PYINSTALLER_COMMIT="e20e74c03768d432d48665b8ef1e02511b16e4be"
     python3 ./waf all CFLAGS="-static"
     popd
     # sanity check bootloader is there:
-    [[ -e "PyInstaller/bootloader/Darwin-64bit/runw" ]] || fail "Could not find runw in target dir!"
+    [[ -e "PyInstaller/bootloader/Darwin-64bit/runw" || -e "PyInstaller/bootloader/Darwin-64bit-arm/runw" ]] || fail "Could not find runw in target dir!"
     rm pyinstaller.py  # workaround for https://github.com/pyinstaller/pyinstaller/pull/6701
     popd # $BUILDDIR
     popd # $build_dir
