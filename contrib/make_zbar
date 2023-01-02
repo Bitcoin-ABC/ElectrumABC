@@ -5,14 +5,8 @@ set -e
 here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
 . "$here"/base.sh || (echo "Could not source contrib/base.sh" && exit 1)
 
-pkgname="zbar"
-info "Building $pkgname..."
+setup_pkg "zbar" "https://github.com/mchehab/zbar" "c7d9809b0b49e81fd86a48e9d1bc3c7db8c50bbd" $here
 
-pushd "$here"
-git clone https://github.com/mchehab/zbar
-
-pushd "$here"/$pkgname || fail "Could not chdir to $here/$pkgname"
-git checkout c7d9809b0b49e81fd86a48e9d1bc3c7db8c50bbd
 if [ "$BUILD_TYPE" = "wine" ] ; then
     echo "libzbar_la_LDFLAGS += -Wc,-static" >> zbar/Makefile.am
     echo "LDFLAGS += -Wc,-static" >> Makefile.am
@@ -23,7 +17,7 @@ fi
 if ! [ -r config.status ] ; then
     ./configure \
         $AUTOCONF_FLAGS \
-        --prefix="$here/$pkgname/dist" \
+        --prefix="$pkgbuilddir/dist" \
         --with-x=no \
         --enable-pthread=no \
         --enable-doc=no \
@@ -41,10 +35,9 @@ if ! [ -r config.status ] ; then
 fi
 make -j$WORKER_COUNT || fail "Could not build $pkgname"
 make install || fail "Could not install $pkgname"
-. "$here/$pkgname/dist/lib/libzbar.la"
-host_strip "$here/$pkgname/dist/lib/$dlname"
-cp -fpv "$here/$pkgname/dist/lib/$dlname" "$here/../electroncash/." || fail "Could not copy the $pkgname binary to its destination"
+. "$pkgbuilddir/dist/lib/libzbar.la"
+host_strip "$pkgbuilddir/dist/lib/$dlname"
+cp -fpv "$pkgbuilddir/dist/lib/$dlname" "$here/../electroncash/." || fail "Could not copy the $pkgname binary to its destination"
 info "$dlname has been placed in the 'electroncash' folder."
-popd
-popd
-rm -Rf "$here"/zbar
+popd_pkg
+rm -Rf "$pkgbuilddir"

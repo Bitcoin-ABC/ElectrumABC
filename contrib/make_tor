@@ -5,14 +5,8 @@ set -e
 here=$(dirname $(realpath "$0" 2> /dev/null || grealpath "$0"))
 . "$here"/base.sh || (echo "Could not source contrib/base.sh" && exit 1)
 
-pkgname="tor"
-info "Building $pkgname..."
+setup_pkg "tor" "https://github.com/EchterAgo/tor.git" "a08e549261b3dba0010e3238c9706b98a3840cda" $here
 
-pushd "$here"
-git clone https://github.com/EchterAgo/tor.git
-
-pushd "$here"/$pkgname || fail "Could not chdir to $here/$pkgname"
-git checkout a08e549261b3dba0010e3238c9706b98a3840cda
 LDFLAGS="-s"
 EXTRA_FLAGS=""
 if [ "$BUILD_TYPE" = "windows" ] ; then
@@ -27,14 +21,14 @@ fi
 if ! [ -r config.status ] ; then
     ./configure \
         $AUTOCONF_FLAGS \
-        --prefix="$here/$pkgname/dist" \
+        --prefix="$pkgbuilddir/dist" \
         --disable-system-torrc \
         --disable-manpage \
         --disable-html-manual \
         --disable-asciidoc \
-        --enable-static-libevent --with-libevent-dir=$here/libevent/dist \
-        --enable-static-openssl --with-openssl-dir=$here/openssl/dist \
-        --enable-static-zlib --with-zlib-dir=$here/zlib/dist \
+        --enable-static-libevent --with-libevent-dir=$parentbuilddir/libevent/dist \
+        --enable-static-openssl --with-openssl-dir=$parentbuilddir/openssl/dist \
+        --enable-static-zlib --with-zlib-dir=$parentbuilddir/zlib/dist \
         --disable-systemd \
         --disable-lzma \
         --disable-zstd \
@@ -51,11 +45,10 @@ binary="tor"
 if [ "$BUILD_TYPE" = "wine" ] ; then
     binary="tor.exe"
 fi
-host_strip "$here/$pkgname/dist/bin/$binary"
+host_strip "$pkgbuilddir/dist/bin/$binary"
 mkdir -p "$here/../electroncash/tor/bin"
-cp -fpv "$here/$pkgname/dist/bin/$binary" "$here/../electroncash/tor/bin/." || fail "Could not copy the $pkgname binary to its destination"
-$SHA256_PROG "$here/$pkgname/dist/bin/$binary"
+cp -fpv "$pkgbuilddir/dist/bin/$binary" "$here/../electroncash/tor/bin/." || fail "Could not copy the $pkgname binary to its destination"
+$SHA256_PROG "$pkgbuilddir/dist/bin/$binary"
 info "$binary has been placed in the 'electroncash' folder."
-popd
-popd
+popd_pkg
 rm -Rf "$here"/tor

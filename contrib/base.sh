@@ -160,6 +160,32 @@ function host_strip()
     fi
 }
 
+# Common code for installing dependencies from a git repo
+function setup_pkg()
+{
+    pkgname=$1
+    info "Building $pkgname..."
+
+    local git_url=$2 checkout_ref=$3 here=$4
+
+    parentbuilddir="$here"/build
+    pkgbuilddir="$parentbuilddir"/$pkgname
+
+    mkdir -p $parentbuilddir
+    pushd $parentbuilddir
+    git clone ${git_url}
+
+    pushd "$pkgbuilddir" || fail "Could not chdir to $pkgbuilddir"
+    git checkout ${checkout_ref}
+}
+
+function popd_pkg()
+{
+    # Keep this in sync with the number of pushd operations in setup_pkg
+    popd
+    popd
+}
+
 # From: https://stackoverflow.com/a/4024263
 # By kanaka (https://stackoverflow.com/users/471795/)
 function verlte()

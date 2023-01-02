@@ -7,12 +7,7 @@ dist/
 *.egg-info/
 /electrum.py
 contrib/pyinstaller/
-contrib/libevent/
-contrib/openssl/
-contrib/secp2561k1/
-contrib/tor/
-contrib/zbar/
-contrib/zlib/
+contrib/build
 locale/
 .devlocaltmp/
 *_trial_temp

@@ -202,9 +202,9 @@ cp -fp $BUILDDIR/libusb/1.0.21/lib/libusb-1.0.dylib contrib/osx || fail "Could n
 contrib/make_zbar && mv -vf electroncash/libzbar.0.dylib contrib/osx/. || fail "Could not build ZBar"
 
 info "Building libsecp256k1"
-pushd contrib/secp256k1 || fail "Could not chdir to contrib/secp256k1"
-git checkout "$LIBSECP_COMMIT^{commit}" || fail "Could not check out secp256k1 $LIBSECP_COMMIT"
-git clean -f -x -q
+
+contrib_abspath=`greadlink -f contrib`
+setup_pkg "secp256k1" "https://github.com/Bitcoin-ABC/secp256k1.git" "master" ${contrib_abspath}
 ./autogen.sh || fail "Could not run autogen for secp256k1"
 ./configure \
     --enable-module-recovery \
@@ -217,12 +217,11 @@ git clean -f -x -q
     --disable-static \
     --enable-shared || fail "Could not configure for secp256k1"
 make -j4 || fail "Could not build secp256k1"
-popd
-cp -fp contrib/secp256k1/.libs/libsecp256k1.0.dylib contrib/osx || fail "Could not copy secp256k1 binary to its destination"
+popd_pkg
+cp -fp contrib/build/secp256k1/.libs/libsecp256k1.0.dylib contrib/osx || fail "Could not copy secp256k1 binary to its destination"
 
 info "Building integrated Tor"
 contrib/make_zlib && contrib/make_libevent && contrib/make_openssl && contrib/make_tor || fail "Could not build Tor"
-
 
 info "Installing requirements..."
 python3 -m pip install -r ./contrib/deterministic-build/requirements.txt --user || fail "Could not install requirements"
