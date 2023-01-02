@@ -14,7 +14,7 @@ DISTDIR="$PROJECT_ROOT/dist"
 BUILDDIR="$CONTRIB/build-linux/appimage/build/appimage"
 APPDIR="$BUILDDIR/$PACKAGE.AppDir"
 CACHEDIR="$CONTRIB/build-linux/appimage/.cache/appimage"
-PYDIR="$APPDIR"/usr/lib/python3.8
+PYDIR="$APPDIR"/usr/lib/python3.9
 
 export GCC_STRIP_BINARIES="1"
 export GIT_SUBMODULE_FLAGS="--recommend-shallow --depth 1"
@@ -52,8 +52,8 @@ tar xf "$CACHEDIR/Python-$PYTHON_VERSION.tar.xz" -C "$BUILDDIR"
     cd "$BUILDDIR/Python-$PYTHON_VERSION"
     LC_ALL=C export BUILD_DATE=$(date -u -d "@$SOURCE_DATE_EPOCH" "+%b %d %Y")
     LC_ALL=C export BUILD_TIME=$(date -u -d "@$SOURCE_DATE_EPOCH" "+%H:%M:%S")
-    # Patch taken from Ubuntu http://archive.ubuntu.com/ubuntu/pool/main/p/python3.8/python3.8_3.8.6-1.debian.tar.xz
-    patch -p1 < "$CONTRIB/build-linux/appimage/patches/python-3.8.6-reproducible-buildinfo.diff" || fail "Could not patch Python build system for reproducibility"
+    # Patch taken from Ubuntu Patch taken from Ubuntu http://archive.ubuntu.com/ubuntu/pool/main/p/python3.9/python3.9_3.9.5-3~21.04.debian.tar.xz
+    patch -p1 < "$CONTRIB/build-linux/appimage/patches/python-3.9-reproducible-buildinfo.diff" || fail "Could not patch Python build system for reproducibility"
     ./configure \
       --cache-file="$CACHEDIR/python.config.cache" \
       --prefix="$APPDIR/usr" \
@@ -74,7 +74,7 @@ appdir_python() {
   env \
     PYTHONNOUSERSITE=1 \
     LD_LIBRARY_PATH="$APPDIR/usr/lib:$APPDIR/usr/lib/x86_64-linux-gnu${LD_LIBRARY_PATH+:$LD_LIBRARY_PATH}" \
-    "$APPDIR/usr/bin/python3.8" "$@"
+    "$APPDIR/usr/bin/python3.9" "$@"
 }
 
 python='appdir_python'
@@ -132,7 +132,7 @@ info "Finalizing AppDir"
     move_lib
 
     # apply global appimage blacklist to exclude stuff
-    # move usr/include out of the way to preserve usr/include/python3.8m.
+    # move usr/include out of the way to preserve usr/include/python3.9m.
     mv usr/include usr/include.tmp
     delete_blacklisted
     mv usr/include.tmp usr/include
@@ -157,7 +157,7 @@ strip_binaries()
 {
   chmod u+w -R "$APPDIR"
   {
-    printf '%s\0' "$APPDIR/usr/bin/python3.8"
+    printf '%s\0' "$APPDIR/usr/bin/python3.9"
     find "$APPDIR" -type f -regex '.*\.so\(\.[0-9.]+\)?$' -print0
   } | xargs -0 --no-run-if-empty --verbose strip -R .note.gnu.build-id -R .comment
 }
@@ -175,7 +175,7 @@ rm -rf "$APPDIR"/usr/{share,include}
 rm -rf "$PYDIR"/{test,ensurepip,lib2to3,idlelib,turtledemo}
 rm -rf "$PYDIR"/{ctypes,sqlite3,tkinter,unittest}/test
 rm -rf "$PYDIR"/distutils/{command,tests}
-rm -rf "$PYDIR"/config-3.8-x86_64-linux-gnu
+rm -rf "$PYDIR"/config-3.9m-x86_64-linux-gnu
 rm -rf "$PYDIR"/site-packages/Cryptodome/SelfTest
 rm -rf "$PYDIR"/site-packages/{psutil,qrcode}/tests
 for component in connectivity declarative location multimedia quickcontrols quickcontrols2 serialport webengine websockets xmlpatterns ; do
