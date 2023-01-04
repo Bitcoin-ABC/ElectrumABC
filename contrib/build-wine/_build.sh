@@ -18,7 +18,6 @@ fi
 export BUILD_TYPE="wine"
 export GCC_TRIPLET_BUILD="x86_64-pc-linux-gnu"
 export GCC_STRIP_BINARIES="1"
-export GIT_SUBMODULE_FLAGS="--recommend-shallow --depth 1"
 
 # On some systems git complains about permissions here. This fixes it.
 git config --global --add safe.directory $(readlink -f "$here"/../..)  # /homedir/wine/drive_c/electroncash

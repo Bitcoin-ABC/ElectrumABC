@@ -3,9 +3,7 @@
 here=$(dirname "$0")
 test -n "$here" -a -d "$here" || (echo "Cannot determine build dir. FIXME!" && exit 1)
 
-GIT_SUBMODULE_SKIP=1
 . "$here"/../base.sh # functions we use below (fail, et al)
-unset GIT_SUBMODULE_SKIP
 
 export DEFAULT_WIN_ARCH="win32"
 if [ -z "$WIN_ARCH" ] ; then

@@ -17,7 +17,6 @@ CACHEDIR="$CONTRIB/build-linux/appimage/.cache/appimage"
 PYDIR="$APPDIR"/usr/lib/python3.9
 
 export GCC_STRIP_BINARIES="1"
-export GIT_SUBMODULE_FLAGS="--recommend-shallow --depth 1"
 
 # pinned versions
 PKG2APPIMAGE_COMMIT="eb8f3acdd9f11ab19b78f5cb15daa772367daf15"

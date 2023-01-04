@@ -296,17 +296,5 @@ if [ -z "$SORT_PROG" ]; then
     fail "Please install sort or gsort"
 fi
 
-if [ "${GIT_SUBMODULE_SKIP:-0}" -eq 0 ] ; then
-    info "Refreshing submodules ($GIT_SUBMODULE_FLAGS)..."
-    gitflags=""
-    if ! verlt $(git --version | awk '{print $3}') 2.18.0 ; then
-        # For shallow clones to work with git versions >= 2.22.0 we need to ensure we
-        # use git protocol version 2, which is available starting with version 2.18.0.
-        # See https://public-inbox.org/git/20191013064314.GA28018@sigill.intra.peff.net/
-        gitflags="-c protocol.version=2"
-    fi
-    git $gitflags submodule update --init --jobs 0 $GIT_SUBMODULE_FLAGS || fail "Failed to update git submodules"
-fi
-
 # This variable is set to avoid sourcing base.sh multiple times
 export _BASE_SH_SOURCED=1
