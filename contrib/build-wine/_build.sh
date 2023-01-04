@@ -208,13 +208,13 @@ build_the_app() {
         PYHOME=c:/python$PYTHON_VERSION
         PYTHON="wine $PYHOME/python.exe -OO -B"
 
-        pushd "$here"/../electrum-locale
+        setup_pkg "electrum-locale" ${ELECTRUM_LOCALE_REPO} ${ELECTRUM_LOCALE_COMMIT} "$here/.."
         for i in ./locale/*; do
             dir=$i/LC_MESSAGES
             mkdir -p $dir
             msgfmt --output-file=$dir/electron-cash.mo $i/electron-cash.po || true
         done
-        popd
+        popd_pkg
 
 
         pushd "$here"/../..  # go to top level
@@ -226,7 +226,7 @@ build_the_app() {
         find -exec touch -d '2000-11-11T11:11:11+00:00' {} +
         popd  # go back to $here
 
-        cp -rv "$here"/../electrum-locale/locale "$WINEPREFIX"/drive_c/electrumabc/electroncash/
+        cp -rv "$here"/../build/electrum-locale/locale "$WINEPREFIX"/drive_c/electrumabc/electroncash/
 
         # Install frozen dependencies
         info "Installing frozen dependencies ..."

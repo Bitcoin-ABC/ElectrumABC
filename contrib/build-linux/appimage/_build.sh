@@ -85,8 +85,7 @@ info "Installing pip"
 info "Preparing electrum-locale"
 (
     cd "$PROJECT_ROOT"
-
-    pushd "$CONTRIB"/electrum-locale
+    setup_pkg "electrum-locale" ${ELECTRUM_LOCALE_REPO} ${ELECTRUM_LOCALE_COMMIT} "$CONTRIB"
     if ! which msgfmt > /dev/null 2>&1; then
         fail "Please install gettext"
     fi
@@ -95,7 +94,7 @@ info "Preparing electrum-locale"
         mkdir -p $dir
         msgfmt --output-file="$dir/electron-cash.mo" "$i/electron-cash.po" || true
     done
-    popd
+    popd_pkg
 )
 
 

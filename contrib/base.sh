@@ -166,9 +166,9 @@ function setup_pkg()
     pkgname=$1
     info "Building $pkgname..."
 
-    local git_url=$2 checkout_ref=$3 here=$4
+    local git_url=$2 checkout_ref=$3 contrib=$4
 
-    parentbuilddir="$here"/build
+    parentbuilddir="$contrib"/build
     pkgbuilddir="$parentbuilddir"/$pkgname
 
     mkdir -p $parentbuilddir
@@ -249,6 +249,9 @@ export UBUNTU_MIRROR="${UBUNTU_MIRROR:-$DEFAULT_UBUNTU_MIRROR}"
 if [ "$UBUNTU_MIRROR" != "$DEFAULT_UBUNTU_MIRROR" ]; then
     info "Picked up override from env: UBUNTU_MIRROR=${UBUNTU_MIRROR}"
 fi
+
+export ELECTRUM_LOCALE_REPO="https://github.com/Electron-Cash/electrum-locale"
+export ELECTRUM_LOCALE_COMMIT="848004f800821a3bceaa23d00eeccf78ddb94eb5"
 
 # Build a command line argument for docker, enabling interactive mode if stdin
 # is a tty and enabling tty in docker if stdout is a tty.
