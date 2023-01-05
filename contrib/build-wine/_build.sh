@@ -54,9 +54,9 @@ prepare_wine() {
         NSIS_URL='https://prdownloads.sourceforge.net/nsis/nsis-3.06.1-setup.exe'
         NSIS_SHA256=f60488a676308079bfdf6845dc7114cfd4bbff47b66be4db827b89bb8d7fdc52
 
-        # libusb 1.0.23
+        # libusb 1.0.24
         LIBUSB_REPO='https://github.com/libusb/libusb.git'
-        LIBUSB_COMMIT=e782eeb2514266f6738e242cdcb18e3ae1ed06fa
+        LIBUSB_COMMIT="c6a35c56016ea2ab2f19115d2ea1e85e0edae155"
 
         PYINSTALLER_REPO='https://github.com/PiRK/pyinstaller.git'
         PYINSTALLER_COMMIT=d6f3d02365ba68ffc84169c56c292701f346110e # Version 4.2 + a patch to drop an unused .rc file
