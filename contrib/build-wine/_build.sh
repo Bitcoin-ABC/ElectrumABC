@@ -66,8 +66,9 @@ prepare_wine() {
         LIBUSB_REPO='https://github.com/libusb/libusb.git'
         LIBUSB_COMMIT="c6a35c56016ea2ab2f19115d2ea1e85e0edae155"
 
-        PYINSTALLER_REPO='https://github.com/PiRK/pyinstaller.git'
-        PYINSTALLER_COMMIT=d6f3d02365ba68ffc84169c56c292701f346110e # Version 4.2 + a patch to drop an unused .rc file
+        PYINSTALLER_REPO='https://github.com/pyinstaller/pyinstaller.git'
+        PYINSTALLER_COMMIT="0fe956a2c6157e1b276819de1a050c242de70a29"
+        # ^ latest commit from "v4" branch, somewhat after "4.10" tag
 
         ## These settings probably don't need change
         PYHOME=c:/python$PYTHON_VERSION
@@ -131,7 +132,7 @@ prepare_wine() {
             fi
             pushd bootloader
             python3 ./waf all CC="${GCC_TRIPLET_HOST}-gcc" \
-                              CFLAGS="-Wno-stringop-overflow -static"
+                              CFLAGS="-static"
             # Note: it's possible for the EXE to not be there if the build
             # failed but didn't return exit status != 0 to the shell (waf bug?);
             # So we need to do this to make sure the EXE is actually there.
