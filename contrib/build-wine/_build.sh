@@ -82,11 +82,18 @@ prepare_wine() {
             || fail "Failed to import Python release signing keys"
 
         info "Installing Python ..."
+        if [ "$GCC_TRIPLET_HOST" = "i686-w64-mingw32" ] ; then
+            ARCH="win32"
+        elif [ "$GCC_TRIPLET_HOST" = "x86_64-w64-mingw32" ] ; then
+            ARCH="amd64"
+        else
+            fail "unexpected GCC_TRIPLET_HOST: $GCC_TRIPLET_HOST"
+        fi
         # Install Python
         for msifile in core dev exe lib pip tools; do
             info "Installing $msifile..."
-            wget "https://www.python.org/ftp/python/$PYTHON_VERSION/win32/${msifile}.msi"
-            wget "https://www.python.org/ftp/python/$PYTHON_VERSION/win32/${msifile}.msi.asc"
+            wget "https://www.python.org/ftp/python/$PYTHON_VERSION/$ARCH/${msifile}.msi"
+            wget "https://www.python.org/ftp/python/$PYTHON_VERSION/$ARCH/${msifile}.msi.asc"
             verify_signature "${msifile}.msi.asc" $KEYRING_PYTHON_DEV
             wine msiexec /i "${msifile}.msi" /qn TARGETDIR=$PYHOME || fail "Failed to install Python component: ${msifile}"
         done
@@ -115,14 +122,20 @@ prepare_wine() {
                 warn "Skipping PyInstaller tag"
             fi
             pushd bootloader
-            # If switching to 64-bit Windows, edit CC= below
-            python3 ./waf all CC=i686-w64-mingw32-gcc CFLAGS="-Wno-stringop-overflow -static"
+            python3 ./waf all CC="${GCC_TRIPLET_HOST}-gcc" \
+                              CFLAGS="-Wno-stringop-overflow -static"
             # Note: it's possible for the EXE to not be there if the build
             # failed but didn't return exit status != 0 to the shell (waf bug?);
             # So we need to do this to make sure the EXE is actually there.
             # If we switch to 64-bit, edit this path below.
             popd
-            [ -e PyInstaller/bootloader/Windows-32bit/runw.exe ] || fail "Could not find runw.exe in target dir!"
+            if [ "$GCC_TRIPLET_HOST" = "i686-w64-mingw32" ] ; then
+                [[ -e PyInstaller/bootloader/Windows-32bit/runw.exe ]] || fail "Could not find runw.exe in target dir! (32bit)"
+            elif [ "$GCC_TRIPLET_HOST" = "x86_64-w64-mingw32" ] ; then
+                [[ -e PyInstaller/bootloader/Windows-64bit/runw.exe ]] || fail "Could not find runw.exe in target dir! (64bit)"
+            else
+                fail "unexpected GCC_TRIPLET_HOST: $GCC_TRIPLET_HOST"
+            fi
             rm -fv pyinstaller.py # workaround for https://github.com/pyinstaller/pyinstaller/pull/6701
         ) || fail "PyInstaller bootloader build failed"
         info "Installing PyInstaller ..."
@@ -150,10 +163,10 @@ prepare_wine() {
             git checkout -b pinned "${LIBUSB_COMMIT}^{commit}"
             echo "libusb_1_0_la_LDFLAGS += -Wc,-static" >> libusb/Makefile.am
             ./bootstrap.sh || fail "Could not bootstrap libusb"
-            host="i686-w64-mingw32"
+            host="$GCC_TRIPLET_HOST"
             LDFLAGS="-Wl,--no-insert-timestamp" ./configure \
                 --host=$host \
-                --build=x86_64-pc-linux-gnu || fail "Could not run ./configure for libusb"
+                --build=$GCC_TRIPLET_BUILD || fail "Could not run ./configure for libusb"
             make -j4 || fail "Could not build libusb"
             ${host}-strip libusb/.libs/libusb-1.0.dll
         ) || fail "libusb build failed"
