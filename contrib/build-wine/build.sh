@@ -7,6 +7,14 @@ GIT_SUBMODULE_SKIP=1
 . "$here"/../base.sh # functions we use below (fail, et al)
 unset GIT_SUBMODULE_SKIP
 
+export DEFAULT_WIN_ARCH="win32"
+if [ -z "$WIN_ARCH" ] ; then
+    export WIN_ARCH="${DEFAULT_WIN_ARCH}"
+fi
+if [ "$WIN_ARCH" != "$DEFAULT_WIN_ARCH" ]; then
+    info "Picked up override from env: WIN_ARCH=${WIN_ARCH}"
+fi
+
 if [ ! -z "$1" ]; then
     REV="$1"
 else
@@ -84,6 +92,7 @@ FRESH_CLONE_DIR="$FRESH_CLONE/$GIT_DIR_NAME"
     -u $USER_ID:$GROUP_ID \
     -e HOME=/homedir \
     -e GIT_REPO="$GIT_REPO" \
+    -e WIN_ARCH="$WIN_ARCH" \
     -e BUILD_DEBUG="$BUILD_DEBUG" \
     -e PYI_SKIP_TAG="$PYI_SKIP_TAG" \
     --name ec-wine-builder-cont \

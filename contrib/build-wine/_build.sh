@@ -6,8 +6,16 @@ pushd "$here"
 here=`pwd`  # get an absolute path
 popd
 
+if [ "$WIN_ARCH" = "win32" ] ; then
+    export GCC_TRIPLET_HOST="i686-w64-mingw32"
+elif [ "$WIN_ARCH" = "win64" ] ; then
+    export GCC_TRIPLET_HOST="x86_64-w64-mingw32"
+else
+    echo "unexpected WIN_ARCH: $WIN_ARCH"
+    exit 1
+fi
+
 export BUILD_TYPE="wine"
-export GCC_TRIPLET_HOST="i686-w64-mingw32"
 export GCC_TRIPLET_BUILD="x86_64-pc-linux-gnu"
 export GCC_STRIP_BINARIES="1"
 export GIT_SUBMODULE_FLAGS="--recommend-shallow --depth 1"
@@ -82,18 +90,18 @@ prepare_wine() {
             || fail "Failed to import Python release signing keys"
 
         info "Installing Python ..."
-        if [ "$GCC_TRIPLET_HOST" = "i686-w64-mingw32" ] ; then
-            ARCH="win32"
-        elif [ "$GCC_TRIPLET_HOST" = "x86_64-w64-mingw32" ] ; then
-            ARCH="amd64"
+        if [ "$WIN_ARCH" = "win32" ] ; then
+            PYARCH="win32"
+        elif [ "$WIN_ARCH" = "win64" ] ; then
+            PYARCH="amd64"
         else
-            fail "unexpected GCC_TRIPLET_HOST: $GCC_TRIPLET_HOST"
+            fail "unexpected WIN_ARCH: $WIN_ARCH"
         fi
         # Install Python
         for msifile in core dev exe lib pip tools; do
             info "Installing $msifile..."
-            wget "https://www.python.org/ftp/python/$PYTHON_VERSION/$ARCH/${msifile}.msi"
-            wget "https://www.python.org/ftp/python/$PYTHON_VERSION/$ARCH/${msifile}.msi.asc"
+            wget "https://www.python.org/ftp/python/$PYTHON_VERSION/$PYARCH/${msifile}.msi"
+            wget "https://www.python.org/ftp/python/$PYTHON_VERSION/$PYARCH/${msifile}.msi.asc"
             verify_signature "${msifile}.msi.asc" $KEYRING_PYTHON_DEV
             wine msiexec /i "${msifile}.msi" /qn TARGETDIR=$PYHOME || fail "Failed to install Python component: ${msifile}"
         done
@@ -129,9 +137,9 @@ prepare_wine() {
             # So we need to do this to make sure the EXE is actually there.
             # If we switch to 64-bit, edit this path below.
             popd
-            if [ "$GCC_TRIPLET_HOST" = "i686-w64-mingw32" ] ; then
+            if [ "$WIN_ARCH" = "win32" ] ; then
                 [[ -e PyInstaller/bootloader/Windows-32bit/runw.exe ]] || fail "Could not find runw.exe in target dir! (32bit)"
-            elif [ "$GCC_TRIPLET_HOST" = "x86_64-w64-mingw32" ] ; then
+            elif [ "$WIN_ARCH" = "win64" ] ; then
                 [[ -e PyInstaller/bootloader/Windows-64bit/runw.exe ]] || fail "Could not find runw.exe in target dir! (64bit)"
             else
                 fail "unexpected GCC_TRIPLET_HOST: $GCC_TRIPLET_HOST"
