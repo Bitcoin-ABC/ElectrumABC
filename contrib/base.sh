@@ -176,7 +176,7 @@ function setup_pkg()
     if [ -d "$pkgbuilddir" ] ; then
         pushd "$pkgbuilddir"
         local commit=`git rev-parse HEAD`
-        local branch=`git rev-parse --abbrev-ref`
+        local branch=`git rev-parse --abbrev-ref HEAD`
         local tag=`git describe --tags`
         if [[ ${commit} = ${checkout_ref} || ${branch} = ${checkout_ref} || ${tag} = ${checkout_ref} ]] ; then
             warn "$pkgname already cloned and $checkout_ref is already the current HEAD"
@@ -184,7 +184,7 @@ function setup_pkg()
             git stash
             return
         fi
-        fail "$pkgname already cloned, but HEAD is not at expected ref ${checkout_ref}"
+        fail "$pkgname already cloned, but HEAD is not at expected ref ${checkout_ref} (branch ${branch}, commit ${commit})"
         popd
     fi
     git clone ${git_url}
