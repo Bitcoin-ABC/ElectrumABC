@@ -13,8 +13,9 @@ from electroncash.keystore import Hardware_KeyStore, is_xpubkey, parse_xpubkey
 from electroncash.plugins import Device
 from electroncash.transaction import deserialize
 from electroncash.util import UserCancelled, bfh, bh2u
-from electroncash_plugins.hw_wallet import HW_PluginBase
-from electroncash_plugins.hw_wallet.plugin import (
+
+from ..hw_wallet import HW_PluginBase
+from ..hw_wallet.plugin import (
     is_any_tx_output_on_change_branch,
     validate_op_return_output_and_get_data,
 )
@@ -100,7 +101,7 @@ class KeepKeyPlugin(HW_PluginBase):
             import keepkeylib.transport_webusb
             from usb1 import USBContext
 
-            from electroncash_plugins.keepkey import client
+            from ..keepkey import client
 
             self.client_class = client.KeepKeyClient
             self.ckd_public = keepkeylib.ckd_public

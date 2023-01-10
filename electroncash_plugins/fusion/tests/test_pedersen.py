@@ -6,17 +6,6 @@
 # License: MIT
 import unittest
 
-if False:
-    import imp
-    import os
-    import sys
-
-    sys.path.append(os.path.realpath(os.path.dirname(__file__) + "/../../../"))
-
-    imp.load_module("electroncash", *imp.find_module("lib"))
-    imp.load_module("electroncash_gui", *imp.find_module("gui/qt"))
-    imp.load_module("electroncash_plugins", *imp.find_module("plugins"))
-
 from .. import pedersen
 
 order = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141

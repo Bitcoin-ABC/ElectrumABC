@@ -22,8 +22,9 @@ from electroncash.plugins import Device
 from electroncash.printerror import is_verbose, print_error
 from electroncash.transaction import Transaction
 from electroncash.util import bfh, bh2u, versiontuple
-from electroncash_plugins.hw_wallet import HardwareClientBase, HW_PluginBase
-from electroncash_plugins.hw_wallet.plugin import (
+
+from ..hw_wallet import HardwareClientBase, HW_PluginBase
+from ..hw_wallet.plugin import (
     is_any_tx_output_on_change_branch,
     validate_op_return_output_and_get_data,
 )
