@@ -36,22 +36,26 @@ SECP256K1_EC_UNCOMPRESSED = SECP256K1_FLAGS_TYPE_COMPRESSION
 
 def _load_library():
     if sys.platform == "darwin":
+        # on Mac it's in the pyinstaller top level folder, which is in libpath
         library_paths = (
-            "libsecp256k1.0.dylib",  # on Mac it's in the pyinstaller top level folder, which is in libpath
+            "libsecp256k1.0.dylib",
+            # fall back to "running from source" mode
             os.path.join(os.path.dirname(__file__), "libsecp256k1.0.dylib"),
-        )  # fall back to "running from source" mode electroncash/ folder
+        )
     elif sys.platform in ("windows", "win32"):
+        # on Windows it's in the pyinstaller top level folder, which is in the path
         library_paths = (
-            "libsecp256k1-0.dll",  # on Windows it's in the pyinstaller top level folder, which is in the path
+            "libsecp256k1-0.dll",
+            # fall back to "running from source" mode
             os.path.join(os.path.dirname(__file__), "libsecp256k1-0.dll"),
-        )  # does running from source even make sense on Windows? Enquiring minds want to know.
+        )
     else:
+        # on linux we install it alongside the python scripts.
         library_paths = (
-            os.path.join(
-                os.path.dirname(__file__), "libsecp256k1.so.0"
-            ),  # on linux we install it alongside the python scripts.
+            os.path.join(os.path.dirname(__file__), "libsecp256k1.so.0"),
+            # fall back to system lib, if any
             "libsecp256k1.so.0",
-        )  # fall back to system lib, if any
+        )
 
     secp256k1 = None
     for lp in library_paths:

@@ -92,11 +92,9 @@ class OSXQRDetect(AbstractQrCodeReader, PrintError):
         self.ctx = None
         try:
             if not cls.LIB:
-                import electroncash
+                from .. import __path__ as root_path
 
-                root_ec_dir = os.path.abspath(
-                    os.path.join(electroncash.__path__[0], "..")
-                )
+                root_ec_dir = os.path.abspath(os.path.join(root_path[0], ".."))
                 lib_dir = os.path.join(
                     root_ec_dir, "contrib", "osx", "OSXQRDetect", "build", "Release"
                 )
