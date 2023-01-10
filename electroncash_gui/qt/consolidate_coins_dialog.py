@@ -12,7 +12,8 @@ from electroncash.consolidate import (
 from electroncash.constants import PROJECT_NAME, XEC
 from electroncash.transaction import Transaction
 from electroncash.wallet import Abstract_Wallet
-from electroncash_gui.qt.multi_transactions_dialog import MultiTransactionsWidget
+
+from .multi_transactions_dialog import MultiTransactionsWidget
 
 
 class TransactionsStatus(Enum):

@@ -37,7 +37,8 @@ from electroncash.constants import PROJECT_NAME
 from electroncash.i18n import _
 from electroncash.plugins import Plugins
 from electroncash.printerror import PrintError
-from electroncash_gui.qt.util import WindowModalDialog
+
+from .util import WindowModalDialog
 
 
 class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):

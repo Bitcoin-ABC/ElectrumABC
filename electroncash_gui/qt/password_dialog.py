@@ -33,13 +33,8 @@ from PyQt5.QtGui import QIcon, QPixmap
 
 from electroncash.i18n import _
 from electroncash.plugins import run_hook
-from electroncash_gui.qt.util import (
-    Buttons,
-    CancelButton,
-    OkButton,
-    PasswordLineEdit,
-    WindowModalDialog,
-)
+
+from .util import Buttons, CancelButton, OkButton, PasswordLineEdit, WindowModalDialog
 
 
 def check_password_strength(password):

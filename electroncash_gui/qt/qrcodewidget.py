@@ -6,7 +6,8 @@ from PyQt5.QtGui import QBrush, QColor, QCursor, QPainter, QPen
 from electroncash import util
 from electroncash.i18n import _
 from electroncash.printerror import PrintError
-from electroncash_gui.qt.util import CloseButton, MessageBoxMixin, WindowModalDialog
+
+from .util import CloseButton, MessageBoxMixin, WindowModalDialog
 
 
 class QRCodeWidget(QtWidgets.QWidget, PrintError):
@@ -106,7 +107,7 @@ class QRCodeWidget(QtWidgets.QWidget, PrintError):
 
 
 def save_to_file(qrw, parent):
-    from electroncash_gui.qt.main_window import ElectrumWindow
+    from .main_window import ElectrumWindow
 
     p = qrw and qrw.grab()
     if p and not p.isNull():

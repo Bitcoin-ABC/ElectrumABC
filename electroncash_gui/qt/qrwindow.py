@@ -30,12 +30,8 @@ from PyQt5.QtCore import Qt
 from electroncash.constants import PROJECT_NAME
 from electroncash.i18n import _
 from electroncash.util import Weak
-from electroncash_gui.qt.qrcodewidget import (
-    QRCodeWidget,
-    copy_to_clipboard,
-    save_to_file,
-)
 
+from .qrcodewidget import QRCodeWidget, copy_to_clipboard, save_to_file
 from .util import Buttons, MessageBoxMixin, WWLabel
 
 

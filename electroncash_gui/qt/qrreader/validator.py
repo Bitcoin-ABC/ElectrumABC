@@ -32,8 +32,9 @@ from PyQt5.QtGui import QColor
 
 from electroncash.i18n import _
 from electroncash.qrreaders import QrCodeResult
-from electroncash_gui.qt.util import ColorScheme
-from electroncash_gui.qt.utils import QColorLerp
+
+from ..util import ColorScheme
+from ..utils import QColorLerp
 
 
 class QrReaderValidatorResult:
