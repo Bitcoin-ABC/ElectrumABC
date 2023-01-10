@@ -43,7 +43,7 @@ from electroncash.paymentrequest import PaymentRequest
 from electroncash.plugins import BasePlugin, hook
 from electroncash.printerror import PrintError
 from electroncash.util import Weak
-from electroncash_gui.qt.util import (
+from electrumabc_gui.qt.util import (
     Buttons,
     CloseButton,
     EnterButton,
@@ -52,7 +52,7 @@ from electroncash_gui.qt.util import (
 )
 
 if TYPE_CHECKING:
-    from electroncash_gui.qt.request_list import RequestList
+    from electrumabc_gui.qt.request_list import RequestList
 
 
 class Processor(threading.Thread, PrintError):

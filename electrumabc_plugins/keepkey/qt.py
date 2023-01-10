@@ -7,7 +7,7 @@ from PyQt5.QtGui import QRegExpValidator
 from electroncash.constants import PROJECT_NAME
 from electroncash.plugins import hook
 from electroncash.util import _, bh2u
-from electroncash_gui.qt.util import (
+from electrumabc_gui.qt.util import (
     Buttons,
     CancelButton,
     CloseButton,

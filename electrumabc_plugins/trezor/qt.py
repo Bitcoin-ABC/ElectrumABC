@@ -9,7 +9,7 @@ from electroncash.constants import PROJECT_NAME
 from electroncash.i18n import _
 from electroncash.plugins import hook
 from electroncash.util import bh2u
-from electroncash_gui.qt.util import (
+from electrumabc_gui.qt.util import (
     Buttons,
     CancelButton,
     CloseButton,

@@ -40,11 +40,11 @@ from electroncash.i18n import _
 from electroncash.plugins import hook
 from electroncash.printerror import PrintError
 from electroncash.util import UserCancelled
-from electroncash_gui.qt.installwizard import InstallWizard
-from electroncash_gui.qt.main_window import ElectrumWindow
-from electroncash_gui.qt.password_dialog import PW_PASSPHRASE, PasswordLayout
-from electroncash_gui.qt.statusbar import StatusBarButton
-from electroncash_gui.qt.util import (
+from electrumabc_gui.qt.installwizard import InstallWizard
+from electrumabc_gui.qt.main_window import ElectrumWindow
+from electrumabc_gui.qt.password_dialog import PW_PASSPHRASE, PasswordLayout
+from electrumabc_gui.qt.statusbar import StatusBarButton
+from electrumabc_gui.qt.util import (
     Buttons,
     CancelButton,
     OkButton,

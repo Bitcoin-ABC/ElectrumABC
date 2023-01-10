@@ -52,15 +52,15 @@ repos:
               electroncash/printerror.py|
               electroncash/uint256.py|
               electroncash/web.py|
-              electroncash_gui/qt/address_list.py|
-              electroncash_gui/qt/amountedit.py|
-              electroncash_gui/qt/avalanche/.*py|
-              electroncash_gui/qt/consolidate_coins_dialog.py|
-              electroncash_gui/qt/exception_window.py|
-              electroncash_gui/qt/invoice_dialog.py|
-              electroncash_gui/qt/multi_transactions_dialog.py|
-              electroncash_gui/qt/sign_verify_dialog.py|
-              electroncash_gui/qt/statusbar.py|
-              electroncash_gui/qt/utxo_list.py|
+              electrumabc_gui/qt/address_list.py|
+              electrumabc_gui/qt/amountedit.py|
+              electrumabc_gui/qt/avalanche/.*py|
+              electrumabc_gui/qt/consolidate_coins_dialog.py|
+              electrumabc_gui/qt/exception_window.py|
+              electrumabc_gui/qt/invoice_dialog.py|
+              electrumabc_gui/qt/multi_transactions_dialog.py|
+              electrumabc_gui/qt/sign_verify_dialog.py|
+              electrumabc_gui/qt/statusbar.py|
+              electrumabc_gui/qt/utxo_list.py|
               electrumabc_plugins/fusion/cmdline.py
           )$

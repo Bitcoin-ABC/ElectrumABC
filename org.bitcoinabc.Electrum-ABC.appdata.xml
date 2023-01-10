@@ -29,7 +29,7 @@
 	<provides>
 		<binary>electrum-abc</binary>
 		<python3>electroncash</python3>
-		<python3>electroncash_gui</python3>
+		<python3>electrumabc_gui</python3>
 		<python3>electrumabc_plugins</python3>
 	</provides>
 	<mimetypes>

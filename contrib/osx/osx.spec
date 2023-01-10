@@ -56,9 +56,9 @@ binaries += [b for b in collect_dynamic_libs('PyQt5') if 'macstyle' in b[0]]
 
 # We don't put these files in to actually include them in the script but to make the Analysis method scan them for imports
 a = Analysis([home+MAIN_SCRIPT,
-              home+'electroncash_gui/qt/main_window.py',
-              home+'electroncash_gui/qt/qrreader/camera_dialog.py',
-              home+'electroncash_gui/text.py',
+              home+'electrumabc_gui/qt/main_window.py',
+              home+'electrumabc_gui/qt/qrreader/camera_dialog.py',
+              home+'electrumabc_gui/text.py',
               home+'electroncash/util.py',
               home+'electroncash/wallet.py',
               home+'electroncash/simple_config.py',

@@ -55,7 +55,7 @@ datas = [
     (home+'electroncash/servers_regtest.json', 'electroncash'),
     (home+'electroncash/wordlist/english.txt', 'electroncash/wordlist'),
     (home+'electroncash/locale', 'electroncash/locale'),
-    (home+'electroncash_gui/qt/data/ecsupplemental_win.ttf', 'electroncash_gui/qt/data'),
+    (home+'electrumabc_gui/qt/data/ecsupplemental_win.ttf', 'electrumabc_gui/qt/data'),
     (home+'electrumabc_plugins', 'electrumabc_plugins'),
 ]
 datas += collect_data_files('trezorlib')
@@ -65,9 +65,9 @@ datas += collect_data_files('mnemonic')  # wordlists used by keepkeylib from lib
 
 # We don't put these files in to actually include them in the script but to make the Analysis method scan them for imports
 a = Analysis([home+'electrum-abc',
-              home+'electroncash_gui/qt/main_window.py',
-              home+'electroncash_gui/qt/qrreader/camera_dialog.py',
-              home+'electroncash_gui/text.py',
+              home+'electrumabc_gui/qt/main_window.py',
+              home+'electrumabc_gui/qt/qrreader/camera_dialog.py',
+              home+'electrumabc_gui/text.py',
               home+'electroncash/util.py',
               home+'electroncash/wallet.py',
               home+'electroncash/simple_config.py',

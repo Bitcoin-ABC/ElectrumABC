@@ -40,11 +40,11 @@ from electroncash.i18n import _, ngettext
 from electroncash.plugins import hook, run_hook
 from electroncash.util import InvalidPassword, do_in_main_thread, inv_dict
 from electroncash.wallet import Abstract_Wallet
-from electroncash_gui.qt.amountedit import XECAmountEdit
-from electroncash_gui.qt.main_window import ElectrumWindow
-from electroncash_gui.qt.popup_widget import KillPopupLabel, ShowPopupLabel
-from electroncash_gui.qt.statusbar import StatusBarButton
-from electroncash_gui.qt.util import (
+from electrumabc_gui.qt.amountedit import XECAmountEdit
+from electrumabc_gui.qt.main_window import ElectrumWindow
+from electrumabc_gui.qt.popup_widget import KillPopupLabel, ShowPopupLabel
+from electrumabc_gui.qt.statusbar import StatusBarButton
+from electrumabc_gui.qt.util import (
     Buttons,
     CancelButton,
     CloseButton,
@@ -54,7 +54,7 @@ from electroncash_gui.qt.util import (
     WaitingDialog,
     WindowModalDialog,
 )
-from electroncash_gui.qt.utils import PortValidator, UserPortValidator
+from electrumabc_gui.qt.utils import PortValidator, UserPortValidator
 
 from .conf import Conf, Global
 from .fusion import can_fuse_from, can_fuse_to
@@ -69,7 +69,7 @@ from .server import Params
 from .util import get_coin_name
 
 if TYPE_CHECKING:
-    from electroncash_gui.qt.address_list import AddressList
+    from electrumabc_gui.qt.address_list import AddressList
 
 from pathlib import Path
 

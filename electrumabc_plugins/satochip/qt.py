@@ -14,8 +14,8 @@ from pysatochip.version import (
 
 from electroncash.i18n import _
 from electroncash.printerror import print_error
-from electroncash_gui.qt.qrcodewidget import QRDialog
-from electroncash_gui.qt.util import (
+from electrumabc_gui.qt.qrcodewidget import QRDialog
+from electrumabc_gui.qt.util import (
     Buttons,
     CancelButton,
     CloseButton,

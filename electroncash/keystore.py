@@ -42,7 +42,7 @@ from .printerror import PrintError, print_error
 from .util import BitcoinException, InvalidPassword, WalletFileException, bh2u
 
 if TYPE_CHECKING:
-    from electroncash_gui.qt.util import TaskThread
+    from electrumabc_gui.qt.util import TaskThread
     from electrumabc_plugins.hw_wallet import HardwareHandlerBase, HW_PluginBase
 
 

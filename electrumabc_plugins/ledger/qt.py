@@ -6,7 +6,7 @@ from PyQt5.QtCore import pyqtSignal
 from electroncash.i18n import _
 from electroncash.plugins import hook
 from electroncash.wallet import Standard_Wallet
-from electroncash_gui.qt.util import WindowModalDialog
+from electrumabc_gui.qt.util import WindowModalDialog
 
 from ..hw_wallet.qt import QtHandlerBase, QtPluginBase
 from .ledger import LedgerPlugin

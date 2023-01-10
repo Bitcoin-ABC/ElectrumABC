@@ -42,7 +42,7 @@ from electroncash.plugins import BasePlugin, hook
 from electroncash.printerror import print_error
 from electroncash.util import InvalidPassword, Weak, bfh, bh2u
 from electroncash.wallet import Multisig_Wallet
-from electroncash_gui.qt.transaction_dialog import TxDialog, show_transaction
+from electrumabc_gui.qt.transaction_dialog import TxDialog, show_transaction
 
 
 # Workarounds to the fact that xmlrpc.client doesn't take a timeout= arg.

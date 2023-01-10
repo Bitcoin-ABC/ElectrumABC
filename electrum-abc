@@ -374,7 +374,7 @@ def run_gui(config: SimpleConfig, config_options: dict):
     """Run Electrum ABC with GUI"""
     # The QApplication must be started before any QObject is created.
     # The first call that creates QObjects in this function is init_plugins.
-    from electroncash_gui.qt import init_qapplication
+    from electrumabc_gui.qt import init_qapplication
 
     init_qapplication(config)
 

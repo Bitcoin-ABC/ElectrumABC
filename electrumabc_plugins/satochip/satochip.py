@@ -23,7 +23,7 @@ from electroncash.printerror import PrintError, is_verbose, print_error
 from electroncash.transaction import Transaction
 from electroncash.util import bfh, bh2u
 from electroncash.wallet import Standard_Wallet
-from electroncash_gui.qt.qrcodewidget import QRDialog
+from electrumabc_gui.qt.qrcodewidget import QRDialog
 
 from ..hw_wallet.plugin import HardwareClientBase, HW_PluginBase
 

@@ -7,7 +7,7 @@ from electroncash import networks
 from electroncash.address import Address
 from electroncash.i18n import _
 from electroncash.printerror import print_error
-from electroncash_gui.qt.util import PasswordLineEdit
+from electrumabc_gui.qt.util import PasswordLineEdit
 
 helpTxt = [
     _(
