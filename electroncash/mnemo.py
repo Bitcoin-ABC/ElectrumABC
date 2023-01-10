@@ -39,7 +39,7 @@ from typing import Dict, List, Optional, Set, Tuple, Union
 import ecdsa
 import mnemonic
 
-from . import version
+from . import old_mnemonic, version
 from .bitcoin import hmac_sha_512
 from .printerror import PrintError
 
@@ -206,9 +206,20 @@ def is_electrum_seed(seed: str, prefix: str = version.SEED_PREFIX) -> bool:
 def is_old_seed(seed: str) -> bool:
     """Returns True if `seed` is a valid "old" seed phrase of 12 or 24 words
     *OR* if it's a hex string encoding 16 or 32 bytes."""
-    from . import old_mnemonic
-
-    return old_mnemonic.mn_is_seed(seed)
+    seed = normalize_text(seed)
+    words = seed.split()
+    try:
+        # checks here are deliberately left weak for legacy reasons, see #3149
+        old_mnemonic.mn_decode(words)
+        uses_electrum_words = True
+    except Exception:
+        uses_electrum_words = False
+    try:
+        seed = bytes.fromhex(seed)
+        is_hex = len(seed) == 16 or len(seed) == 32
+    except Exception:
+        is_hex = False
+    return is_hex or (uses_electrum_words and (len(words) == 12 or len(words) == 24))
 
 
 def seed_type(seed: str) -> Optional[SeedType]:

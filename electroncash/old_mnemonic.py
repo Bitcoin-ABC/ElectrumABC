@@ -1687,27 +1687,6 @@ def mn_decode(wlist):
     return out
 
 
-def mn_is_seed(seed: str) -> bool:
-    """Returns True if seed is a valid "old" seed phrase of 12 or 24 words *OR*
-    if it's a hex string encoding 16 or 32 bytes."""
-    from . import mnemo
-
-    seed = mnemo.normalize_text(seed)
-    words = seed.split()
-    try:
-        # checks here are deliberately left weak for legacy reasons, see #3149
-        mn_decode(words)
-        uses_electrum_words = True
-    except Exception:
-        uses_electrum_words = False
-    try:
-        seed = bytes.fromhex(seed)
-        is_hex = len(seed) == 16 or len(seed) == 32
-    except Exception:
-        is_hex = False
-    return is_hex or (uses_electrum_words and (len(words) == 12 or len(words) == 24))
-
-
 if __name__ == "__main__":
     import sys
 
