@@ -56,7 +56,7 @@ datas = [
     (home+'electroncash/wordlist/english.txt', 'electroncash/wordlist'),
     (home+'electroncash/locale', 'electroncash/locale'),
     (home+'electroncash_gui/qt/data/ecsupplemental_win.ttf', 'electroncash_gui/qt/data'),
-    (home+'electroncash_plugins', 'electroncash_plugins'),
+    (home+'electrumabc_plugins', 'electrumabc_plugins'),
 ]
 datas += collect_data_files('trezorlib')
 datas += collect_data_files('btchip')
@@ -75,16 +75,16 @@ a = Analysis([home+'electrum-abc',
               home+'electroncash/dnssec.py',
               home+'electroncash/commands.py',
               home+'electroncash/tor/controller.py',
-              home+'electroncash_plugins/cosigner_pool/qt.py',
-              home+'electroncash_plugins/email_requests/qt.py',
-              home+'electroncash_plugins/trezor/clientbase.py',
-              home+'electroncash_plugins/trezor/trezor.py',
-              home+'electroncash_plugins/trezor/qt.py',
-              home+'electroncash_plugins/keepkey/qt.py',
-              home+'electroncash_plugins/ledger/qt.py',
-              home+'electroncash_plugins/satochip/qt.py',  # Satochip
-              home+'electroncash_plugins/fusion/fusion.py', # CashFusion
-              home+'electroncash_plugins/fusion/qt.py', # CashFusion
+              home+'electrumabc_plugins/cosigner_pool/qt.py',
+              home+'electrumabc_plugins/email_requests/qt.py',
+              home+'electrumabc_plugins/trezor/clientbase.py',
+              home+'electrumabc_plugins/trezor/trezor.py',
+              home+'electrumabc_plugins/trezor/qt.py',
+              home+'electrumabc_plugins/keepkey/qt.py',
+              home+'electrumabc_plugins/ledger/qt.py',
+              home+'electrumabc_plugins/satochip/qt.py',  # Satochip
+              home+'electrumabc_plugins/fusion/fusion.py', # CashFusion
+              home+'electrumabc_plugins/fusion/qt.py', # CashFusion
               ],
              binaries=binaries,
              datas=datas,

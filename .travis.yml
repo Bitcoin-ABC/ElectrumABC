@@ -29,9 +29,9 @@ script:
   - if [ "$RUN_COVERAGE" == true ];
     then
         coverage run -m electroncash.tests;
-        coverage run -m electroncash_plugins.fusion.tests;
+        coverage run -m electrumabc_plugins.fusion.tests;
         coverage report --include="./electroncash*";
     else
         python -m electroncash.tests;
-        python -m electroncash_plugins.fusion.tests;
+        python -m electrumabc_plugins.fusion.tests;
     fi

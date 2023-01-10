@@ -64,7 +64,7 @@ from .simple_config import SimpleConfig
 from .util import DaemonThread, ThreadJob, UserCancelled, make_dir, profiler
 
 if TYPE_CHECKING:
-    from electroncash_plugins.hw_wallet import (
+    from electrumabc_plugins.hw_wallet import (
         HardwareClientBase,
         HardwareHandlerBase,
         HW_PluginBase,
@@ -101,7 +101,7 @@ class Plugins(DaemonThread):
     @profiler
     def __init__(self, config, gui_name):
         DaemonThread.__init__(self)
-        internal_plugins_namespace = __import__("electroncash_plugins")
+        internal_plugins_namespace = __import__("electrumabc_plugins")
         self.internal_plugins_pkgpath = os.path.dirname(
             internal_plugins_namespace.__file__
         )
@@ -170,7 +170,7 @@ class Plugins(DaemonThread):
         for loader, name, ispkg in pkgutil.iter_modules(
             [self.internal_plugins_pkgpath]
         ):
-            full_name = f"electroncash_plugins.{name}"
+            full_name = f"electrumabc_plugins.{name}"
             spec = importlib.util.find_spec(full_name)
             # pkgutil found it but importlib can't ?!
             if spec is None:
@@ -264,7 +264,7 @@ class Plugins(DaemonThread):
         if name in self.internal_plugins:
             return self.internal_plugins[name]
 
-        full_name = f"electroncash_plugins.{name}.{self.gui_name}"
+        full_name = f"electrumabc_plugins.{name}.{self.gui_name}"
         spec = importlib.util.find_spec(full_name)
         if spec is None:
             raise RuntimeError(

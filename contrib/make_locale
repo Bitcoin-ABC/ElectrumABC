@@ -19,7 +19,7 @@ os.chdir("..")
 code_directories = [
     "electroncash_gui",
     "electroncash",
-    "electroncash_plugins",
+    "electrumabc_plugins",
 ]
 file_types = ("*.py", "*.kv")
 
