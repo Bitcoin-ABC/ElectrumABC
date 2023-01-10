@@ -306,9 +306,9 @@ class Plugins(DaemonThread):
             )
             return
 
-        sys.modules[f"electroncash_external_plugins.{name}"] = module
+        sys.modules[f"electrumabc_external_plugins.{name}"] = module
 
-        full_name = f"electroncash_external_plugins.{name}.{self.gui_name}"
+        full_name = f"electrumabc_external_plugins.{name}.{self.gui_name}"
         spec = importlib.util.find_spec(full_name)
         if spec is None:
             raise RuntimeError(
@@ -513,8 +513,8 @@ class Plugins(DaemonThread):
 
     def uninstall_external_plugin(self, name):
         self.disable_external_plugin(name)
-        if "electroncash_external_plugins." + name in sys.modules:
-            del sys.modules["electroncash_external_plugins." + name]
+        if "electrumabc_external_plugins." + name in sys.modules:
+            del sys.modules["electrumabc_external_plugins." + name]
 
         metadata = self.external_plugin_metadata[name]
         plugin_file_path = metadata["__file__"]
