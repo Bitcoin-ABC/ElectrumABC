@@ -26,10 +26,10 @@
 from collections import defaultdict, namedtuple
 from math import floor, log10
 
-from electroncash.bitcoin import CASH, TYPE_ADDRESS, sha256
-from electroncash.printerror import PrintError
-from electroncash.transaction import Transaction
-from electroncash.util import NotEnoughFunds
+from .bitcoin import CASH, TYPE_ADDRESS, sha256
+from .printerror import PrintError
+from .transaction import Transaction
+from .util import NotEnoughFunds
 
 
 # A simple deterministic PRNG.  Used to deterministically shuffle a
