@@ -42,20 +42,20 @@ import sys
 import threading
 from typing import Any
 
-import electroncash.web as web
-from electroncash import daemon, keystore, mnemo, networks, util
-from electroncash.commands import Commands, config_variables, get_parser, known_commands
-from electroncash.constants import PORTABLE_DATA_DIR, PROJECT_NAME, SCRIPT_NAME
-from electroncash.i18n import _
-from electroncash.keystore import bip44_derivation_xec
-from electroncash.migrate_data import update_config
-from electroncash.network import Network
-from electroncash.plugins import Plugins
-from electroncash.printerror import print_msg, print_stderr, set_verbosity
-from electroncash.simple_config import SimpleConfig
-from electroncash.storage import WalletStorage
-from electroncash.util import InvalidPassword, json_decode, json_encode
-from electroncash.wallet import (
+import electrumabc.web as web
+from electrumabc import daemon, keystore, mnemo, networks, util
+from electrumabc.commands import Commands, config_variables, get_parser, known_commands
+from electrumabc.constants import PORTABLE_DATA_DIR, PROJECT_NAME, SCRIPT_NAME
+from electrumabc.i18n import _
+from electrumabc.keystore import bip44_derivation_xec
+from electrumabc.migrate_data import update_config
+from electrumabc.network import Network
+from electrumabc.plugins import Plugins
+from electrumabc.printerror import print_msg, print_stderr, set_verbosity
+from electrumabc.simple_config import SimpleConfig
+from electrumabc.storage import WalletStorage
+from electrumabc.util import InvalidPassword, json_decode, json_encode
+from electrumabc.wallet import (
     Abstract_Wallet,
     ImportedAddressWallet,
     ImportedPrivkeyWallet,
@@ -64,7 +64,7 @@ from electroncash.wallet import (
 )
 
 # Import ok on other platforms, won't be called.
-from electroncash.winconsole import create_or_attach_console
+from electrumabc.winconsole import create_or_attach_console
 
 # Workaround for PyQt5 5.12.3
 # see https://github.com/pyinstaller/pyinstaller/issues/4293
@@ -417,7 +417,7 @@ def run_start(config: SimpleConfig, config_options: dict, subcommand: str):
         if config.get("websocket_server"):
             # The websockets module relies on an optional module that isn't
             # always available: SimpleWebSocketServer
-            from electroncash import websockets  # pylint: disable=C0415
+            from electrumabc import websockets  # pylint: disable=C0415
 
             websockets.WebSocketServer(config, daemon_thread.network).start()
         if config.get("requests_dir"):

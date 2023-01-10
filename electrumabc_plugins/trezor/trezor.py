@@ -2,18 +2,18 @@ import sys
 import traceback
 from binascii import unhexlify
 
-from electroncash.bitcoin import (
+from electrumabc.bitcoin import (
     TYPE_ADDRESS,
     TYPE_SCRIPT,
     SignatureType,
     deserialize_xpub,
 )
-from electroncash.i18n import _
-from electroncash.keystore import Hardware_KeyStore, is_xpubkey, parse_xpubkey
-from electroncash.networks import NetworkConstants
-from electroncash.plugins import Device
-from electroncash.transaction import deserialize
-from electroncash.util import UserCancelled, bfh, bh2u, versiontuple
+from electrumabc.i18n import _
+from electrumabc.keystore import Hardware_KeyStore, is_xpubkey, parse_xpubkey
+from electrumabc.networks import NetworkConstants
+from electrumabc.plugins import Device
+from electrumabc.transaction import deserialize
+from electrumabc.util import UserCancelled, bfh, bh2u, versiontuple
 
 from ..hw_wallet import HW_PluginBase
 

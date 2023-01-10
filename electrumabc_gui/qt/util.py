@@ -24,11 +24,11 @@ from PyQt5.QtGui import (
     QPixmap,
 )
 
-from electroncash.paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNPAID
-from electroncash.printerror import PrintError, print_error
-from electroncash.simple_config import SimpleConfig
-from electroncash.util import Weak, finalization_print_error
-from electroncash.wallet import Abstract_Wallet
+from electrumabc.paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNPAID
+from electrumabc.printerror import PrintError, print_error
+from electrumabc.simple_config import SimpleConfig
+from electrumabc.util import Weak, finalization_print_error
+from electrumabc.wallet import Abstract_Wallet
 
 if platform.system() == "Windows":
     MONOSPACE_FONT = "Consolas"
@@ -61,7 +61,7 @@ expiration_values = [
 ]
 
 del _
-from electroncash.i18n import _  # noqa: E402
+from electrumabc.i18n import _  # noqa: E402
 
 
 class EnterButton(QtWidgets.QPushButton):

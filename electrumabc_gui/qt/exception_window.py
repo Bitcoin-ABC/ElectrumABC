@@ -37,11 +37,11 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QIcon
 
-from electroncash.constants import PROJECT_NAME, REPOSITORY_URL
-from electroncash.i18n import _
-from electroncash.printerror import print_error
-from electroncash.util import finalization_print_error
-from electroncash.version import PACKAGE_VERSION
+from electrumabc.constants import PROJECT_NAME, REPOSITORY_URL
+from electrumabc.i18n import _
+from electrumabc.printerror import print_error
+from electrumabc.util import finalization_print_error
+from electrumabc.version import PACKAGE_VERSION
 
 from .main_window import ElectrumWindow
 from .util import destroyed_print_error

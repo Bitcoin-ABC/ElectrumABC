@@ -24,7 +24,7 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtGui import QBrush, QColor, QPainter, QPalette, QPen
 
-from electroncash.util import finalization_print_error
+from electrumabc.util import finalization_print_error
 
 from .util import destroyed_print_error
 

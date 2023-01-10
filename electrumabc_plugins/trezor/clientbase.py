@@ -12,11 +12,11 @@ from trezorlib.exceptions import (
 )
 from trezorlib.messages import ButtonRequestType, RecoveryDeviceType, WordRequestType
 
-from electroncash.bitcoin import serialize_xpub
-from electroncash.i18n import _
-from electroncash.keystore import bip39_normalize_passphrase
-from electroncash.printerror import PrintError
-from electroncash.util import UserCancelled
+from electrumabc.bitcoin import serialize_xpub
+from electrumabc.i18n import _
+from electrumabc.keystore import bip39_normalize_passphrase
+from electrumabc.printerror import PrintError
+from electrumabc.util import UserCancelled
 
 from ..hw_wallet.plugin import HardwareClientBase
 

@@ -32,10 +32,10 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFontMetrics, QTextCursor
 
-from electroncash import bitcoin, networks, web
-from electroncash.address import Address, AddressError, ScriptOutput
-from electroncash.contacts import Contact
-from electroncash.printerror import PrintError
+from electrumabc import bitcoin, networks, web
+from electrumabc.address import Address, AddressError, ScriptOutput
+from electrumabc.contacts import Contact
+from electrumabc.printerror import PrintError
 
 from . import util
 from .qrtextedit import ScanQRTextEdit

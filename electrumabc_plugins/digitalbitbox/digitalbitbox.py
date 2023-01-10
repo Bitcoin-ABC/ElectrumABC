@@ -22,8 +22,8 @@ try:
     from ecdsa.ecdsa import generator_secp256k1
     from ecdsa.util import sigencode_der
 
-    from electroncash.base_wizard import HWD_SETUP_NEW_WALLET
-    from electroncash.bitcoin import (
+    from electrumabc.base_wizard import HWD_SETUP_NEW_WALLET
+    from electrumabc.bitcoin import (
         DecodeAES_bytes,
         EncodeAES_base64,
         EncodeAES_bytes,
@@ -38,11 +38,11 @@ try:
         push_script,
         verify_message,
     )
-    from electroncash.i18n import _
-    from electroncash.keystore import Hardware_KeyStore
-    from electroncash.printerror import print_error
-    from electroncash.transaction import Transaction
-    from electroncash.util import UserCancelled, to_string
+    from electrumabc.i18n import _
+    from electrumabc.keystore import Hardware_KeyStore
+    from electrumabc.printerror import print_error
+    from electrumabc.transaction import Transaction
+    from electrumabc.util import UserCancelled, to_string
 
     from ..hw_wallet import HardwareClientBase, HW_PluginBase
 

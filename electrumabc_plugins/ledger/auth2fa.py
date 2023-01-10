@@ -3,10 +3,10 @@ import copy
 from btchip.btchip import BTChipException
 from PyQt5 import QtWidgets
 
-from electroncash import networks
-from electroncash.address import Address
-from electroncash.i18n import _
-from electroncash.printerror import print_error
+from electrumabc import networks
+from electrumabc.address import Address
+from electrumabc.i18n import _
+from electrumabc.printerror import print_error
 from electrumabc_gui.qt.util import PasswordLineEdit
 
 helpTxt = [

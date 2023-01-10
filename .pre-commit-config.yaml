@@ -42,16 +42,16 @@ repos:
         -   flake8-use-fstring
         files: |
           (?x)^(
-              electroncash/tests/.*py|
-              electroncash/avalanche/.*py|
-              electroncash/consolidate.py|
-              electroncash/constants.py|
-              electroncash/invoice.py|
-              electroncash/keystore.py|
-              electroncash/monotonic.py|
-              electroncash/printerror.py|
-              electroncash/uint256.py|
-              electroncash/web.py|
+              electrumabc/tests/.*py|
+              electrumabc/avalanche/.*py|
+              electrumabc/consolidate.py|
+              electrumabc/constants.py|
+              electrumabc/invoice.py|
+              electrumabc/keystore.py|
+              electrumabc/monotonic.py|
+              electrumabc/printerror.py|
+              electrumabc/uint256.py|
+              electrumabc/web.py|
               electrumabc_gui/qt/address_list.py|
               electrumabc_gui/qt/amountedit.py|
               electrumabc_gui/qt/avalanche/.*py|

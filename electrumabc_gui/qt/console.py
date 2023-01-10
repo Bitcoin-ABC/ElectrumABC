@@ -7,9 +7,9 @@ import traceback
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from electroncash import util
-from electroncash.i18n import _
-from electroncash.printerror import print_msg
+from electrumabc import util
+from electrumabc.i18n import _
+from electrumabc.printerror import print_msg
 
 from .util import MONOSPACE_FONT, ColorScheme
 

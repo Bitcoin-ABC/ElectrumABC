@@ -34,13 +34,13 @@ import time
 import weakref
 from typing import Optional, Tuple
 
-from electroncash.address import Address, OpCodes
-from electroncash.bitcoin import COINBASE_MATURITY, TYPE_SCRIPT
-from electroncash.constants import PROJECT_NAME
-from electroncash.i18n import _
-from electroncash.network import Network
-from electroncash.plugins import BasePlugin, daemon_command, hook
-from electroncash.util import InvalidPassword
+from electrumabc.address import Address, OpCodes
+from electrumabc.bitcoin import COINBASE_MATURITY, TYPE_SCRIPT
+from electrumabc.constants import PROJECT_NAME
+from electrumabc.i18n import _
+from electrumabc.network import Network
+from electrumabc.plugins import BasePlugin, daemon_command, hook
+from electrumabc.util import InvalidPassword
 
 from .conf import Conf, Global
 from .covert import limiter

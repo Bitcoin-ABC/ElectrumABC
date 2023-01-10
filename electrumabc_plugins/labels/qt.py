@@ -3,10 +3,10 @@ from functools import partial
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QObject, Qt, pyqtSignal
 
-from electroncash.constants import PROJECT_NAME
-from electroncash.i18n import _
-from electroncash.plugins import hook
-from electroncash.util import Weak
+from electrumabc.constants import PROJECT_NAME
+from electrumabc.i18n import _
+from electrumabc.plugins import hook
+from electrumabc.util import Weak
 from electrumabc_gui.qt.main_window import ElectrumWindow
 from electrumabc_gui.qt.util import (
     Buttons,

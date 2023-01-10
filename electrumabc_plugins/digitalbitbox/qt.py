@@ -1,6 +1,6 @@
-from electroncash.i18n import _
-from electroncash.plugins import hook
-from electroncash.wallet import Standard_Wallet
+from electrumabc.i18n import _
+from electrumabc.plugins import hook
+from electrumabc.wallet import Standard_Wallet
 
 from ..hw_wallet.qt import QtHandlerBase, QtPluginBase
 from .digitalbitbox import DigitalBitboxPlugin

@@ -6,7 +6,7 @@ include electrum-abc
 include contrib/requirements/requirements.txt
 include contrib/requirements/requirements-hw.txt
 include contrib/requirements/requirements-binaries.txt
-recursive-include electroncash *.py
+recursive-include electrumabc *.py
 recursive-include electrumabc_gui *.py
 recursive-include electrumabc_plugins *.py
 recursive-include packages *.py

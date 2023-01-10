@@ -38,11 +38,11 @@ from typing import TYPE_CHECKING
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QObject, pyqtSignal
 
-from electroncash.i18n import _
-from electroncash.paymentrequest import PaymentRequest
-from electroncash.plugins import BasePlugin, hook
-from electroncash.printerror import PrintError
-from electroncash.util import Weak
+from electrumabc.i18n import _
+from electrumabc.paymentrequest import PaymentRequest
+from electrumabc.plugins import BasePlugin, hook
+from electrumabc.printerror import PrintError
+from electrumabc.util import Weak
 from electrumabc_gui.qt.util import (
     Buttons,
     CloseButton,
@@ -211,7 +211,7 @@ class Plugin(BasePlugin):
                 )
             )
             return
-        from electroncash import paymentrequest
+        from electrumabc import paymentrequest
 
         r = window.wallet.receive_requests.get(addr)
         message = r.get("memo", "")

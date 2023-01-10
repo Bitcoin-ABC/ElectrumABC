@@ -168,9 +168,9 @@ providing on more server for redundancy.
 You will need to keep your node software updated, especially around hard fork dates.
 
 If you run a such an Electrum server, you can contact us to have it added
-to the [list of trusted servers](./electroncash/servers.json), or submit
+to the [list of trusted servers](electrumabc/servers.json), or submit
 a pull request to add it yourself. You can run such a server for the mainnet
-or for the [testnet](./electroncash/servers.json).
+or for the [testnet](electrumabc/servers.json).
 
 See https://github.com/cculianu/Fulcrum for how to run a SPV server.
 

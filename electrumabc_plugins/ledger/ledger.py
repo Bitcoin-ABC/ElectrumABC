@@ -7,21 +7,21 @@ import traceback
 from struct import pack, unpack
 from typing import Optional, Tuple
 
-from electroncash import bitcoin
-from electroncash.address import Address
-from electroncash.bitcoin import (
+from electrumabc import bitcoin
+from electrumabc.address import Address
+from electrumabc.bitcoin import (
     TYPE_ADDRESS,
     TYPE_SCRIPT,
     SignatureType,
     int_to_hex,
     var_int,
 )
-from electroncash.i18n import _
-from electroncash.keystore import Hardware_KeyStore
-from electroncash.plugins import Device
-from electroncash.printerror import is_verbose, print_error
-from electroncash.transaction import Transaction
-from electroncash.util import bfh, bh2u, versiontuple
+from electrumabc.i18n import _
+from electrumabc.keystore import Hardware_KeyStore
+from electrumabc.plugins import Device
+from electrumabc.printerror import is_verbose, print_error
+from electrumabc.transaction import Transaction
+from electrumabc.util import bfh, bh2u, versiontuple
 
 from ..hw_wallet import HardwareClientBase, HW_PluginBase
 from ..hw_wallet.plugin import (

@@ -7,8 +7,8 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QPainter
 
-from electroncash.constants import BASE_UNITS_BY_DECIMALS
-from electroncash.util import format_satoshis_plain
+from electrumabc.constants import BASE_UNITS_BY_DECIMALS
+from electrumabc.util import format_satoshis_plain
 
 from .util import ColorScheme, char_width_in_lineedit
 

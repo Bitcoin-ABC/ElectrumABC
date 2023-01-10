@@ -35,11 +35,11 @@ import requests
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, pyqtSignal
 
-from electroncash import address, bitcoin, version
-from electroncash.constants import PROJECT_NAME, RELEASES_JSON_URL
-from electroncash.i18n import _
-from electroncash.networks import MainNet
-from electroncash.printerror import PrintError, print_error
+from electrumabc import address, bitcoin, version
+from electrumabc.constants import PROJECT_NAME, RELEASES_JSON_URL
+from electrumabc.i18n import _
+from electrumabc.networks import MainNet
+from electrumabc.printerror import PrintError, print_error
 
 from .util import Buttons
 

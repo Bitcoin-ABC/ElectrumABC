@@ -32,9 +32,9 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 
-from electroncash.constants import PROJECT_NAME
-from electroncash.i18n import _
-from electroncash.plugins import ExternalPluginCodes, run_hook
+from electrumabc.constants import PROJECT_NAME
+from electrumabc.i18n import _
+from electrumabc.plugins import ExternalPluginCodes, run_hook
 
 from .util import Buttons, CloseButton, MessageBoxMixin, WindowModalDialog
 

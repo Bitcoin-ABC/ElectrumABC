@@ -33,13 +33,13 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFont, QIcon
 
-import electroncash.web as web
-from electroncash.address import Address
-from electroncash.constants import PROJECT_NAME, SCRIPT_NAME
-from electroncash.contacts import Contact, contact_types
-from electroncash.i18n import _
-from electroncash.plugins import run_hook
-from electroncash.printerror import PrintError
+import electrumabc.web as web
+from electrumabc.address import Address
+from electrumabc.constants import PROJECT_NAME, SCRIPT_NAME
+from electrumabc.contacts import Contact, contact_types
+from electrumabc.i18n import _
+from electrumabc.plugins import run_hook
+from electrumabc.printerror import PrintError
 
 from .util import MONOSPACE_FONT, ColorScheme, MyTreeWidget, rate_limited, webopen
 

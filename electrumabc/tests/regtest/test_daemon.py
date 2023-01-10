@@ -91,7 +91,7 @@ def start_ec_daemon() -> None:
         assert False
     os.mkdir(datadir + "/regtest")
     shutil.copyfile(
-        "electroncash/tests/regtest/configs/electrum-abc-config",
+        "electrumabc/tests/regtest/configs/electrum-abc-config",
         datadir + "/regtest/config",
     )
     subprocess.run(
@@ -143,7 +143,7 @@ def stop_ec_daemon() -> None:
 def docker_compose_file(pytestconfig) -> str:
     """Needed since the docker-compose.yml is not in the root directory"""
     return os.path.join(
-        str(pytestconfig.rootdir), "electroncash/tests/regtest/docker-compose.yml"
+        str(pytestconfig.rootdir), "electrumabc/tests/regtest/docker-compose.yml"
     )
 
 

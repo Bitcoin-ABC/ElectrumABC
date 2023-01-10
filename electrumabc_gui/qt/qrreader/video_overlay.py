@@ -31,7 +31,7 @@ from PyQt5.QtCore import QPoint, QRect, QRectF, QSize, Qt
 from PyQt5.QtGui import QColor, QPainter, QPainterPath, QPaintEvent, QPen, QTransform
 from PyQt5.QtSvg import QSvgRenderer
 
-from electroncash.qrreaders import QrCodeResult
+from electrumabc.qrreaders import QrCodeResult
 
 from .validator import QrReaderValidatorResult
 

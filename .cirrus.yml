@@ -61,7 +61,7 @@ task:
   build_script:
     - pip install -r contrib/requirements/requirements-ci.txt
   test_script:
-    - python -m electroncash.tests -v
+    - python -m electrumabc.tests -v
     - python -m electrumabc_plugins.fusion.tests -v
   matrix:
     - container:
@@ -86,10 +86,10 @@ task:
     - pip install -r contrib/requirements/requirements-ci.txt
   test_script:
     - set -e
-    - coverage run -m electroncash.tests -v;
+    - coverage run -m electrumabc.tests -v;
     - coverage run -m electrumabc_plugins.fusion.tests -v;
     # FIXME: coverage report no longer works on cirrus.
-    # - coverage report --include="./electroncash*";
+    # - coverage report --include="./electrumabc*";
   matrix:
     - container:
         image: python:3.11

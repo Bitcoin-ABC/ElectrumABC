@@ -46,7 +46,7 @@ from collections import deque
 
 import socks
 
-from electroncash.printerror import PrintError
+from electrumabc.printerror import PrintError
 
 from .comms import FusionError, pb, recv_pb, send_pb
 from .connection import open_connection
@@ -69,7 +69,7 @@ def is_tor_port(host, port):
     try:
         socketclass = socket.socket
         try:
-            # socket.socket could be monkeypatched (see electroncash/network.py),
+            # socket.socket could be monkeypatched (see electrumabc/network.py),
             # in which case we need to get the real one.
             socketclass = socket._socketobject
         except AttributeError:

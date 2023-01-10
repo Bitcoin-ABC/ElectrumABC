@@ -4,17 +4,17 @@ from typing import Optional
 
 from PyQt5 import QtWidgets
 
-from electroncash import address
-from electroncash.avalanche.delegation import (
+from electrumabc import address
+from electrumabc.avalanche.delegation import (
     Delegation,
     DelegationBuilder,
     WrongDelegatorKeyError,
 )
-from electroncash.avalanche.primitives import Key, PublicKey
-from electroncash.avalanche.proof import LimitedProofId, Proof
-from electroncash.avalanche.serialize import DeserializationError
-from electroncash.bitcoin import is_private_key
-from electroncash.wallet import Deterministic_Wallet
+from electrumabc.avalanche.primitives import Key, PublicKey
+from electrumabc.avalanche.proof import LimitedProofId, Proof
+from electrumabc.avalanche.serialize import DeserializationError
+from electrumabc.bitcoin import is_private_key
+from electrumabc.wallet import Deterministic_Wallet
 
 from .util import AuxiliaryKeysDialog, CachedWalletPasswordWidget
 

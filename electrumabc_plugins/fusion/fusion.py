@@ -46,19 +46,19 @@ from random import Random
 
 from google.protobuf.message import DecodeError
 
-from electroncash import schnorr
-from electroncash.bitcoin import public_key_from_private_key
-from electroncash.constants import XEC
-from electroncash.i18n import _
-from electroncash.printerror import PrintError
-from electroncash.util import (
+from electrumabc import schnorr
+from electrumabc.bitcoin import public_key_from_private_key
+from electrumabc.constants import XEC
+from electrumabc.i18n import _
+from electrumabc.printerror import PrintError
+from electrumabc.util import (
     ServerError,
     TimeoutException,
     TxHashMismatch,
     do_in_main_thread,
     format_satoshis,
 )
-from electroncash.wallet import Multisig_Wallet, Standard_Wallet
+from electrumabc.wallet import Multisig_Wallet, Standard_Wallet
 
 from . import compatibility, encrypt
 from . import fusion_pb2 as pb

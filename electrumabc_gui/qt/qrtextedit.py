@@ -4,10 +4,10 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import QPoint, Qt
 from PyQt5.QtGui import QIcon, QImage, QPainter, QPixmap
 
-from electroncash.i18n import _
-from electroncash.plugins import run_hook
-from electroncash.printerror import is_verbose, print_error
-from electroncash.qrreaders import get_qr_reader
+from electrumabc.i18n import _
+from electrumabc.plugins import run_hook
+from electrumabc.printerror import is_verbose, print_error
+from electrumabc.qrreaders import get_qr_reader
 
 from .util import ButtonsTextEdit, ColorScheme, MessageBoxMixin
 
@@ -173,7 +173,7 @@ class ScanQRTextEdit(_QrCodeTextEdit, MessageBoxMixin):
 
         if ElectrumGui.instance.warn_if_cant_import_qrreader(self):
             return
-        from electroncash.simple_config import get_config
+        from electrumabc.simple_config import get_config
 
         from .qrreader import QrReaderCameraDialog
 

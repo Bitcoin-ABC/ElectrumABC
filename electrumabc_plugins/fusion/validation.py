@@ -30,10 +30,10 @@ Some basic validation primitives
 
 from google.protobuf.message import DecodeError
 
-import electroncash.schnorr as schnorr
-from electroncash.address import Address
-from electroncash.bitcoin import TYPE_ADDRESS
-from electroncash.transaction import get_address_from_output_script
+import electrumabc.schnorr as schnorr
+from electrumabc.address import Address
+from electrumabc.bitcoin import TYPE_ADDRESS
+from electrumabc.transaction import get_address_from_output_script
 
 from . import encrypt
 from . import fusion_pb2 as pb

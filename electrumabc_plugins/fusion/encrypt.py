@@ -56,7 +56,7 @@ import hmac
 
 import ecdsa
 
-from electroncash.bitcoin import point_to_ser, ser_to_point
+from electrumabc.bitcoin import point_to_ser, ser_to_point
 
 try:
     hmacdigest = hmac.digest  # python 3.7+

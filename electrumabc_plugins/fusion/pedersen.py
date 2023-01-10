@@ -47,8 +47,8 @@ from ctypes import byref, c_size_t, c_void_p, cast, create_string_buffer
 
 import ecdsa
 
-from electroncash import secp256k1
-from electroncash.bitcoin import point_to_ser, ser_to_point
+from electrumabc import secp256k1
+from electrumabc.bitcoin import point_to_ser, ser_to_point
 
 order = ecdsa.SECP256k1.generator.order()
 seclib = secp256k1.secp256k1

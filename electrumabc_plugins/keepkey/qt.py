@@ -4,9 +4,9 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import QEventLoop, QRegExp, Qt, pyqtSignal
 from PyQt5.QtGui import QRegExpValidator
 
-from electroncash.constants import PROJECT_NAME
-from electroncash.plugins import hook
-from electroncash.util import _, bh2u
+from electrumabc.constants import PROJECT_NAME
+from electrumabc.plugins import hook
+from electrumabc.util import _, bh2u
 from electrumabc_gui.qt.util import (
     Buttons,
     CancelButton,
@@ -274,7 +274,7 @@ class QtPlugin(QtPluginBase):
                 msg = _("Enter the master private key beginning with xprv:")
 
                 def set_enabled():
-                    from electroncash.bitcoin import is_xprv
+                    from electrumabc.bitcoin import is_xprv
 
                     wizard.next_button.setEnabled(is_xprv(clean_text(text)))
 

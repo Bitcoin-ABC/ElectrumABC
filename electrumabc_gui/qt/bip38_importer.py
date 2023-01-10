@@ -7,10 +7,10 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal
 from PyQt5.QtGui import QFont
 
-from electroncash import address, bitcoin, util
-from electroncash.constants import PROJECT_NAME
-from electroncash.i18n import _
-from electroncash.printerror import PrintError
+from electrumabc import address, bitcoin, util
+from electrumabc.constants import PROJECT_NAME
+from electrumabc.i18n import _
+from electrumabc.printerror import PrintError
 
 from .util import (
     MONOSPACE_FONT,

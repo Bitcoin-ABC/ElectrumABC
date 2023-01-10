@@ -28,9 +28,9 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 
-from electroncash import mnemo
-from electroncash.constants import PROJECT_NAME
-from electroncash.i18n import _
+from electrumabc import mnemo
+from electrumabc.constants import PROJECT_NAME
+from electrumabc.i18n import _
 
 from .qrtextedit import ScanQRTextEdit
 from .util import (

@@ -36,10 +36,10 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtGui import QIcon
 
-from electroncash.i18n import _
-from electroncash.plugins import hook
-from electroncash.printerror import PrintError
-from electroncash.util import UserCancelled
+from electrumabc.i18n import _
+from electrumabc.plugins import hook
+from electrumabc.printerror import PrintError
+from electrumabc.util import UserCancelled
 from electrumabc_gui.qt.installwizard import InstallWizard
 from electrumabc_gui.qt.main_window import ElectrumWindow
 from electrumabc_gui.qt.password_dialog import PW_PASSPHRASE, PasswordLayout
@@ -58,8 +58,8 @@ from electrumabc_gui.qt.util import (
 from .plugin import HardwareHandlerBase, HW_PluginBase
 
 if TYPE_CHECKING:
-    from electroncash.keystore import Hardware_KeyStore
-    from electroncash.wallet import Abstract_Wallet
+    from electrumabc.keystore import Hardware_KeyStore
+    from electrumabc.wallet import Abstract_Wallet
 
 
 # The trickiest thing about this handler was getting windows properly

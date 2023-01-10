@@ -27,8 +27,8 @@
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QTimer
 
-from electroncash.address import Address
-from electroncash.i18n import _
+from electrumabc.address import Address
+from electrumabc.i18n import _
 
 from .history_list import HistoryList
 from .qrtextedit import ShowQRTextEdit

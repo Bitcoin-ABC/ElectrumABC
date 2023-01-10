@@ -8,10 +8,10 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QIcon
 
-from electroncash.constants import PROJECT_NAME
-from electroncash.i18n import _
-from electroncash.plugins import run_hook
-from electroncash.util import Weak
+from electrumabc.constants import PROJECT_NAME
+from electrumabc.i18n import _
+from electrumabc.plugins import run_hook
+from electrumabc.util import Weak
 
 from .popup_widget import KillPopupLabel, ShowPopupLabel
 from .util import ColorScheme
