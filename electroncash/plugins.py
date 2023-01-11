@@ -29,6 +29,7 @@ from __future__ import annotations
 # It is no longer needed for python 3.8+.
 import concurrent
 import concurrent.futures
+import importlib.util
 import json
 import os
 import pkgutil
@@ -169,14 +170,20 @@ class Plugins(DaemonThread):
         for loader, name, ispkg in pkgutil.iter_modules(
             [self.internal_plugins_pkgpath]
         ):
-            # do not load deprecated plugins
-            if name in ["plot", "exchange_rate"]:
-                continue
-            # do not load plugins that rely on untrusted servers, for now
-            if name in ["labels", "cosigner_pool"]:
-                continue
-            m = loader.find_module(name).load_module(name)
-            d = m.__dict__
+            full_name = f"electroncash_plugins.{name}"
+            spec = importlib.util.find_spec(full_name)
+            # pkgutil found it but importlib can't ?!
+            if spec is None:
+                raise Exception(f"Error pre-loading {full_name}: no spec")
+            try:
+                module = importlib.util.module_from_spec(spec)
+                # sys.modules needs to be modified for relative imports to work
+                # see https://stackoverflow.com/a/50395128
+                sys.modules[spec.name] = module
+                spec.loader.exec_module(module)
+            except Exception as e:
+                raise Exception(f"Error pre-loading {full_name}: {repr(e)}") from e
+            d = module.__dict__
             if not self.register_plugin(name, d):
                 continue
             self.internal_plugin_metadata[name] = d
@@ -257,14 +264,15 @@ class Plugins(DaemonThread):
         if name in self.internal_plugins:
             return self.internal_plugins[name]
 
-        full_name = "electroncash_plugins." + name + "." + self.gui_name
-        loader = pkgutil.find_loader(full_name)
-        if not loader:
+        full_name = f"electroncash_plugins.{name}.{self.gui_name}"
+        spec = importlib.util.find_spec(full_name)
+        if spec is None:
             raise RuntimeError(
                 "%s implementation for %s plugin not found" % (self.gui_name, name)
             )
-        p = loader.load_module(full_name)
-        plugin = p.Plugin(self, self.config, name)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        plugin = module.Plugin(self, self.config, name)
         plugin.set_enabled_prefix(INTERNAL_USE_PREFIX)
         self.add_jobs(plugin.thread_jobs())
         self.internal_plugins[name] = plugin
@@ -298,16 +306,17 @@ class Plugins(DaemonThread):
             )
             return
 
-        sys.modules["electroncash_external_plugins." + name] = module
+        sys.modules[f"electroncash_external_plugins.{name}"] = module
 
-        full_name = "electroncash_external_plugins." + name + "." + self.gui_name
-        loader = pkgutil.find_loader(full_name)
-        if not loader:
+        full_name = f"electroncash_external_plugins.{name}.{self.gui_name}"
+        spec = importlib.util.find_spec(full_name)
+        if spec is None:
             raise RuntimeError(
                 "%s implementation for %s plugin not found" % (self.gui_name, name)
             )
-        p = loader.load_module(full_name)
-        plugin = p.Plugin(self, self.config, name)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        plugin = module.Plugin(self, self.config, name)
         plugin.set_enabled_prefix(EXTERNAL_USE_PREFIX)
         self.add_jobs(plugin.thread_jobs())
         self.external_plugins[name] = plugin
