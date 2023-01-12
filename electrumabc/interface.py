@@ -223,7 +223,7 @@ class TcpConnection(threading.Thread, PrintError):
                 except ssl.SSLError as e:
                     self.print_error("SSL error retrieving SSL certificate:", e)
                     return
-                except:
+                except Exception:
                     return
 
                 dercert = s.getpeercert(True)
@@ -280,7 +280,7 @@ class TcpConnection(threading.Thread, PrintError):
                     try:
                         b = pem.dePem(cert, "CERTIFICATE")
                         x = x509.X509(b)
-                    except:
+                    except Exception:
                         if is_verbose:
                             self.print_error(
                                 "Error checking certificate, traceback follows"
@@ -291,7 +291,7 @@ class TcpConnection(threading.Thread, PrintError):
                         return
                     try:
                         x.check_date()
-                    except:
+                    except Exception:
                         self.print_error("certificate has expired:", cert_path)
                         try:
                             os.unlink(cert_path)
@@ -561,7 +561,7 @@ def check_cert(host, cert):
     try:
         b = pem.dePem(cert, "CERTIFICATE")
         x = x509.X509(b)
-    except:
+    except Exception:
         if is_verbose:
             print_error("Error checking certificate, traceback follows")
             traceback.print_exc(file=sys.stderr)
@@ -570,7 +570,7 @@ def check_cert(host, cert):
     try:
         x.check_date()
         expired = False
-    except:
+    except Exception:
         expired = True
 
     m = "host: %s\n" % host

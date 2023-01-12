@@ -470,7 +470,7 @@ class Network(util.DaemonThread):
             with open(self.recent_servers_file(), "r", encoding="utf-8") as f:
                 data = f.read()
                 return json.loads(data)
-        except:
+        except Exception:
             return []
 
     def save_recent_servers(self):
@@ -480,7 +480,7 @@ class Network(util.DaemonThread):
         try:
             with open(self.recent_servers_file(), "w", encoding="utf-8") as f:
                 f.write(s)
-        except:
+        except Exception:
             pass
 
     def get_server_height(self):
@@ -654,7 +654,7 @@ class Network(util.DaemonThread):
             for s in self.recent_servers:
                 try:
                     host, port, protocol = deserialize_server(s)
-                except:
+                except Exception:
                     continue
                 if host not in out:
                     out[host] = {protocol: port}
@@ -767,7 +767,7 @@ class Network(util.DaemonThread):
             if proxy:
                 proxy_modes.index(proxy["mode"]) + 1
                 int(proxy["port"])
-        except:
+        except Exception:
             raise ValueError("invalid server or proxy")
 
         self.config.set_key("auto_connect", auto_connect, False)
@@ -797,7 +797,7 @@ class Network(util.DaemonThread):
         if server:
             try:
                 deserialize_server(server)
-            except:
+            except Exception:
                 self.print_error(
                     "Warning: failed to parse server-string; falling back to random."
                 )

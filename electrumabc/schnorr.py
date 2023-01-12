@@ -232,7 +232,7 @@ def verify(pubkey, signature, message_hash):
 
         try:
             pubpoint = ser_to_point(pubkey)
-        except:
+        except Exception:
             # off-curve points, failed decompression, bad format,
             # point at infinity:
             raise ValueError("pubkey could not be parsed")
@@ -399,13 +399,13 @@ class BlindSignatureRequest:
         # Internal function, calculates Rxnew, c, and compressed pubkey.
         try:
             Rpoint = ser_to_point(self.R)
-        except:
+        except Exception:
             # off-curve points, failed decompression, bad format,
             # point at infinity:
             raise ValueError("R could not be parsed")
         try:
             pubpoint = ser_to_point(self.pubkey)
-        except:
+        except Exception:
             # off-curve points, failed decompression, bad format,
             # point at infinity:
             raise ValueError("pubkey could not be parsed")

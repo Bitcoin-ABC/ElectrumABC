@@ -5,7 +5,7 @@ import util
 
 try:
     tx = sys.argv[1]
-except:
+except Exception:
     print("usage: txradar txid")
     sys.exit(1)
 

@@ -237,7 +237,7 @@ class Message:
                     continue
                 try:
                     v = getattr(self, k, None)
-                except:
+                except Exception:
                     continue
                 if v is not None and not callable(v):
                     d[k] = v

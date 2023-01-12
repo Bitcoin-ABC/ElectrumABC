@@ -256,7 +256,7 @@ class ThreadJob_TaskThread_Facade(TaskThread):
             try:
                 result = task.task()
                 self.doneSig.emit(result, task.cb_done, task.cb_success)
-            except:
+            except Exception:
                 self.doneSig.emit(sys.exc_info(), task.cb_done, task.cb_error)
 
     def stop(self, *args, **kwargs):

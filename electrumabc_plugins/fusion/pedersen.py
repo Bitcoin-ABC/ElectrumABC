@@ -88,7 +88,7 @@ class PedersenSetup:
         if not seclib:
             try:
                 Hpoint = ser_to_point(H)
-            except:
+            except Exception:
                 raise ValueError("H could not be parsed")
             HGpoint = Hpoint + ecdsa.SECP256k1.generator
             if HGpoint == ecdsa.ellipticcurve.INFINITY:

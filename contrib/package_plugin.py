@@ -364,7 +364,7 @@ class App(QtWidgets.QWidget):
                 self, "File Error", "Unable to write to selected file."
             )
             return
-        except:
+        except Exception:
             QtWidgets.QMessageBox.critical(
                 self, "Encoding Error", "Problem serialising json data."
             )

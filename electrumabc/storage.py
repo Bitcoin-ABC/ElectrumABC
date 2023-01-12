@@ -160,7 +160,7 @@ class WalletStorage(PrintError):
                 return STO_EV_XPUB_PW
             else:
                 return STO_EV_PLAINTEXT
-        except:
+        except Exception:
             return STO_EV_PLAINTEXT
 
     def get_key(self, password):

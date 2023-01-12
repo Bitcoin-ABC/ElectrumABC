@@ -88,7 +88,7 @@ class WsClientThread(util.DaemonThread):
                 continue
             try:
                 addr, amount = self.make_request(request_id)
-            except:
+            except Exception:
                 continue
             try:
                 addr = Address.from_string(addr)

@@ -536,7 +536,7 @@ class Plugins(DaemonThread):
                     p = self.find_plugin(name, force_load=True)
                     if p.is_enabled():
                         out.append([name, details[2], p])
-                except:
+                except Exception:
                     self.print_error(
                         "cannot load plugin for:",
                         name,

@@ -107,14 +107,14 @@ class Contacts(PrintError):
         d2 = storage.get("contacts")
         try:
             d.update(d2)  # catch type errors, etc by doing this
-        except:
+        except Exception:
             return []
         data = []
         # backward compatibility
         for k, v in d.copy().items():
             try:
                 _type, n = v
-            except:
+            except Exception:
                 continue
             # Previous to 1.0 the format was { name : (type, address) }
             #          -> current 1.0 format { address : (type, name) }
@@ -187,7 +187,7 @@ class Contacts(PrintError):
                     )  # enforce unique imports in case user imports the same file multiple times
                     if res:
                         count += 1
-        except:
+        except Exception:
             self.print_error(traceback.format_exc())
             raise
         if count:

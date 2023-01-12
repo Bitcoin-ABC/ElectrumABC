@@ -282,7 +282,7 @@ def json_encode(obj):
 def json_decode(x):
     try:
         return json.loads(x, parse_float=Decimal)
-    except:
+    except Exception:
         return x
 
 
@@ -308,7 +308,7 @@ def ensure_sparse_file(filename):
     if os.name == "nt":
         try:
             subprocess.call('fsutil sparse setFlag "' + filename + '" 1', shell=True)
-        except:
+        except Exception:
             pass
 
 
@@ -364,7 +364,7 @@ def assert_bytes(*args):
     try:
         for x in args:
             assert isinstance(x, (bytes, bytearray))
-    except:
+    except Exception:
         print("assert bytes failed", list(map(type, args)))
         raise
 
@@ -553,7 +553,7 @@ def format_fee_satoshis(fee, num_zeros=0):
 def timestamp_to_datetime(timestamp):
     try:
         return datetime.fromtimestamp(timestamp)
-    except:
+    except Exception:
         return None
 
 

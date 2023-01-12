@@ -298,7 +298,7 @@ class PopupWidget(QtWidgets.QWidget):
     def _disconnectFinished(self):
         try:
             self.animation.finished.disconnect()
-        except:
+        except Exception:
             pass
 
     def hideAnimated(self):
@@ -457,7 +457,7 @@ def KillPopupLabel(name="Global"):
     if extant:
         try:
             extant.destroyed.disconnect()
-        except:
+        except Exception:
             pass
         try:
             destroyed_print_error(extant, "[PopupLabel/{}] destroyed".format(name))

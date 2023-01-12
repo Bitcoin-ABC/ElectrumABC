@@ -47,7 +47,7 @@ def _get_asert_activation_mtp():
     mtp = os.environ.get("ASERT_MTP", default_mtp)
     try:
         mtp = int(mtp)
-    except:
+    except Exception:
         pass
     if not isinstance(mtp, int) or mtp <= 1510600000:
         print_error(

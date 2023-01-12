@@ -151,7 +151,7 @@ class PaymentRequest:
         try:
             self.data = pb2.PaymentRequest()
             self.data.ParseFromString(r)
-        except:
+        except Exception:
             self.error = "cannot parse payment request"
             return
         self.details = pb2.PaymentDetails()
@@ -175,7 +175,7 @@ class PaymentRequest:
         pr = pb2.PaymentRequest()
         try:
             pr.ParseFromString(self.raw)
-        except:
+        except Exception:
             self.error = "Error: Cannot parse payment request"
             return False
         if not pr.signature:
@@ -555,7 +555,7 @@ class InvoiceStore(object):
                 try:
                     # First try BitPay 2.0 style PR -- this contains compressed raw bytes of the headers & json associated with the request; will raise if wrong format
                     pr = PaymentRequest_BitPay20.deserialize(raw)
-                except:
+                except Exception:
                     pass
                 if not pr:
                     # Lastly, try the BIP70 style PR; this won't raise if bad format
@@ -565,7 +565,7 @@ class InvoiceStore(object):
                 self.invoices[k] = pr
                 if pr.tx:
                     self.paid[pr.tx] = k
-            except:
+            except Exception:
                 continue
 
     def import_file(self, path):

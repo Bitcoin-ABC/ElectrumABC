@@ -362,7 +362,7 @@ class MnemonicBase(PrintError):
         if lang is None:
             try:
                 lang = cls.detect_language(mnemonic)
-            except:
+            except Exception:
                 lang = "en"
         elif lang not in cls.list_languages():
             lang = "en"

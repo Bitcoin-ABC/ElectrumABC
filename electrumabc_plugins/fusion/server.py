@@ -533,7 +533,7 @@ class FusionServer(GenericServer):
                         statuses[t] = status
                 client.send(pb.TierStatusUpdate(statuses=statuses))
                 start_ev.wait(2)
-        except:
+        except Exception:
             # Remove client from waiting pools on failure (on success, we are already removed; on stop we don't care.)
             with self.lock:
                 for t, pool in mytierpools.items():

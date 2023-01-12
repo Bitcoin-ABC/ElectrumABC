@@ -106,7 +106,7 @@ class ContactList(PrintError, MyTreeWidget):
             label_key = contact.address
             try:
                 label_key = Address.from_string(label_key).to_storage_string()
-            except:
+            except Exception:
                 pass
             self.wallet.set_label(label_key, item.text(2))
             self.update()  # force refresh in case 2 contacts use the same address
@@ -336,7 +336,7 @@ class ContactList(PrintError, MyTreeWidget):
                     address = addy.to_ui_string()
                     label_key = addy.to_storage_string()
                     del addy
-                except:
+                except Exception:
                     """This may happen because we may not have always enforced this as strictly as we could have in legacy code. Just move on.."""
             label = self.wallet.get_label(label_key)
             item = QtWidgets.QTreeWidgetItem(

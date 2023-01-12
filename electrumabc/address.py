@@ -280,7 +280,7 @@ class ScriptOutput(namedtuple("ScriptAddressTuple", "script")):
                     # if too many escaped characters, it's too ugly!
                     if friendlystring.count("\\") * 3 > len(astext):
                         friendlystring = None
-                except:
+                except Exception:
                     friendlystring = None
 
                 if not friendlystring:

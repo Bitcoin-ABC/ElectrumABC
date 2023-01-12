@@ -1326,7 +1326,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                         f"{time.time()-t0:3.2f}",
                         "seconds",
                     )
-        except:
+        except Exception:
             import traceback
 
             self.print_error(f"{me.name}:", traceback.format_exc())
@@ -2443,7 +2443,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                         _, addr = xpubkey_to_address(x_pubkey)
                         try:
                             c, index = self.get_address_index(addr)
-                        except:
+                        except Exception:
                             continue
                         if index is not None:
                             k.set_wallet_advice(addr, [c, index])
@@ -2802,7 +2802,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                 try:
                     addr = x["address"]
                     return self.get_address_index(addr) or addr
-                except:
+                except Exception:
                     return addr
 
             return sorted(m, key=f)
@@ -3489,7 +3489,7 @@ class Simple_Deterministic_Wallet(Simple_Wallet, Deterministic_Wallet):
         self.keystore = load_keystore(self.storage, "keystore")
         try:
             xtype = bitcoin.xpub_type(self.keystore.xpub)
-        except:
+        except Exception:
             xtype = "standard"
         self.txin_type = "p2pkh" if xtype == "standard" else xtype
 

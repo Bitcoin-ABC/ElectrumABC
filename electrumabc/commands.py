@@ -338,7 +338,7 @@ class Commands:
             value = json_decode(value)
             try:
                 value = ast.literal_eval(value)
-            except:
+            except Exception:
                 pass
         return value
 

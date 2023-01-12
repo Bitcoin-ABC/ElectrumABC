@@ -158,7 +158,7 @@ class ClientHandlerThread(threading.Thread, PrintError):
                 self.peername = ":".join(
                     str(x) for x in self.connection.socket.getpeername()
                 )
-            except:
+            except Exception:
                 pass  # on some systems socket.getpeername() is not supported
         peername = self.peername or "???"
         return f"Client {peername}"
@@ -281,7 +281,7 @@ class GenericServer(threading.Thread, PrintError):
                 try:
                     s.connect(("8.8.8.8", 1))
                     host = s.getsockname()[0]
-                except:
+                except Exception:
                     host = "127.0.0.1"
                 finally:
                     s.close()
@@ -328,16 +328,16 @@ class GenericServer(threading.Thread, PrintError):
                     self.spawned_clients.add(client)
                     client.addjob(self.new_client_job)
                     client.start()
-        except:
+        except Exception:
             self.print_error("failed with exception")
             traceback.print_exc(file=sys.stderr)
         try:
             self.listensock.close()
-        except:
+        except Exception:
             pass
         try:
             self.upnp.deleteportmapping(self.port, "TCP")
-        except:
+        except Exception:
             pass
         self.print_error("stopped")
 

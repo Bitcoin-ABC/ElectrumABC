@@ -90,7 +90,7 @@ TYPE_SCRIPT = 2
 # AES encryption
 try:
     from Cryptodome.Cipher import AES
-except:
+except ImportError:
     AES = None
 
 
@@ -753,7 +753,7 @@ def is_private_key(key, *, net=None):
     try:
         k = deserialize_privkey(key, net=net)
         return k is not False
-    except:
+    except Exception:
         return False
 
 
@@ -824,7 +824,7 @@ def verify_message(
     # check message
     try:
         public_key.verify_digest(sig[1:], h, sigdecode=ecdsa.util.sigdecode_string)
-    except:
+    except Exception:
         return False
     return True
 
@@ -1216,7 +1216,7 @@ def is_xpub(text, *, net=None):
     try:
         deserialize_xpub(text, net=net)
         return True
-    except:
+    except Exception:
         return False
 
 
@@ -1226,7 +1226,7 @@ def is_xprv(text, *, net=None):
     try:
         deserialize_xprv(text, net=net)
         return True
-    except:
+    except Exception:
         return False
 
 
@@ -1272,7 +1272,7 @@ def is_bip32_derivation(x):
     try:
         [i for i in bip32_derivation(x)]
         return True
-    except:
+    except Exception:
         return False
 
 

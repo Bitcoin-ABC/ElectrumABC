@@ -94,7 +94,7 @@ class JsonDB(PrintError):
         try:
             json.dumps(key, cls=util.MyEncoder)
             json.dumps(value, cls=util.MyEncoder)
-        except:
+        except Exception:
             self.print_error(f"json error: cannot save {repr(key)} ({repr(value)})")
             return False
         if value is not None:
@@ -121,7 +121,7 @@ class JsonDB(PrintError):
     def load_data(self, s):
         try:
             self.data = json.loads(s)
-        except:
+        except Exception:
             try:
                 d = ast.literal_eval(s)
                 d.get("labels", {})
@@ -132,7 +132,7 @@ class JsonDB(PrintError):
                 try:
                     json.dumps(key)
                     json.dumps(value)
-                except:
+                except Exception:
                     self.print_error("Failed to convert label to json format", key)
                     continue
                 self.data[key] = value

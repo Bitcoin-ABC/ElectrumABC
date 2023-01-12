@@ -72,7 +72,7 @@ def open_connection(
     if ssl:
         try:
             conn_socket = sslcontext.wrap_socket(bare_socket, server_hostname=host)
-        except:
+        except Exception:
             bare_socket.close()
             raise
     else:
@@ -80,7 +80,7 @@ def open_connection(
 
     try:
         return Connection(conn_socket, default_timeout)
-    except:
+    except Exception:
         conn_socket.close()
         raise
 

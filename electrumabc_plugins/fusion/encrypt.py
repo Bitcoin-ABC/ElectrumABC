@@ -87,7 +87,7 @@ def encrypt(message, pubkey, pad_to_length=None):
     """
     try:
         pubpoint = ser_to_point(pubkey)
-    except:
+    except Exception:
         raise EncryptionFailed
     nonce_sec = ecdsa.util.randrange(order)
     nonce_pub = point_to_ser(nonce_sec * G, comp=True)
@@ -150,7 +150,7 @@ def decrypt(data, privkey):
         raise DecryptionFailed
     try:
         nonce_pub = ser_to_point(data[:33])
-    except:
+    except Exception:
         raise DecryptionFailed
     sec = int.from_bytes(privkey, "big")
     key = hashlib.sha256(point_to_ser(sec * nonce_pub, comp=True)).digest()

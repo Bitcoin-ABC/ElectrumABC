@@ -77,7 +77,7 @@ class Processor(threading.Thread, PrintError):
     def poll(self):
         try:
             self.M.select()
-        except:
+        except Exception:
             return
         typ, data = self.M.search(None, "ALL")
         for num in data[0].split():

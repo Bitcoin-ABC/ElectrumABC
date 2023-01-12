@@ -637,7 +637,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             screen = self.app.desktop().screenGeometry()
             assert screen.contains(QRect(*winpos))
             self.setGeometry(*winpos)
-        except:
+        except Exception:
             self.print_error("using default geometry")
             self.setGeometry(100, 100, 840, 400)
 
@@ -779,7 +779,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         recent = self.config.get("recently_open", [])
         try:
             sorted(recent)
-        except:
+        except Exception:
             recent = []
         if filename in recent:
             recent.remove(filename)
@@ -2720,7 +2720,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         fee = None
         try:
             fee = tx.get_fee()
-        except:
+        except Exception:
             pass  # no fee info available for tx
         # Check fee >= size otherwise warn. FIXME: If someday network relay
         # rules change to be other than 1.0 sats/B minimum, this code needs
@@ -2767,7 +2767,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                         txid = (
                             tx.txid()
                         )  # returns None if not is_complete, but may raise potentially as well
-                    except:
+                    except Exception:
                         txid = None
                     if txid is not None:
                         if tx_desc is not None:
@@ -3040,7 +3040,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 addr = Address.from_string(
                     source_address.text().strip(), support_arbitrary_prefix=True
                 )
-            except:
+            except Exception:
                 addr = None
             for widget, fmt in widgets:
                 if addr:
@@ -3421,7 +3421,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         except Exception as e:
             self.show_error(str(e))
             return
-        except:
+        except Exception:
             if util.is_verbose:
                 traceback.print_exc(file=sys.stderr)
             self.show_error(_("Failed to update password"))
@@ -3773,7 +3773,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                         my_index = my_outpoints.index(outpoint)
                         tx._inputs[i]["value"] = my_coins[my_index]["value"]
             return tx
-        except:
+        except Exception:
             if util.is_verbose:
                 traceback.print_exc(file=sys.stderr)
             self.show_critical(

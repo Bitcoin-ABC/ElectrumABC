@@ -49,7 +49,7 @@ class ShowQRTextEdit(_QrCodeTextEdit):
 
         try:
             s = str(self.toPlainText())
-        except:
+        except Exception:
             s = self.toPlainText()
         QRDialog(s).exec_()
 

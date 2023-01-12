@@ -170,7 +170,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
                     url = web.BE_URL(
                         self.main_window.config, web.ExplorerUrlParts.TX, txid
                     )
-                except:
+                except Exception:
                     raise
                     url = None
                 if url:

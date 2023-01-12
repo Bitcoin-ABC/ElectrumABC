@@ -142,7 +142,7 @@ class LabelsPlugin(BasePlugin):
                 try:
                     encoded_key = self.encode(wallet, key)
                     encoded_value = self.encode(wallet, value)
-                except:
+                except Exception:
                     self.print_error("cannot encode", repr(key), repr(value))
                     continue
                 bundle["labels"].append(
@@ -178,12 +178,12 @@ class LabelsPlugin(BasePlugin):
                     try:
                         key = self.decode(wallet, label["externalId"])
                         value = self.decode(wallet, label["encryptedLabel"])
-                    except:
+                    except Exception:
                         continue
                     try:
                         json.dumps(key)
                         json.dumps(value)
-                    except:
+                    except Exception:
                         self.print_error("error: no json", key)
                         continue
                     result[key] = value

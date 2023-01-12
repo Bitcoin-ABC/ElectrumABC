@@ -326,7 +326,7 @@ class BaseWizard(PrintError):
             try:
                 # FIXME: side-effect: unpaired_device_info sets client.handler
                 u = devmgr.unpaired_device_infos(None, plugin)
-            except:
+            except Exception:
                 devmgr.print_error("error", name)
                 continue
             devices += list(map(lambda x: (name, x), u))
@@ -389,7 +389,7 @@ class BaseWizard(PrintError):
             label = info.label or _("An unnamed {}").format(name)
             try:
                 transport_str = str(info.device.path)[:20]
-            except:
+            except Exception:
                 transport_str = "unknown transport"
             descr = f"{label} [{info.model_name or name}, {state}, {transport_str}]"
             choices.append(((name, info), descr))

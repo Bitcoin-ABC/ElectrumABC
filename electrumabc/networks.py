@@ -41,7 +41,7 @@ def _read_json_dict(filename):
     try:
         data = pkgutil.get_data(__name__, filename)
         r = json.loads(data.decode("utf-8"))
-    except:
+    except Exception:
         r = {}
     return r
 

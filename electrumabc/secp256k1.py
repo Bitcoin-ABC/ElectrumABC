@@ -61,7 +61,7 @@ def _load_library():
     for lp in library_paths:
         try:
             secp256k1 = ctypes.cdll.LoadLibrary(lp)
-        except:
+        except Exception:
             continue
         if secp256k1:
             break
@@ -168,5 +168,5 @@ def _load_library():
 
 try:
     secp256k1 = _load_library()
-except:
+except Exception:
     secp256k1 = None

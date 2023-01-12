@@ -1093,7 +1093,7 @@ class TaskThread(PrintError, QThread):
                 try:
                     result = task.task()
                     self.doneSig.emit(result, task.cb_done, task.cb_success)
-                except:
+                except Exception:
                     self.doneSig.emit(sys.exc_info(), task.cb_done, task.cb_error)
         finally:
             self.print_error("exiting")
@@ -1499,7 +1499,7 @@ def destroyed_print_error(qobject, msg=None):
                         qobject.parent().objectName()
                         or qobject.parent().__class__.__qualname__
                     ) + "."
-                except:
+                except Exception:
                     pass  # some of the code in this project overrites .parent or it may not have a parent
                 name += qobject.__class__.__qualname__
         msg = f"[{name}] destroyed"

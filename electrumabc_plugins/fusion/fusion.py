@@ -878,7 +878,7 @@ class Fusion(threading.Thread, PrintError):
         self.status = ("running", "Setting up Tor connections")
         try:
             covert_domain = self.covert_domain_b.decode("ascii")
-        except:
+        except Exception:
             raise FusionError("badly encoded covert domain")
         covert = CovertSubmitter(
             covert_domain,
@@ -921,7 +921,7 @@ class Fusion(threading.Thread, PrintError):
                 self.check_stop()
                 self.check_coins()
 
-        except:
+        except Exception:
             covert.stop()
             raise
 

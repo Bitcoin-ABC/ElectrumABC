@@ -132,7 +132,7 @@ class PayToEdit(PrintError, ScanQRTextEdit):
         try:
             address = cls.parse_address(x)
             return bitcoin.TYPE_ADDRESS, address
-        except:
+        except Exception:
             return bitcoin.TYPE_SCRIPT, ScriptOutput.from_string(x)
 
     @staticmethod
@@ -167,7 +167,7 @@ class PayToEdit(PrintError, ScanQRTextEdit):
                 return
             try:
                 self.payto_address = self.parse_output(data)
-            except:
+            except Exception:
                 pass
             if self.payto_address:
                 self.win.lock_amount(False)

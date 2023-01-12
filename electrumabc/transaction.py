@@ -239,7 +239,7 @@ def parse_sig(x_sig):
 def safe_parse_pubkey(x):
     try:
         return xpubkey_to_pubkey(x)
-    except:
+    except Exception:
         return x
 
 
@@ -272,7 +272,7 @@ def parse_scriptSig(d, _bytes):
         try:
             signatures = parse_sig([sig])
             pubkey, address = xpubkey_to_address(x_pubkey)
-        except:
+        except Exception:
             print_error("cannot find address in input script", bh2u(_bytes))
             return
         d["type"] = "p2pkh"
@@ -1595,7 +1595,7 @@ def tx_from_str(txt):
     try:
         bfh(txt)
         is_hex = True
-    except:
+    except Exception:
         is_hex = False
     if is_hex:
         return txt

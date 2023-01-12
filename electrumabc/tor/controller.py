@@ -181,7 +181,7 @@ class TorController(PrintError):
                 if not line:
                     break
                 self._tor_msg_handler(line)
-        except:
+        except Exception:
             self.print_exception("Exception in Tor message reader")
 
     _orig_subprocess_popen = subprocess.Popen
@@ -260,7 +260,7 @@ class TorController(PrintError):
                     "Log": "NOTICE stdout",
                 },
             )
-        except:
+        except Exception:
             self.print_exception("Failed to start Tor")
             self._tor_process = None
             self.status = TorController.Status.ERRORED
@@ -286,7 +286,7 @@ class TorController(PrintError):
                 self._handle_network_liveliness_event,
                 stem.control.EventType.NETWORK_LIVENESS,
             )  # pylint: disable=no-member
-        except:
+        except Exception:
             self.print_exception("Failed to connect to Tor control port")
             self.stop()
             return

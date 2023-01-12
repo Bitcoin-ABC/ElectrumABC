@@ -84,7 +84,7 @@ class DigitalBitbox_Client(HardwareClientBase):
             with self.device_manager().hid_lock:
                 try:
                     self.dbb_hid.close()
-                except:
+                except Exception:
                     pass
         self.opened = False
 
