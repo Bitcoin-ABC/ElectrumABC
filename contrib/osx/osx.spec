@@ -3,7 +3,9 @@
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules, collect_dynamic_libs
 import sys, os
 
-PACKAGE='ElectrumABC'
+# Note: the dash in the package name is to prevent a case-insensitive name
+# collision with the electrumabc python library which confuses pyinstaller.
+PACKAGE="Electrum-ABC"
 BUNDLE_IDENTIFIER='org.electrumabc.' + PACKAGE # Used for info.plist
 PYPKG='electroncash'
 MAIN_SCRIPT='electrum-abc'
