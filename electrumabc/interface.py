@@ -439,7 +439,10 @@ class Interface(PrintError):
                 return True
 
             self.last_send = time.time()
-            make_dict = lambda m, p, i: {"method": m, "params": p, "id": i}
+
+            def make_dict(m, p, i):
+                return {"method": m, "params": p, "id": i}
+
             n = self.num_requests()
             wire_requests = self.unsent_requests[0:n]
 

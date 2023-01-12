@@ -1011,29 +1011,24 @@ class Weak:
         its print_func attribute). Instead use of the wrapper class 'Weak'
         defined in the enclosing scope is encouraged."""
 
-        print_func = lambda x, this, info: print_error(
-            this, info
-        )  # <--- set this attribute if needed, either on the class or instance level, to control debug printing behavior. None is ok here.
-
         def __init__(self, meth, *args, **kwargs):
             super().__init__(meth, *args, **kwargs)
-            # teehee.. save some information about what to call this thing for debug print purposes
+            # teehee.. save some information about what to call this thing for debug
+            # print purposes
             self.qname, self.sname = meth.__qualname__, str(meth.__self__)
 
         def __call__(self, *args, **kwargs):
             """Either directly calls the method for you or prints debug info
             if the target object died"""
-            meth = super().__call__()  # if dead, None is returned
-            if (
-                meth
-            ):  # could also do callable() as the test but hopefully this is sightly faster
+            # if dead, None is returned
+            meth = super().__call__()
+            if meth:
                 return meth(*args, **kwargs)
-            elif callable(self.print_func):
-                self.print_func(
+            else:
+                print_error(
                     self,
-                    "MethodProxy for '{}' called on a dead reference. Referent was: {})".format(
-                        self.qname, self.sname
-                    ),
+                    f"MethodProxy for '{self.qname}' called on a dead reference. "
+                    f"Referent was: {self.sname})",
                 )
 
 

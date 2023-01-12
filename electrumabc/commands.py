@@ -698,9 +698,10 @@ class Commands:
         coins = self.wallet.get_spendable_coins(domain, self.config)
         if feerate is not None:
             fee_per_kb = 1000 * PyDecimal(feerate)
-            fee_estimator = lambda size: SimpleConfig.estimate_fee_for_feerate(
-                fee_per_kb, size
-            )
+
+            def fee_estimator(size):
+                return SimpleConfig.estimate_fee_for_feerate(fee_per_kb, size)
+
         else:
             fee_estimator = fee
         tx = self.wallet.make_unsigned_transaction(
@@ -1213,7 +1214,11 @@ command_options = {
     "year": (None, "Show history for a given year"),
 }
 
-json_loads = lambda x: json.loads(x, parse_float=lambda x: str(PyDecimal(x)))
+
+def json_loads(x):
+    return json.loads(x, parse_float=lambda y: str(PyDecimal(y)))
+
+
 arg_types = {
     "num": int,
     "nbits": int,

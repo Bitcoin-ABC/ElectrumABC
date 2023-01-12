@@ -766,11 +766,16 @@ def is_private_key_list(text, *, allow_bip38=False):
     return bool(get_private_keys(text, allow_bip38=allow_bip38))
 
 
-is_mpk = lambda x: is_old_mpk(x) or bitcoin.is_xpub(x)
-is_private = lambda x: mnemo.is_seed(x) or bitcoin.is_xprv(x) or is_private_key_list(x)
-is_master_key = lambda x: is_old_mpk(x) or bitcoin.is_xprv(x) or bitcoin.is_xpub(x)
-is_private_key = lambda x: bitcoin.is_xprv(x) or is_private_key_list(x)
-is_bip32_key = lambda x: bitcoin.is_xprv(x) or bitcoin.is_xpub(x)
+def is_private(text: str) -> bool:
+    return mnemo.is_seed(text) or bitcoin.is_xprv(text) or is_private_key_list(text)
+
+
+def is_master_key(text: str) -> bool:
+    return is_old_mpk(text) or bitcoin.is_xprv(text) or bitcoin.is_xpub(text)
+
+
+def is_bip32_key(text: str) -> bool:
+    return bitcoin.is_xprv(text) or bitcoin.is_xpub(text)
 
 
 def _bip44_derivation(coin: int, account_id: int) -> str:

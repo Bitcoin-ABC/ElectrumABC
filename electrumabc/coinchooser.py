@@ -214,7 +214,9 @@ class CoinChooserBase(PrintError):
 
         # This takes a count of change outputs and returns a tx fee;
         # each pay-to-bitcoin-address output serializes as 34 bytes
-        fee = lambda count: fee_estimator(tx_size + count * 34)
+        def fee(count):
+            return fee_estimator(tx_size + count * 34)
+
         change, dust = self.change_outputs(tx, change_addrs, fee, dust_threshold)
         tx.add_outputs(change)
         tx.ephemeral["dust_to_fee"] = dust

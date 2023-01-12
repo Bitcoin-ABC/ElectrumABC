@@ -248,7 +248,8 @@ def format_seed_type_name_for_ui(name: str) -> str:
         return name.title()  # Title Caps for "Old" and "Electrum"
 
 
-is_seed = lambda x: seed_type(x) is not None
+def is_seed(text: str) -> bool:
+    return seed_type(text) is not None
 
 
 def bip39_mnemonic_to_seed(words: str, passphrase: str = ""):

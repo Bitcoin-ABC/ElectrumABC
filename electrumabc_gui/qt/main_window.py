@@ -3512,9 +3512,10 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                     return ""
 
                 labels = [label(i) for i in range(len(mpk_list))]
-                on_click = lambda clayout: show_mpk(clayout.selected_index())
                 labels_clayout = ChoicesLayout(
-                    _("Master Public Keys"), labels, on_click
+                    _("Master Public Keys"),
+                    labels,
+                    lambda clayout: show_mpk(clayout.selected_index()),
                 )
                 vbox.addLayout(labels_clayout.layout())
             else:

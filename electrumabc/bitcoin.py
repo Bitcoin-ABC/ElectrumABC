@@ -460,9 +460,17 @@ def hmac_oneshot(key, msg, digest):
         return hmac.new(key, msg, digest).digest()
 
 
-hash_encode = lambda x: bh2u(x[::-1])
-hash_decode = lambda x: bfh(x)[::-1]
-hmac_sha_512 = lambda x, y: hmac_oneshot(x, y, hashlib.sha512)
+def hash_encode(x):
+    return bh2u(x[::-1])
+
+
+def hash_decode(x):
+    return bytes.fromhex(x)[::-1]
+
+
+def hmac_sha_512(x, y):
+    return hmac_oneshot(x, y, hashlib.sha512)
+
 
 # pywallet openssl private key implementation
 
@@ -1024,8 +1032,6 @@ class EC_KEY(object):
 
 
 # BIP32
-
-random_seed = lambda n: "%032x" % ecdsa.util.randrange(pow(2, n))
 BIP32_PRIME = 0x80000000
 
 

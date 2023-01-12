@@ -891,22 +891,25 @@ class SatochipPlugin(HW_PluginBase):
         wizard.seed_type = "bip39"
         wizard.opt_bip39 = True
         seed = self.to_bip39_mnemonic(128)
-        f = lambda x: self.request_passphrase(wizard, seed, x)
-        wizard.show_seed_dialog(run_next=f, seed_text=seed)
+        wizard.show_seed_dialog(
+            run_next=lambda x: self.request_passphrase(wizard, seed, x), seed_text=seed
+        )
 
     def request_passphrase(self, wizard, seed, opt_passphrase):
         if opt_passphrase:
-            f = lambda x: self.confirm_seed(wizard, seed, x)
-            wizard.passphrase_dialog(run_next=f)
+            wizard.passphrase_dialog(
+                run_next=lambda x: self.confirm_seed(wizard, seed, x)
+            )
         else:
             wizard.run("confirm_seed", seed, "")
 
     def confirm_seed(self, wizard, seed, passphrase):
-        f = lambda x: self.confirm_passphrase(wizard, seed, passphrase)
-        wizard.confirm_seed_dialog(run_next=f, test=lambda x: x == seed)
+        wizard.confirm_seed_dialog(
+            run_next=lambda x: self.confirm_passphrase(wizard, seed, passphrase),
+            test=lambda x: x == seed,
+        )
 
     def confirm_passphrase(self, wizard, seed, passphrase):
-        f = lambda x: self.derive_bip39_seed(seed, x)
         if passphrase:
             title = _("Confirm Seed Extension")
             message = "\n".join(
@@ -916,29 +919,33 @@ class SatochipPlugin(HW_PluginBase):
                 ]
             )
             wizard.line_dialog(
-                run_next=f,
+                run_next=lambda x: self.derive_bip39_seed(seed, x),
                 title=title,
                 message=message,
                 default="",
                 test=lambda x: x == passphrase,
             )
         else:
-            f("")
+            self.derive_bip39_seed(seed, "")
 
     # restore from seed
     def restore_from_seed(self, wizard):
         wizard.opt_bip39 = True
         wizard.opt_ext = True
         test = is_seed
-        f = lambda seed, is_bip39, is_ext: self.on_restore_seed(
-            wizard, seed, is_bip39, is_ext
-        )
+
+        def f(seed, is_bip39, is_ext):
+            self.on_restore_seed(wizard, seed, is_bip39, is_ext)
+
         wizard.restore_seed_dialog(run_next=f, test=test)
 
     def on_restore_seed(self, wizard, seed, is_bip39, is_ext):
         wizard.seed_type = "bip39" if is_bip39 else seed_type_name(seed)
         if wizard.seed_type == "bip39":
-            f = lambda passphrase: self.derive_bip39_seed(seed, passphrase)
+
+            def f(passphrase):
+                self.derive_bip39_seed(seed, passphrase)
+
             wizard.passphrase_dialog(run_next=f) if is_ext else f("")
         elif wizard.seed_type in ["standard", "electrum"]:
             # warning message as Electrum seed on hardware is not standard and incompatible with other hw
@@ -962,7 +969,10 @@ class SatochipPlugin(HW_PluginBase):
                 ]
             )
             wizard.confirm_dialog("Warning", message, run_next=lambda x: None)
-            f = lambda passphrase: self.derive_bip32_seed(seed, passphrase)
+
+            def f(passphrase):
+                self.derive_bip32_seed(seed, passphrase)
+
             wizard.passphrase_dialog(run_next=f) if is_ext else f("")
         elif wizard.seed_type == "old":
             raise Exception("Unsupported seed type", wizard.seed_type)

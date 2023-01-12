@@ -10,6 +10,11 @@ from electrumabc.printerror import print_msg
 from electrumabc.simple_config import SimpleConfig
 from electrumabc.util import json_encode
 
+
+def callback(response):
+    print_msg(json_encode(response.get("result")))
+
+
 # start network
 c = SimpleConfig()
 network = Network(c)
@@ -23,8 +28,8 @@ if not network.is_connected():
     print_msg("daemon is not connected")
     sys.exit(1)
 
+
 # 2. send the subscription
-callback = lambda response: print_msg(json_encode(response.get("result")))
 network.send([("server.version", ["block_headers script", "1.2"])], callback)
 network.send([("blockchain.headers.subscribe", [])], callback)
 

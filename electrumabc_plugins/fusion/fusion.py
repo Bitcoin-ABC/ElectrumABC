@@ -936,7 +936,9 @@ class Fusion(threading.Thread, PrintError):
         # covert activities.
         clock = time.monotonic
         covert_T0 = clock()
-        covert_clock = lambda: clock() - covert_T0
+
+        def covert_clock():
+            return clock() - covert_T0
 
         round_time = msg.server_time
 

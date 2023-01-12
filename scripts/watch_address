@@ -9,6 +9,11 @@ from electrumabc.printerror import print_msg
 from electrumabc.simple_config import SimpleConfig
 from electrumabc.util import json_encode
 
+
+def callback(response):
+    print_msg(json_encode(response.get("result")))
+
+
 try:
     addr = Address.from_string(sys.argv[1])
 except Exception:
@@ -30,7 +35,6 @@ if not network.is_connected():
 
 # 2. send the subscription
 sh = addr.to_scripthash_hex()
-callback = lambda response: print_msg(json_encode(response.get("result")))
 network.send([("blockchain.scripthash.subscribe", [sh])], callback)
 
 # 3. wait for results

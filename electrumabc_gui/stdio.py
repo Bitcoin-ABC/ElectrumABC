@@ -10,7 +10,10 @@ from electrumabc.storage import WalletStorage
 from electrumabc.util import format_satoshis
 from electrumabc.wallet import Wallet
 
-_ = lambda x: x
+
+def _(x):
+    x
+
 
 # minimal fdisk like gui for console usage
 # written by rofl0r, with some bits stolen from the text gui (ncurses)

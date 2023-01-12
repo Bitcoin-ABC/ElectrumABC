@@ -2196,12 +2196,13 @@ class Network(util.DaemonThread):
         Does not support using a callback function."""
 
         command = "blockchain.transaction.broadcast"
-        invocation = lambda c: self.send([(command, [str(transaction)])], c)
+
+        def invocation(c):
+            self.send([(command, [str(transaction)])], c)
 
         try:
-            out = Network.__wait_for(
-                invocation, timeout=timeout
-            )  # may raise util.TimeoutException, util.ServerErrorResponse
+            # may raise util.TimeoutException, util.ServerErrorResponse
+            out = Network.__wait_for(invocation, timeout=timeout)
         except util.ServerErrorResponse as e:
             # rephrase the generic message to something more suitable
             self.print_error("Server error response was:", str(e.server_msg))

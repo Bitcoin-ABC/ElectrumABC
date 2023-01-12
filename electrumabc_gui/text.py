@@ -15,7 +15,9 @@ from electrumabc.storage import WalletStorage
 from electrumabc.util import format_satoshis
 from electrumabc.wallet import Wallet
 
-_ = lambda x: x
+
+def _(x):
+    return x
 
 
 class ElectrumGui:

@@ -205,9 +205,11 @@ class BaseWizard(PrintError):
         )
 
     def import_addresses_or_keys(self):
-        v = lambda x: keystore.is_address_list(x) or keystore.is_private_key_list(
-            x, allow_bip38=True
-        )
+        def is_valid(x):
+            return keystore.is_address_list(x) or keystore.is_private_key_list(
+                x, allow_bip38=True
+            )
+
         title = _(f"Import {CURRENCY} Addresses")
         message = _(
             f"Enter a list of {CURRENCY} addresses (this will create a"
@@ -219,7 +221,7 @@ class BaseWizard(PrintError):
             title=title,
             message=message,
             run_next=self.on_import,
-            is_valid=v,
+            is_valid=is_valid,
             allow_multi=True,
         )
 
@@ -555,20 +557,24 @@ class BaseWizard(PrintError):
     def restore_from_seed(self):
         self.opt_bip39 = True
         self.opt_ext = True
-        test = (
-            mnemo.is_seed
-        )  # TODO FIX #bitcoin.is_seed if self.wallet_type == 'standard' else bitcoin.is_new_seed
+        # TODO FIX #bitcoin.is_seed if self.wallet_type == 'standard' else bitcoin.is_new_seed
+        test = mnemo.is_seed
         self.restore_seed_dialog(run_next=self.on_restore_seed, test=test)
 
     def on_restore_seed(self, seed, is_bip39, is_ext):
-        self.seed_type = (
-            "bip39" if is_bip39 else mnemo.seed_type_name(seed)
-        )  # NB: seed_type_name here may also auto-detect 'bip39'
+        # NB: seed_type_name here may also auto-detect 'bip39'
+        self.seed_type = "bip39" if is_bip39 else mnemo.seed_type_name(seed)
         if self.seed_type == "bip39":
-            f = lambda passphrase: self.on_restore_bip39(seed, passphrase)
+
+            def f(passphrase):
+                self.on_restore_bip39(seed, passphrase)
+
             self.passphrase_dialog(run_next=f) if is_ext else f("")
         elif self.seed_type in ["standard", "electrum"]:
-            f = lambda passphrase: self.run("create_keystore", seed, passphrase)
+
+            def f(passphrase):
+                self.run("create_keystore", seed, passphrase)
+
             self.passphrase_dialog(run_next=f) if is_ext else f("")
         elif self.seed_type == "old":
             self.run("create_keystore", seed, "")
@@ -576,8 +582,11 @@ class BaseWizard(PrintError):
             raise BaseException("Unknown seed type", self.seed_type)
 
     def on_restore_bip39(self, seed, passphrase):
-        f = lambda x: self.run("on_bip44", seed, passphrase, str(x))
-        self.derivation_dialog(f, keystore.bip44_derivation_xec(0), seed=seed)
+        self.derivation_dialog(
+            lambda x: self.run("on_bip44", seed, passphrase, str(x)),
+            keystore.bip44_derivation_xec(0),
+            seed=seed,
+        )
 
     def create_keystore(self, seed, passphrase):
         # auto-detect, prefers old, electrum, bip39 in that order. Since we
@@ -737,8 +746,6 @@ class BaseWizard(PrintError):
         self.create_seed("bip39")
 
     def create_seed(self, seed_type):
-        from . import mnemo
-
         self.seed_type = seed_type
         if seed_type in ["standard", "electrum"]:
             seed = mnemo.Mnemonic_Electrum("en").make_seed()
@@ -748,22 +755,23 @@ class BaseWizard(PrintError):
             # This should never happen.
             raise ValueError("Cannot make seed for unknown seed type " + str(seed_type))
         self.opt_bip39 = False
-        f = lambda x: self.request_passphrase(seed, x)
-        self.show_seed_dialog(run_next=f, seed_text=seed)
+        self.show_seed_dialog(
+            run_next=lambda x: self.request_passphrase(seed, x), seed_text=seed
+        )
 
     def request_passphrase(self, seed, opt_passphrase):
         if opt_passphrase:
-            f = lambda x: self.confirm_seed(seed, x)
-            self.passphrase_dialog(run_next=f)
+            self.passphrase_dialog(run_next=lambda x: self.confirm_seed(seed, x))
         else:
             self.run("confirm_seed", seed, "")
 
     def confirm_seed(self, seed, passphrase):
-        f = lambda x: self.confirm_passphrase(seed, passphrase)
-        self.confirm_seed_dialog(run_next=f, test=lambda x: x == seed)
+        self.confirm_seed_dialog(
+            run_next=lambda x: self.confirm_passphrase(seed, passphrase),
+            test=lambda x: x == seed,
+        )
 
     def confirm_passphrase(self, seed, passphrase):
-        f = lambda x: self.run("create_keystore", seed, x)
         if passphrase:
             title = _("Confirm Seed Extension")
             message = "\n".join(
@@ -773,14 +781,14 @@ class BaseWizard(PrintError):
                 ]
             )
             self.line_dialog(
-                run_next=f,
+                run_next=lambda x: self.run("create_keystore", seed, x),
                 title=title,
                 message=message,
                 default="",
                 test=lambda x: x == passphrase,
             )
         else:
-            f("")
+            self.run("create_keystore", seed, "")
 
     def create_addresses(self):
         def task():
