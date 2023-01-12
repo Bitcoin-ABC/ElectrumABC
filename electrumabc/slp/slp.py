@@ -460,7 +460,7 @@ class Message:
             if self.decimals > 9:
                 raise InvalidOutputMessage("Too many decimals")
 
-            ## handle baton for additional minting, but may be empty
+            # handle baton for additional minting, but may be empty
             v = self.mint_baton_vout
             if v is not None and v < 2:
                 raise InvalidOutputMessage("Mint baton cannot be on vout=0 or 1")

@@ -64,7 +64,8 @@ class Protocol:
         5.0  # how much the server's time is allowed to differ from client
     )
 
-    ### Critical timeline ###
+    # Critical timeline
+    #
     # (For early phases in a round)
     # For client privacy, it is critical that covert submissions happen within
     # very specific windows so that they know the server is not able to pull
@@ -113,7 +114,7 @@ class Protocol:
     T_START_CLOSE = +45.0  # before conclusion
     T_START_CLOSE_BLAME = +80.0  # after conclusion, during blame phase.
 
-    ### (End critical timeline) ###
+    # (End critical timeline)
 
     # For non-critical messages like during blame phase, just regular relative timeouts are needed.
     # Note that when clients send a result and expect a 'gathered' response from server, they wait

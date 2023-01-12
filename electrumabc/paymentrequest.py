@@ -223,7 +223,7 @@ class PaymentRequest:
         if not verify:
             self.error = "ERROR: Invalid Signature for Payment Request Data"
             return False
-        ### SIG Verified
+        # SIG Verified
         self.error = "Signed by Trusted CA: " + ca.get_common_name()
         return True
 
@@ -934,10 +934,10 @@ class PaymentRequest_BitPay20(PaymentRequest, PrintError):
             self.print_error(self.error)
             return False
 
-        ### SIG Verified
-        self.error = (
-            "Signed by: " + owner
-        )  # <--- This is not ideal because we re-use self.error for a *non-error* but the superclass API is this way. -Calin
+        # SIG Verified
+        # This is not ideal because we re-use self.error for a *non-error* but the
+        # superclass API is this way. -Calin
+        self.error = "Signed by: " + owner
         return True
 
     def verify_x509(self, paymntreq):

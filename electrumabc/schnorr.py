@@ -238,8 +238,9 @@ def verify(pubkey, signature, message_hash):
             raise ValueError("pubkey could not be parsed")
 
         rbytes = signature[:32]
-        ## these unnecessary since below we do bytes comparison and
-        ## R.x() is always < fieldsize.
+        # these unnecessary since below we do bytes comparison and
+        # R.x() is always < fieldsize.
+        #
         # r = int.from_bytes(rbytes, 'big')
         # if r >= fieldsize:
         #    return False

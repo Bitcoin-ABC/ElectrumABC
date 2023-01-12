@@ -1,11 +1,11 @@
-## ripemd.py - pure Python implementation of the RIPEMD-160 algorithm.
-## Bjorn Edstrom <be@bjrn.se> 16 december 2007.
-##
-## Copyrights
-## ==========
-##
-## This code is a derived from an implementation by Markus Friedl which is
-## subject to the following license. This Python implementation is not
+# ripemd.py - pure Python implementation of the RIPEMD-160 algorithm.
+# Bjorn Edstrom <be@bjrn.se> 16 december 2007.
+#
+# Copyrights
+# ==========
+#
+# This code is a derived from an implementation by Markus Friedl which is
+# subject to the following license. This Python implementation is not
 # subject to any other license.
 #
 #

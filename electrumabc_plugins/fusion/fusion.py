@@ -587,7 +587,7 @@ class Fusion(threading.Thread, PrintError):
     def send(self, submsg, timeout=None):
         send_pb(self.connection, pb.ClientMessage, submsg, timeout=timeout)
 
-    ## Rough phases of protocol
+    # Rough phases of protocol
 
     def greet(
         self,
@@ -673,7 +673,8 @@ class Fusion(threading.Thread, PrintError):
         tier_outputs = {}
         excess_fees = {}
         for scale in self.available_tiers:
-            ### Fuzzing fee range selection ###
+            # Fuzzing fee range selection
+            #
             # To keep privacy at higher tiers, we need to randomize our input-output
             # linkage somehow, which means throwing away some sats as extra fees beyond
             # the minimum requirement.
@@ -682,8 +683,8 @@ class Fusion(threading.Thread, PrintError):
             # randomly overpaying fees of 0 to 1000 sats.
             fuzz_fee_max = scale // 1000000
 
-            ### End fuzzing fee range selection ###
-
+            # End fuzzing fee range selection
+            #
             # Now choose a random fuzz fee. Uniform random is best for obfuscation.
             # But before we do, there is a maximum fuzzing fee that is admitted by server, and
             # a safety maximum that we have ourselves.
@@ -743,7 +744,7 @@ class Fusion(threading.Thread, PrintError):
             selffuse = Conf(wallet).self_fuse_players
             tags.append(pb.JoinPools.PoolTag(id=wallet.cashfusion_tag, limit=selffuse))
 
-        ## Join waiting pools
+        # Join waiting pools
         self.check_stop(running=False)
         self.check_coins()
         self.send(pb.JoinPools(tiers=tiers_sorted, tags=tags))
@@ -1042,7 +1043,7 @@ class Fusion(threading.Thread, PrintError):
         covert.check_connected()
         self.check_coins()
 
-        ### Start covert component submissions
+        # Start covert component submissions
         self.print_error("starting covert component submission")
         self.status = ("running", "covert submission: components")
 
@@ -1107,7 +1108,7 @@ class Fusion(threading.Thread, PrintError):
         if msg.HasField("session_hash") and msg.session_hash != session_hash:
             raise FusionError("Session hash mismatch (bug!)")
 
-        ### Start covert signature submissions (or skip)
+        # Start covert signature submissions (or skip)
 
         if not skip_signatures:
             self.print_error("starting covert signature submission")
@@ -1248,7 +1249,7 @@ class Fusion(threading.Thread, PrintError):
         else:  # skip_signatures True
             bad_components = set()
 
-        ### Blame phase ###
+        # Blame phase
 
         covert.set_stop_time(covert_T0 + Protocol.T_START_CLOSE_BLAME)
         self.print_error("sending proofs")

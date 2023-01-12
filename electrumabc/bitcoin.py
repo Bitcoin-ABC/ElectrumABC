@@ -75,7 +75,7 @@ else:
 
 do_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1()
 
-################################## transactions
+# transactions
 
 FEE_STEP = 10000
 
@@ -486,7 +486,7 @@ def i2o_ECPublicKey(pubkey, compressed=False):
 # end pywallet openssl private key implementation
 
 
-############ functions from pywallet #####################
+# functions from pywallet
 def hash_160(public_key: bytes) -> bytes:
     sha256_hash = sha256(public_key)
     try:
@@ -749,7 +749,7 @@ def is_private_key(key, *, net=None):
         return False
 
 
-########### end pywallet functions #######################
+# end pywallet functions
 
 
 def is_minikey(text):
@@ -1027,7 +1027,7 @@ class EC_KEY(object):
         return aes_decrypt_with_iv(key_e, iv, ciphertext)
 
 
-###################################### BIP32 ##############################
+# BIP32
 
 random_seed = lambda n: "%032x" % ecdsa.util.randrange(pow(2, n))
 BIP32_PRIME = 0x80000000
