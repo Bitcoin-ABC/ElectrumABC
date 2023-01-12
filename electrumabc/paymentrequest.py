@@ -582,17 +582,17 @@ class InvoiceStore(object):
         self.save()
 
     def save(self):
-        l = {}
+        invoices = {}
         for k, pr in self.invoices.items():
-            l[k] = {
+            invoices[k] = {
                 "hex": bh2u(pr.serialize()),
                 "requestor": pr.requestor,
                 "txid": pr.tx,
             }
-        self.storage.put("invoices2", l)
-        self.storage.put(
-            "invoices", None
-        )  # delete old invoice format to save space; caveat: older EC versions will not see invoices saved by newer versions anymore.
+        self.storage.put("invoices2", invoices)
+        # delete old invoice format to save space; caveat: older EC versions will not
+        # see invoices saved by newer versions anymore.
+        self.storage.put("invoices", None)
 
     def get_status(self, key):
         pr = self.get(key)

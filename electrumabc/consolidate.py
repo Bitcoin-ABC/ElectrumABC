@@ -89,8 +89,7 @@ class AddressConsolidator:
         self.txin_type = wallet_instance.get_txin_type(address)
         self.received = {}
         for tx_hash, height in wallet_instance.get_address_history(address):
-            l = self.wallet.txo.get(tx_hash, {}).get(address, [])
-            for n, v, is_cb in l:
+            for n, v, is_cb in self.wallet.txo.get(tx_hash, {}).get(address, []):
                 self.received[tx_hash + f":{n}"] = (height, v, is_cb)
 
         if isinstance(self.wallet, wallet.ImportedAddressWallet):

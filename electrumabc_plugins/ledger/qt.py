@@ -59,9 +59,9 @@ class Ledger_Handler(QtHandlerBase):
         self.dialog = dialog = WindowModalDialog(
             self.top_level_window(), _("Ledger Status")
         )
-        l = QtWidgets.QLabel(msg)
+        label = QtWidgets.QLabel(msg)
         vbox = QtWidgets.QVBoxLayout(dialog)
-        vbox.addWidget(l)
+        vbox.addWidget(label)
         dialog.show()
 
     def auth_dialog(self, data):

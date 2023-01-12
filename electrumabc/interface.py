@@ -98,7 +98,7 @@ class TcpConnection(threading.Thread, PrintError):
 
     def get_simple_socket(self):
         try:
-            l = socket.getaddrinfo(
+            addr_info = socket.getaddrinfo(
                 self.host, self.port, socket.AF_UNSPEC, socket.SOCK_STREAM
             )
         except OverflowError:
@@ -112,7 +112,7 @@ class TcpConnection(threading.Thread, PrintError):
             self.print_error("hostname cannot be decoded with 'idna' codec")
             return
         e = None
-        for res in l:
+        for res in addr_info:
             try:
                 s = socket.socket(res[0], socket.SOCK_STREAM)
                 s.settimeout(10)
@@ -408,12 +408,12 @@ class Interface(PrintError):
     def set_req_throttle_params(cls, config, max=None, chunkSize=None):
         if not config:
             return
-        l = list(cls.get_req_throttle_params(config))
+        l_ = list(cls.get_req_throttle_params(config))
         if max is not None:
-            l[0] = max
+            l_[0] = max
         if chunkSize is not None:
-            l[1] = chunkSize
-        config.set_key("network_unanswered_requests_throttle", l)
+            l_[1] = chunkSize
+        config.set_key("network_unanswered_requests_throttle", l_)
 
     def num_requests(self):
         """If there are more than tup.max (default: 2000) unanswered requests,

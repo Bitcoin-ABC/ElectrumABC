@@ -116,9 +116,9 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         self.setLayout(vbox)
 
         self.tx_hash_e = ButtonsLineEdit()
-        l = QtWidgets.QLabel(_("&Transaction ID:"))
-        l.setBuddy(self.tx_hash_e)
-        vbox.addWidget(l)
+        label = QtWidgets.QLabel(_("&Transaction ID:"))
+        label.setBuddy(self.tx_hash_e)
+        vbox.addWidget(label)
         self.tx_hash_e.addCopyButton()
         weakSelfRef = Weak.ref(self)
         qr_show = lambda: weakSelfRef() and weakSelfRef().main_window.show_qrcode(
@@ -147,7 +147,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         self.fee_label = QtWidgets.QLabel()
         vbox.addWidget(self.fee_label)
 
-        for l in (
+        for label in (
             self.tx_desc,
             self.status_label,
             self.date_label,
@@ -156,8 +156,8 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
             self.fee_label,
         ):
             # make these labels selectable by mouse in case user wants to copy-paste things in tx dialog
-            l.setTextInteractionFlags(
-                l.textInteractionFlags() | Qt.TextSelectableByMouse
+            label.setTextInteractionFlags(
+                label.textInteractionFlags() | Qt.TextSelectableByMouse
             )
 
         def open_be_url(link):
@@ -688,9 +688,9 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         inputs_lbl_text = ngettext(
             "&Input", "&Inputs ({num_inputs})", num_inputs
         ).format(num_inputs=num_inputs)
-        l = QtWidgets.QLabel(inputs_lbl_text)
-        l.setBuddy(i_text)
-        hbox.addWidget(l)
+        label = QtWidgets.QLabel(inputs_lbl_text)
+        label.setBuddy(i_text)
+        hbox.addWidget(label)
 
         hbox.addSpacerItem(QtWidgets.QSpacerItem(20, 0))  # 20 px padding
         self.dl_input_chk = chk = QtWidgets.QCheckBox(_("&Download input data"))
@@ -750,9 +750,9 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         outputs_lbl_text = ngettext(
             "&Output", "&Outputs ({num_outputs})", num_outputs
         ).format(num_outputs=num_outputs)
-        l = QtWidgets.QLabel(outputs_lbl_text)
-        l.setBuddy(o_text)
-        hbox.addWidget(l)
+        label = QtWidgets.QLabel(outputs_lbl_text)
+        label.setBuddy(o_text)
+        hbox.addWidget(label)
 
         box_char = "█"
         self.recv_legend = QtWidgets.QLabel(

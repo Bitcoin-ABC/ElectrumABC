@@ -186,9 +186,9 @@ class QtHandlerBase(HardwareHandlerBase, QObject, PrintError):
         self.clear_dialog()
         title = _("Please check your {} device").format(self.device)
         self.dialog = dialog = WindowModalDialog(self.top_level_window(), title)
-        l = QtWidgets.QLabel(msg)
+        label = QtWidgets.QLabel(msg)
         vbox = QtWidgets.QVBoxLayout(dialog)
-        vbox.addWidget(l)
+        vbox.addWidget(label)
         if on_cancel:
             dialog.rejected.connect(on_cancel)
             vbox.addLayout(Buttons(CancelButton(dialog)))

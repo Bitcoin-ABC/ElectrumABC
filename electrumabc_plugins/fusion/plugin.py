@@ -696,7 +696,7 @@ class FusionPlugin(BasePlugin):
                     # we don't have enough auto-fusions running, so start one
                     fraction = get_target_params_2(wallet_conf, sum_value)
                     chosen_buckets = select_random_coins(wallet, fraction, eligible)
-                    coins = [c for l in chosen_buckets for c in l]
+                    coins = [coin for bucket in chosen_buckets for coin in bucket]
                     if not coins:
                         self.print_error("auto-fusion skipped due to lack of coins")
                         continue

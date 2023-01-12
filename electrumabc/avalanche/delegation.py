@@ -198,9 +198,9 @@ class DelegationBuilder:
     @classmethod
     def from_delegation(cls, dg: Delegation) -> DelegationBuilder:
         dg_builder = cls(dg.limited_proofid, dg.proof_master, dg.dgid)
-        for l in dg.levels:
-            dg_builder.levels[-1].sig = l.sig
-            dg_builder.levels.append(Level(l.pubkey, b""))
+        for level in dg.levels:
+            dg_builder.levels[-1].sig = level.sig
+            dg_builder.levels.append(Level(level.pubkey, b""))
         return dg_builder
 
     def add_level(self, delegator_key: Key, delegated_pubkey: PublicKey):

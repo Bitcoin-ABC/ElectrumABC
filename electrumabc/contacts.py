@@ -68,8 +68,8 @@ class Contacts(PrintError):
     @staticmethod
     def _load_from_dict_like_object(storage) -> List[Contact]:
         assert callable(getattr(storage, "get", None))
-        l = storage.get("contacts2")
-        v2_was_missing = not isinstance(l, list)
+        contacts_list = storage.get("contacts2")
+        v2_was_missing = not isinstance(contacts_list, list)
         # Check if v2 missing but v1 available.  If so, load v1 data.
         # Next time save() is called, wallet storage will have v2 data
         # and this branch will be ignored.
@@ -80,7 +80,7 @@ class Contacts(PrintError):
             # if we get here, neither v1 nor v2 was found, return empty list
             return []
 
-        return Contacts._load_v2_list(l)
+        return Contacts._load_v2_list(contacts_list)
 
     @staticmethod
     def _load_v2_list(in_list):

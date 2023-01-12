@@ -910,16 +910,16 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         )
 
     def get_addr_io(self, address):
-        h = self.get_address_history(address)
+        history = self.get_address_history(address)
         received = {}
         sent = {}
-        for tx_hash, height in h:
-            l = self.txo.get(tx_hash, {}).get(address, [])
-            for n, v, is_cb in l:
+        for tx_hash, height in history:
+            coins = self.txo.get(tx_hash, {}).get(address, [])
+            for n, v, is_cb in coins:
                 received[tx_hash + ":%d" % n] = (height, v, is_cb)
-        for tx_hash, height in h:
-            l = self.txi.get(tx_hash, {}).get(address, [])
-            for txi, v in l:
+        for tx_hash, height in history:
+            inputs = self.txi.get(tx_hash, {}).get(address, [])
+            for txi, v in inputs:
                 sent[txi] = height
         return received, sent
 
@@ -1351,10 +1351,10 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                 d = self.txi.get(tx_hash)
                 if d is None:
                     self.txi[tx_hash] = d = {}
-                l = d.get(addr)
-                if l is None:
-                    d[addr] = l = []
-                l.append((ser, v))
+                txis = d.get(addr)
+                if txis is None:
+                    d[addr] = txis = []
+                txis.append((ser, v))
 
             def find_in_self_txo(prevout_hash: str, prevout_n: int) -> tuple:
                 """Returns a tuple of the (Address,value) for a given
@@ -1456,12 +1456,13 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                 if self.is_mine(addr):
                     # add coin to self.txo since it's mine.
                     mine = True
-                    l = d.get(addr)
-                    if l is None:
-                        d[addr] = l = []
-                    l.append((n, v, is_coinbase))
-                    del l
-                    self._addr_bal_cache.pop(addr, None)  # invalidate cache entry
+                    coins = d.get(addr)
+                    if coins is None:
+                        d[addr] = coins = []
+                    coins.append((n, v, is_coinbase))
+                    del coins
+                    # invalidate cache entry
+                    self._addr_bal_cache.pop(addr, None)
                 # give v to txi that spends me
                 next_tx = pop_pruned_txo(ser)
                 if next_tx is not None and mine:
@@ -1490,8 +1491,8 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                     self.pruned_txo_values.discard(hh)
             # add tx to pruned_txo, and undo the txi addition
             for next_tx, dd in self.txi.items():
-                for addr, l in list(dd.items()):
-                    ll = l[:]
+                for addr, txis_for_addr in list(dd.items()):
+                    ll = txis_for_addr[:]
                     for item in ll:
                         ser, v = item
                         prev_hash, prev_n = ser.split(":")
@@ -1499,13 +1500,13 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                             self._addr_bal_cache.pop(
                                 addr, None
                             )  # invalidate cache entry
-                            l.remove(item)
+                            txis_for_addr.remove(item)
                             self.pruned_txo[ser] = next_tx
                             self.pruned_txo_values.add(next_tx)
-                    if l == []:
+                    if not txis_for_addr:
                         dd.pop(addr)
                     else:
-                        dd[addr] = l
+                        dd[addr] = txis_for_addr
 
             # invalidate addr_bal_cache for outputs involving this tx
             d = self.txo.get(tx_hash, {})
@@ -1781,13 +1782,13 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             return format_satoshis(v, decimal_point=decimal_point, is_diff=is_diff)
 
         # grab history
-        h = self.get_history(domain, reverse=True)
+        history = self.get_history(domain, reverse=True)
         out = []
 
-        n, l = 0, max(1, float(len(h)))
-        for tx_hash, height, conf, timestamp, value, balance in h:
+        n, length = 0, max(1, float(len(history)))
+        for tx_hash, height, conf, timestamp, value, balance in history:
             if progress_callback:
-                progress_callback(n / l)
+                progress_callback(n / length)
             n += 1
             timestamp_safe = timestamp
             if timestamp is None:
@@ -2568,7 +2569,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
     def get_payment_status(self, address, amount):
         local_height = self.get_local_height()
         received, sent = self.get_addr_io(address)
-        l = []
+        transactions = []
         for txo, x in received.items():
             h, v, is_cb = x
             txid, n = txo.split(":")
@@ -2578,10 +2579,10 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                 conf = max(local_height - tx_height + 1, 0)
             else:
                 conf = 0
-            l.append((conf, v, txid))
+            transactions.append((conf, v, txid))
         tx_hashes = []
         vsum = 0
-        for conf, v, tx_hash in reversed(sorted(l)):
+        for conf, v, tx_hash in reversed(sorted(transactions)):
             vsum += v
             tx_hashes.append(tx_hash)
             if vsum >= amount:

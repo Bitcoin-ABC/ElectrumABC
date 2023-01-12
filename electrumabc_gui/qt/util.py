@@ -525,14 +525,14 @@ def text_dialog(parent, title, label, ok_label, default=None, allow_multi=False)
 
     dialog = WindowModalDialog(parent, title)
     dialog.setMinimumWidth(500)
-    l = QtWidgets.QVBoxLayout()
-    dialog.setLayout(l)
-    l.addWidget(QtWidgets.QLabel(label))
+    layout = QtWidgets.QVBoxLayout()
+    dialog.setLayout(layout)
+    layout.addWidget(QtWidgets.QLabel(label))
     txt = ScanQRTextEdit(allow_multi=allow_multi)
     if default:
         txt.setText(default)
-    l.addWidget(txt)
-    l.addLayout(Buttons(CancelButton(dialog), OkButton(dialog, ok_label)))
+    layout.addWidget(txt)
+    layout.addLayout(Buttons(CancelButton(dialog), OkButton(dialog, ok_label)))
     if dialog.exec_():
         return txt.toPlainText()
 

@@ -100,26 +100,30 @@ class Plugin(LabelsPlugin):
         else:
             vbox = QtWidgets.QVBoxLayout(d)
             if wallet.network:
-                # has network, so the fact that the wallet isn't in the list means it's incompatible
-                l = QtWidgets.QLabel(
+                # has network, so the fact that the wallet isn't in the list means it's
+                # incompatible
+                label = QtWidgets.QLabel(
                     "<b>" + _("LabelSync not supported for this wallet type") + "</b>"
                 )
-                l.setAlignment(Qt.AlignCenter)
-                vbox.addWidget(l)
-                l = QtWidgets.QLabel(_("(Only deterministic wallets are supported)"))
-                l.setAlignment(Qt.AlignCenter)
-                vbox.addWidget(l)
+                label.setAlignment(Qt.AlignCenter)
+                vbox.addWidget(label)
+                label = QtWidgets.QLabel(
+                    _("(Only deterministic wallets are supported)")
+                )
+                label.setAlignment(Qt.AlignCenter)
+                vbox.addWidget(label)
             else:
-                # Does not have network, so we won't speak of incompatibility, but instead remind user offline mode means OFFLINE! ;)
-                l = QtWidgets.QLabel(
+                # Does not have network, so we won't speak of incompatibility, but
+                # instead remind user offline mode means OFFLINE! ;)
+                label = QtWidgets.QLabel(
                     _(
                         f"You are using {PROJECT_NAME} in offline mode;"
                         f" restart Electron Cash if you want to get "
                         f"connected"
                     )
                 )
-                l.setWordWrap(True)
-                vbox.addWidget(l)
+                label.setWordWrap(True)
+                vbox.addWidget(label)
         vbox.addSpacing(20)
         vbox.addLayout(Buttons(d.ok_button))
         return bool(d.exec_())

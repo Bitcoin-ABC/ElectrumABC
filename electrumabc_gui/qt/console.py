@@ -348,8 +348,8 @@ class Console(QtWidgets.QWidget):
             return False
         c = self.editor.textCursor()
         c.setPosition(self.completions_pos)
-        l = self.completions_end - self.completions_pos
-        for x in range(l):
+        length = self.completions_end - self.completions_pos
+        for x in range(length):
             c.deleteChar()
 
         self.editor.moveCursor(QtGui.QTextCursor.End)

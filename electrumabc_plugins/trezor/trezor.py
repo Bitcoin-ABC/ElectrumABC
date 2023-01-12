@@ -315,9 +315,10 @@ class TrezorPlugin(HW_PluginBase):
             errors.append(e)
             exit_code = 1
         finally:
-            l = loops.copy()  # leverage the GIL here for thread safety.
-            if l:
-                l[0].exit(exit_code)
+            # leverage the GIL here for thread safety.
+            lc = loops.copy()
+            if lc:
+                lc[0].exit(exit_code)
 
     def _initialize_device(self, settings, method, device_id):
         item, label, pin_protection, passphrase_protection, recovery_type = settings

@@ -179,18 +179,19 @@ objc.objc_autoreleasePoolPop.restype = None
 
 
 def CFString2Str(cfstr: CFString_p) -> str:
-    l = cf.CFStringGetLength(cfstr)
-    if l <= 0:
-        return ""  # short circuit out if empty string or other nonsense length
-    r = CFRange(0, l)
+    length = cf.CFStringGetLength(cfstr)
+    if length <= 0:
+        # short circuit out if empty string or other nonsense length
+        return ""
+    r = CFRange(0, length)
     blen = CFIndex(0)
     lossbyte = c_ubyte(ord(b"?"))
+    # find out length of utf8 string in bytes, sans nul
     cf.CFStringGetBytes(
         cfstr, r, kCFStringEncodingUTF8, lossbyte, False, c_char_p(0), 0, byref(blen)
-    )  # find out length of utf8 string in bytes, sans nul
-    buf = create_string_buffer(
-        (blen.value + 1) * sizeof(c_char)
-    )  # allocate buffer + nul
+    )
+    # allocate buffer + nul
+    buf = create_string_buffer((blen.value + 1) * sizeof(c_char))
     num_conv = cf.CFStringGetBytes(
         cfstr,
         r,

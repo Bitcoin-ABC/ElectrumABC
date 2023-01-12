@@ -101,18 +101,18 @@ class ExceptionDialog(QtWidgets.QDialog):
 
         heading = QtWidgets.QLabel("<h2>" + _("Sorry!") + "</h2>")
         main_box.addWidget(heading)
-        l = QtWidgets.QLabel(_(f"Something went wrong running {PROJECT_NAME}."))
-        l.setWordWrap(True)
-        main_box.addWidget(l)
+        label = QtWidgets.QLabel(_(f"Something went wrong running {PROJECT_NAME}."))
+        label.setWordWrap(True)
+        main_box.addWidget(label)
 
-        l = QtWidgets.QLabel(
+        label = QtWidgets.QLabel(
             _(
                 "To help us diagnose and fix the problem, you can send us"
                 " a bug report that contains useful debug information:"
             )
         )
-        l.setWordWrap(True)
-        main_box.addWidget(l)
+        label.setWordWrap(True)
+        main_box.addWidget(label)
 
         self.report_textfield = QtWidgets.QTextEdit()
         self.report_textfield.setReadOnly(True)

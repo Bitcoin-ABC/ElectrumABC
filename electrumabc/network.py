@@ -1073,9 +1073,9 @@ class Network(util.DaemonThread):
                 if method.endswith(".subscribe"):
                     k = self.get_index(method, params)
                     # add callback to list
-                    l = self.subscriptions[k]  # <-- it's a defaultdict(list)
-                    if callback not in l:
-                        l.append(callback)
+                    subsc = self.subscriptions[k]  # <-- it's a defaultdict(list)
+                    if callback not in subsc:
+                        subsc.append(callback)
                     # check cached response for subscriptions
                     r = self.sub_cache.get(k)
                 if r is not None:

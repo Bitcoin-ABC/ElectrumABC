@@ -190,23 +190,23 @@ class ZbarQrCodeReader(AbstractQrCodeReader):
             symbol_data_bytes = ctypes.string_at(symbol_data_ptr, symbol_data_len)
             symbol_data = symbol_data_bytes.decode("utf-8")
 
-            symbol_loc = []
+            symbol_locs = []
             symbol_loc_len = LIBZBAR.zbar_symbol_get_loc_size(symbol)
             for i in range(0, symbol_loc_len):
                 # Normalize the coordinates into 0..1 range by dividing by width / height
                 symbol_loc_x = LIBZBAR.zbar_symbol_get_loc_x(symbol, i)
                 symbol_loc_y = LIBZBAR.zbar_symbol_get_loc_y(symbol, i)
-                symbol_loc.append((symbol_loc_x, symbol_loc_y))
+                symbol_locs.append((symbol_loc_x, symbol_loc_y))
 
             # Find the center by getting the average values of the corners x and y coordinates
-            symbol_loc_sum_x = sum([l[0] for l in symbol_loc])
-            symbol_loc_sum_y = sum([l[1] for l in symbol_loc])
+            symbol_loc_sum_x = sum([loc[0] for loc in symbol_locs])
+            symbol_loc_sum_y = sum([loc[1] for loc in symbol_locs])
             symbol_loc_center = (
                 int(symbol_loc_sum_x / symbol_loc_len),
                 int(symbol_loc_sum_y / symbol_loc_len),
             )
 
-            res.append(QrCodeResult(symbol_data, symbol_loc_center, symbol_loc))
+            res.append(QrCodeResult(symbol_data, symbol_loc_center, symbol_locs))
 
             symbol = LIBZBAR.zbar_symbol_next(symbol)
 

@@ -171,10 +171,10 @@ class Commands:
         See issue #638"""
 
         def DoChk(v):
-            def ChkList(l):
-                for i in range(0, len(l)):
-                    l[i] = DoChk(l[i])  # recurse
-                return l
+            def ChkList(l_):
+                for i in range(0, len(l_)):
+                    l_[i] = DoChk(l_[i])  # recurse
+                return l_
 
             def EncodeNamedTupleObject(nt):
                 if hasattr(nt, "to_ui_string"):
@@ -386,12 +386,12 @@ class Commands:
     def listunspent(self):
         """List unspent outputs. Returns the list of unspent transaction
         outputs in your wallet."""
-        l = self.wallet.get_utxos(exclude_frozen=False)
-        for i in l:
-            v = i["value"]
-            i["value"] = str(PyDecimal(v) / CASH) if v is not None else None
-            i["address"] = i["address"].to_ui_string()
-        return l
+        coins = self.wallet.get_utxos(exclude_frozen=False)
+        for coin in coins:
+            if coin["value"] is not None:
+                coin["value"] = str(PyDecimal(coin["value"]) / CASH)
+            coin["address"] = coin["address"].to_ui_string()
+        return coins
 
     @command("n")
     def getaddressunspent(self, address):

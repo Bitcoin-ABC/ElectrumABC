@@ -825,10 +825,6 @@ def encrypt_message(message, pubkey, magic=b"BIE1"):
     return EC_KEY.encrypt_message(message, bfh(pubkey), magic)
 
 
-def chunks(l, n):
-    return [l[i : i + n] for i in range(0, len(l), n)]
-
-
 def ECC_YfromX(x, curved=curve_secp256k1, odd=True):
     _p = curved.p()
     _a = curved.a()
@@ -1060,11 +1056,11 @@ def _CKD_priv(k, c, s, is_prime):
     keypair = EC_KEY(k)
     cK = GetPubKey(keypair.pubkey, True)
     data = bytes([0]) + k + s if is_prime else cK + s
-    I = hmac.new(c, data, hashlib.sha512).digest()
+    I_ = hmac.new(c, data, hashlib.sha512).digest()
     k_n = number_to_string(
-        (string_to_number(I[0:32]) + string_to_number(k)) % order, order
+        (string_to_number(I_[0:32]) + string_to_number(k)) % order, order
     )
-    c_n = I[32:]
+    c_n = I_[32:]
     return k_n, c_n
 
 
@@ -1082,11 +1078,11 @@ def CKD_pub(cK, c, n):
 
 # helper function, callable with arbitrary string
 def _CKD_pub(cK, c, s):
-    I = hmac.new(c, cK + s, hashlib.sha512).digest()
+    I_ = hmac.new(c, cK + s, hashlib.sha512).digest()
     curve = SECP256k1
-    pubkey_point = string_to_number(I[0:32]) * curve.generator + ser_to_point(cK)
+    pubkey_point = string_to_number(I_[0:32]) * curve.generator + ser_to_point(cK)
     public_key = ecdsa.VerifyingKey.from_public_point(pubkey_point, curve=SECP256k1)
-    c_n = I[32:]
+    c_n = I_[32:]
     cK_n = GetPubKey(public_key.pubkey, True)
     return cK_n, c_n
 
@@ -1239,9 +1235,9 @@ def xpub_from_xprv(xprv, *, net=None):
 def bip32_root(seed, xtype, *, net=None):
     if net is None:
         net = networks.net
-    I = hmac.new(b"Bitcoin seed", seed, hashlib.sha512).digest()
-    master_k = I[0:32]
-    master_c = I[32:]
+    I_ = hmac.new(b"Bitcoin seed", seed, hashlib.sha512).digest()
+    master_k = I_[0:32]
+    master_c = I_[32:]
     K, cK = get_pubkeys_from_secret(master_k)
     xprv = serialize_xprv(xtype, master_c, master_k, net=net)
     xpub = serialize_xpub(xtype, master_c, cK, net=net)

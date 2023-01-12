@@ -95,14 +95,12 @@ class WsClientThread(util.DaemonThread):
             except Exception as e:
                 self.print_error("Error parsing address", addr, repr(e))
                 continue
-            l = self.subscriptions[
-                addr
-            ]  # defaultdict will create empty list if not already there.
-            l.append((ws, amount))
+            # defaultdict will create empty list if not already there.
+            subs = self.subscriptions[addr]
+            subs.append((ws, amount))
             h = addr.to_scripthash_hex()
-            self.sh2addr[
-                h
-            ] = addr  # remember this scripthash_hex -> addr mapping since run() below needs it.
+            # remember this scripthash_hex -> addr mapping since run() below needs it.
+            self.sh2addr[h] = addr
             self.network.send(
                 [("blockchain.scripthash.subscribe", [h])], self.response_queue.put
             )
@@ -131,8 +129,8 @@ class WsClientThread(util.DaemonThread):
                 if addr is None:
                     self.print_error("can't find address for scripthash:", h)
                     continue
-                l = self.subscriptions.get(addr, [])
-                for ws, amount in l:
+                subs = self.subscriptions.get(addr, [])
+                for ws, amount in subs:
                     if not ws.closed:
                         if sum(result.values()) >= amount:
                             ws.sendMessage("paid")

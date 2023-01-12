@@ -274,9 +274,9 @@ class ElectrumGui:
         self.qr.print_ascii(out=s, invert=False)
         msg = s.getvalue()
         lines = msg.split("\n")
-        for i, l in enumerate(lines):
-            l = l.encode("utf-8")
-            self.stdscr.addstr(i + 5, 5, l, curses.color_pair(3))
+        for i, line in enumerate(lines):
+            line = line.encode("utf-8")
+            self.stdscr.addstr(i + 5, 5, line, curses.color_pair(3))
 
     def print_list(self, lst, firstline=None):
         lst = list(lst)

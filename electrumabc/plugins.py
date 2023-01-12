@@ -757,14 +757,16 @@ class BasePlugin(PrintError):
     def close(self):
         # remove self from hooks
         for name, func in self._hooks_i_registered:
-            l = hooks.get(name, [])
+            hooks_for_name = hooks.get(name, [])
             try:
-                l.remove((self, func))
+                hooks_for_name.remove((self, func))
             except ValueError:
-                pass  # this should never happen but it pays to be paranoid.
-            if not l:
+                # this should never happen but it pays to be paranoid.
+                pass
+            if not hooks_for_name:
                 hooks.pop(name, None)
-        self._hooks_i_registered.clear()  # just to kill strong refs to self ASAP, for GC
+        # just to kill strong refs to self ASAP, for GC
+        self._hooks_i_registered.clear()
         # remove registered daemon commands
         for cmdname in self._daemon_commands:
             self.parent.daemon_commands.pop(cmdname, None)

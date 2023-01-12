@@ -43,7 +43,7 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
         self.resize(450, 400)
         self.main_window = main_window
         vbox = QtWidgets.QVBoxLayout(self)
-        l = QtWidgets.QLabel(
+        label = QtWidgets.QLabel(
             "<p><font size=+1><b><i>"
             + _("Scanning Beyond the Gap")
             + "</i></b></font></p><p>"
@@ -61,13 +61,15 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
             )
             + "</p>"
         )
-        l.setWordWrap(True)
-        l.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-        vbox.addWidget(l)
+        label.setWordWrap(True)
+        label.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
+        )
+        vbox.addWidget(label)
         vbox.addStretch(1)
         hbox = QtWidgets.QHBoxLayout()
-        l = QtWidgets.QLabel(_("Number of addresses to scan:"))
-        hbox.addWidget(l)
+        label = QtWidgets.QLabel(_("Number of addresses to scan:"))
+        hbox.addWidget(label)
         self.num_sb = QtWidgets.QSpinBox()
         self.num_sb.setMinimum(1)
         self.num_sb.setMaximum(1000000)

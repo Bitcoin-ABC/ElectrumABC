@@ -2354,13 +2354,14 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         return label + "  " + "<" + contact.address + ">"
 
     def update_completions(self):
-        l = []
+        contact_paytos = []
         for contact in self.contact_list.get_full_contacts():
             s = self.get_contact_payto(contact)
             if s is not None:
-                l.append(s)
-        l.sort(key=lambda x: x.lower())  # case-insensitive sort
-        self.completions.setStringList(l)
+                contact_paytos.append(s)
+        # case-insensitive sort
+        contact_paytos.sort(key=lambda x: x.lower())
+        self.completions.setStringList(contact_paytos)
 
     def protected(func):
         """Password request wrapper.  The password is passed to the function
@@ -3097,21 +3098,20 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         return w
 
-    def create_list_tab(self, l, list_header=None):
-        w = QtWidgets.QWidget()
-        w.searchable_list = l
+    def create_list_tab(self, list_widget):
+        """Return a container widget wrapping the list widget.
+        The container widget has a monkey patched `searchable_list` attribute that
+        refers to `list_widget`.
+        FIXME: nothing in this method makes any sense
+        """
+        widget = QtWidgets.QWidget()
+        widget.searchable_list = list_widget
         vbox = QtWidgets.QVBoxLayout()
-        w.setLayout(vbox)
+        widget.setLayout(vbox)
         vbox.setContentsMargins(0, 0, 0, 0)
         vbox.setSpacing(0)
-        if list_header:
-            hbox = QtWidgets.QHBoxLayout()
-            for b in list_header:
-                hbox.addWidget(b)
-            hbox.addStretch()
-            vbox.addLayout(hbox)
-        vbox.addWidget(l)
-        return w
+        vbox.addWidget(list_widget)
+        return widget
 
     def create_addresses_tab(self):
         self.address_list = AddressList(self)
@@ -6094,12 +6094,12 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             hbox.addStretch(1)
             vbox.addLayout(hbox)
         vbox.addWidget(QtWidgets.QLabel(_("Choose an address") + ":"))
-        l = AddressList(self, picker=True)
+        addrlist = AddressList(self, picker=True)
         try:
-            l.setObjectName("AddressList - " + d.windowTitle())
-            destroyed_print_error(l)  # track object lifecycle
-            l.update()
-            vbox.addWidget(l)
+            addrlist.setObjectName("AddressList - " + d.windowTitle())
+            destroyed_print_error(addrlist)  # track object lifecycle
+            addrlist.update()
+            vbox.addWidget(addrlist)
 
             ok = OkButton(d)
             ok.setDisabled(True)
@@ -6108,17 +6108,17 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
             def on_item_changed(current, previous):
                 nonlocal addr
-                addr = current and current.data(0, l.DataRoles.address)
+                addr = current and current.data(0, addrlist.DataRoles.address)
                 ok.setEnabled(addr is not None)
 
             def on_selection_changed():
-                items = l.selectedItems()
+                items = addrlist.selectedItems()
                 if items:
                     on_item_changed(items[0], None)
                 else:
                     on_item_changed(None, None)
 
-            l.currentItemChanged.connect(on_item_changed)
+            addrlist.currentItemChanged.connect(on_item_changed)
 
             cancel = CancelButton(d)
 
@@ -6129,7 +6129,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 return addr
             return None
         finally:
-            l.clean_up()  # required to unregister network callback
+            addrlist.clean_up()  # required to unregister network callback
 
 
 class TxUpdateMgr(QObject, PrintError):

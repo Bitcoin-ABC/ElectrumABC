@@ -47,8 +47,8 @@ from electrumabc_gui.qt.transaction_dialog import TxDialog, show_transaction
 
 # Workarounds to the fact that xmlrpc.client doesn't take a timeout= arg.
 class TimeoutTransport(Transport):
-    def __init__(self, timeout=2.0, *l, **kw):
-        super().__init__(*l, **kw)
+    def __init__(self, timeout=2.0, *args, **kw):
+        super().__init__(*args, **kw)
         self.timeout = timeout
 
     def make_connection(self, host):
@@ -56,11 +56,11 @@ class TimeoutTransport(Transport):
 
 
 class TimeoutServerProxy(ServerProxy):
-    def __init__(self, uri, timeout=2.0, *l, **kw):
+    def __init__(self, uri, timeout=2.0, *args, **kw):
         kw["transport"] = TimeoutTransport(
             timeout=timeout, use_datetime=kw.get("use_datetime", False)
         )
-        super().__init__(uri, *l, **kw)
+        super().__init__(uri, *args, **kw)
 
 
 # /end timeout= Workarounds
