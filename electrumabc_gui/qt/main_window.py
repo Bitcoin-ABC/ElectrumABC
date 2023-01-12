@@ -276,14 +276,13 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.tabs = tabs = QtWidgets.QTabWidget(self)
         self.send_tab = self.create_send_tab()
         self.receive_tab = self.create_receive_tab()
-        self.addresses_tab = self.create_addresses_tab()
-        self.utxo_tab = self.create_utxo_tab()
+        self.address_list = self.create_addresses_tab()
+        self.utxo_list = self.create_utxo_tab()
         self.console_tab = self.create_console_tab()
-        self.contacts_tab = self.create_contacts_tab()
+        self.contact_list = ContactList(self)
         self.converter_tab = self.create_converter_tab()
-        tabs.addTab(
-            self.create_history_tab(), QIcon(":icons/tab_history.png"), _("History")
-        )
+        self.history_list = self.create_history_tab()
+        tabs.addTab(self.history_list, QIcon(":icons/tab_history.png"), _("History"))
         tabs.addTab(self.send_tab, QIcon(":icons/tab_send.png"), _("Send"))
         tabs.addTab(self.receive_tab, QIcon(":icons/tab_receive.png"), _("Receive"))
         # clears/inits the opreturn widgets
@@ -299,17 +298,17 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         add_optional_tab(
             tabs,
-            self.addresses_tab,
+            self.address_list,
             QIcon(":icons/tab_addresses.png"),
             _("&Addresses"),
             "addresses",
         )
         add_optional_tab(
-            tabs, self.utxo_tab, QIcon(":icons/tab_coins.png"), _("Co&ins"), "utxo"
+            tabs, self.utxo_list, QIcon(":icons/tab_coins.png"), _("Co&ins"), "utxo"
         )
         add_optional_tab(
             tabs,
-            self.contacts_tab,
+            self.contact_list,
             QIcon(":icons/tab_contacts.png"),
             _("Con&tacts"),
             "contacts",
@@ -903,9 +902,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             )
 
         view_menu = menubar.addMenu(_("&View"))
-        add_toggle_action(view_menu, self.addresses_tab)
-        add_toggle_action(view_menu, self.utxo_tab)
-        add_toggle_action(view_menu, self.contacts_tab)
+        add_toggle_action(view_menu, self.address_list)
+        add_toggle_action(view_menu, self.utxo_list)
+        add_toggle_action(view_menu, self.contact_list)
         add_toggle_action(view_menu, self.converter_tab)
         add_toggle_action(view_menu, self.console_tab)
 
@@ -1388,10 +1387,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.labels_need_update.clear()  # clear flag
 
     def create_history_tab(self):
-        self.history_list = HistoryList(self)
-        self.history_list.edited.connect(self.update_labels)
-        self.history_list.searchable_list = self.history_list
-        return self.history_list
+        history_list = HistoryList(self)
+        history_list.edited.connect(self.update_labels)
+        return history_list
 
     def show_address(self, addr, *, parent=None):
         parent = parent or self.top_level_window()
@@ -3098,49 +3096,28 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         return w
 
-    def create_list_tab(self, list_widget):
-        """Return a container widget wrapping the list widget.
-        The container widget has a monkey patched `searchable_list` attribute that
-        refers to `list_widget`.
-        FIXME: nothing in this method makes any sense
-        """
-        widget = QtWidgets.QWidget()
-        widget.searchable_list = list_widget
-        vbox = QtWidgets.QVBoxLayout()
-        widget.setLayout(vbox)
-        vbox.setContentsMargins(0, 0, 0, 0)
-        vbox.setSpacing(0)
-        vbox.addWidget(list_widget)
-        return widget
-
     def create_addresses_tab(self):
-        self.address_list = AddressList(self)
-        self.address_list.edited.connect(self.update_labels)
-        self.address_list.selection_cleared.connect(
-            self.status_bar.clear_selected_amount
-        )
-        self.address_list.selected_amount_changed.connect(
+        address_list = AddressList(self)
+        address_list.edited.connect(self.update_labels)
+        address_list.selection_cleared.connect(self.status_bar.clear_selected_amount)
+        address_list.selected_amount_changed.connect(
             lambda satoshis: self.status_bar.set_selected_amount(
                 self.format_amount_and_units(satoshis)
             )
         )
-        return self.create_list_tab(self.address_list)
+        return address_list
 
     def create_utxo_tab(self):
-        self.utxo_list = UTXOList(self)
-        self.utxo_list.selection_cleared.connect(self.status_bar.clear_selected_amount)
-        self.utxo_list.selected_amount_changed.connect(
+        utxo_list = UTXOList(self)
+        utxo_list.selection_cleared.connect(self.status_bar.clear_selected_amount)
+        utxo_list.selected_amount_changed.connect(
             lambda satoshis: self.status_bar.set_selected_amount(
                 self.format_amount_and_units(satoshis)
             )
         )
-        self.gui_object.addr_fmt_changed.connect(self.utxo_list.update)
-        self.utxo_list.edited.connect(self.update_labels)
-        return self.create_list_tab(self.utxo_list)
-
-    def create_contacts_tab(self):
-        self.contact_list = ContactList(self)
-        return self.create_list_tab(self.contact_list)
+        self.gui_object.addr_fmt_changed.connect(utxo_list.update)
+        utxo_list.edited.connect(self.update_labels)
+        return utxo_list
 
     def remove_address(self, addr):
         if self.question(
@@ -3465,16 +3442,20 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         )
         return d.run()
 
-    def do_search(self, t: str):
+    def do_search(self, pattern: str):
         """Apply search text to all tabs. FIXME: if a plugin later is loaded
         it will not receive the search filter -- but most plugins I know about
         do not support searchable_list anyway, so hopefully it's a non-issue."""
         for i in range(self.tabs.count()):
             tab = self.tabs.widget(i)
-            try:
-                tab.searchable_list.filter(t)
-            except (AttributeError, TypeError):
-                pass
+            searchable_list = None
+            if isinstance(tab, MyTreeWidget):
+                searchable_list = tab
+            elif hasattr(tab, "searchable_list"):
+                searchable_list = tab.searchable_list
+            if searchable_list is None:
+                return
+            searchable_list.filter(pattern)
 
     def new_contact_dialog(self):
         d = WindowModalDialog(self.top_level_window(), _("New Contact"))
