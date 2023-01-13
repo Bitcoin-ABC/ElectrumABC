@@ -138,7 +138,7 @@ class TrezorClientBase(HardwareClientBase, PrintError):
 
         try:
             self.client.init_device()
-        except BaseException:
+        except Exception:
             return False
         return True
 
@@ -204,7 +204,7 @@ class TrezorClientBase(HardwareClientBase, PrintError):
         self.prevent_timeouts()
         try:
             self.client.clear_session()
-        except BaseException as e:
+        except Exception as e:
             # If the device was removed it has the same effect...
             self.print_error("clear_session: ignoring error", str(e))
 

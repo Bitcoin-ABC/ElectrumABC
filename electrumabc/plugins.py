@@ -201,7 +201,7 @@ class Plugins(DaemonThread):
             if not d.get("requires_wallet_type") and conf_value:
                 try:
                     self.load_internal_plugin(name)
-                except BaseException as e:
+                except Exception as e:
                     fmt = traceback.format_exc()
                     self.print_error(f"cannot initialize plugin {name}: {e!r} {fmt}")
 
@@ -238,7 +238,7 @@ class Plugins(DaemonThread):
             ):
                 try:
                     self.load_external_plugin(package_name)
-                except BaseException as e:
+                except Exception as e:
                     traceback.print_exc(
                         file=sys.stdout
                     )  # shouldn't this be... suppressed unless -v?
@@ -502,7 +502,7 @@ class Plugins(DaemonThread):
         # plugin to be loaded, afterward.
         try:
             self.enable_external_plugin(package_name)
-        except BaseException as e:
+        except Exception as e:
             traceback.print_exc(file=sys.stdout)
             self.print_error(
                 "cannot enable/load external plugin %s:" % package_name, str(e)
@@ -1012,7 +1012,7 @@ class DeviceMgr(ThreadJob):
     ) -> Optional[HardwareClientBase]:
         self.print_error("getting client for keystore")
         if handler is None:
-            raise BaseException(
+            raise RuntimeError(
                 _("Handler not found for")
                 + " "
                 + plugin.name
@@ -1222,7 +1222,7 @@ class DeviceMgr(ThreadJob):
         for f in self.enumerate_func:
             try:
                 new_devices = f()
-            except BaseException as e:
+            except Exception as e:
                 self.print_error(
                     "custom device enum failed. func {}, error {}".format(
                         str(f), str(e)

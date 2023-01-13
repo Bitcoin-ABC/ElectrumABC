@@ -98,12 +98,12 @@ class LabelsPlugin(BasePlugin):
                         self.on_wallet_not_synched(wallet)
                     return
             if response.status_code != 200:
-                raise BaseException(response.status_code, response.text)
+                raise RuntimeError(response.status_code, response.text)
             response = response.json()
             if "error" in response:
-                raise BaseException(response["error"])
+                raise RuntimeError(response["error"])
             return response
-        except BaseException as e:
+        except Exception as e:
             if noexc:
                 wallet = self.find_wallet_by_id(wallet_id)
                 if wallet:

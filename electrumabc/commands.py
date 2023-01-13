@@ -118,9 +118,9 @@ def command(s):
             network = args[0].network
             password = kwargs.get("password")
             if c.requires_network and network is None:
-                raise BaseException("Daemon offline")  # Same wording as in daemon.py.
+                raise RuntimeError("Daemon offline")  # Same wording as in daemon.py.
             if c.requires_wallet and wallet is None:
-                raise BaseException(
+                raise RuntimeError(
                     f"Wallet not loaded. Use '{SCRIPT_NAME}" f" daemon load_wallet'"
                 )
             if (
@@ -604,7 +604,7 @@ class Commands:
         try:
             addr = self.wallet.import_private_key(privkey, password)
             out = "Keypair imported: " + addr
-        except BaseException as e:
+        except Exception as e:
             out = "Error: " + str(e)
         return out
 
@@ -617,7 +617,7 @@ class Commands:
             and self.nocheck is False
             and out.get("validated") is False
         ):
-            raise BaseException("cannot verify alias", x)
+            raise RuntimeError("cannot verify alias", x)
         return out["address"]
 
     @command("n")
@@ -928,7 +928,7 @@ class Commands:
             if raw:
                 tx = Transaction(raw)
             else:
-                raise BaseException("Unknown transaction")
+                raise RuntimeError("Unknown transaction")
         return tx.as_dict()
 
     @command("")
@@ -976,7 +976,7 @@ class Commands:
         """Return a payment request"""
         r = self.wallet.get_payment_request(Address.from_string(key), self.config)
         if not r:
-            raise BaseException("Request not found")
+            raise RuntimeError("Request not found")
         return self._format_request(r)
 
     # @command('w')
@@ -1088,7 +1088,7 @@ class Commands:
                 req = urllib.request.Request(URL, serialized_data, headers)
                 urllib.request.urlopen(req, timeout=5)
                 print_error("Got Response for %s" % address)
-            except BaseException as e:
+            except Exception as e:
                 print_error(str(e))
 
         h = Address.from_string(address).to_scripthash_hex()

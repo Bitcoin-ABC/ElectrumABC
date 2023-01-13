@@ -257,7 +257,7 @@ class TestTransaction(unittest.TestCase):
         )
 
     def test_errors(self):
-        with self.assertRaises(BaseException):
+        with self.assertRaises(Exception):
             xpubkey_to_address("")
 
     def test_parse_xpub(self):

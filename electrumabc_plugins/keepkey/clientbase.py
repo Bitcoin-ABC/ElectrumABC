@@ -135,7 +135,7 @@ class KeepKeyClientBase(HardwareClientBase, GuiMixin, PrintError):
         try:
             res = self.ping("electrum-abc pinging device")  # FIXME: Add some randomness
             assert res == "electrum-abc pinging device"
-        except BaseException:
+        except Exception:
             return False
         return True
 
@@ -221,7 +221,7 @@ class KeepKeyClientBase(HardwareClientBase, GuiMixin, PrintError):
         self.prevent_timeouts()
         try:
             super(KeepKeyClientBase, self).clear_session()
-        except BaseException as e:
+        except Exception as e:
             # If the device was removed it has the same effect...
             self.print_error("clear_session: ignoring error", str(e))
             pass

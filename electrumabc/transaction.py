@@ -461,7 +461,7 @@ class Transaction:
         elif isinstance(raw, dict):
             self.raw = raw["hex"]
         else:
-            raise BaseException("cannot initialize transaction", raw)
+            raise RuntimeError("cannot initialize transaction", raw)
         self._inputs = None
         self._outputs = None
         self.locktime = 0
@@ -1060,7 +1060,7 @@ class Transaction:
                 # verify_digest may also raise BadDigestError and BadSignatureError
                 if isinstance(reason, list):
                     reason.insert(0, repr(e))
-            except BaseException as e:
+            except Exception as e:
                 print_error(
                     "[Transaction.verify_signature] unexpected exception", repr(e)
                 )

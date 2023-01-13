@@ -121,7 +121,7 @@ class Ledger_Client(HardwareClientBase):
                 # communicate with the device, so we return True here.
                 return True
             return False
-        except BaseException:
+        except Exception:
             return False
         return True
 
@@ -296,7 +296,7 @@ class Ledger_Client(HardwareClientBase):
                 self.perform_hw1_preflight()
             except BTChipException as e:
                 if e.sw == 0x6D00 or e.sw == 0x6700:
-                    raise BaseException(
+                    raise RuntimeError(
                         _("{} not in Bitcoin Cash mode").format(self.device)
                     ) from e
                 raise e
@@ -669,7 +669,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
             else:
                 traceback.print_exc(file=sys.stderr)
                 self.give_error(e, True)
-        except BaseException as e:
+        except Exception as e:
             traceback.print_exc(file=sys.stdout)
             self.give_error(e, True)
         finally:
@@ -716,7 +716,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
             else:
                 traceback.print_exc(file=sys.stderr)
                 self.handler.show_error(e)
-        except BaseException as e:
+        except Exception as e:
             traceback.print_exc(file=sys.stderr)
             self.handler.show_error(e)
         finally:

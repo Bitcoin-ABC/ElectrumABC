@@ -283,5 +283,5 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
             # Suppress untrusted server string from appearing in the UI
             self.print_error("Server error:", repr(e))
             self.done_sig.emit(None, ServerError("The server replied with an error."))
-        except BaseException as e:
+        except Exception as e:
             self.done_sig.emit(None, e)

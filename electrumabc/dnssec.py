@@ -231,7 +231,7 @@ def check_query(ns, sub, _type, keys):
     elif answer[1].rdtype == dns.rdatatype.RRSIG:
         rrset, rrsig = answer
     else:
-        raise BaseException("No signature set in record")
+        raise RuntimeError("No signature set in record")
     if keys is None:
         keys = {dns.name.from_text(sub): rrset}
     dns.dnssec.validate(rrset, rrsig, keys)
@@ -284,7 +284,7 @@ def get_and_validate(ns, url, _type):
                 continue
             break
         else:
-            raise BaseException("DS does not match DNSKEY")
+            raise RuntimeError("DS does not match DNSKEY")
         # set key for next iteration
         keys = {name: rrset}
     # get TXT record (signed by zone)
@@ -299,7 +299,7 @@ def query(url, rtype):
     try:
         out = get_and_validate(ns, url, rtype)
         validated = True
-    except BaseException as e:
+    except Exception as e:
         # traceback.print_exc(file=sys.stderr)
         print_error("DNSSEC error:", str(e))
         resolver = dns.resolver.get_default_resolver()

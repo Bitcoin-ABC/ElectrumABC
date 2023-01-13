@@ -200,7 +200,7 @@ class PaymentRequest:
         # verify the chain of certificates
         try:
             x, ca = verify_cert_chain(cert.certificate)
-        except BaseException as e:
+        except Exception as e:
             traceback.print_exc(file=sys.stderr)
             self.error = str(e)
             return False
@@ -428,9 +428,9 @@ def verify_cert_chain(chain):
             x.check_date()
         else:
             if not x.check_ca():
-                raise BaseException("ERROR: Supplied CA Certificate Error")
+                raise RuntimeError("ERROR: Supplied CA Certificate Error")
     if not cert_num > 1:
-        raise BaseException(
+        raise RuntimeError(
             "ERROR: CA Certificate Chain Not Provided by Payment Processor"
         )
     # if the root CA is not supplied, add it to the chain
@@ -442,7 +442,7 @@ def verify_cert_chain(chain):
             root = ca_list[f]
             x509_chain.append(root)
         else:
-            raise BaseException("Supplied CA Not Found in Trusted CA Store.")
+            raise RuntimeError("Supplied CA Not Found in Trusted CA Store.")
     # verify the chain of signatures
     cert_num = len(x509_chain)
     for i in range(1, cert_num):
@@ -463,9 +463,9 @@ def verify_cert_chain(chain):
             hashBytes = bytearray(hashlib.sha512(data).digest())
             verify = pubkey.verify(sig, x509.PREFIX_RSA_SHA512 + hashBytes)
         else:
-            raise BaseException("Algorithm not supported")
+            raise RuntimeError("Algorithm not supported")
         if not verify:
-            raise BaseException(
+            raise RuntimeError(
                 "Certificate not Signed by Provided CA Certificate Chain"
             )
 
@@ -576,7 +576,7 @@ class InvoiceStore(object):
         except json.decoder.JSONDecodeError:
             traceback.print_exc(file=sys.stderr)
             raise FileImportFailedEncrypted()
-        except BaseException:
+        except Exception:
             traceback.print_exc(file=sys.stdout)
             raise FileImportFailed()
         self.save()

@@ -205,7 +205,7 @@ class TrezorPlugin(HW_PluginBase):
         try:
             self.print_error("connecting to device at", device.path)
             transport = trezorlib.transport.get_transport(device.path)
-        except BaseException as e:
+        except Exception as e:
             self.print_error("cannot connect at", device.path, str(e))
             return None
 
@@ -286,7 +286,7 @@ class TrezorPlugin(HW_PluginBase):
                 exit_code = wizard.loop.exec_()
                 loops.pop()
                 if exit_code != 0:
-                    if errors and isinstance(errors[0], BaseException):
+                    if errors and isinstance(errors[0], Exception):
                         msg = str(errors[0]).strip()
                         if msg:
                             # we do this here in the main thread so as to give
@@ -310,7 +310,7 @@ class TrezorPlugin(HW_PluginBase):
             self._initialize_device(settings, method, device_id)
         except UserCancelled:
             exit_code = 2
-        except BaseException as e:
+        except Exception as e:
             traceback.print_exc(file=sys.stderr)
             errors.append(e)
             exit_code = 1

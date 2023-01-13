@@ -172,7 +172,7 @@ class SimpleConfig(PrintError):
             int(port)  # Throw if cannot be converted to int
             server_str = str("{}:{}:s".format(host, port))
             self._set_key_in_user_config("server", server_str)
-        except BaseException:
+        except Exception:
             self._set_key_in_user_config("server", None)
 
         self.set_key("config_version", 2)
@@ -182,7 +182,7 @@ class SimpleConfig(PrintError):
         if cur_version > max_version:
             return False
         elif cur_version < min_version:
-            raise BaseException(
+            raise RuntimeError(
                 (
                     "config upgrade: unexpected version %d (should be %d-%d)"
                     % (cur_version, min_version, max_version)

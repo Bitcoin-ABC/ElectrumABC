@@ -284,12 +284,12 @@ class TestUtil(unittest.TestCase):
         )
 
     def test_parse_URI_invalid_address(self):
-        self.assertRaises(BaseException, parse_URI, "bitcoincash:invalidaddress")
-        self.assertRaises(BaseException, parse_URI, "ecash:invalidaddress")
+        self.assertRaises(Exception, parse_URI, "bitcoincash:invalidaddress")
+        self.assertRaises(Exception, parse_URI, "ecash:invalidaddress")
 
     def test_parse_URI_invalid(self):
         self.assertRaises(
-            BaseException, parse_URI, "notvalid:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma"
+            Exception, parse_URI, "notvalid:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma"
         )
 
     def test_parse_URI_parameter_polution(self):

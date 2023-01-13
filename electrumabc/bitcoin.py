@@ -1145,7 +1145,7 @@ def serialize_xpub(
     return EncodeBase58Check(xpub)
 
 
-class InvalidXKey(BaseException):
+class InvalidXKey(Exception):
     pass
 
 

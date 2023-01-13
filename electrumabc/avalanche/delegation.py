@@ -42,7 +42,7 @@ from .serialize import (
 )
 
 
-class WrongDelegatorKeyError(BaseException):
+class WrongDelegatorKeyError(Exception):
     pass
 
 

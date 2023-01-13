@@ -92,7 +92,7 @@ class BaseWizard(PrintError):
             f = getattr(self, action)
             f(*args, **kwargs)
         else:
-            raise BaseException("unknown action", action)
+            raise RuntimeError("unknown action", action)
 
     def can_go_back(self):
         return len(self._stack) > 1
@@ -236,7 +236,7 @@ class BaseWizard(PrintError):
             for addr in text.split():
                 try:
                     Address.from_string(addr)
-                except BaseException:
+                except Exception:
                     pass
                 else:
                     self.data["addresses"][addr] = {}
@@ -426,7 +426,7 @@ class BaseWizard(PrintError):
         except (GoBack, util.UserCancelled):
             self.choose_hw_device(purpose, storage=storage)
             return
-        except BaseException:
+        except Exception:
             self.choose_hw_device(purpose, storage=storage)
             return
 
@@ -515,7 +515,7 @@ class BaseWizard(PrintError):
             xpub = self.plugin.get_xpub(device_info.device.id_, derivation, xtype, self)
             client = devmgr.client_by_id(device_info.device.id_, scan_now=False)
             label = client.label()
-        except BaseException as e:
+        except Exception as e:
             self.print_error(traceback.format_exc())
             self.show_error(str(e))
             return
@@ -579,7 +579,7 @@ class BaseWizard(PrintError):
         elif self.seed_type == "old":
             self.run("create_keystore", seed, "")
         else:
-            raise BaseException("Unknown seed type", self.seed_type)
+            raise RuntimeError("Unknown seed type", self.seed_type)
 
     def on_restore_bip39(self, seed, passphrase):
         self.derivation_dialog(
@@ -662,7 +662,7 @@ class BaseWizard(PrintError):
                 devmgr.unpair_xpub(k.xpub)
                 self.choose_hw_device()
                 return
-            except BaseException as e:
+            except Exception as e:
                 traceback.print_exc(file=sys.stderr)
                 self.show_error(str(e))
                 return

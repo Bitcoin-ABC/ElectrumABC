@@ -167,7 +167,7 @@ class KeepKeyPlugin(HW_PluginBase):
 
         try:
             return self.hid_transport(pair)
-        except BaseException as e:
+        except Exception as e:
             # see fdb810ba622dc7dbe1259cbafb5b28e19d2ab114
             # raise
             self.print_error(f"cannot connect at {device.path} {e}")
@@ -177,7 +177,7 @@ class KeepKeyPlugin(HW_PluginBase):
         self.print_error("Trying to connect over WebUSB...")
         try:
             return self.webusb_transport(device)
-        except BaseException as e:
+        except Exception as e:
             self.print_error(f"cannot connect at {device.path} {e}")
             return None
 
@@ -198,7 +198,7 @@ class KeepKeyPlugin(HW_PluginBase):
         # Try a ping for device sanity
         try:
             client.ping("t")
-        except BaseException as e:
+        except Exception as e:
             self.print_error(f"ping failed {e}")
             return None
 
@@ -275,7 +275,7 @@ class KeepKeyPlugin(HW_PluginBase):
             self._initialize_device(settings, method, device_id, wizard, handler)
         except UserCancelled:
             exit_code = 1
-        except BaseException as e:
+        except Exception as e:
             self.print_error(str(e))
             handler.show_error(str(e))
             exit_code = 1

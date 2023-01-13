@@ -2072,7 +2072,7 @@ class Network(util.DaemonThread):
                     self.switch_to_interface(i.server, self.SWITCH_FOLLOW_CHAIN)
                     break
         else:
-            raise BaseException("blockchain not found", index)
+            raise RuntimeError("blockchain not found", index)
 
         with self.interface_lock:
             if self.interface:
@@ -2113,7 +2113,7 @@ class Network(util.DaemonThread):
                 ("blockchain.transaction.get", [txid]), timeout=timeout
             )
             return True, r
-        except BaseException as e:
+        except Exception as e:
             self.print_error(
                 "Exception retrieving transaction for '{}': {}".format(txid, repr(e))
             )
@@ -2177,7 +2177,7 @@ class Network(util.DaemonThread):
 
         try:
             out = self.broadcast_transaction2(transaction)
-        except BaseException as e:  # catch-all. May be util.TimeoutException, util.ServerError subclass or other.
+        except Exception as e:  # catch-all. May be util.TimeoutException, util.ServerError subclass or other.
             return False, "error: " + str(
                 e
             )  # Ergh. To remain compatible with old code we prepend this ugly "error: "

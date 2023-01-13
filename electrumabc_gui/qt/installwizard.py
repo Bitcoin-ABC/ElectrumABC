@@ -324,7 +324,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
                     except InvalidPassword as e:
                         QtWidgets.QMessageBox.information(None, _("Error"), str(e))
                         continue
-                    except BaseException as e:
+                    except Exception as e:
                         traceback.print_exc(file=sys.stdout)
                         QtWidgets.QMessageBox.information(None, _("Error"), str(e))
                         raise UserCancelled()
@@ -347,7 +347,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
                         return self.select_storage(path, get_wallet_from_daemon)
                     except (UserCancelled, GoBack):
                         raise
-                    except BaseException as e:
+                    except Exception as e:
                         traceback.print_exc(file=sys.stdout)
                         QtWidgets.QMessageBox.information(None, _("Error"), str(e))
                         raise UserCancelled()

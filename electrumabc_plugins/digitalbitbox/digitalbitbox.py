@@ -103,7 +103,7 @@ class DigitalBitbox_Client(HardwareClientBase):
     def has_usable_connection_with_device(self):
         try:
             self.dbb_has_password()
-        except BaseException:
+        except Exception:
             return False
         return True
 
@@ -118,7 +118,7 @@ class DigitalBitbox_Client(HardwareClientBase):
             xpub = reply["xpub"]
             return xpub
         else:
-            raise BaseException("no reply")
+            raise RuntimeError("no reply")
 
     def dbb_has_password(self):
         reply = self.hid_send_plain(b'{"ping":""}')
@@ -605,7 +605,7 @@ class DigitalBitbox_KeyStore(Hardware_KeyStore):
                 else:
                     raise Exception(_("Could not sign message"))
 
-        except BaseException as e:
+        except Exception as e:
             self.give_error(e)
         return sig
 
@@ -790,7 +790,7 @@ class DigitalBitbox_KeyStore(Hardware_KeyStore):
                     tx._inputs[i] = txin
         except UserCancelled:
             raise
-        except BaseException as e:
+        except Exception as e:
             self.give_error(e, True)
         else:
             print_error("Transaction is_complete", tx.is_complete())

@@ -120,7 +120,7 @@ class TcpConnection(threading.Thread, PrintError):
                 s.settimeout(2)
                 s.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
                 return s
-            except BaseException as _e:
+            except Exception as _e:
                 e = _e
                 continue
         else:

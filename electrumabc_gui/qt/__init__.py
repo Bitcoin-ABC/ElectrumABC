@@ -387,7 +387,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
                     self.print_error(
                         "Warning: Could not determine qdarkstyle version:", repr(e)
                     )
-            except BaseException as e:
+            except Exception as e:
                 use_dark_theme = False
                 self.print_error("Error setting dark theme: {}".format(repr(e)))
         # Apply any necessary stylesheet patches
@@ -697,7 +697,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
             wallet = self.daemon.load_wallet(path, None)
             if wallet is not None:
                 self.daemon.cmd_runner.wallet = wallet
-        except BaseException as e:
+        except Exception as e:
             traceback.print_exc(file=sys.stdout)
             QtWidgets.QMessageBox.warning(
                 None, _("Error"), _("Cannot load wallet") + " (1):\n" + str(e)
@@ -727,7 +727,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
                     window.bring_to_top()
                     return
             window = self._create_window_for_wallet(wallet)
-        except BaseException as e:
+        except Exception as e:
             traceback.print_exc(file=sys.stdout)
             QtWidgets.QMessageBox.warning(
                 None, _("Error"), _("Cannot create window for wallet:") + "\n" + str(e)
@@ -1147,7 +1147,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
             return
         except GoBack:
             return
-        except BaseException:
+        except Exception:
             traceback.print_exc(file=sys.stdout)
             return
         self.timer.start()

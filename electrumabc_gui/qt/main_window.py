@@ -2232,7 +2232,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             except OPReturn.Error as e:
                 self.statusBar().showMessage(str(e))
                 return
-            except BaseException:
+            except Exception:
                 return
 
             if not freeze_fee:
@@ -2576,7 +2576,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         except ExcessiveFee:
             self.show_message(_("Your fee is too high.  Max is 50 sat/byte."))
             return
-        except BaseException as e:
+        except Exception as e:
             traceback.print_exc(file=sys.stderr)
             self.show_message(str(e))
             return
@@ -3400,7 +3400,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 hw_dev_pw = self.wallet.keystore.get_password_for_storage_encryption()
             except UserCancelled:
                 return
-            except BaseException as e:
+            except Exception as e:
                 traceback.print_exc(file=sys.stderr)
                 self.show_error(str(e))
                 return
@@ -3418,7 +3418,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 self.wallet, None
             )  # clear password cache when user changes it, just in case
             run_hook("on_new_password", self, old_password, new_password)
-        except BaseException as e:
+        except Exception as e:
             self.show_error(str(e))
             return
         except:
@@ -3572,7 +3572,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             seed_type = getattr(keystore, "seed_type", "")
             if derivation == "m/" and seed_type in ["electrum", "standard"]:
                 derivation = None  # suppress Electrum seed 'm/' derivation from UI
-        except BaseException as e:
+        except Exception as e:
             self.show_error(str(e))
             return
 
@@ -3704,7 +3704,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         try:
             encrypted = bitcoin.encrypt_message(message, pubkey_e.text())
             encrypted_e.setText(encrypted.decode("ascii"))
-        except BaseException as e:
+        except Exception as e:
             if util.is_verbose:
                 traceback.print_exc(file=sys.stderr)
             self.show_warning(str(e))
@@ -3821,14 +3821,14 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                     tx = self.tx_from_text(result)  # will show an error dialog on error
                     if not tx:
                         return
-                except BaseException as e:
+                except Exception as e:
                     self.show_error(str(e))
                     return
                 self.show_transaction(tx)
 
             self._qr_dialog.qr_finished.connect(_on_qr_reader_finished)
             self._qr_dialog.start_scan(get_config().get_video_device())
-        except BaseException as e:
+        except Exception as e:
             if util.is_verbose:
                 traceback.print_exc(file=sys.stderr)
             self._qr_dialog = None
@@ -4619,7 +4619,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.payto_e.setText(get_address_text())
             self.spend_coins(coins)
             self.spend_max()
-        except BaseException as e:
+        except Exception as e:
             self.show_message(str(e))
             return
         self.payto_e.setFrozen(True)
@@ -4638,7 +4638,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             try:
                 addr = func(key)
                 good.append(addr)
-            except BaseException as e:
+            except Exception as e:
                 bad.append(key)
                 bad_info.append("{}: {}".format(key, str(e)))
                 continue
@@ -4902,7 +4902,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             try:
                 SSL_identity = paymentrequest.check_ssl_config(self.config)
                 SSL_error = None
-            except BaseException as e:
+            except Exception as e:
                 SSL_identity = "error"
                 SSL_error = str(e)
         else:
