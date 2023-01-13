@@ -1400,9 +1400,9 @@ class RateLimiterClassLvl(RateLimiter):
         obj = args[0]
         objcls = obj.__class__
         args = list(args)
-        args.insert(
-            0, objcls
-        )  # prepend obj class to trick super.invoke() into making this state object be class-level.
+        # prepend obj class to trick super.invoke() into making this state object be
+        # class-level.
+        args.insert(0, objcls)
         return super(RateLimiterClassLvl, cls).invoke(
             rate, ts_after, func, args, kwargs
         )
@@ -1527,9 +1527,9 @@ def webopen(url: str):
         if os.fork() == 0:
             del os.environ["LD_LIBRARY_PATH"]
             webbrowser.open(url)
-            os._exit(
-                0
-            )  # Python docs advise doing this after forking to prevent atexit handlers from executing.
+            # Python docs advise doing this after forking to prevent atexit handlers
+            # from executing.
+            os._exit(0)
     else:
         webbrowser.open(url)
 

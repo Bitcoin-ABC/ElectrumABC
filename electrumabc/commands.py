@@ -834,7 +834,9 @@ class Commands:
                 fakenet = FakeNetwork(q)
             fx = FxThread(self.config, fakenet)
             kwargs["fx"] = fx
-            fx.run()  # invoke the fx to grab history rates at least once, otherwise results will always contain "No data" (see #1671)
+            # invoke the fx to grab history rates at least once, otherwise results will
+            # always contain "No data" (see #1671)
+            fx.run()
             if fakenet and q and fx.is_enabled() and fx.get_history_config():
                 # queue.get docs aren't clean on whether 0 means block or don't
                 # block, so we ensure at least 1ms timeout.

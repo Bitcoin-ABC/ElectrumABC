@@ -137,9 +137,9 @@ class OSXQRDetect(AbstractQrCodeReader, PrintError):
         if retval:
             self.print_error("Got", res.width, res.height, res.str)
             qrstring = res.str.decode("utf-8")
-            res.topLeftY = (
-                height - res.topLeftY - res.height
-            )  # flip vertically as y=0 in this coordinate space and in OSX coordinate space are flipped
+            # flip vertically as y=0 in this coordinate space and in OSX coordinate
+            # space are flipped
+            res.topLeftY = height - res.topLeftY - res.height
             center = (
                 int(res.topLeftX + res.width / 2),
                 int(res.topLeftY + res.height / 2),

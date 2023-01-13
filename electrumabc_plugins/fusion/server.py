@@ -477,9 +477,9 @@ class FusionServer(GenericServer):
             client.error(f"Invalid tier selected: {t}")
         try:
             mytiers = list(mytierpools)
-            rng.shuffle(
-                mytiers
-            )  # shuffle the adding order so that if filling more than one pool, we don't have bias towards any particular tier
+            # shuffle the adding order so that if filling more than one pool, we don't
+            # have bias towards any particular tier
+            rng.shuffle(mytiers)
             with self.lock:
                 if self.stopping:
                     return

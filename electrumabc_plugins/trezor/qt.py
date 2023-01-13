@@ -537,13 +537,15 @@ class SettingsDialog(WindowModalDialog):
                     if (img.width(), img.height()) != (
                         hs_cols,
                         hs_rows,
-                    ):  # do we need to scale it ?
+                    ):
+                        # force to our dest size. Note that IgnoreAspectRatio guarantess
+                        # the right size. Ther other modes don't
                         img = img.scaled(
                             hs_cols,
                             hs_rows,
                             Qt.IgnoreAspectRatio,
                             Qt.SmoothTransformation,
-                        )  # force to our dest size. Note that IgnoreAspectRatio guarantess the right size. Ther other modes don't
+                        )
                         if img.isNull() or (img.width(), img.height()) != (
                             hs_cols,
                             hs_rows,
@@ -601,13 +603,15 @@ class SettingsDialog(WindowModalDialog):
                     if (img.width(), img.height()) != (
                         hs_cols,
                         hs_rows,
-                    ):  # do we need to scale it ?
+                    ):
+                        # force to our dest size. Note that IgnoreAspectRatio
+                        # guarantess the right size. Ther other modes don't
                         img = img.scaled(
                             hs_cols,
                             hs_rows,
                             Qt.IgnoreAspectRatio,
                             Qt.SmoothTransformation,
-                        )  # force to our dest size. Note that IgnoreAspectRatio guarantess the right size. Ther other modes don't
+                        )
                         if img.isNull() or (img.width(), img.height()) != (
                             hs_cols,
                             hs_rows,
@@ -619,9 +623,11 @@ class SettingsDialog(WindowModalDialog):
                             )
                             return
                     target_fmt = QImage.Format_RGB888
+                    # dither it down to 256 colors to reduce image complexity then back
+                    # up to 24 bit for easy reading
                     img = img.convertToFormat(QImage.Format_Indexed8).convertToFormat(
                         target_fmt
-                    )  # dither it down to 256 colors to reduce image complexity then back up to 24 bit for easy reading
+                    )
                     if img.isNull():
                         handler.show_error(_("Could not dither or re-render image"))
                         return

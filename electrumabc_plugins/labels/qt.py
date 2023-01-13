@@ -145,18 +145,18 @@ class Plugin(LabelsPlugin):
         # this runs in a NON-GUI thread
         dlg = dlgRef()
         if dlg:
-            dlg.sigs.ok_button_disable_sig.emit(
-                True
-            )  # block window closing prematurely which can cause a temporary hang until thread completes
+            # block window closing prematurely which can cause a temporary hang
+            # until thread completes
+            dlg.sigs.ok_button_disable_sig.emit(True)
         self.push_thread(wallet)
 
     def do_force_download(self, wallet, dlgRef):
         # this runs in a NON-GUI thread
         dlg = dlgRef()
         if dlg:
-            dlg.sigs.ok_button_disable_sig.emit(
-                True
-            )  # block window closing prematurely which can cause a temporary hang until thread completes
+            # block window closing prematurely which can cause a temporary hang
+            # until thread completes
+            dlg.sigs.ok_button_disable_sig.emit(True)
         self.pull_thread(wallet, True)
 
     def done_processing(self, dlgRef, result):

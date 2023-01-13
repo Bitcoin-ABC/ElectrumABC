@@ -95,9 +95,7 @@ class PopupWidget(QtWidgets.QWidget):
         self.pointerPos = r
         self.update()
 
-    @pyqtProperty(
-        float
-    )  # Property so that Qt animations work. You may set the actual attrbute directly and ingore this in client code
+    @pyqtProperty(float)
     def popupOpacity(self):
         return self.popup_opacity
 
@@ -106,9 +104,7 @@ class PopupWidget(QtWidgets.QWidget):
         self.popup_opacity = value
         self.setWindowOpacity(value)
 
-    @pyqtProperty(
-        float
-    )  # Property so that Qt animations work. You may set the actual attrbute directly and ingore this in client code
+    @pyqtProperty(float)
     def finalOpacity(self):
         return self.final_opacity
 

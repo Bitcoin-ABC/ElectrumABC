@@ -219,9 +219,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.gui_thread = gui_object.gui_thread
         self.wallet = wallet
         assert not self.wallet.weak_window
-        self.wallet.weak_window = Weak.ref(
-            self
-        )  # This enables plugins such as CashFusion to keep just a reference to the wallet, but eventually be able to find the window it belongs to.
+        # This enables plugins such as CashFusion to keep just a reference to the
+        # wallet, but eventually be able to find the window it belongs to.
+        self.wallet.weak_window = Weak.ref(self)
 
         self.config = config = gui_object.config
         assert self.wallet and self.config and self.gui_object
@@ -242,25 +242,20 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.externalpluginsdialog = None
         self.hardwarewalletdialog = None
         self.require_fee_update = False
-        self.addr_fmt_changed = (
-            self.gui_object.addr_fmt_changed
-        )  # alias for backwards compatibility for plugins -- this signal used to live in each window and has since been refactored to gui-object where it belongs (since it's really an app-global setting)
+        # alias for backwards compatibility for plugins -- this signal used to live in
+        # each window and has since been refactored to gui-object where it belongs
+        # (since it's really an app-global setting)
+        self.addr_fmt_changed = self.gui_object.addr_fmt_changed
         self.tl_windows = []
         self.tx_external_keypairs = {}
         self._tx_dialogs = Weak.Set()
-        self.tx_update_mgr = TxUpdateMgr(
-            self
-        )  # manages network callbacks for 'new_transaction' and 'verified2', and collates GUI updates from said callbacks as a performance optimization
-        self.is_schnorr_enabled = (
-            self.wallet.is_schnorr_enabled
-        )  # This is a function -- Support for plugins that may be using the 4.0.3 & 4.0.4 API -- this function used to live in this class, before being moved to Abstract_Wallet.
-        self.send_tab_opreturn_widgets, self.receive_tab_opreturn_widgets = (
-            [],
-            [],
-        )  # defaults to empty list
-        self._shortcuts = (
-            Weak.Set()
-        )  # keep track of shortcuts and disable them on close
+        # manages network callbacks for 'new_transaction' and 'verified2', and collates
+        # GUI updates from said callbacks as a performance optimization
+        self.tx_update_mgr = TxUpdateMgr(self)
+        # defaults to empty list
+        self.send_tab_opreturn_widgets, self.receive_tab_opreturn_widgets = ([], [])
+        # keep track of shortcuts and disable them on close
+        self._shortcuts = Weak.Set()
 
         self.status_bar = self.create_status_bar()
 
@@ -913,7 +908,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         prefs_tit = _("Preferences") + "..."
         a = tools_menu.addAction(
             prefs_tit, self.settings_dialog, QKeySequence("Ctrl+,")
-        )  # Note: on macOS this hotkey sequence won't be shown in the menu (since it's reserved by the system), but will still work. :/
+        )
         if sys.platform == "darwin":
             # This turns off the heuristic matching based on name and keeps the
             # "Preferences" action out of the application menu and into the
@@ -1355,9 +1350,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         ):
             self.update_tabs()
 
-    @rate_limited(
-        1.0, classlevel=True, ts_after=True
-    )  # Limit tab updates to no more than 1 per second, app-wide. Multiple calls across instances will be collated into 1 deferred series of calls (1 call per extant instance)
+    @rate_limited(1.0, classlevel=True, ts_after=True)
     def update_tabs(self):
         if self.cleaned_up:
             return
@@ -1741,9 +1734,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.set_receive_address(addr)
         self.expires_label.hide()
         self.expires_combo.show()
-        self.request_list.setCurrentItem(
-            None
-        )  # We want the current item to always reflect what's in the UI. So if new, clear selection.
+        self.request_list.setCurrentItem(None)
         self.receive_message_e.setFocus(1)
 
     def set_receive_address(self, addr: Address):
@@ -1760,9 +1751,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             text = self.receive_address.to_ui_string()
         self.receive_address_e.setText(text)
 
-    @rate_limited(
-        0.250, ts_after=True
-    )  # this function potentially re-computes the QR widget, so it's rate limited to once every 250ms
+    @rate_limited(0.250, ts_after=True)
     def check_and_reset_receive_address_if_needed(self):
         """Check to make sure the receive tab is kosher and doesn't contain
         an already-used address. This should be called from the showEvent
@@ -2709,13 +2698,12 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 # and we proceed anyway with the broadcast
                 status, msg = self.network.broadcast_transaction(tx)
 
-                # figure out what to return...
-                msg = (
-                    ack_msg or msg
-                )  # prefer the merchant's ack_msg over the broadcast msg, but fallback to broadcast msg if no ack_msg.
-                status = bool(
-                    ack_status or status
-                )  # if both broadcast and merchant ACK failed -- it's a failure. if either succeeded -- it's a success
+                # prefer the merchant's ack_msg over the broadcast msg, but fallback
+                # to broadcast msg if no ack_msg.
+                msg = ack_msg or msg
+                # if both broadcast and merchant ACK failed -- it's a failure. if
+                # either succeeded -- it's a success
+                status = bool(ack_status or status)
 
                 if status:
                     self.invoices.set_paid(pr, tx.txid())
@@ -3157,9 +3145,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     def spend_coins(self, coins):
         self.set_pay_from(coins)
         self.show_send_tab()
-        run_hook(
-            "on_spend_coins", self, coins
-        )  # CashShuffle: will set the mode of send tab to coins[0]'s shuffled/unshuffled state
+        run_hook("on_spend_coins", self, coins)
         self.update_fee()
 
     def paytomany(self):
@@ -3938,9 +3924,10 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             if not ok:
                 parent.show_message(_("Error retrieving transaction") + ":\n" + r)
                 return
-            tx = Transaction(
-                r, sign_schnorr=self.wallet.is_schnorr_enabled()
-            )  # note that presumably the tx is already signed if it comes from blockchain so this sign_schnorr parameter is superfluous, but here to satisfy my OCD -Calin
+            # note that presumably the tx is already signed if it comes from blockchain
+            # so this sign_schnorr parameter is superfluous, but here to satisfy
+            # my OCD -Calin
+            tx = Transaction(r, sign_schnorr=self.wallet.is_schnorr_enabled())
             self.show_transaction(tx)
 
     def do_create_invoice(self):
@@ -5074,18 +5061,19 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             if qr_combo.isEnabled():
                 self.config.set_key("video_device", qr_combo.itemData(x), True)
 
-        set_no_camera()  # pre-populate combo box with default so it has a sizeHint
+        # pre-populate combo box with default so it has a sizeHint
+        set_no_camera()
 
-        d.shown_signal.connect(
-            scan_cameras, Qt.QueuedConnection
-        )  # do the camera scan once dialog is shown, using QueuedConnection so it's called from top level event loop and not from the showEvent handler
+        # do the camera scan once dialog is shown, using QueuedConnection so it's
+        # called from top level event loop and not from the showEvent handler
+        d.shown_signal.connect(scan_cameras, Qt.QueuedConnection)
         qr_combo.currentIndexChanged.connect(on_video_device)
         gui_widgets.append((qr_label, qr_combo))
 
         colortheme_combo = QtWidgets.QComboBox()
-        colortheme_combo.addItem(
-            _("Default"), "default"
-        )  # We can't name this "light" in the UI as sometimes the default is actually dark-looking eg on Mojave or on some Linux desktops.
+        # We can't name this "light" in the UI as sometimes the default is actually
+        # dark-looking eg on Mojave or on some Linux desktops.
+        colortheme_combo.addItem(_("Default"), "default")
         colortheme_combo.addItem(_("Dark"), "dark")
         theme_name = self.config.get("qt_gui_color_theme", "default")
         dark_theme_available = self.gui_object.is_dark_theme_available()
@@ -5486,18 +5474,16 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             conf_exchange = self.fx.config_exchange()
             ex_combo.clear()
             ex_combo.addItems(sorted(exchanges))
-            idx = ex_combo.findText(
-                conf_exchange
-            )  # try and restore previous exchange if in new list
+            # try and restore previous exchange if in new list
+            idx = ex_combo.findText(conf_exchange)
             if idx < 0:
                 # hmm, previous exchange wasn't in new h= setting. Try default exchange.
                 idx = ex_combo.findText(self.fx.default_exchange)
-            idx = (
-                0 if idx < 0 else idx
-            )  # if still no success (idx < 0) -> default to the first exchange in combo
-            if (
-                exchanges
-            ):  # don't set index if no exchanges, as any index is illegal. this shouldn't happen.
+            # if still no success (idx < 0) -> default to the first exchange in combo
+            idx = 0 if idx < 0 else idx
+            # don't set index if no exchanges, as any index is illegal.
+            # this shouldn't happen.
+            if exchanges:
                 ex_combo.setCurrentIndex(
                     idx
                 )  # note this will emit a currentIndexChanged signal if it's changed
@@ -5668,9 +5654,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                             sig.disconnect()
                         except TypeError:
                             pass  # no connections
-                elif attr_name.endswith(
-                    "__RateLimiter"
-                ):  # <--- NB: this needs to match the attribute name in util.py rate_limited decorator
+                # NB: this needs to match the attribute name in util.py rate_limited decorator
+                elif attr_name.endswith("__RateLimiter"):
                     rl_obj = getattr(self, attr_name)
                     if isinstance(rl_obj, RateLimiter):
                         rl_obj.kill_timer()
@@ -5762,11 +5747,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         if self.cleaned_up:
             return
         self.cleaned_up = True
-        if (
-            self.wallet.thread
-        ):  # guard against window close before load_wallet was called (#1554)
+        # guard against window close before load_wallet was called (#1554)
+        if self.wallet.thread:
             self.wallet.thread.stop()
-            self.wallet.thread.wait()  # Join the thread to make sure it's really dead.
+            # Join the thread to make sure it's really dead.
+            self.wallet.thread.wait()
 
         for w in [
             self.address_list,
@@ -5776,7 +5761,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.tx_update_mgr,
         ]:
             if w:
-                w.clean_up()  # tell relevant object to clean itself up, unregister callbacks, disconnect signals, etc
+                # tell relevant object to clean itself up, unregister callbacks,
+                # disconnect signals, etc
+                w.clean_up()
 
         with contextlib.suppress(TypeError):
             self.gui_object.addr_fmt_changed.disconnect(self.utxo_list.update)
@@ -6146,12 +6133,13 @@ class TxUpdateMgr(QObject, PrintError):
         self.need_process_v, self.need_process_n = False, False
         # /end thread-shared attributes
         self.weakParent = Weak.ref(main_window_parent)
+        # immediately clear verif_q on history update because it would be redundant
+        # to keep the verify queue around after a history list update
         main_window_parent.history_updated_signal.connect(
             self.verifs_get_and_clear, Qt.DirectConnection
-        )  # immediately clear verif_q on history update because it would be redundant to keep the verify queue around after a history list update
-        main_window_parent.on_timer_signal.connect(
-            self.do_check, Qt.DirectConnection
-        )  # hook into main_window's timer_actions function
+        )
+        # hook into main_window's timer_actions function
+        main_window_parent.on_timer_signal.connect(self.do_check, Qt.DirectConnection)
         self.full_hist_refresh_timer = QTimer(self)
         self.full_hist_refresh_timer.setInterval(1000)
         self.full_hist_refresh_timer.setSingleShot(False)

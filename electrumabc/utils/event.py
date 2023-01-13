@@ -36,11 +36,8 @@ class Event(list):
     """
 
     def __call__(self, *args, **kwargs):
-        for (
-            method
-        ) in (
-            self.copy()
-        ):  # prevent mutation while invoking, in case callbacks themselves add to this list
+        # prevent mutation while invoking, in case callbacks themselves add to this list
+        for method in self.copy():
             if isinstance(method, weakref.WeakMethod):
                 strong_method = method()
                 if not strong_method:
@@ -48,7 +45,9 @@ class Event(list):
                     try:
                         self.remove(method)
                     except ValueError:
-                        pass  # allow for the possibility some other callback removed it already while we were iterating
+                        # allow for the possibility some other callback removed it
+                        # already while we were iterating
+                        pass
                     continue
                 else:
                     # it's good, proceed with dereferenced strong_method

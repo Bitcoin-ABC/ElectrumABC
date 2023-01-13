@@ -103,9 +103,7 @@ class NetworkDialog(MessageBoxMixin, QtWidgets.QDialog):
         # print_error("[NetworkDialog] on_network:",event,*args)
         self.network_updated_signal.emit()  # this enqueues call to on_update in GUI thread
 
-    @rate_limited(
-        0.333
-    )  # limit network window updates to max 3 per second. More frequent isn't that useful anyway -- and on large wallets/big synchs the network spams us with events which we would rather collapse into 1
+    @rate_limited(0.333)
     def on_update(self):
         """This always runs in main GUI thread"""
         self.nlayout.update()
@@ -1217,9 +1215,12 @@ class NetworkChoiceLayout(QObject, PrintError):
     def suggest_proxy(self, found_proxy):
         if not found_proxy:
             self.tor_cb.setEnabled(False)
-            self._set_tor_use(
-                False
-            )  # It's not clear to me that if the tor service goes away and comes back later, and in the meantime they unchecked proxy_cb, that this should remain checked. I can see it being confusing for that to be the case. Better to uncheck. It gets auto-re-checked anyway if it comes back and it's the same due to code below. -Calin
+            # It's not clear to me that if the tor service goes away and comes back
+            # later, and in the meantime they unchecked proxy_cb, that this should
+            # remain checked. I can see it being confusing for that to be the case.
+            # Better to uncheck. It gets auto-re-checked anyway if it comes back and
+            # it's the same due to code below. -Calin
+            self._set_tor_use(False)
             return
         self.tor_proxy = found_proxy
         self.tor_cb.setText(
@@ -1289,7 +1290,9 @@ class NetworkChoiceLayout(QObject, PrintError):
 
     def set_blacklisted(self, server, bl):
         self.network.server_set_blacklisted(server, bl, True)
-        self.set_server()  # if the blacklisted server is the active server, this will force a reconnect to another server
+        # if the blacklisted server is the active server, this will force a reconnect
+        # to another server
+        self.set_server()
         self.update()
 
     def set_whitelisted(self, server, flag):
@@ -1299,7 +1302,9 @@ class NetworkChoiceLayout(QObject, PrintError):
 
     def set_whitelisted_only(self, b):
         self.network.set_whitelist_only(b)
-        self.set_server()  # forces us to send a set-server to network.py which recomputes eligible servers, etc
+        # forces us to send a set-server to network.py which recomputes eligible
+        # servers, etc
+        self.set_server()
         self.update()
 
     def on_view_blacklist(self, ignored):
@@ -1366,9 +1371,9 @@ class TorDetector(QThread):
             self.stopQ.put("kick")
 
     def start(self):
-        self.stopQ = (
-            queue.Queue()
-        )  # create a new stopQ blowing away the old one just in case it has old data in it (this prevents races with stop/start arriving too quickly for the thread)
+        # create a new stopQ blowing away the old one just in case it has old data in
+        # it (this prevents races with stop/start arriving too quickly for the thread)
+        self.stopQ = queue.Queue()
         super().start()
 
     def stop(self):

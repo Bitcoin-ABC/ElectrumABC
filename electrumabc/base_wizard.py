@@ -254,13 +254,15 @@ class BaseWizard(PrintError):
                     return
                 for b38, tup in decrypted.items():
                     wif, adr = tup
-                    text = text.replace(
-                        b38, wif
-                    )  # kind of a hack.. but works. replace the bip38 key with the wif key in the text.
+                    # kind of a hack.. but works. replace the bip38 key with the wif
+                    # key in the text.
+                    text = text.replace(b38, wif)
 
             self.keystores = [keystore.from_private_key_list(text)]
             self.data["wallet_type"] = self.wallet_type = "imported_privkey"
-            self.reset_stack()  # 'Back' button wasn't working anyway at this point, so we just force it to read 'Cancel' and this proceeds with no password set.
+            # 'Back' button wasn't working anyway at this point, so we just force it to
+            # read 'Cancel' and this proceeds with no password set.
+            self.reset_stack()
         else:
             return self.terminate()
         return self.run("create_wallet")

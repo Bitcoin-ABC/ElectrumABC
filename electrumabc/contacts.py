@@ -181,9 +181,9 @@ class Contacts(PrintError):
                     }  # make it look like a dict with 'contacts' in it so that it resembles a wallet file, and next call to _load_from_dict_like_object works
                 contacts = self._load_from_dict_like_object(d)
                 for contact in contacts:
-                    res = self.add(
-                        contact, unique=True
-                    )  # enforce unique imports in case user imports the same file multiple times
+                    # enforce unique imports in case user imports the same file
+                    # multiple times
+                    res = self.add(contact, unique=True)
                     if res:
                         count += 1
         except Exception:

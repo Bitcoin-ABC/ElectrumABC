@@ -186,21 +186,15 @@ def init_qapplication(config):
 class ElectrumGui(QtCore.QObject, PrintError):
     new_window_signal = QtCore.pyqtSignal(str, object)
     update_available_signal = QtCore.pyqtSignal(bool)
-    addr_fmt_changed = (
-        QtCore.pyqtSignal()
-    )  # app-wide signal for when cashaddr format is toggled. This used to live in each ElectrumWindow instance but it was recently refactored to here.
-    cashaddr_status_button_hidden_signal = QtCore.pyqtSignal(
-        bool
-    )  # app-wide signal for when cashaddr toggle button is hidden from the status bar
-    shutdown_signal = (
-        QtCore.pyqtSignal()
-    )  # signal for requesting an app-wide full shutdown
+    addr_fmt_changed = QtCore.pyqtSignal()
+    cashaddr_status_button_hidden_signal = QtCore.pyqtSignal(bool)
+    shutdown_signal = QtCore.pyqtSignal()
     do_in_main_thread_signal = QtCore.pyqtSignal(object, object, object)
 
     instance = None
 
     def __init__(self, config: SimpleConfig, daemon: Daemon, plugins: Plugins):
-        super(__class__, self).__init__()  # QtCore.QObject init
+        super(__class__, self).__init__()
         assert (
             __class__.instance is None
         ), "ElectrumGui is a singleton, yet an instance appears to already exist! FIXME!"
@@ -226,8 +220,10 @@ class ElectrumGui(QtCore.QObject, PrintError):
 
         self.app = QtWidgets.QApplication.instance()
 
-        self._load_fonts()  # this needs to be done very early, before the font engine loads fonts.. out of paranoia
-        self._exit_if_required_pyqt_is_missing()  # This may immediately exit the app if missing required PyQt5 modules, so it should also be done early.
+        # this needs to be done very early, before the font engine loads fonts..
+        # out of paranoia
+        self._load_fonts()
+        self._exit_if_required_pyqt_is_missing()
         self.new_version_available = None
         self._set_icon()
         self.app.installEventFilter(self)
@@ -423,9 +419,10 @@ class ElectrumGui(QtCore.QObject, PrintError):
         self._expire_cached_password(wallet)
         if password is None:
             return
-        timer = (
-            QtCore.QTimer()
-        )  # NB a top-level parentless QObject will get delete by Python when its Python refct goes to 0, which is what we want here. Future programmers: Do not give this timer a parent!
+        # NB a top-level parentless QObject will get delete by Python when its Python
+        # refct goes to 0, which is what we want here.
+        # Future programmers: Do not give this timer a parent!
+        timer = QtCore.QTimer()
         self._wallet_password_cache[wallet] = (password, timer)
         weakWallet = Weak.ref(wallet)
         weakSelf = Weak.ref(self)
@@ -496,13 +493,16 @@ class ElectrumGui(QtCore.QObject, PrintError):
 
         if (
             sys.platform == "linux"
-            and self.linux_qt_use_custom_fontconfig  # method-backed property, checks config settings
+            # method-backed property, checks config settings
+            and self.linux_qt_use_custom_fontconfig
             and not os.environ.get("FONTCONFIG_FILE")
             and os.path.exists("/etc/fonts/fonts.conf")
             and os.path.exists(linux_font_config_file)
             and os.path.exists(emojis_ttf_path)
+            # doing this on Qt < 5.12 causes harm and makes the whole app render fonts
+            # badly
             and self.qt_version() >= (5, 12)
-        ):  # doing this on Qt < 5.12 causes harm and makes the whole app render fonts badly
+        ):
             # On Linux, we override some fontconfig rules by loading our own
             # font config XML file. This makes it so that our custom emojis and
             # other needed glyphs are guaranteed to get picked up first,
@@ -568,7 +568,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
             # convince yourself of this.  Doing it this way actually cleans-up
             # the menus and they do not leak.
             m_old.clear()
-            m_old.deleteLater()  # C++ object and its children will be deleted later when we return to the event loop
+            m_old.deleteLater()
         m = QtWidgets.QMenu()
         m.setObjectName("SysTray.QMenu")
         self.tray.setContextMenu(m)
@@ -655,9 +655,9 @@ class ElectrumGui(QtCore.QObject, PrintError):
         if not new_focus_widget:
             return
         if isinstance(new_focus_widget, QtWidgets.QWidget):
-            window = QtWidgets.QWidget.window(
-                new_focus_widget
-            )  # call base class because some widgets may actually override 'window' with Python attributes.
+            # call base class because some widgets may actually override 'window' with
+            # Python attributes.
+            window = QtWidgets.QWidget.window(new_focus_widget)
             if isinstance(window, ElectrumWindow):
                 self._last_active_window = Weak.ref(window)
 
@@ -794,15 +794,15 @@ class ElectrumGui(QtCore.QObject, PrintError):
             # open.  It was bizarre behavior to keep the app open when
             # things like a transaction dialog or the network dialog were still
             # up.
-            self._quit_after_last_window()  # central point that checks if we should quit.
-
-        # window.deleteLater()  # <--- This has the potential to cause bugs (esp. with misbehaving plugins), so commented-out. The object gets deleted anyway when Python GC kicks in. Forcing a delete may risk python to have a dangling reference to a deleted C++ object.
+            # central point that checks if we should quit.
+            self._quit_after_last_window()
 
     def gc_schedule(self):
         """Schedule garbage collection to happen in the near future.
         Note that rapid-fire calls to this re-start the timer each time, thus
         only the last call takes effect (it's rate-limited)."""
-        self.gc_timer.start()  # start/re-start the timer to fire exactly once in timeInterval() msecs
+        # start/re-start the timer to fire exactly once in timeInterval() msecs
+        self.gc_timer.start()
 
     @staticmethod
     def gc():

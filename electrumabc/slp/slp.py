@@ -71,11 +71,13 @@ class ScriptOutput(address.ScriptOutput):
         # fast test passed -- next try the slow test -- attempt to parse and
         # validate OP_RETURN message
         try:
-            slf = cls(script_bytes)  # raises on parse error
-            if slf.message is not None:  # should always be not None
-                cls._script_message_cache.put(
-                    slf.script, slf.message
-                )  # save parsed message since likely it will be needed again very soon by class c'tor
+            # raises on parse error
+            slf = cls(script_bytes)
+            # should always be not None
+            if slf.message is not None:
+                # save parsed message since likely it will be needed again very soon
+                # by class c'tor
+                cls._script_message_cache.put(slf.script, slf.message)
                 return True
         except Error:
             pass
@@ -90,10 +92,8 @@ class ScriptOutput(address.ScriptOutput):
 
 
 # /ScriptOutput
-
-address.ScriptOutput.protocol_classes.add(
-    ScriptOutput
-)  # register class with Electron Cash script 'protocol factory' system
+# register class with Electron Cash script 'protocol factory' system
+address.ScriptOutput.protocol_classes.add(ScriptOutput)
 
 
 class Message:
@@ -902,17 +902,16 @@ class WalletData(PrintError):
         for addr, txo_set in self.txo_byaddr.copy().items():
             for txo in list(txo_set):
                 if txo.rsplit(":", 1)[0] == txid:
-                    txo_set.discard(
-                        txo
-                    )  # this actually points to the real txo_set instance in the dict
+                    # this actually points to the real txo_set instance in the dict
+                    txo_set.discard(txo)
             if not txo_set:
                 self.txo_byaddr.pop(addr, None)
         for tok_id, txo_dict in self.token_quantities.copy().items():
             for txo in txo_dict.copy():
                 if txo.rsplit(":", 1)[0] == txid:
-                    txo_dict.pop(
-                        txo, None
-                    )  # this actually points to the real txo_dict instance in the token_quantities[tok_id] dict
+                    # this actually points to the real txo_dict instance in the
+                    # token_quantities[tok_id] dict
+                    txo_dict.pop(txo, None)
             if not txo_dict:
                 self.token_quantities.pop(tok_id, None)
                 # this token has no more relevant tx's -- pop it from
@@ -925,9 +924,9 @@ class WalletData(PrintError):
         with locks held."""
         outputs = tx.outputs()
         so = outputs and outputs[0][1]
-        if not isinstance(
-            so, ScriptOutput
-        ):  # Note: ScriptOutput here is the subclass defined in this file, not address.ScriptOutput
+        # Note: ScriptOutput here is the subclass defined in this file, not
+        # address.ScriptOutput
+        if not isinstance(so, ScriptOutput):
             return
         transaction_type = so.message.transaction_type
         try:

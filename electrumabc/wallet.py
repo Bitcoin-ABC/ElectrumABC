@@ -962,9 +962,8 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         freezing, not address-level."""
         assert isinstance(address, Address)
         mempoolHeight = self.get_local_height() + 1
-        if (
-            not exclude_frozen_coins
-        ):  # we do not use the cache when excluding frozen coins as frozen status is a dynamic quantity that can change at any time in the UI
+        # we do not use the cache when excluding frozen coins as frozen status is a dynamic quantity that can change at any time in the UI
+        if not exclude_frozen_coins:
             cached = self._addr_bal_cache.get(address)
             if cached is not None:
                 return cached
@@ -1165,9 +1164,9 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             return f"{prevout_hash}:{prevout_n}"
 
         def rm(ser, pruned_too=True, *, tup=None):
-            h, n = tup or deser(
-                ser
-            )  # tup arg is for performance when caller already knows the info (avoid a redundant .split on ':')
+            # tup arg is for performance when caller already knows the info
+            # (avoid a redundant .split on ':')
+            h, n = tup or deser(ser)
             s = txid_n[h]
             s.discard(n)
             if not s:
@@ -1538,9 +1537,9 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             and self.network.callback_listener_count("payment_received") > 0
         ):
             for _a, addr, _b in tx.outputs():
-                status = self.get_request_status(
-                    addr
-                )  # returns PR_UNKNOWN quickly if addr has no requests, otherwise returns tuple
+                # returns PR_UNKNOWN quickly if addr has no requests, otherwise
+                # returns tuple
+                status = self.get_request_status(addr)
                 if status != PR_UNKNOWN:
                     status = status[0]  # unpack status from tuple
                     self.network.trigger_callback(
@@ -1855,9 +1854,9 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                 item["fiat_fee"] = fx.historical_value_str(fee, date)
             out.append(item)
         if progress_callback:
-            progress_callback(
-                1.0
-            )  # indicate done, just in case client code expects a 1.0 in order to detect completion
+            # indicate done, just in case client code expects a 1.0 in order to detect
+            # completion
+            progress_callback(1.0)
         return out
 
     def get_label(self, tx_hash):
@@ -1870,9 +1869,9 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         if not self.txi.get(tx_hash):
             d = self.txo.get(tx_hash, {})
             labels = []
-            for addr in list(
-                d.keys()
-            ):  # use a copy to avoid possibility of dict changing during iteration, see #1328
+            # use a copy to avoid possibility of dict changing during iteration,
+            # see #1328
+            for addr in list(d.keys()):
                 label = self.labels.get(addr.to_storage_string())
                 if label:
                     labels.append(label)
@@ -3131,9 +3130,9 @@ class ImportedWalletBase(Simple_Wallet):
                 self.verified_tx.pop(tx_hash, None)
                 self.unverified_tx.pop(tx_hash, None)
                 self.transactions.pop(tx_hash, None)
-                self._addr_bal_cache.pop(
-                    address, None
-                )  # not strictly necessary, above calls also have this side-effect. but here to be safe. :)
+                # not strictly necessary, above calls also have this side-effect.
+                # but here to be safe. :)
+                self._addr_bal_cache.pop(address, None)
                 if self.verifier:
                     # TX is now gone. Toss its SPV proof in case we have it
                     # in memory. This allows user to re-add PK again and it

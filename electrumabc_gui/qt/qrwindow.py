@@ -37,7 +37,8 @@ from .util import Buttons, MessageBoxMixin, WWLabel
 
 class QR_Window(QtWidgets.QWidget, MessageBoxMixin):
     def __init__(self):
-        super().__init__()  # Top-level window. Parent needs to hold a reference to us and clean us up appropriately.
+        # Top-level window.
+        super().__init__()
         self.setWindowTitle(f"{PROJECT_NAME} - " + _("Payment Request"))
         self.label = ""
         self.amount = 0
@@ -83,9 +84,7 @@ class QR_Window(QtWidgets.QWidget, MessageBoxMixin):
         saveBut = QtWidgets.QPushButton(_("Save QR Image"))
         vbox.addLayout(Buttons(copyBut, saveBut))
 
-        weakSelf = Weak.ref(
-            self
-        )  # Qt & Python GC hygeine: don't hold references to self in non-method slots as it appears Qt+Python GC don't like this too much and may leak memory in that case.
+        weakSelf = Weak.ref(self)
         weakQ = Weak.ref(self.qrw)
         weakBut = Weak.ref(copyBut)
         copyBut.clicked.connect(lambda: copy_to_clipboard(weakQ(), weakBut()))
@@ -130,5 +129,7 @@ class QR_Window(QtWidgets.QWidget, MessageBoxMixin):
         # still up.
         for c in self.findChildren(QtWidgets.QDialog):
             if c.isWindow() and c.isModal() and c.isVisible():
-                c.reject()  # break out of local event loop for dialog as we are about to die and we will be invalidated.
+                # break out of local event loop for dialog as we are about to die and
+                # we will be invalidated.
+                c.reject()
         super().closeEvent(e)

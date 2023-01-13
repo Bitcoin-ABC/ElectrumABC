@@ -250,21 +250,26 @@ class Network(util.DaemonThread):
           is_connected(), set_parameters(), stop()
     """
 
-    INSTANCE = None  # Only 1 Network instance is ever alive during app lifetime (it's a singleton)
+    # Only 1 Network instance is ever alive during app lifetime (it's a singleton)
+    INSTANCE = None
 
     # These defaults are decent for the desktop app. Other platforms may
     # override these at any time (iOS sets these to lower values).
-    NODES_RETRY_INTERVAL = 60  # How often to retry a node we know about in secs, if we are connected to less than 10 nodes
-    SERVER_RETRY_INTERVAL = 10  # How often to reconnect when server down in secs
-    MAX_MESSAGE_BYTES = (
-        1024 * 1024 * 32
-    )  # = 32MB. The message size limit in bytes. This is to prevent a DoS vector whereby the server can fill memory with garbage data.
+    #
+    # How often to retry a node we know about in secs, if we are connected to less than
+    # 10 nodes
+    NODES_RETRY_INTERVAL = 60
+    # How often to reconnect when server down in secs
+    SERVER_RETRY_INTERVAL = 10
+    # = 32MB. The message size limit in bytes. This is to prevent a DoS vector whereby
+    # the server can fill memory with garbage data.
+    MAX_MESSAGE_BYTES = 1024 * 1024 * 32
 
     tor_controller: TorController = None
 
     def __init__(self, config=None):
         if config is None:
-            config = {}  # Do not use mutables as default values!
+            config = {}
         util.DaemonThread.__init__(self)
         self.config = SimpleConfig(config) if isinstance(config, dict) else config
         self.num_server = 10 if not self.config.get("oneserver") else 0
@@ -534,12 +539,11 @@ class Network(util.DaemonThread):
         if interface is None:
             interface = self.interface
         elif interface == "random":
-            interface = random.choice(
-                self.get_interfaces(interfaces=True) or (None,)
-            )  # may set interface to None if no interfaces
-        message_id = (
-            self.message_id()
-        )  # Note: self.message_id is a Monotonic (thread-safe) counter-object, see util.Monotonic
+            # may set interface to None if no interfaces
+            interface = random.choice(self.get_interfaces(interfaces=True) or (None,))
+        # Note: self.message_id is a Monotonic (thread-safe) counter-object,
+        # see util.Monotonic
+        message_id = self.message_id()
         if callback:
             if max_qlen and len(self.unanswered_requests) >= max_qlen:
                 # Indicate to client code we are busy
@@ -588,9 +592,9 @@ class Network(util.DaemonThread):
                 # missing a callback (no entry in self.subscriptions dict).
                 # self.print_error("removing defunct subscription", h)
                 self.subscribed_addresses.discard(h)
-                self.subscriptions.pop(
-                    k, None
-                )  # it may be an empty list (or missing), so pop it just in case it's a list.
+                # it may be an empty list (or missing), so pop it just in case it's a
+                # list.
+                self.subscriptions.pop(k, None)
                 n_defunct += 1
         self.print_error(
             "sent subscriptions to",
@@ -1437,13 +1441,15 @@ class Network(util.DaemonThread):
             target_blockchain = interface.blockchain
 
         chunk_data = bytes.fromhex(hexdata)
+        # fix #1079 -- invariant is violated here due to extant bugs, so rather than
+        # raise an exception, just trigger a connection_down below...
         connect_state = (
             target_blockchain.connect_chunk(
                 request_base_height, chunk_data, proof_was_provided
             )
             if target_blockchain
             else blockchain.CHUNK_BAD
-        )  # fix #1079 -- invariant is violated here due to extant bugs, so rather than raise an exception, just trigger a connection_down below...
+        )
         if connect_state == blockchain.CHUNK_ACCEPTED:
             interface.print_error(
                 "connected chunk, height={} count={} proof_was_provided={}".format(
@@ -2178,10 +2184,11 @@ class Network(util.DaemonThread):
 
         try:
             out = self.broadcast_transaction2(transaction)
-        except Exception as e:  # catch-all. May be util.TimeoutException, util.ServerError subclass or other.
-            return False, "error: " + str(
-                e
-            )  # Ergh. To remain compatible with old code we prepend this ugly "error: "
+        except Exception as e:
+            # catch-all. May be util.TimeoutException, util.ServerError subclass
+            # or other.
+            # Ergh. To remain compatible with old code we prepend this ugly "error: "
+            return False, "error: " + str(e)
 
         return True, out
 
@@ -2498,12 +2505,12 @@ class Network(util.DaemonThread):
                 hostmap_to_servers(networks.net.DEFAULT_SERVERS)
             )
         ret = set(self._hardcoded_whitelist)
-        ret |= set(
-            self.config.get("server_whitelist_added", [])
-        )  # this key is all the servers that weren't in the hardcoded whitelist that the user explicitly added
-        ret -= set(
-            self.config.get("server_whitelist_removed", [])
-        )  # this key is all the servers that were hardcoded in the whitelist that the user explicitly removed
+        # this key is all the servers that weren't in the hardcoded whitelist that the
+        # user explicitly added
+        ret |= set(self.config.get("server_whitelist_added", []))
+        # this key is all the servers that were hardcoded in the whitelist that the
+        # user explicitly removed
+        ret -= set(self.config.get("server_whitelist_removed", []))
         return ret, servers_to_hostmap(ret)
 
     def is_whitelist_only(self):

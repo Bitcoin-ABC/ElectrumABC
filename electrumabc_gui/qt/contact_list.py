@@ -238,9 +238,9 @@ class ContactList(PrintError, MyTreeWidget):
                     lambda: self.main_window.sign_verify_message(signAddr),
                 )
                 if signAddr.kind != Address.ADDR_P2PKH:
-                    a.setDisabled(
-                        True
-                    )  # We only allow this for P2PKH since it makes no sense for P2SH (ambiguous public key)
+                    # We only allow this for P2PKH since it makes no sense for P2SH
+                    # (ambiguous public key)
+                    a.setDisabled(True)
             URLs = [
                 web.BE_URL(
                     self.config,
@@ -308,10 +308,9 @@ class ContactList(PrintError, MyTreeWidget):
         selected_contacts = set(
             item.data(0, self.DataRoles.Contact) for item in selected
         )
-        del (
-            item,
-            selected,
-        )  # must not hold a reference to a C++ object that will soon be deleted in self.clear()..
+        # must not hold a reference to a C++ object that will soon be deleted in
+        # self.clear()..
+        del item, selected
         self.clear()
         type_names = defaultdict(lambda: _("Unknown"))
         type_names.update(

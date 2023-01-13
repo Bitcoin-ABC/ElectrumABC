@@ -241,19 +241,19 @@ class Synchronizer(ThreadJob):
             or sh in self.requested_histories
             or sh not in self.change_subs_active
         ):
-            # this scripthash is either not change or is not subbed or is not yet "stable", discard and abort early
+            # this scripthash is either not change or is not subbed or is not yet
+            # "stable", discard and abort early
             self.change_subs_expiry_candidates.discard(sh)
             return
         addr = self.h2addr.get(sh)
         if not addr:
             return
-        hlen = len(self.wallet.get_address_history(addr))  # O(1) lookup into a dict
-        if (
-            hlen == 2
-        ):  # Only "expire" old change address with precisely 1 input tx and 1 spending tx
-            bal = self.wallet.get_addr_balance(
-                addr
-            )  # Potentially fast lookup since addr_balance gets cached
+        # O(1) lookup into a dict
+        hlen = len(self.wallet.get_address_history(addr))
+        # Only "expire" old change address with precisely 1 input tx and 1 spending tx
+        if hlen == 2:
+            # Potentially fast lookup since addr_balance gets cached
+            bal = self.wallet.get_addr_balance(addr)
         else:
             bal = None
         if bal is not None and not any(bal):

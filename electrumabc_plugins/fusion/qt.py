@@ -794,7 +794,9 @@ class Plugin(FusionPlugin, QObject):
             else:
                 tip = _("Fusion transactions are now shown")
             QtWidgets.QToolTip.showText(QCursor.pos(), tip, history_list)
-            history_list.update()  # unconditionally update this history list as it may be embedded in the address_detail window and not a global history list..
+            # unconditionally update this history list as it may be embedded in the
+            # address_detail window and not a global history list..
+            history_list.update()
             for w in self.gui.windows:
                 # Need to update all the other open windows.
                 # Note: We still miss any other open windows' address-detail
@@ -802,9 +804,8 @@ class Plugin(FusionPlugin, QObject):
                 #       time it won't be noticed by people and actually
                 #       finding all those windows would just make this code
                 #       less maintainable.
-                if (
-                    history_list is not w.history_list
-                ):  # check if not already updated above
+                # check if not already updated above
+                if history_list is not w.history_list:
                     w.history_list.update()
 
         action = menu.addAction(_("Hide CashFusions"), action_callback)
@@ -1026,14 +1027,13 @@ class FusionButton(StatusBarButton):
                         "To perform auto-fusion in the background, please enter your password."
                     ),
                 )
-                self.plugin.widgets.add(
-                    pd
-                )  # just in case this plugin is unloaded while this dialog is up
+                # just in case this plugin is unloaded while this dialog is up
+                self.plugin.widgets.add(pd)
                 password = pd.run()
                 del pd
-                if (
-                    password is None or not plugin.active
-                ):  # must check plugin.active because user can theoretically kill plugin from another window while the above password dialog is up
+                # must check plugin.active because user can theoretically kill plugin
+                # from another window while the above password dialog is up
+                if password is None or not plugin.active:
                     return
             try:
                 plugin.enable_autofusing(self.wallet, password)
@@ -1063,9 +1063,9 @@ class FusionButton(StatusBarButton):
                 self.plugin,
                 self.wallet,
             )
-            self.plugin.widgets.add(
-                win
-            )  # ensures if plugin is unloaded while dialog is up, that the dialog will be killed.
+            # ensures if plugin is unloaded while dialog is up, that the dialog will
+            # be killed.
+            self.plugin.widgets.add(win)
         win.show()
         win.raise_()
 
@@ -1075,9 +1075,8 @@ class FusionButton(StatusBarButton):
         if not changed:
             return
         self.server_error = tup
-        name = "CashFusionError;" + str(
-            id(self)
-        )  # make sure name is unique per FusionButton widget
+        # make sure name is unique per FusionButton widget
+        name = "CashFusionError;" + str(id(self))
         if self.server_error:
             weak_plugin = weakref.ref(self.plugin)
 
@@ -1913,9 +1912,9 @@ class ServerWidget(ServerFusionsBaseMixin, QtWidgets.QWidget):
         for i, t in enumerate(Params.tiers):
             button = QtWidgets.QPushButton(_("Start"))
             button.setDefault(False)
-            button.setAutoDefault(
-                False
-            )  # on some platforms if we don't do this, one of the buttons traps "Enter" key
+            # on some platforms if we don't do this, one of the buttons traps "Enter"
+            # key
+            button.setAutoDefault(False)
             button.clicked.connect(partial(self.clicked_start_fuse, t))
             self.t_server_waiting.setCellWidget(i, 2, button)
         slayout.addWidget(self.t_server_waiting)

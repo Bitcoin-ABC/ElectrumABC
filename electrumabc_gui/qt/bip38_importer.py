@@ -31,9 +31,9 @@ class Bip38Importer(WindowModalDialog, PrintError):
     Requires bitcoin.is_bip38_available() == True otherwise will raise
     RuntimeError on instantiation."""
 
-    decrypted_sig = pyqtSignal(
-        object, object
-    )  # Decrypt thread emits this with _decrypt_thread.self, (decrypted_wif, Address) or _decrypt_thread.self, () on failure due to bad password
+    # Decrypt thread emits this with _decrypt_thread.self, (decrypted_wif, Address)
+    # or _decrypt_thread.self, () on failure due to bad password
+    decrypted_sig = pyqtSignal(object, object)
 
     def __init__(
         self,
@@ -41,11 +41,16 @@ class Bip38Importer(WindowModalDialog, PrintError):
         *,
         parent=None,
         title=None,
-        message=None,  # The message to display as a label up top
-        show_count=True,  # If false, don't show 'Key 1/n:' in UI instead just say: 'Key: '
-        on_success=None,  # Callback will be called with a dict of bip38key -> (decoded_wif_str, Address) objects
+        # The message to display as a label up top
+        message=None,
+        # If false, don't show 'Key 1/n:' in UI instead just say: 'Key: '
+        show_count=True,
+        # Callback will be called with a dict of
+        # bip38key -> (decoded_wif_str, Address) objects
+        on_success=None,
+        # Callback will be called if user hits cancel
         on_cancel=None,
-    ):  # Callback will be called if user hits cancel
+    ):
         """bip38_keys should be a list of '6P' strings, representing bip38
         keys. The user will be prompted for each key to enter a password
         and will be shown the decoded address and WIF key. Note that this
@@ -307,18 +312,20 @@ class _decrypt_thread(threading.Thread, PrintError):
 
     def __init__(self, w, key, pw):
         super().__init__(daemon=True, target=self.decrypt)
-        self.w = util.Weak.ref(
-            w
-        )  # We keep a weak ref to parent because parent may die while we are still running. In which case we don't want to call into parent when it's already closed/done executing
+        # We keep a weak ref to parent because parent may die while we are still
+        # running. In which case we don't want to call into parent when it's already
+        # closed/done executing
+        self.w = util.Weak.ref(w)
         self.key = key
         self.pw = pw
         self.start()
 
     def decrypt(self):
-        result = bitcoin.bip38_decrypt(
-            self.key, self.pw
-        )  # Potentially slow-ish operation. Note: result may be None or empty; client code's slot checks for that condition, so no need to check result here.
-        parent = self.w()  # grab strong ref from weak ref if weak ref still alive
+        # Potentially slow-ish operation. Note: result may be None or empty; client
+        # code's slot checks for that condition, so no need to check result here.
+        result = bitcoin.bip38_decrypt(self.key, self.pw)
+        # grab strong ref from weak ref if weak ref still alive
+        parent = self.w()
         if parent:
             parent.decrypted_sig.emit(self, result)
         else:

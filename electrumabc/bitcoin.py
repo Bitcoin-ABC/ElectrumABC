@@ -1650,9 +1650,8 @@ class Bip38Key:
         self, passphrase: str
     ) -> Tuple[str, object]:  # returns the (wifkey string, Address object)
         assert isinstance(passphrase, str), "Passphrase must be a string!"
-        passphrase = self._normalizeNFC(
-            passphrase
-        )  # ensure unicode bytes are normalized to NFC standard as specified by bip38
+        # ensure unicode bytes are normalized to NFC standard as specified by bip38
+        passphrase = self._normalizeNFC(passphrase)
         if self.typ == Bip38Key.Type.NonECMult:
             return self._decryptNoEC(passphrase)
         elif self.typ != Bip38Key.Type.ECMult:
@@ -1747,9 +1746,8 @@ class Bip38Key:
         public_key = public_key_from_private_key(key_bytes, compressed)
         addr_str = pubkey_to_address(_type, public_key, net=net)
         addr_hash = Hash(addr_str)[0:4]
-        passphrase = cls._normalizeNFC(
-            passphrase
-        )  # ensure unicode bytes are normalized to NFC standard as specified by bip38
+        # ensure unicode bytes are normalized to NFC standard as specified by bip38
+        passphrase = cls._normalizeNFC(passphrase)
 
         derived_key = cls._scrypt(passphrase, addr_hash, N=16384, r=8, p=8, dkLen=64)
 
@@ -1835,9 +1833,8 @@ class Bip38Key:
 
         ignored, passpoint = get_pubkeys_from_secret(passfactor)
 
-        intermediate_passphrase_string = (
-            magic + ownerentropy + passpoint
-        )  # 49 bytes (not a str, despite name. We use the name from bip38 spec here)
+        # 49 bytes (not a str, despite name. We use the name from bip38 spec here)
+        intermediate_passphrase_string = magic + ownerentropy + passpoint
 
         enc = EncodeBase58Check(intermediate_passphrase_string)
         return cls.ec_mult_from_intermediate_passphrase_string(enc, compressed)

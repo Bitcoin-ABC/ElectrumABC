@@ -588,11 +588,12 @@ class ExternalPluginTable(QtWidgets.QTableWidget):
         header = self.horizontalHeader()
         header.setStretchLastSection(False)
         for col in range(header.count()):
+            # description field is the stretch column, others are resized to contents
             sm = (
                 QtWidgets.QHeaderView.Stretch
                 if col == 1
                 else QtWidgets.QHeaderView.ResizeToContents
-            )  # description field is the stretch column, others are resized to contents
+            )
             header.setSectionResizeMode(col, sm)
         del header
 

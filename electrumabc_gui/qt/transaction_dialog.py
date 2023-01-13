@@ -70,12 +70,11 @@ def show_transaction(tx, parent, desc=None, prompt_if_unsaved=False):
 
 class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
 
-    throttled_update_sig = (
-        pyqtSignal()
-    )  # connected to self.throttled_update -- emit from thread to do update in main thread
-    dl_done_sig = (
-        pyqtSignal()
-    )  # connected to an inner function to get a callback in main thread upon dl completion
+    # connected to self.throttled_update -- emit from thread to do update in main thread
+    throttled_update_sig = pyqtSignal()
+
+    # connected to an inner function to get a callback in main thread upon dl completion
+    dl_done_sig = pyqtSignal()
 
     BROADCAST_COOLDOWN_SECS: int = 5
 

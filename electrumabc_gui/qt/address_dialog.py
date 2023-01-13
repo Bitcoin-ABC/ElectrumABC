@@ -158,7 +158,7 @@ class AddressDialog(WindowModalDialog):
         self.disconnect_signals()
         import gc
 
-        QTimer.singleShot(
-            10, lambda: gc.collect()
-        )  # run GC in 10 ms. Otherwise this window sticks around in memory for way too long
+        # run GC in 10 ms. Otherwise this window sticks around in memory for way too
+        # long
+        QTimer.singleShot(10, lambda: gc.collect())
         return retval

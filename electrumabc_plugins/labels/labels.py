@@ -49,7 +49,8 @@ class LabelsPlugin(BasePlugin):
             return
         if not item:
             return
-        with wallet.lock:  # need to hold the lock from get nonce to set nonce in order to prevent races.
+        # need to hold the lock from get nonce to set nonce in order to prevent races.
+        with wallet.lock:
             nonce = self.get_nonce(wallet)
             wallet_id = self.wallets[wallet][2]
             bundle = {

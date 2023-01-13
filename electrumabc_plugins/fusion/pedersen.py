@@ -266,9 +266,9 @@ class Commitment:
             result_buf = create_string_buffer(64)
 
             # calculate (a - k) * H
-            a_k_bytes = int(a_k).to_bytes(
-                32, "big"
-            )  # NB: a_k may be gmpy2.mpz here because sometimes it just is due to ecdsa changes.
+            # NB: a_k may be gmpy2.mpz here because sometimes it just is due to
+            # ecdsa changes.
+            a_k_bytes = int(a_k).to_bytes(32, "big")
             akH_buf = create_string_buffer(64)
             akH_buf.raw = self.setup._seclib_H  # copy
             res = seclib.secp256k1_ec_pubkey_tweak_mul(ctx, akH_buf, a_k_bytes)

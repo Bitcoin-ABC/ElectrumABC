@@ -230,9 +230,9 @@ class _ExpiringCacheMgr(PrintError):
                                 )
                             )
                     # 2. maxlen check (always on)
-                    len_c = len(
-                        c.d
-                    )  # capture length here as c.d may mutate and grow while this code executes.
+                    # capture length here as c.d may mutate and grow while this code
+                    # executes.
+                    len_c = len(c.d)
                     if len_c > c.maxlen:
                         t0 = time.time()
                         num = cls._try_to_expire_old_items(c.d, len_c - c.maxlen)

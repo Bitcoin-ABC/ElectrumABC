@@ -175,15 +175,14 @@ class DaemonThread(threading.Thread, PrintError):
         self.running = False
         self.running_lock = threading.Lock()
         self.job_lock = threading.Lock()
-        self.jobs = (
-            []
-        )  # could use a set here but order is important, so we enforce uniqueness in this list in the add/remove methods
-        self._jobs2add = (
-            list()
-        )  # adding jobs needs to preserve order, so we use a list.
-        self._jobs2rm = (
-            set()
-        )  # removing jobs does not need to preserve orer so we can benefit from the uniqueness property of using a set.
+        # could use a set here but order is important, so we enforce uniqueness in this
+        # list in the add/remove methods
+        self.jobs = []
+        # adding jobs needs to preserve order, so we use a list.
+        self._jobs2add = list()
+        # removing jobs does not need to preserve orer so we can benefit from the
+        # uniqueness property of using a set.
+        self._jobs2rm = set()
 
     def add_jobs(self, jobs):
         if threading.current_thread() is not self:

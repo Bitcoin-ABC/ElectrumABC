@@ -1513,12 +1513,11 @@ class Transaction:
                     # crucial on error/timeout/failure.
                     for func in callback_funcs_to_cancel:
                         wallet.network.cancel_requests(func)
-            if (
-                len(inps) == len(self._inputs) and eph.get("_fetch") == t
-            ):  # sanity check
-                eph.pop(
-                    "_fetch", None
-                )  # potential race condition here, popping wrong t -- but in practice w/ CPython threading it won't matter
+            # sanity check
+            if len(inps) == len(self._inputs) and eph.get("_fetch") == t:
+                # potential race condition here, popping wrong t -- but in practice w/
+                # CPython threading it won't matter
+                eph.pop("_fetch", None)
                 print_error(f"fetch_input_data: elapsed {(time.time()-t0):.4f} sec")
                 if done_callback:
                     done_callback(*done_args)
