@@ -41,7 +41,7 @@ import threading
 import time
 from abc import abstractmethod
 from collections import defaultdict, namedtuple
-from enum import Enum, auto
+from enum import Enum, IntEnum, auto
 from typing import ItemsView, List, Optional, Set, Tuple, Union, ValuesView
 
 from . import (
@@ -99,6 +99,20 @@ from .verifier import SPV, SPVDelegate
 from .version import PACKAGE_VERSION
 
 DEFAULT_CONFIRMED_ONLY = False
+
+
+class TransactionConfirmationStatus(IntEnum):
+    UNCONFIRMED_PARENT = 0
+    # status=1 no longer used (it used to mean low fee for BTC)
+    UNCONFIRMED = 2
+    # Tx not known in this wallet, or from a block newer than local height
+    UNKNOWN_OR_UNVERIFIED = 3
+    VERIFIED_1_BLOCK = 4
+    VERIFIED_2_BLOCKS = 5
+    VERIFIED_3_BLOCKS = 6
+    VERIFIED_4_BLOCKS = 7
+    VERIFIED_5_BLOCKS = 8
+    VERIFIED_6_BLOCKS = 9
 
 
 class AddressNotFoundError(Exception):
@@ -1879,38 +1893,29 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             return ", ".join(labels)
         return ""
 
-    def get_tx_status(self, tx_hash, height, conf, timestamp):
-        """Return a status value and status string.
-        Meaning of the status flag:
-
-          - 0: unconfirmed parent
-          - 1: status no longer used (it used to mean low fee for BTC)
-          - 2: unconfirmed
-          - 3: not verified (included in latest block)
-          - 4: verified by 1 block
-          - 5: verified by 2 blocks
-          - 6: verified by 3 blocks
-          - 7: verified by 4 blocks
-          - 8: verified by 5 blocks
-          - 9: verified by 6 blocks or more
-        """
-        if conf == 0:
-            tx = self.transactions.get(tx_hash)
-            if not tx:
-                status = 3
-                status_str = "unknown"
-            elif height < 0:
-                status = 0
-                status_str = "Unconfirmed parent"
-            elif height == 0:
-                status = 2
-                status_str = "Unconfirmed"
-            else:
-                status = 3
-                status_str = "Not Verified"
+    def get_tx_status(
+        self, tx_hash, height, conf, timestamp
+    ) -> Tuple[TransactionConfirmationStatus, str]:
+        """Return a status value and status string."""
+        if conf:
+            # status VERIFIED_1_BLOCK to VERIFIED_6_BLOCKs
+            return (
+                TransactionConfirmationStatus(3 + min(conf, 6)),
+                format_time(timestamp) if timestamp else _("unknown"),
+            )
+        tx = self.transactions.get(tx_hash)
+        if not tx:
+            status = TransactionConfirmationStatus.UNKNOWN
+            status_str = "unknown"
+        elif height < 0:
+            status = TransactionConfirmationStatus.UNCONFIRMED_PARENT
+            status_str = "Unconfirmed parent"
+        elif height == 0:
+            status = TransactionConfirmationStatus.UNCONFIRMED
+            status_str = "Unconfirmed"
         else:
-            status = 3 + min(conf, 6)
-            status_str = format_time(timestamp) if timestamp else _("unknown")
+            status = TransactionConfirmationStatus.UNKNOWN_OR_UNVERIFIED
+            status_str = "Not Verified"
         return status, status_str
 
     def reserve_change_addresses(self, count, temporary=False):

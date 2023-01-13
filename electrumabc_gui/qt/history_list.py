@@ -26,7 +26,7 @@
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
@@ -36,6 +36,7 @@ import electrumabc.web as web
 from electrumabc.i18n import _
 from electrumabc.plugins import run_hook
 from electrumabc.util import Weak, profiler, timestamp_to_datetime
+from electrumabc.wallet import TransactionConfirmationStatus
 
 from .util import (
     MONOSPACE_FONT,
@@ -49,24 +50,23 @@ if TYPE_CHECKING:
     from .main_window import ElectrumWindow
 
 
-TX_ICONS = [
-    "warning.png",
-    "warning.png",
-    "unconfirmed.svg",
-    "unconfirmed.svg",
-    "clock1.svg",
-    "clock2.svg",
-    "clock3.svg",
-    "clock4.svg",
-    "clock5.svg",
-    "confirmed.svg",
-]
+TX_ICON_NAMES = {
+    TransactionConfirmationStatus.UNCONFIRMED_PARENT: "warning.png",
+    TransactionConfirmationStatus.UNCONFIRMED: "unconfirmed.svg",
+    TransactionConfirmationStatus.UNKNOWN_OR_UNVERIFIED: "unconfirmed.svg",
+    TransactionConfirmationStatus.VERIFIED_1_BLOCK: "clock1.svg",
+    TransactionConfirmationStatus.VERIFIED_2_BLOCKS: "clock2.svg",
+    TransactionConfirmationStatus.VERIFIED_3_BLOCKS: "clock3.svg",
+    TransactionConfirmationStatus.VERIFIED_4_BLOCKS: "clock4.svg",
+    TransactionConfirmationStatus.VERIFIED_5_BLOCKS: "clock5.svg",
+    TransactionConfirmationStatus.VERIFIED_6_BLOCKS: "confirmed.svg",
+}
 
 
 class HistoryList(MyTreeWidget):
     filter_columns = [2, 3, 4]  # Date, Description, Amount
     filter_data_columns = [0]  # Allow search on tx_hash (string)
-    statusIcons = {}
+    statusIcons: Dict[TransactionConfirmationStatus, QIcon] = {}
     default_sort = MyTreeWidget.SortSpec(0, Qt.AscendingOrder)
 
     def __init__(self, main_window: ElectrumWindow):
@@ -137,7 +137,7 @@ class HistoryList(MyTreeWidget):
     def _get_icon_for_status(cls, status):
         ret = cls.statusIcons.get(status)
         if not ret:
-            cls.statusIcons[status] = ret = QIcon(":icons/" + TX_ICONS[status])
+            cls.statusIcons[status] = ret = QIcon(":icons/" + TX_ICON_NAMES[status])
         return ret
 
     @profiler
