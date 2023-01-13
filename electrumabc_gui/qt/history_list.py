@@ -54,11 +54,11 @@ TX_ICON_NAMES = {
     TransactionConfirmationStatus.UNCONFIRMED_PARENT: "warning.png",
     TransactionConfirmationStatus.UNCONFIRMED: "unconfirmed.svg",
     TransactionConfirmationStatus.UNKNOWN_OR_UNVERIFIED: "unconfirmed.svg",
-    TransactionConfirmationStatus.VERIFIED_1_BLOCK: "clock1.svg",
-    TransactionConfirmationStatus.VERIFIED_2_BLOCKS: "clock2.svg",
-    TransactionConfirmationStatus.VERIFIED_3_BLOCKS: "clock3.svg",
-    TransactionConfirmationStatus.VERIFIED_4_BLOCKS: "clock4.svg",
-    TransactionConfirmationStatus.VERIFIED_5_BLOCKS: "clock5.svg",
+    TransactionConfirmationStatus.VERIFIED_1_BLOCK: "confirmed.svg",
+    TransactionConfirmationStatus.VERIFIED_2_BLOCKS: "confirmed.svg",
+    TransactionConfirmationStatus.VERIFIED_3_BLOCKS: "confirmed.svg",
+    TransactionConfirmationStatus.VERIFIED_4_BLOCKS: "confirmed.svg",
+    TransactionConfirmationStatus.VERIFIED_5_BLOCKS: "confirmed.svg",
     TransactionConfirmationStatus.VERIFIED_6_BLOCKS: "confirmed.svg",
 }
 
