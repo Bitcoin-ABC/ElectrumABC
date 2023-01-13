@@ -33,7 +33,9 @@ if TYPE_CHECKING:
 
 
 class CollapsibleSection(QWidget):
-    def __init__(self, title: str, content_widget: QWidget, parent: QWidget = None):
+    def __init__(
+        self, title: str, content_widget: QWidget, parent: Optional[QWidget] = None
+    ):
         super().__init__(parent)
 
         main_layout = QGridLayout(self)

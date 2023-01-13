@@ -2954,12 +2954,12 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         self.start_threads(network)
         self.network.trigger_callback("wallet_updated", self)
 
-    def is_schnorr_possible(self, reason: list = None) -> bool:
+    def is_schnorr_possible(self, reason: Optional[list] = None) -> bool:
         """Returns True if this wallet type is compatible.
         `reason` is an optional list where you would like a translated string
         of why Schnorr isn't possible placed (on False return)."""
         ok = bool(not self.is_multisig() and not self.is_hardware())
-        if not ok and isinstance(reason, list):
+        if not ok and reason is not None:
             reason.insert(0, _("Schnorr signatures are disabled for this wallet type."))
         return ok
 

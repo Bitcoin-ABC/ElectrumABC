@@ -79,7 +79,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self,
         wallet: Deterministic_Wallet,
         receive_address: Optional[Address] = None,
-        parent: QtWidgets.QWidget = None,
+        parent: Optional[QtWidgets.QWidget] = None,
     ):
         CachedWalletPasswordWidget.__init__(self, wallet, parent=parent)
         # This is enough width to show a whole compressed pubkey.

@@ -24,7 +24,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import List
+from typing import List, Optional
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QPoint, QRect, QRectF, QSize, Qt
@@ -48,7 +48,7 @@ class QrReaderVideoOverlay(QtWidgets.QWidget):
     QR_FINDER_OPACITY = 0.25
     QR_FINDER_SIZE = 0.5
 
-    def __init__(self, parent: QtWidgets.QWidget = None):
+    def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
         super().__init__(parent)
 
         self.results = []

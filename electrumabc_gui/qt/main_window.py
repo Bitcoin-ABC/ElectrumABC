@@ -3447,7 +3447,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.status_bar.update_lock_icon(self.wallet.has_password())
 
     def get_passphrase_dialog(
-        self, msg: str, title: str = None, *, permit_empty=False
+        self, msg: str, title: Optional[str] = None, *, permit_empty=False
     ) -> str:
         d = PassphraseDialog(
             self.wallet, self.top_level_window(), msg, title, permit_empty=permit_empty

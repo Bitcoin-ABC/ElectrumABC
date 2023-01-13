@@ -146,7 +146,7 @@ class BaseWizard(PrintError):
             do_upgrade, _("Upgrading wallet format..."), on_finished=on_finished
         )
 
-    def run_task_without_blocking_gui(self, task, *, msg: str = None) -> Any:
+    def run_task_without_blocking_gui(self, task, *, msg: Optional[str] = None) -> Any:
         """Perform a task in a thread without blocking the GUI.
         Returns the result of 'task', or raises the same exception.
         This method blocks until 'task' is finished.

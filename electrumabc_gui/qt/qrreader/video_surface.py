@@ -24,7 +24,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import List
+from typing import List, Optional
 
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtGui import QImage
@@ -45,7 +45,7 @@ class QrReaderVideoSurface(QAbstractVideoSurface):
     necessary and sends them to listeners via the frame_available event.
     """
 
-    def __init__(self, parent: QObject = None):
+    def __init__(self, parent: Optional[QObject] = None):
         super().__init__(parent)
 
     def present(self, frame: QVideoFrame) -> bool:

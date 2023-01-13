@@ -42,7 +42,7 @@ class CachedWalletPasswordWidget(QtWidgets.QWidget):
         self,
         wallet: Deterministic_Wallet,
         pwd: Optional[str] = None,
-        parent: QtWidgets.QWidget = None,
+        parent: Optional[QtWidgets.QWidget] = None,
     ):
         super().__init__(parent)
         self._pwd = pwd
@@ -168,7 +168,7 @@ class AuxiliaryKeysDialog(QtWidgets.QDialog):
         self,
         wallet: Deterministic_Wallet,
         pwd: Optional[str] = None,
-        parent: QtWidgets.QWidget = None,
+        parent: Optional[QtWidgets.QWidget] = None,
         additional_info: Optional[str] = None,
     ):
         super().__init__(parent)

@@ -1508,13 +1508,13 @@ class Bip38Key:
         )
 
     @property
-    def lot(self) -> int:
+    def lot(self) -> Optional[int]:
         """Returns the 'lot' number if 'hasLotSequence' or None otherwise."""
         if self.dec and self.hasLotSequence:
             return self.entropy[4] * 4096 + self.entropy[5] * 16 + self.entropy[6] // 16
 
     @property
-    def sequence(self) -> int:
+    def sequence(self) -> Optional[int]:
         """Returns the 'sequence' number if 'hasLotSequence' or None
         otherwise."""
         if self.dec and self.hasLotSequence:
@@ -1783,7 +1783,7 @@ class Bip38Key:
     def createECMult(
         cls,
         passphrase: str,
-        lot_sequence: Tuple[int, int] = None,
+        lot_sequence: Optional[Tuple[int, int]] = None,
         compressed=True,
         *,
         net=None,

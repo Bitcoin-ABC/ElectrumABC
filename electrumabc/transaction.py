@@ -26,7 +26,7 @@
 import hashlib
 import struct
 import warnings
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 
 import ecdsa
 
@@ -1574,7 +1574,7 @@ class Transaction:
         return None
 
     @classmethod
-    def tx_cache_put(cls, tx: object, txid: str = None):
+    def tx_cache_put(cls, tx: object, txid: Optional[str] = None):
         """Puts a non-deserialized copy of tx into the tx_cache."""
         if not tx or not tx.raw:
             raise ValueError("Please pass a tx which has a valid .raw attribute!")

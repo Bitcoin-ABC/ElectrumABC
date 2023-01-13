@@ -9,6 +9,7 @@ import webbrowser
 from collections import namedtuple
 from functools import partial, wraps
 from locale import atof
+from typing import Optional
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QObject, Qt, QThread, QTimer, pyqtSignal
@@ -980,7 +981,7 @@ class OverlayControlMixin:
             x -= scrollbar_width
         self.overlay_widget.move(x, y)
 
-    def addWidget(self, widget: QtWidgets.QWidget, index: int = None):
+    def addWidget(self, widget: QtWidgets.QWidget, index: Optional[int] = None):
         if index is not None:
             self.overlay_layout.insertWidget(index, widget)
         else:
@@ -991,9 +992,9 @@ class OverlayControlMixin:
         icon_name: str,
         on_click,
         tooltip: str,
-        index: int = None,
+        index: Optional[int] = None,
         *,
-        text: str = None,
+        text: Optional[str] = None,
     ) -> QtWidgets.QAbstractButton:
         """icon_name may be None but then you must define text (which is
         hopefully then some nice Unicode character). Both cannot be None.
@@ -1540,7 +1541,7 @@ class TextBrowserKeyboardFocusFilter(QtWidgets.QTextBrowser):
     deactivate keyboard text selection.
     """
 
-    def __init__(self, parent: QtWidgets.QWidget = None):
+    def __init__(self, parent: Optional[QtWidgets.QWidget] = None):
         super().__init__(parent)
 
     def focusInEvent(self, e: QFocusEvent):

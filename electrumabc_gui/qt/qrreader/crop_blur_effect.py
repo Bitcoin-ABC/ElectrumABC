@@ -23,6 +23,7 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from typing import Optional
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QObject, QPoint, QRect, Qt
@@ -36,12 +37,12 @@ class QrReaderCropBlurEffect(QtWidgets.QGraphicsBlurEffect):
     BLUR_DARKEN = 0.25
     BLUR_RADIUS = 8
 
-    def __init__(self, parent: QObject, crop: QRect = None):
+    def __init__(self, parent: QObject, crop: Optional[QRect] = None):
         super().__init__(parent)
         self.crop = crop
         self.setBlurRadius(self.BLUR_RADIUS)
 
-    def setCrop(self, crop: QRect = None):
+    def setCrop(self, crop: Optional[QRect] = None):
         self.crop = crop
 
     def draw(self, painter: QPainter):

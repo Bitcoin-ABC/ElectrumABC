@@ -28,7 +28,7 @@ from __future__ import annotations
 import hashlib
 import struct
 from collections import namedtuple
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 
 from . import cashaddr, networks
 from .bitcoin import (
@@ -394,7 +394,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
         cls,
         string: str,
         *,
-        net: networks.AbstractNet = None,
+        net: Optional[networks.AbstractNet] = None,
         support_arbitrary_prefix: bool = False,
     ):
         """Construct from a cashaddress string.
@@ -451,7 +451,7 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
         cls,
         string: str,
         *,
-        net: networks.AbstractNet = None,
+        net: Optional[networks.AbstractNet] = None,
         support_arbitrary_prefix: bool = False,
     ):
         """Construct from an address string.

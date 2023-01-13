@@ -1092,7 +1092,7 @@ class DeviceMgr(ThreadJob):
         self,
         handler: Optional[HardwareHandlerBase],
         plugin: HW_PluginBase,
-        devices: List[Device] = None,
+        devices: Optional[List[Device]] = None,
     ) -> List["DeviceInfo"]:
         """Returns a list of DeviceInfo objects: one for each connected,
         unpaired device accepted by the plugin."""
@@ -1122,7 +1122,7 @@ class DeviceMgr(ThreadJob):
         plugin: HW_PluginBase,
         handler: HardwareHandlerBase,
         keystore: Hardware_KeyStore,
-        devices: List["Device"] = None,
+        devices: Optional[List["Device"]] = None,
     ) -> DeviceInfo:
         """Ask the user to select a device to use if there is more than one,
         and return the DeviceInfo for the device."""

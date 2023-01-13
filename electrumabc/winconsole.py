@@ -32,12 +32,13 @@ import atexit
 import ctypes
 import os
 import sys
+from typing import Iterator, Optional
 
 STD_OUTPUT_HANDLE = -11
 FILE_TYPE_DISK = 1
 
 
-def parent_process_pids() -> int:
+def parent_process_pids() -> Iterator[int]:
     """
     Returns all parent process PIDs, starting with the closest parent
     """
@@ -58,16 +59,15 @@ def get_console_title() -> str:
     b = bytes(1024)
     b_ptr = ctypes.c_char_p(b)
     title = None
-    title_len = ctypes.windll.kernel32.GetConsoleTitleW(
-        b_ptr, len(b) // 2
-    )  # GetConsoleTitleW expects size in 2-byte chars
+    # GetConsoleTitleW expects size in 2-byte chars
+    title_len = ctypes.windll.kernel32.GetConsoleTitleW(b_ptr, len(b) // 2)  # type: ignore[attr-defined]
     if title_len > 0:
         title = b.decode("utf-16")[:title_len]
     return title
 
 
 def create_or_attach_console(
-    *, attach: bool = True, create: bool = False, title: str = None
+    *, attach: bool = True, create: bool = False, title: Optional[str] = None
 ) -> bool:
     """
     Workaround to the fact that cmd.exe based execution of this program means
@@ -90,8 +90,7 @@ def create_or_attach_console(
     (sys.stdout, sys.stderr) to this found and/or created console.
 
     Always return True on success or if there was a console already,
-    False or None on failure (a None return indicates a missing lib or some
-    other unspecified exception was raised when attempting to create a console).
+    False on failure.
     """
     std_out_handle = ctypes.windll.kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
 
@@ -111,7 +110,7 @@ def create_or_attach_console(
                     break
     except ImportError:
         # User's system lacks psutil
-        return  # Return None in case caller wants to differntiate exceptional failures from regular False return
+        return False
 
     created = False
 
@@ -134,12 +133,11 @@ def create_or_attach_console(
     except OSError:
         # If we get here, we likely were in MinGW / MSYS where CONOUT$ / CONIN$
         # are not valid files or some other weirdness occurred. Give up.
-        return  # return None to indicate underlying exception
+        return False
 
     if title:
-        old_title = (
-            get_console_title() if not created else None
-        )  # save the old title only if not created by us
+        # save the old title only if not created by us
+        old_title = get_console_title() if not created else None
         # Set the console title, if specified
         ctypes.windll.kernel32.SetConsoleTitleW(title)
         if old_title is not None:

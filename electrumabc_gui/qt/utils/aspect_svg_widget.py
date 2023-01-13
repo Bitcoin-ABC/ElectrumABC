@@ -23,13 +23,16 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from typing import Optional
 
 from PyQt5.QtCore import QObject, QSize
 from PyQt5.QtSvg import QSvgWidget
 
 
 class FixedAspectRatioSvgWidget(QSvgWidget):
-    def __init__(self, width: int, file: str = None, parent: QObject = None):
+    def __init__(
+        self, width: int, file: Optional[str] = None, parent: Optional[QObject] = None
+    ):
         if file:
             super().__init__(file, parent)
         else:
