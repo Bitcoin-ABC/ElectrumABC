@@ -500,10 +500,13 @@ class WaitingDialog(WindowModalDialog):
     def on_accepted(self):
         self.thread.stop()
         if self.auto_cleanup:
-            self.wait()  # wait for thread to complete so that we can get cleaned up
-            self.setParent(
-                None
-            )  # this causes GC to happen sooner rather than later. Before this call was added the WaitingDialogs would stick around in memory until the ElectrumWindow was closed and would never get GC'd before then. (as of PyQt5 5.11.3)
+            # wait for thread to complete so that we can get cleaned up
+            self.wait()
+            # this causes GC to happen sooner rather than later. Before this call was
+            # added the WaitingDialogs would stick around in memory until the
+            # ElectrumWindow was closed and would never get GC'd before then.
+            # (as of PyQt5 5.11.3)
+            self.setParent(None)
 
     def on_rejected(self):
         if self.auto_cleanup:
@@ -1269,9 +1272,9 @@ class RateLimiter(PrintError):
         obj = args[0]
         a_name = cls.attr_name(func)
         # print_error("*** a_name =",a_name,"obj =",obj)
-        rl = getattr(
-            obj, a_name, None
-        )  # we hide the RateLimiter state object in an attribute (name based on the wrapped function name) in the target object
+        # we hide the RateLimiter state object in an attribute (name based on the
+        # wrapped function name) in the target object
+        rl = getattr(obj, a_name, None)
         if rl is None:
             # must be the first invocation, create a new RateLimiter state instance.
             rl = cls(rate, ts_after, obj, func)
@@ -1279,20 +1282,22 @@ class RateLimiter(PrintError):
         return rl._invoke(args, kwargs)
 
     def _invoke(self, args, kwargs):
-        self._push_args(
-            args, kwargs
-        )  # since we're collating, save latest invocation's args unconditionally. any future invocation will use the latest saved args.
+        # since we're collating, save latest invocation's args unconditionally. any
+        # future invocation will use the latest saved args.
+        self._push_args(args, kwargs)
         self.ctr += 1  # increment call counter
         # self.print_error("args_saved",args,"kwarg_saved",kwargs)
         if not self.timer:  # check if there's a pending invocation already
             now = time.time()
             diff = float(self.rate) - (now - self.last_ts)
             if diff <= 0:
-                # Time since last invocation was greater than self.rate, so call the function directly now.
+                # Time since last invocation was greater than self.rate, so call the
+                # function directly now.
                 # self.print_error("calling directly")
                 return self._doIt()
             else:
-                # Time since last invocation was less than self.rate, so defer to the future with a timer.
+                # Time since last invocation was less than self.rate, so defer to the
+                # future with a timer.
                 self.timer = QTimer(
                     self.obj() if isinstance(self.obj(), QObject) else None
                 )
@@ -1302,19 +1307,18 @@ class RateLimiter(PrintError):
                 self.timer.start(int(diff * 1e3))
                 # self.print_error("deferring")
         else:
-            # We had a timer active, which means as future call will occur. So return early and let that call happenin the future.
-            # Note that a side-effect of this aborted invocation was to update self.saved_args.
+            # We had a timer active, which means as future call will occur. So return
+            # early and let that call happenin the future.
+            # Note that a side-effect of this aborted invocation was to update
+            # self.saved_args.
             pass
             # self.print_error("ignoring (already scheduled)")
 
     def _pop_args(self):
-        (
-            args,
-            kwargs,
-        ) = (
-            self.saved_args
-        )  # grab the latest collated invocation's args. this attribute is always defined.
-        self.saved_args = (tuple(), dict())  # clear saved args immediately
+        # grab the latest collated invocation's args. this attribute is always defined.
+        args, kwargs = self.saved_args
+        # clear saved args immediately
+        self.saved_args = (tuple(), dict())
         return args, kwargs
 
     def _push_args(self, args, kwargs):
@@ -1417,17 +1421,17 @@ class RateLimiterClassLvl(RateLimiter):
             obj = ref()
             if obj:
                 args, kwargs = weak_dict[obj]
-                # self.print_error("calling for",obj.diagnostic_name() if hasattr(obj, "diagnostic_name") else obj,"timer=",bool(self.timer))
                 self.func_target(obj, *args, **kwargs)
 
     def __init__(self, rate, ts_after, obj, func):
-        # note: obj here is really the __class__ of the obj because we prepended the class in our custom invoke() above.
+        # note: obj here is really the __class__ of the obj because we prepended the
+        # class in our custom invoke() above.
         super().__init__(rate, ts_after, obj, func)
         self.func_target = func
         self.func = self._call_func_for_all
-        self.saved_args = (
-            Weak.KeyDictionary()
-        )  # we don't use a simple arg tuple, but instead an instance -> args,kwargs dictionary to store collated calls, per instance collated
+        # we don't use a simple arg tuple, but instead an instance -> args,kwargs
+        # dictionary to store collated calls, per instance collated
+        self.saved_args = Weak.KeyDictionary()
 
 
 def rate_limited(rate, *, classlevel=False, ts_after=False):

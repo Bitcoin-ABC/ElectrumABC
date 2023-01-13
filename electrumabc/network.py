@@ -390,9 +390,8 @@ class Network(util.DaemonThread):
         return Network.INSTANCE
 
     def callback_listener_count(self, event):
-        return len(
-            self.callbacks.get(event, [])
-        )  # we intentionally don't take any locks here as a performance optimization
+        # we intentionally don't take any locks here as a performance optimization
+        return len(self.callbacks.get(event, []))
 
     def register_callback(self, callback, events):
         with self.lock:
@@ -426,14 +425,16 @@ class Network(util.DaemonThread):
             # electron cash plugins that still use this event, and we need
             # to keep this hack here so they don't break on new EC
             # versions.  "Technical debt" :)
-            self.trigger_callback(
-                "updated"
-            )  # we will re-enter this function with event == 'updated' (triggering the warning in the elif clause below)
+            #
+            # we will re-enter this function with event == 'updated' (triggering the
+            # warning in the elif clause below)
+            self.trigger_callback("updated")
         elif event == "verified2" and "verified" in self.callbacks:
             # pop off the 'wallet' arg as the old bad 'verified' callback lacked it.
-            self.trigger_callback(
-                "verified", args[1:]
-            )  # we will re-enter this function with event == 'verified' (triggering the warning in the elif clause below)
+            #
+            # we will re-enter this function with event == 'verified' (triggering the
+            # warning in the elif clause below)
+            self.trigger_callback("verified", args[1:])
         elif event in self._deprecated_alternatives:
             # If we see updated or verified events come through here, warn:
             # deprecated. Note that the above 2 clauses will also trigger this

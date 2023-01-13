@@ -116,13 +116,12 @@ class Plugin(FusionPlugin, QObject):
     _hide_history_txs = False
 
     def __init__(self, *args, **kwargs):
-        QObject.__init__(
-            self
-        )  # parentless top-level QObject. We need this type for the signal.
-        FusionPlugin.__init__(self, *args, **kwargs)  # gives us self.config
-        self.widgets = (
-            weakref.WeakSet()
-        )  # widgets we made, that need to be hidden & deleted when plugin is disabled
+        # parentless top-level QObject. We need this type for the signal.
+        QObject.__init__(self)
+        # gives us self.config
+        FusionPlugin.__init__(self, *args, **kwargs)
+        # widgets we made, that need to be hidden & deleted when plugin is disabled
+        self.widgets = weakref.WeakSet()
         self._hide_history_txs = Global(self.config).hide_history_txs
 
     def on_close(self):
@@ -131,7 +130,8 @@ class Plugin(FusionPlugin, QObject):
         # This can be triggered from one wallet's window while
         # other wallets' windows have plugin-related modals open.
         for window in self.gui.windows:
-            # this could be slow since it touches windows one by one... could optimize this by dispatching simultaneously.
+            # this could be slow since it touches windows one by one... could optimize
+            # this by dispatching simultaneously.
             self.on_close_window(window)
         # Clean up
         for w in self.widgets:
@@ -141,12 +141,12 @@ class Plugin(FusionPlugin, QObject):
                 w.hide()
                 w.deleteLater()
             except Exception:
-                # could be <RuntimeError: wrapped C/C++ object of type SettingsDialog has been deleted> but really we just want to suppress all exceptions
+                # could be <RuntimeError: wrapped C/C++ object of type SettingsDialog
+                # has been deleted> but really we just want to suppress all exceptions
                 pass
         # clean up member attributes to be tidy
-        self.fusions_win = (
-            None  # should trigger a deletion of object if not already dead
-        )
+        # should trigger a deletion of object if not already dead
+        self.fusions_win = None
         self.weak_settings_tab = None
         self.gui = None
         self.initted = False

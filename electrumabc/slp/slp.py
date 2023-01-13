@@ -54,11 +54,11 @@ class ScriptOutput(address.ScriptOutput):
         )
         script = bytes(script) if isinstance(script, bytearray) else script
         self = super(__class__, cls).__new__(cls, script)
-        self.message = cls._script_message_cache.get(
-            self.script
-        )  # will return a valid object or None
+        # will return a valid object or None
+        self.message = cls._script_message_cache.get(self.script)
         if self.message is None:
-            self.message = Message.parse(self)  # raises on parse error
+            # raises on parse error
+            self.message = Message.parse(self)
         return self
 
     @classmethod
@@ -812,21 +812,28 @@ class WalletData(PrintError):
     def clear(self):
         """Caller should hold locks"""
         self.need_rebuild = False
-        self.validity = dict()  # txid -> int
-        self.txo_byaddr = dict()  # [address] -> set of "prevouthash:n" for that address
-        self.token_quantities = (
-            dict()
-        )  # [token_id_hex] -> dict of ["prevouthash:n"] -> qty (-1 for qty indicates minting baton)
-        self.txo_token_id = dict()  # ["prevouthash:n"] -> "token_id_hex"
+
+        # txid -> int
+        self.validity = dict()
+
+        # [address] -> set of "prevouthash:n" for that address
+        self.txo_byaddr = dict()
+
+        # [token_id_hex] -> dict of ["prevouthash:n"] -> qty (-1 for qty indicates
+        # minting baton)
+        self.token_quantities = dict()
+
+        # ["prevouthash:n"] -> "token_id_hex"
+        self.txo_token_id = dict()
 
     def rebuild(self):
         """This takes wallet.lock"""
         with self.wallet.lock:
             self.clear()
             for txid, tx in self.wallet.transactions.items():
-                self.add_tx(
-                    txid, Transaction(tx.raw)
-                )  # we take a copy of the transaction so prevent storing deserialized tx in wallet.transactions dict
+                # we take a copy of the transaction so prevent storing deserialized tx
+                # in wallet.transactions dict
+                self.add_tx(txid, Transaction(tx.raw))
 
     # --- GETTERS / SETTERS from wallet
     def token_info_for_txo(self, txo) -> Tuple[str, int]:
@@ -838,10 +845,12 @@ class WalletData(PrintError):
         """
         token_id_hex = self.txo_token_id.get(txo)
         if token_id_hex is not None:
+            # we want this to raise KeyError here if missing as it indicates a
+            # programming error
             return (
                 token_id_hex,
                 self.token_quantities[token_id_hex][txo],
-            )  # we want this to raise KeyError here if missing as it indicates a programming error
+            )
 
     def txo_has_token(self, txo) -> bool:
         """Takes no locks."""

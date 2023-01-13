@@ -1433,9 +1433,8 @@ class Transaction:
                                 "block_height"
                             )  # indicate to other thread we got the block_height reply from network
                             try:
-                                confs = r.get("result").get(
-                                    "confirmations", 0
-                                )  # will raise of error reply
+                                # will raise of error reply
+                                confs = r.get("result").get("confirmations", 0)
                                 if confs and lh:
                                     # the whole point.. was to get this piece of data.. the block_height
                                     eph["block_height"] = bh = lh - confs + 1

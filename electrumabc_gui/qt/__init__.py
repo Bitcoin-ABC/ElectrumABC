@@ -1159,9 +1159,9 @@ class ElectrumGui(QtCore.QObject, PrintError):
             return
         signal.signal(signal.SIGINT, lambda signum, frame: self.shutdown_signal.emit())
 
-        self.app.setQuitOnLastWindowClosed(
-            False
-        )  # we want to control this in our slot (since we support non-visible, backgrounded windows via the systray show/hide facility)
+        # we want to control this in our slot (since we support non-visible,
+        # backgrounded windows via the systray show/hide facility)
+        self.app.setQuitOnLastWindowClosed(False)
         self.app.lastWindowClosed.connect(self._quit_after_last_window)
 
         def clean_up():
@@ -1178,9 +1178,9 @@ class ElectrumGui(QtCore.QObject, PrintError):
 
         self.app.aboutToQuit.connect(clean_up)
 
-        ExceptionHook(
-            self.config
-        )  # This wouldn't work anyway unless the app event loop is active, so we must install it once here and no earlier.
+        # This wouldn't work anyway unless the app event loop is active, so we must
+        # install it once here and no earlier.
+        ExceptionHook(self.config)
         # main loop
         self.app.exec_()
         # on some platforms the exec_ call may not return, so use clean_up()

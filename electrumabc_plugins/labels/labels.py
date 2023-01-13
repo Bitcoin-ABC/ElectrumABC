@@ -87,9 +87,8 @@ class LabelsPlugin(BasePlugin):
                 kwargs["data"] = json.dumps(data)
                 kwargs["headers"]["Content-Type"] = "application/json"
 
-            response = requests.request(
-                method, url, **kwargs, timeout=5.0
-            )  # will raise requests.exceptions.Timeout on timeout
+            # will raise requests.exceptions.Timeout on timeout
+            response = requests.request(method, url, **kwargs, timeout=5.0)
 
             if response.status_code == 400:
                 if "serverNonce is larger then walletNonce" in response.text:
@@ -262,7 +261,9 @@ class LabelsPlugin(BasePlugin):
         return bool(w)
 
     def on_close(self):
-        self.closing = True  # this is to minimize chance of race conditions but the way this class is written they can theoretically still happen. c'est la vie.
+        # this is to minimize chance of race conditions but the way this class is
+        # written they can theoretically still happen. c'est la vie.
+        self.closing = True
         ct = 0
         for w in self.wallets.copy():
             ct += int(bool(self.stop_wallet(w)))
@@ -273,16 +274,17 @@ class LabelsPlugin(BasePlugin):
                 continue
             uniq_thrds.append(t)
             if t.is_alive():
-                t.join()  # wait for it to complete
+                # wait for it to complete
+                t.join()
                 stopped += 1
         self.print_error(
-            "Plugin closed, stopped {} extant wallets, joined {} extant threads.".format(
-                ct, stopped
-            )
+            f"Plugin closed, stopped {ct} extant wallets, joined {stopped} extant"
+            f" threads."
         )
+        # due to very very unlikely race conditions this is in fact a possibility.
         assert 0 == len(
             self.threads
-        ), "Labels Plugin: Threads were left alive on close!"  # due to very very unlikely race conditions this is in fact a possibility.
+        ), "Labels Plugin: Threads were left alive on close!"
 
     def on_init(self):
         """Here for symmetry with on_close. In reality plugins get unloaded

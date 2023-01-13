@@ -59,9 +59,8 @@ def TestNormal(self):
     e12_bad[0] ^= 1
     with self.assertRaises(encrypt.DecryptionFailed):
         encrypt.decrypt(e12_bad, Apriv)
-    d12 = encrypt.decrypt_with_symmkey(
-        e12_bad, k
-    )  # works because it doesn't care about nonce point
+    # works because it doesn't care about nonce point
+    d12 = encrypt.decrypt_with_symmkey(e12_bad, k)
     self.assertEqual(d12, msg12)
 
     # tweak the hmac

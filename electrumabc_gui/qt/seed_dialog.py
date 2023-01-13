@@ -156,12 +156,11 @@ class SeedLayout(QtWidgets.QVBoxLayout):
             opt_button = EnterButton(_("Options"), self.seed_options)
             hbox.addWidget(opt_button)
             self.addLayout(hbox)
-        grid_maybe = (
-            QtWidgets.QGridLayout()
-        )  # may not be used if none of the below if expressions evaluates to true, that's ok.
-        grid_maybe.setColumnStretch(
-            1, 1
-        )  # we want the right-hand column to take up as much space as it needs.
+        # may not be used if none of the below if expressions evaluates to true,
+        # that's ok.
+        grid_maybe = QtWidgets.QGridLayout()
+        # we want the right-hand column to take up as much space as it needs.
+        grid_maybe.setColumnStretch(1, 1)
         grid_row = 0
         if seed_type:
             seed_type_text = mnemo.format_seed_type_name_for_ui(seed_type)

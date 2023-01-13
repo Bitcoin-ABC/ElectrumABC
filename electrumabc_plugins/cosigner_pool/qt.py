@@ -134,9 +134,11 @@ class Listener(util.DaemonThread):
         self.print_error("exiting.")
 
     def stop(self):
-        # extends DaemonThread by also writing to the timeoutQ to wake up the sleeping thread, if any
+        # extends DaemonThread by also writing to the timeoutQ to wake up the sleeping
+        # thread, if any
         super().stop()
-        self.timeoutQ.put(None)  # wake up sleeper, if any
+        # wake up sleeper, if any
+        self.timeoutQ.put(None)
 
     def start(self):
         # overrides DaemonThread -- clears queue on (re)start

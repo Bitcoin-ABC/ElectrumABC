@@ -1275,9 +1275,8 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                             # .txid()) which ensures the tx from the server
                             # is not junk.
                             assert prevout_hash == tx.txid(), "txid mismatch"
-                            Transaction.tx_cache_put(
-                                tx, prevout_hash
-                            )  # will cache a copy
+                            # will cache a copy
+                            Transaction.tx_cache_put(tx, prevout_hash)
                     except Exception as e:
                         self.print_error(
                             f"{me.name}: Error retrieving txid",

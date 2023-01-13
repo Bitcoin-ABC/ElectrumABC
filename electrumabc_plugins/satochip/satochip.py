@@ -57,7 +57,7 @@ except ImportError:
 
 logging.basicConfig(
     level=logging.DEBUG, format="%(levelname)s [%(module)s] %(funcName)s | %(message)s"
-)  # debugSatochip
+)
 
 # debug: smartcard reader ids
 SATOCHIP_VID = 0x096E
@@ -97,7 +97,7 @@ class SatochipClient(HardwareClientBase, PrintError):
         if not LIBS_AVAILABLE:
             self.print_error("** No libraries available")
             return
-        self.print_error("__init__()")  # debugSatochip
+        self.print_error("__init__()")
         self.device = plugin.device
         self.handler = handler
         # self.parser= CardDataParser()
@@ -115,7 +115,7 @@ class SatochipClient(HardwareClientBase, PrintError):
         return LIBS_AVAILABLE
 
     def close(self):
-        self.print_error("close()")  # debugSatochip
+        self.print_error("close()")
         self.cc.card_disconnect()
         self.cc.cardmonitor.deleteObserver(self.cc.cardobserver)
 
@@ -126,7 +126,7 @@ class SatochipClient(HardwareClientBase, PrintError):
         return LIBS_AVAILABLE
 
     def has_usable_connection_with_device(self):
-        self.print_error("has_usable_connection_with_device()")  # debugSatochip
+        self.print_error("has_usable_connection_with_device()")
         try:
             atr = self.cc.card_get_ATR()
             self.print_error("Card ATR: " + bytes(atr).hex())
@@ -145,7 +145,7 @@ class SatochipClient(HardwareClientBase, PrintError):
             self.print_error(
                 "get_xpub(): self.handler.win.wallet.storage.authentikey:",
                 hex_authentikey,
-            )  # debugSatochip
+            )
             if hex_authentikey is not None:
                 self.cc.parser.authentikey_from_storage = ECPubkey(
                     bytes.fromhex(hex_authentikey)
@@ -154,14 +154,14 @@ class SatochipClient(HardwareClientBase, PrintError):
             self.print_error(
                 "get_xpub(): exception when getting authentikey from self.handler.win.wallet.storage:",
                 str(e),
-            )  # debugSatochip
+            )
 
         try:
             # needs PIN
             self.cc.card_verify_PIN()
 
             # bip32_path is of the form 44'/0'/1'
-            self.print_error("[get_xpub(): bip32_path = ", bip32_path)  # debugSatochip
+            self.print_error("[get_xpub(): bip32_path = ", bip32_path)
             (depth, bytepath) = bip32path2bytes(bip32_path)
             (childkey, childchaincode) = self.cc.card_bip32_get_extendedkey(bytepath)
 
@@ -185,7 +185,7 @@ class SatochipClient(HardwareClientBase, PrintError):
                 fingerprint,
                 child_number,
             )
-            self.print_error("SatochipClient: get_xpub(): xpub=", xpub)  # debugSatochip
+            self.print_error("SatochipClient: get_xpub(): xpub=", xpub)
             return xpub
             # return BIP32Node(xtype=xtype,
             # eckey=childkey,
@@ -419,7 +419,7 @@ class Satochip_KeyStore(Hardware_KeyStore):
         return compsig
 
     def sign_transaction(self, tx: Transaction, password, *, use_cache=False):
-        self.print_error("sign_transaction(): tx: " + str(tx))  # debugSatochip
+        self.print_error("sign_transaction(): tx: " + str(tx))
 
         client = self.get_client()
 
@@ -427,26 +427,20 @@ class Satochip_KeyStore(Hardware_KeyStore):
         txOutputs = "".join(tx.serialize_output(o) for o in tx.outputs())
         hashOutputs = bh2u(Hash(bfh(txOutputs)))
         txOutputs = var_int(len(tx.outputs())) + txOutputs
-        self.print_error(
-            "sign_transaction(): hashOutputs= ", hashOutputs
-        )  # debugSatochip
-        self.print_error("sign_transaction(): outputs= ", txOutputs)  # debugSatochip
+        self.print_error("sign_transaction(): hashOutputs= ", hashOutputs)
+        self.print_error("sign_transaction(): outputs= ", txOutputs)
 
         # Fetch inputs of the transaction to sign
         derivations = self.get_tx_derivations(tx)
         for i, txin in enumerate(tx.inputs()):
-            self.print_error("sign_transaction(): input =", i)  # debugSatochip
-            self.print_error(
-                "sign_transaction(): input[type]:", txin["type"]
-            )  # debugSatochip
+            self.print_error("sign_transaction(): input =", i)
+            self.print_error("sign_transaction(): input[type]:", txin["type"])
             if txin["type"] == "coinbase":
                 self.give_error("Coinbase not supported")  # should never happen
 
             pubkeys, x_pubkeys = tx.get_sorted_pubkeys(txin)
             for j, x_pubkey in enumerate(x_pubkeys):
-                self.print_error(
-                    "sign_transaction(): forforloop: j=", j
-                )  # debugSatochip
+                self.print_error("sign_transaction(): forforloop: j=", j)
                 if tx.is_txin_complete(txin):
                     break
 
@@ -465,12 +459,8 @@ class Satochip_KeyStore(Hardware_KeyStore):
                     )  # hex representation => converted to bytes
                     pre_hash = Hash(bfh(pre_tx_hex))
                     pre_hash_hex = pre_hash.hex()
-                    self.print_error(
-                        "sign_transaction(): pre_tx_hex=", pre_tx_hex
-                    )  # debugSatochip
-                    self.print_error(
-                        "sign_transaction(): pre_hash=", pre_hash_hex
-                    )  # debugSatochip
+                    self.print_error("sign_transaction(): pre_tx_hex=", pre_tx_hex)
+                    self.print_error("sign_transaction(): pre_hash=", pre_hash_hex)
                     # (response, sw1, sw2) = client.cc.card_parse_transaction(pre_tx, True) # use 'True' since BCH use BIP143 as in Segwit...
                     # print_error('[satochip] sign_transaction(): response= '+str(response)) #debugSatochip
                     # (tx_hash, needs_2fa) = client.parser.parse_parse_transaction(response)
@@ -603,7 +593,7 @@ class SatochipPlugin(HW_PluginBase):
         if not LIBS_AVAILABLE:
             return
 
-        self.print_error("init()")  # debugSatochip
+        self.print_error("init()")
 
         # self.libraries_available = self.check_libraries_available() #debugSatochip
         # if not self.libraries_available:
@@ -616,12 +606,12 @@ class SatochipPlugin(HW_PluginBase):
         return "0.0.1"
 
     def detect_smartcard_reader(self):
-        self.print_error("detect_smartcard_reader")  # debugSatochip
+        self.print_error("detect_smartcard_reader")
         self.cardtype = AnyCardType()
         try:
             cardrequest = CardRequest(timeout=0.1, cardType=self.cardtype)
             cardrequest.waitforcard()
-            self.print_error("detect_smartcard_reader: found card!")  # debugSatochip
+            self.print_error("detect_smartcard_reader: found card!")
             return [
                 Device(
                     path="/satochip",
@@ -643,7 +633,7 @@ class SatochipPlugin(HW_PluginBase):
         return []
 
     def create_client(self, device, handler):
-        self.print_error("create_client()")  # debugSatochip
+        self.print_error("create_client()")
 
         if handler:
             self.handler = handler
@@ -655,7 +645,7 @@ class SatochipPlugin(HW_PluginBase):
             return None
 
     def setup_device(self, device_info, wizard, purpose):
-        self.print_error("setup_device()")  # debugSatochip
+        self.print_error("setup_device()")
         if not LIBS_AVAILABLE:
             raise RuntimeError("No libraries available")
 
@@ -683,7 +673,7 @@ class SatochipPlugin(HW_PluginBase):
                 v_applet = d["protocol_version"]
                 self.print_error(
                     f"[SatochipPlugin] setup_device(): Satochip version={hex(v_applet)} Electrum supported version= {hex(v_supported)}"
-                )  # debugSatochip
+                )
                 if v_supported < v_applet:
                     msg = (
                         _(
@@ -754,7 +744,7 @@ class SatochipPlugin(HW_PluginBase):
                         + hex(sw1)
                         + " "
                         + hex(sw2)
-                    )  # debugSatochip
+                    )
                     raise RuntimeError(
                         "Unable to setup the device with error code:"
                         + hex(sw1)
@@ -804,33 +794,31 @@ class SatochipPlugin(HW_PluginBase):
                         if sw1 != 0x90 or sw2 != 0x00:
                             self.print_error(
                                 f"setup_device(): unable to set 2FA!  sw12={hex(sw1)},{hex(sw2)}"
-                            )  # debugSatochip
+                            )
                             raise RuntimeError(
                                 f"Unable to setup 2FA with error code: {hex(sw1)} {hex(sw2)}"
                             )
 
                 # seed dialog...
-                self.print_error("setup_device(): import seed:")  # debugSatochip
+                self.print_error("setup_device(): import seed:")
                 self.choose_seed(wizard)
                 seed = list(self.bip32_seed)
 
                 authentikey = client.cc.card_bip32_import_seed(seed)
 
             hex_authentikey = authentikey.get_public_key_hex(compressed=True)
-            self.print_error(
-                "setup_device(): authentikey=", hex_authentikey
-            )  # debugSatochip
+            self.print_error("setup_device(): authentikey=", hex_authentikey)
             wizard.data["authentikey"] = hex_authentikey
             self.print_error(
                 "setup_device(): authentikey from storage=", wizard.data["authentikey"]
-            )  # debugSatochip
+            )
             break
         return client
 
     def get_xpub(self, device_id, derivation, xtype, wizard):
         # this seems to be part of the pairing process only, not during normal ops?
         # base_wizard:on_hw_derivation
-        self.print_error("get_xpub()")  # debugSatochip
+        self.print_error("get_xpub()")
         # if xtype not in self.SUPPORTED_XTYPES:
         #    raise ScriptTypeNotSupported(_('This type of script is not supported with {}.').format(self.device))
         client = self.scan_and_create_client_for_device(

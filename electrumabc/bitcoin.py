@@ -522,7 +522,8 @@ def hash160_to_b58_address(h160, addrtype):
 
 def b58_address_to_hash160(addr):
     addr = to_bytes(addr, "ascii")
-    _bytes = base_decode(addr, 25, base=58)  # will raise ValueError on bad characters
+    # will raise ValueError on bad characters
+    _bytes = base_decode(addr, 25, base=58)
     return _bytes[0], _bytes[1:21]
 
 
@@ -697,10 +698,11 @@ def deserialize_privkey(key, *, net=None):
         return "p2pkh", minikey_to_private_key(key), False
     elif vch:
         txin_type = inv_dict(SCRIPT_TYPES)[vch[0] - net.WIF_PREFIX]
+        # We do it this way because eg iOS runs with PYTHONOPTIMIZE=1
         if len(vch) not in (
             33,
             34,
-        ):  # We do it this way because eg iOS runs with PYTHONOPTIMIZE=1
+        ):
             raise AssertionError("Key {} has invalid length".format(key))
         compressed = len(vch) == 34
         if compressed and vch[33] != 0x1:

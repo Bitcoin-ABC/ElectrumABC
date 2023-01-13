@@ -287,7 +287,8 @@ class Fusion(threading.Thread, PrintError):
     stopping = False
     stopping_if_not_running = False
     max_outputs = None
-    status = ("setup", None)  # will always be 2-tuple; second param has extra details
+    # will always be 2-tuple; second param has extra details
+    status = ("setup", None)
 
     def __init__(
         self,

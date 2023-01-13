@@ -324,9 +324,8 @@ class FusionServer(GenericServer):
             t: WaitingPool(Params.min_clients, Params.max_tier_client_tags)
             for t in Params.tiers
         }
-        self.t_last_fuse = (
-            time.monotonic()
-        )  # when the last fuse happened; as a placeholder, set this to startup time.
+        # when the last fuse happened; as a placeholder, set this to startup time.
+        self.t_last_fuse = time.monotonic()
         self.reset_timer()
 
     def run(self):

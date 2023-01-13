@@ -323,9 +323,8 @@ class FusionPlugin(BasePlugin):
 
         self.t_last_net_ok = time.monotonic()
 
-        self.remote_donation_address: str = (
-            ""  # optionally announced by the remote server in 'serverhello' message
-        )
+        # optionally announced by the remote server in 'serverhello' message
+        self.remote_donation_address: str = ""
 
     def on_close(
         self,

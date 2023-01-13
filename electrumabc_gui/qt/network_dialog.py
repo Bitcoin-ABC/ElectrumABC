@@ -592,15 +592,13 @@ class NetworkChoiceLayout(QObject, PrintError):
         grid.addWidget(self.server_host, 3, 1, 1, 2)
         grid.addWidget(self.server_port, 3, 3)
 
-        self.server_list_label = label = QtWidgets.QLabel(
-            ""
-        )  # will get set by self.update()
+        # will get set by self.update()
+        self.server_list_label = label = QtWidgets.QLabel("")
         grid.addWidget(label, 4, 0, 1, 5)
         self.servers_list = ServerListWidget(self)
         grid.addWidget(self.servers_list, 5, 0, 1, 5)
-        self.legend_label = label = WWLabel(
-            ""
-        )  # will get populated with the legend by self.update()
+        # will get populated with the legend by self.update()
+        self.legend_label = label = WWLabel("")
         label.setTextInteractionFlags(
             label.textInteractionFlags() & (~Qt.TextSelectableByMouse)
         )  # disable text selection by mouse here

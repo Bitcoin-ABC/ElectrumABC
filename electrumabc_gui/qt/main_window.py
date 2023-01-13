@@ -1166,10 +1166,12 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         # Note this runs in the GUI thread
 
         if self.need_update.is_set():
-            self._update_wallet()  # will clear flag when it runs. (also clears labels_need_update as well)
+            # will clear flag when it runs. (also clears labels_need_update as well)
+            self._update_wallet()
 
         if self.labels_need_update.is_set():
-            self._update_labels()  # will clear flag when it runs.
+            # will clear flag when it runs.
+            self._update_labels()
 
         # resolve aliases
         # FIXME this is a blocking network call that has a timeout of 5 sec
@@ -1179,7 +1181,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.do_update_fee()
             self.require_fee_update = False
 
-        # hook for other classes to be called here. For example the tx_update_mgr is called here (see TxUpdateMgr.do_check).
+        # hook for other classes to be called here. For example the tx_update_mgr is
+        # called here (see TxUpdateMgr.do_check).
         self.on_timer_signal.emit()
 
     def format_amount(self, x, is_diff=False, whitespaces=False):
@@ -1338,7 +1341,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         run_hook("window_update_status", self)
 
     def update_wallet(self):
-        self.need_update.set()  # will enqueue an _update_wallet() call in at most 0.5 seconds from now.
+        # will enqueue an _update_wallet() call in at most 0.5 seconds from now.
+        self.need_update.set()
 
     def _update_wallet(self):
         """Called by self.timer_actions every 0.5 secs if need_update flag is set.
@@ -1364,15 +1368,22 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.contact_list.update()
         self.invoice_list.update()
         self.update_completions()
-        self.history_updated_signal.emit()  # inform things like address_dialog that there's a new history, also clears self.tx_update_mgr.verif_q
+        # inform things like address_dialog that there's a new history, also clears
+        # self.tx_update_mgr.verif_q
+        self.history_updated_signal.emit()
         self.need_update.clear()  # clear flag
         if self.labels_need_update.is_set():
-            # if flag was set, might as well declare the labels updated since they necessarily were due to a full update.
-            self.labels_updated_signal.emit()  # just in case client code was waiting for this signal to proceed.
-            self.labels_need_update.clear()  # clear flag
+            # if flag was set, might as well declare the labels updated since they
+            # necessarily were due to a full update.
+            #
+            # just in case client code was waiting for this signal to proceed.
+            self.labels_updated_signal.emit()
+            # clear flag
+            self.labels_need_update.clear()
 
     def update_labels(self):
-        self.labels_need_update.set()  # will enqueue an _update_labels() call in at most 0.5 seconds from now
+        # will enqueue an _update_labels() call in at most 0.5 seconds from now
+        self.labels_need_update.set()
 
     @rate_limited(1.0)
     def _update_labels(self):
@@ -1384,7 +1395,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.utxo_list.update_labels()
         self.update_completions()
         self.labels_updated_signal.emit()
-        self.labels_need_update.clear()  # clear flag
+        # clear flag
+        self.labels_need_update.clear()
 
     def create_history_tab(self):
         history_list = HistoryList(self)
@@ -1664,9 +1676,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.wallet.add_payment_request(req, self.config)
         self.sign_payment_request(self.receive_address)
         self.request_list.update()
-        self.request_list.select_item_by_address(
-            req.get("address")
-        )  # when adding items to the view the current selection may not reflect what's in the UI. Make sure it's selected.
+        # when adding items to the view the current selection may not reflect what's in
+        # the UI. Make sure it's selected.
+        self.request_list.select_item_by_address(req.get("address"))
         self.address_list.update()
         self.save_request_button.setEnabled(False)
 
@@ -3818,7 +3830,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 # else if the user scanned an offline signed tx
                 try:
                     result = bh2u(bitcoin.base_decode(result, length=None, base=43))
-                    tx = self.tx_from_text(result)  # will show an error dialog on error
+                    # will show an error dialog on error
+                    tx = self.tx_from_text(result)
                     if not tx:
                         return
                 except Exception as e:
@@ -4196,7 +4209,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             except TypeError:
                 pass
             if thr and thr.is_alive():
-                thr.join(timeout=1.0)  # wait for thread to end for maximal GC mojo
+                # wait for thread to end for maximal GC mojo
+                thr.join(timeout=1.0)
 
         def computing_privkeys_slot():
             if stop:
