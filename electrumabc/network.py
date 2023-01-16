@@ -35,7 +35,7 @@ import stat
 import threading
 import time
 from collections import defaultdict
-from typing import Dict, Iterable, Tuple
+from typing import Dict, Iterable, Optional, Tuple
 
 import socks
 
@@ -267,11 +267,9 @@ class Network(util.DaemonThread):
 
     tor_controller: TorController = None
 
-    def __init__(self, config=None):
-        if config is None:
-            config = {}
+    def __init__(self, config: Optional[SimpleConfig] = None):
         util.DaemonThread.__init__(self)
-        self.config = SimpleConfig(config) if isinstance(config, dict) else config
+        self.config = config or SimpleConfig()
         self.num_server = 10 if not self.config.get("oneserver") else 0
         self.blockchains = blockchain.read_blockchains(self.config)
         self.print_error("blockchains", self.blockchains.keys())
