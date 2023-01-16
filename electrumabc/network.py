@@ -141,14 +141,14 @@ def servers_to_hostmap(servers):
                 "error:",
                 str(e),
             )
-            continue  # deserialization error
+            # deserialization error
+            continue
         m = ret.get(host, dict())
         need_add = len(m) == 0
         m[protocol] = port
         if need_add:
-            m[
-                "pruning"
-            ] = "-"  # hmm. this info is missing, so give defaults just to make the map complete.
+            # hmm. this info is missing, so give defaults just to make the map complete.
+            m["pruning"] = "-"
             m["version"] = version.PROTOCOL_VERSION
             ret[host] = m
     return ret
@@ -298,7 +298,8 @@ class Network(util.DaemonThread):
         self.tor_controller.start()
 
         self.lock = threading.RLock()
-        # locks: if you need to take multiple ones, acquire them in the order they are defined here!
+        # locks: if you need to take multiple ones, acquire them in the order they are
+        # defined here!
         self.interface_lock = threading.RLock()  # <- re-entrant
         self.pending_sends_lock = threading.Lock()
 
@@ -349,9 +350,8 @@ class Network(util.DaemonThread):
         if Network.INSTANCE:
             # This happens on iOS which kills and restarts the daemon on app sleep/wake
             self.print_error("A new instance has started and is replacing the old one.")
-        Network.INSTANCE = (
-            self  # This implicitly should force stale instances to eventually del
-        )
+        # This implicitly should force stale instances to eventually del
+        Network.INSTANCE = self
         self.start_network(
             deserialize_server(self.default_server)[2],
             deserialize_proxy(self.config.get("proxy")),
@@ -380,10 +380,10 @@ class Network(util.DaemonThread):
         this code isn't normally reached, except for in the iOS
         implementation, which kills the daemon and the network before app
         sleep, and creates a new daemon and netwok on app awake."""
-        if Network.INSTANCE is self:  # This check is important for iOS
-            Network.INSTANCE = (
-                None  # <--- Not normally reached, but here for completeness.
-            )
+        # This check is important for iOS
+        if Network.INSTANCE is self:
+            # Not normally reached, but here for completeness.
+            Network.INSTANCE = None
         else:
             self.print_error("Stale instance deallocated")
         if hasattr(super(), "__del__"):
@@ -455,15 +455,13 @@ class Network(util.DaemonThread):
         alt = self._deprecated_alternatives.get(which)
         if alt:
             self.print_error(
-                "Warning: Legacy '{}' callback is deprecated, it is recommended that you instead use: {}. Please update your code.".format(
-                    which, alt
-                )
+                f"Warning: Legacy '{which}' callback is deprecated, it is recommended "
+                f"that you instead use: {alt}. Please update your code."
             )
         else:
             self.print_error(
-                "Warning: Legacy '{}' callback is deprecated. Please update your code.".format(
-                    which
-                )
+                f"Warning: Legacy '{which}' callback is deprecated. Please update your"
+                f" code."
             )
 
     def recent_servers_file(self):
@@ -1165,8 +1163,9 @@ class Network(util.DaemonThread):
                     params is None or _params == params
                 )
                 if do_delete:
-                    # guard against race conditions here. Note: this usually is called from the network thread but who
-                    # knows what future programmers may do. :)
+                    # guard against race conditions here. Note: this usually is called
+                    # from the network thread but who knows what future programmers may
+                    # do. :)
                     self.unanswered_requests.pop(message_id, None)
                     ct += 1
         ct2, ct3 = self._cancel_pending_sends(callback, method=method, params=params)
@@ -1298,10 +1297,15 @@ class Network(util.DaemonThread):
         top_height = base_height + count - 1
         if top_height > networks.net.VERIFICATION_BLOCK_HEIGHT:
             if base_height < networks.net.VERIFICATION_BLOCK_HEIGHT:
-                # As part of the verification process, we fetched the set of headers that allowed manual verification of the post-checkpoint headers that were fetched
-                # as part of the "catch-up" process.  This requested header batch overlaps the checkpoint, so we know we have the post-checkpoint segment from the
-                # "catch-up".  This leaves us needing some header preceding the checkpoint, and we can clip the batch to the checkpoint to ensure we can verify the
-                # fetched batch, which we wouldn't otherwise be able to do manually as we cannot guarantee we have the headers preceding the batch.
+                # As part of the verification process, we fetched the set of headers
+                # that allowed manual verification of the post-checkpoint headers that
+                # were fetched as part of the "catch-up" process.  This requested
+                # header batch overlaps the checkpoint, so we know we have the
+                # post-checkpoint segment from the "catch-up".  This leaves us needing
+                # some header preceding the checkpoint, and we can clip the batch to
+                # the checkpoint to ensure we can verify the fetched batch, which we
+                # wouldn't otherwise be able to do manually as we cannot guarantee we
+                # have the headers preceding the batch.
                 interface.print_error(
                     "clipping request across checkpoint height {} ({} -> {})".format(
                         networks.net.VERIFICATION_BLOCK_HEIGHT, base_height, top_height
@@ -1337,7 +1341,8 @@ class Network(util.DaemonThread):
         params = response.get("params")
         if not request or result is None or params is None or error is not None:
             interface.print_error(error or "bad response")
-            # Ensure the chunk can be rerequested, but only if the request originated from us.
+            # Ensure the chunk can be rerequested, but only if the request originated
+            # from us.
             if request and request[1][0] // 2016 in self.requested_chunks:
                 self.requested_chunks.remove(request[1][0] // 2016)
             return
@@ -1360,7 +1365,8 @@ class Network(util.DaemonThread):
         header_hexsize = blockchain.HEADER_SIZE * 2
         hexdata = result["hex"]
         actual_header_count = len(hexdata) // header_hexsize
-        # We accept less headers than we asked for, to cover the case where the distance to the tip was unknown.
+        # We accept less headers than we asked for, to cover the case where the
+        # distance to the tip was unknown.
         if actual_header_count > expected_header_count:
             interface.print_error(
                 "chunk data size incorrect expected_size={} actual_size={}".format(
@@ -1494,7 +1500,8 @@ class Network(util.DaemonThread):
 
         # If not finished, get the next chunk.
         if proof_was_provided and not was_verification_request:
-            # the verifier must have asked for this chunk.  It has been overlaid into the file.
+            # the verifier must have asked for this chunk.  It has been overlaid into
+            # the file.
             pass
         else:
             if interface.blockchain.height() < interface.tip:
@@ -1548,7 +1555,8 @@ class Network(util.DaemonThread):
         height = request_params[0]
 
         response_height = response["params"][0]
-        # This check can be removed if request/response params are reconciled in some sort of rewrite.
+        # This check can be removed if request/response params are reconciled in some
+        # sort of rewrite.
         if height != response_height:
             interface.print_error(
                 "unsolicited header request={} request_height={} response_height={}".format(
@@ -1601,8 +1609,9 @@ class Network(util.DaemonThread):
                     interface.bad = height
                     interface.bad_header = header
                     delta = interface.tip - height
-                    # If the longest chain does not connect at any point we check to the chain this interface is
-                    # serving, then we fall back on the checkpoint height which is expected to work.
+                    # If the longest chain does not connect at any point we check to
+                    # the chain this interface is serving, then we fall back on the
+                    # checkpoint height which is expected to work.
                     next_height = max(
                         networks.net.VERIFICATION_BLOCK_HEIGHT,
                         interface.tip - 2 * delta,
@@ -1727,9 +1736,7 @@ class Network(util.DaemonThread):
     def wait_on_sockets(self):
         def try_to_recover(err):
             self.print_error(
-                "wait_on_sockets: {} raised by select() call.. trying to recover...".format(
-                    err
-                )
+                f"wait_on_sockets: {err} raised by select() call. trying to recover..."
             )
             self.find_bad_fds_and_kill()
 
@@ -1762,24 +1769,30 @@ class Network(util.DaemonThread):
                     time.sleep(timeout)
         except socket.error as e:
             code = None
-            if isinstance(
-                e, OSError
-            ):  # Should always be the case unless ancient python3
+            # Should always be the case unless ancient python3
+            if isinstance(e, OSError):
                 code = e.errno
             if code == errno.EINTR:
-                return  # calling loop will try again later
+                # calling loop will try again later
+                return
             elif code == errno.EBADF:
-                # A filedescriptor was closed from underneath us because we have race conditions in this class. :(
-                # Note that due to race conditions with the gui thread even with the checks above it's entirely possible
-                # for the socket fd to become -1, or to be not -1 but still be invalid/closed.
+                # A filedescriptor was closed from underneath us because we have race
+                # conditions in this class. :(
+                # Note that due to race conditions with the gui thread even with the
+                # checks above it's entirely possible for the socket fd to become -1,
+                # or to be not -1 but still be invalid/closed.
                 try_to_recover("EBADF")
-                return  # calling loop will try again later
-            raise  # ruh ruh. user will get a crash dialog screen and network will die. FIXME: figure out a  way to restart network..
+                # calling loop will try again later
+                return
+            # ruh ruh. user will get a crash dialog screen and network will die.
+            # FIXME: figure out a  way to restart network..
+            raise
         except ValueError:
-            # Note sometimes select() ends up getting a file descriptor that's -1 because race conditions, in which case it raises
-            # ValueError
+            # Note sometimes select() ends up getting a file descriptor that's -1
+            # because race conditions, in which case it raises ValueError
             try_to_recover("ValueError")
-            return  # calling loop will try again later
+            # calling loop will try again later
+            return
 
         assert not xout
         for interface in wout:
@@ -1849,7 +1862,8 @@ class Network(util.DaemonThread):
         height = header_dict["height"]
         header = blockchain.deserialize_header(bytes.fromhex(header_hex), height)
 
-        # If the server is behind the verification height, then something is wrong with it.  Drop it.
+        # If the server is behind the verification height, then something is wrong
+        # with it.  Drop it.
         if (
             networks.net.VERIFICATION_BLOCK_HEIGHT is not None
             and height <= networks.net.VERIFICATION_BLOCK_HEIGHT
@@ -1875,16 +1889,16 @@ class Network(util.DaemonThread):
         header = interface.tip_header
         height = interface.tip
 
-        b = blockchain.check_header(header)  # Does it match the hash of a known header.
+        # Does it match the hash of a known header.
+        b = blockchain.check_header(header)
         if b:
             interface.blockchain = b
             self.switch_lagging_interface()
             self.notify("blockchain_updated")
             self.notify("interfaces")
             return
-        b = blockchain.can_connect(
-            header
-        )  # Is it the next header on a given blockchain.
+        # Is it the next header on a given blockchain.
+        b = blockchain.can_connect(header)
         if b:
             interface.blockchain = b
             b.save_header(header)
@@ -1936,7 +1950,8 @@ class Network(util.DaemonThread):
                 "root": None,
                 "height": self.checkpoint_height,
             }
-            # We need at least 147 headers before the post checkpoint headers for daa calculations.
+            # We need at least 147 headers before the post checkpoint headers for
+            # daa calculations.
             if not networks.net.REGTEST:
                 self._request_headers(
                     interface,
@@ -2129,7 +2144,8 @@ class Network(util.DaemonThread):
                 msg = _("Input data is not a transaction hash.")
             elif "still in the process of being indexed" in msg:
                 msg = _(
-                    "This server is still indexing transactions. You should switch to another server for now."
+                    "This server is still indexing transactions. You should switch to "
+                    "another server for now."
                 )
             elif "no such" in msg:
                 msg = _("No such mempool or blockchain transaction exists.")
@@ -2232,18 +2248,19 @@ class Network(util.DaemonThread):
         # NB: the server_msg is usually a dict but not always.
         # Unfortunately, ElectrumX doesn't return a good error code. It's always '1'.
         # So, we must use substring matching to grok the error message.
-        # We do NOT ever want to print to the user the server message as this has potential for a phishing exploit.
+        # We do NOT ever want to print to the user the server message as this has
+        # potential for a phishing exploit.
         # See: https://github.com/spesmilo/electrum/issues/4968
-        # So.. these messages mostly come from groking the source code of BU and Bitcoin ABC. If that fails,
-        # a generic error string is returned.
+        # So.. these messages mostly come from groking the source code of BU and
+        # Bitcoin ABC. If that fails, a generic error string is returned.
         if not isinstance(server_msg, str):
             server_msg = str(server_msg)
-        server_msg = server_msg.replace(
-            "\n", r"\n"
-        )  # replace \n with slash-n because dict does this.
+        # replace \n with slash-n because dict does this.
+        server_msg = server_msg.replace("\n", r"\n")
         if r"dust" in server_msg:
             return _(
-                f"Transaction could not be broadcast due to dust outputs (dust threshold is {DUST_THRESHOLD} satoshis)."
+                f"Transaction could not be broadcast due to dust outputs (dust "
+                f"threshold is {DUST_THRESHOLD} satoshis)."
             )
         elif (
             r"Missing inputs" in server_msg
@@ -2252,11 +2269,14 @@ class Network(util.DaemonThread):
             or r"bad-txns-inputs-missingorspent" in server_msg
         ):
             return _(
-                "Transaction could not be broadcast due to missing, already-spent, or otherwise invalid inputs."
+                "Transaction could not be broadcast due to missing, already-spent, or "
+                "otherwise invalid inputs."
             )
         elif r"transaction already in block chain" in server_msg:
-            # We get this message whenever any of this transaction's outputs are already in confirmed utxo set (and are unspent).
-            # For confirmed txn with all outputs already spent, we will see "missing inputs" instead.
+            # We get this message whenever any of this transaction's outputs are
+            # already in confirmed utxo set (and are unspent).
+            # For confirmed txn with all outputs already spent, we will see
+            # "missing inputs" instead.
             return _("The transaction already exists in the blockchain.")
         elif (
             r"insufficient priority" in server_msg
@@ -2266,11 +2286,13 @@ class Network(util.DaemonThread):
             return _("The transaction was rejected due to paying insufficient fees.")
         elif r"mempool min fee not met" in server_msg or r"mempool full" in server_msg:
             return _(
-                "The transaction was rejected due to paying insufficient fees (possibly due to network congestion)."
+                "The transaction was rejected due to paying insufficient fees (possibly"
+                " due to network congestion)."
             )
         elif r"bad-txns-premature-spend-of-coinbase" in server_msg:
             return _(
-                "Transaction could not be broadcast due to an attempt to spend a coinbase input before maturity."
+                "Transaction could not be broadcast due to an attempt to spend a "
+                "coinbase input before maturity."
             )
         elif (
             r"txn-already-in-mempool" in server_msg
@@ -2279,11 +2301,13 @@ class Network(util.DaemonThread):
             return _("The transaction already exists in the server's mempool.")
         elif r"txn-mempool-conflict" in server_msg:
             return _(
-                "The transaction conflicts with a transaction already in the server's mempool."
+                "The transaction conflicts with a transaction already in the server's"
+                " mempool."
             )
         elif r"too-long-mempool-chain" in server_msg:
             return _(
-                "The transaction was rejected due to having too many mempool ancestors. Wait for confirmations and try again."
+                "The transaction was rejected due to having too many mempool ancestors."
+                " Wait for confirmations and try again."
             )
         elif r"bad-txns-nonstandard-inputs" in server_msg:
             return _(
@@ -2291,7 +2315,8 @@ class Network(util.DaemonThread):
             )
         elif r"absurdly-high-fee" in server_msg:
             return _(
-                "The transaction was rejected because it specifies an absurdly high fee."
+                "The transaction was rejected because it specifies an absurdly high"
+                " fee."
             )
         elif (
             r"non-mandatory-script-verify-flag" in server_msg
@@ -2307,34 +2332,42 @@ class Network(util.DaemonThread):
             return _("The transaction was rejected because it is too large (in bytes).")
         elif r"scriptsig-size" in server_msg:
             return _(
-                "The transaction was rejected because it contains a script that is too large."
+                "The transaction was rejected because it contains a script that is too"
+                " large."
             )
         elif r"scriptpubkey" in server_msg:
             return _(
-                "The transaction was rejected because it contains a non-standard output script."
+                "The transaction was rejected because it contains a non-standard output"
+                " script."
             )
         elif r"bare-multisig" in server_msg:
             return _(
-                "The transaction was rejected because it contains a bare multisig output."
+                "The transaction was rejected because it contains a bare multisig "
+                "output."
             )
         elif r"multi-op-return" in server_msg:
             return _(
-                "The transaction was rejected because it contains multiple OP_RETURN outputs."
+                "The transaction was rejected because it contains multiple OP_RETURN"
+                " outputs."
             )
         elif r"scriptsig-not-pushonly" in server_msg:
             return _(
-                "The transaction was rejected because it contains non-push-only script sigs."
+                "The transaction was rejected because it contains non-push-only script"
+                " sigs."
             )
         elif r"bad-txns-nonfinal" in server_msg or r"non-BIP68-final" in server_msg:
             return _(
-                "The transaction was rejected because it is not considered final according to network rules."
+                "The transaction was rejected because it is not considered final "
+                "according to network rules."
             )
         elif (
             r"bad-txns-too-many-sigops" in server_msg or r"bad-txn-sigops" in server_msg
         ):
-            # std limit is 4000; this is basically impossible to reach on mainnet using normal txes, due to the 100kB size limit.
+            # std limit is 4000; this is basically impossible to reach on mainnet using
+            # normal txes, due to the 100kB size limit.
             return _(
-                "The transaction was rejected because it contains too many signature-check opcodes."
+                "The transaction was rejected because it contains too many "
+                "signature-check opcodes."
             )
         elif (
             r"bad-txns-inputvalues-outofrange" in server_msg
@@ -2361,13 +2394,15 @@ class Network(util.DaemonThread):
             or r"bad-txns-inputs-duplicate" in server_msg
         ):
             return _(
-                "The transaction was rejected because it contains null or duplicate inputs."
+                "The transaction was rejected because it contains null or duplicate "
+                "inputs."
             )
         elif (
             r"bad-txns-vin-empty" in server_msg or r"bad-txns-vout-empty" in server_msg
         ):
             return _(
-                "The transaction was rejected because it is has no inputs or no outputs."
+                "The transaction was rejected because it is has no inputs or no "
+                "outputs."
             )
         elif r"bad-txns-undersize" in server_msg:
             return _("The transaction was rejected because it is too small.")
@@ -2396,9 +2431,8 @@ class Network(util.DaemonThread):
     def get_proxies(self):
         """Returns a proxies dictionary suitable to be passed to the requests
         module, or None if no proxy is set for this instance."""
-        proxy = (
-            self.proxy and self.proxy.copy()
-        )  # retain a copy in case another thread messes with it
+        # retain a copy in case another thread messes with it
+        proxy = self.proxy and self.proxy.copy()
         if proxy:
             pre = ""
             # proxies format for requests lib is eg:
@@ -2411,11 +2445,14 @@ class Network(util.DaemonThread):
                 pre = "{}:{}@".format(proxy.get("user"), proxy.get("password"))
             mode = proxy.get("mode")
             if mode and mode.lower() == "socks5":
-                mode += "h"  # socks5 with hostname resolution on the server side so it works with tor & even onion!
+                # socks5 with hostname resolution on the server side so it
+                # works with tor & even onion!
+                mode += "h"
             socks = "{}://{}{}:{}".format(
                 mode, pre, proxy.get("host"), proxy.get("port")
             )
-            proxies = {"http": socks, "https": socks}  # transform it to requests format
+            # transform it to requests format
+            proxies = {"http": socks, "https": socks}
             return proxies
         return None
 
@@ -2458,9 +2495,8 @@ class Network(util.DaemonThread):
             self.blacklisted_servers -= {server}
         self.config.set_key("server_blacklist", list(self.blacklisted_servers), save)
         if b and not skip_connection_logic and server in self.interfaces:
-            self.connection_down(
-                server, False
-            )  # if blacklisting, this disconnects (if we were connected)
+            # if blacklisting, this disconnects (if we were connected)
+            self.connection_down(server, False)
 
     def server_is_blacklisted(self, server):
         return server in self.blacklisted_servers
@@ -2473,23 +2509,34 @@ class Network(util.DaemonThread):
         s = {server}  # make a set so |= and -= work
         len0 = len(self.whitelisted_servers)
         if b:
-            # the below logic keeps the adds list from containing redundant 'whitelisted' servers that are already defined in servers.json
-            # it also makes it so that if the developers remove a server from servers.json, it goes away from the whitelist automatically.
+            # the below logic keeps the adds list from containing redundant
+            # 'whitelisted' servers that are already defined in servers.json
+            # it also makes it so that if the developers remove a server from
+            # servers.json, it goes away from the whitelist automatically.
             if is_hardcoded:
-                adds -= s  # it's in the hardcoded list anyway, remove it from adds to keep adds from being redundant
+                # it's in the hardcoded list anyway, remove it from adds to keep adds
+                # from being redundant
+                adds -= s
             else:
-                adds |= s  # it's not a hardcoded server, add it to 'adds'
+                # it's not a hardcoded server, add it to 'adds'
+                adds |= s
             rems -= s
             self.whitelisted_servers |= s
         else:
             adds -= s
             if is_hardcoded:
-                rems |= s  # it's in the hardcoded set, so it needs to explicitly be added to the 'rems' set to be taken out of the dynamically computed whitelist (_compute_whitelist())
+                # it's in the hardcoded set, so it needs to explicitly be added to the
+                # 'rems' set to be taken out of the dynamically computed whitelist
+                # (_compute_whitelist())
+                rems |= s
             else:
-                rems -= s  # it's not in the hardcoded list, so no need to add it to the rems as it will be not whitelisted on next run since it's gone from 'adds'
+                # it's not in the hardcoded list, so no need to add it to the rems as
+                # it will be not whitelisted on next run since it's gone from 'adds'
+                rems -= s
             self.whitelisted_servers -= s
         if len0 != len(self.whitelisted_servers):
-            # it changed. So re-cache hostmap which we use as an argument to pick_random_server() elsewhere in this class
+            # it changed. So re-cache hostmap which we use as an argument to
+            # pick_random_server() elsewhere in this class
             self.whitelisted_servers_hostmap = servers_to_hostmap(
                 self.whitelisted_servers
             )
@@ -2520,7 +2567,8 @@ class Network(util.DaemonThread):
 
     def set_whitelist_only(self, b):
         if bool(b) == self.is_whitelist_only():
-            return  # disallow redundant/noop calls
+            # disallow redundant/noop calls
+            return
         self.config.set_key("whitelist_servers_only", b, True)
         if b:
             with self.interface_lock:
