@@ -21,10 +21,11 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
 
 import os
 import threading
-from typing import Optional
+from typing import Dict, Optional
 
 from . import asert_daa, bitcoin, networks, util
 from .printerror import PrintError
@@ -168,7 +169,7 @@ def hash_header(header):
 blockchains = {}
 
 
-def read_blockchains(config):
+def read_blockchains(config) -> Dict[int, Blockchain]:
     blockchains[0] = Blockchain(config, 0, None)
     fdir = os.path.join(util.get_headers_dir(config), "forks")
     if not os.path.exists(fdir):
@@ -251,9 +252,7 @@ class HeaderChunk:
         return self.header_count
 
     def contains_height(self, height):
-        return (
-            height >= self.base_height and height < self.base_height + self.header_count
-        )
+        return self.base_height <= height < self.base_height + self.header_count
 
     def get_header_at_height(self, height):
         assert self.contains_height(height)
@@ -337,7 +336,8 @@ class Blockchain(PrintError):
                 % (prev_header_hash, header.get("prev_block_hash"))
             )
 
-        # We do not need to check the block difficulty if the chain of linked header hashes was proven correct against our checkpoint.
+        # We do not need to check the block difficulty if the chain of linked header
+        # hashes was proven correct against our checkpoint.
         if bits is not None:
             # checkpoint BitcoinCash fork block
             if (
@@ -459,7 +459,8 @@ class Blockchain(PrintError):
         self.swap_with_parent()
 
     def read_header(self, height, chunk=None):
-        # If the read is done within an outer call with local unstored header data, we first look in the chunk data currently being processed.
+        # If the read is done within an outer call with local unstored header data, we
+        # first look in the chunk data currently being processed.
         if chunk is not None and chunk.contains_height(height):
             return chunk.get_header_at_height(height)
 
@@ -487,11 +488,6 @@ class Blockchain(PrintError):
         elif height == 0:
             return networks.net.GENESIS
         return hash_header(self.read_header(height))
-
-    # Not used.
-    def BIP9(self, height, flag):
-        v = self.read_header(height)["version"]
-        return ((v & 0xE0000000) == 0x20000000) and ((v & flag) == flag)
 
     def get_median_time_past(self, height, chunk=None):
         if height < 0:
@@ -617,7 +613,8 @@ class Blockchain(PrintError):
             )
             daa_ending_height = self.get_suitable_block_height(prevheight, chunk)
 
-            # calculate cumulative work (EXcluding work from block daa_starting_height, INcluding work from block daa_ending_height)
+            # calculate cumulative work (EXcluding work from block daa_starting_height,
+            # INcluding work from block daa_ending_height)
             daa_cumulative_work = 0
             for daa_i in range(daa_starting_height + 1, daa_ending_height + 1):
                 daa_prior = self.read_header(daa_i, chunk)
@@ -729,27 +726,27 @@ class Blockchain(PrintError):
 
         header_count = len(hexdata) // HEADER_SIZE
         top_height = base_height + header_count - 1
-        # We know that chunks before the checkpoint height, end at the checkpoint height, and
-        # will be guaranteed to be covered by the checkpointing. If no proof is provided then
-        # this is wrong.
+        # We know that chunks before the checkpoint height, end at the checkpoint
+        # height, and  will be guaranteed to be covered by the checkpointing. If no
+        # proof is provided then this is wrong.
         if top_height <= networks.net.VERIFICATION_BLOCK_HEIGHT:
             if not proof_was_provided:
                 return CHUNK_LACKED_PROOF
-            # We do not truncate when writing chunks before the checkpoint, and there's no
-            # way at this time to know if we have this chunk, or even a consecutive subset.
-            # So just overwrite it.
+            # We do not truncate when writing chunks before the checkpoint, and there's
+            # no way at this time to know if we have this chunk, or even a consecutive
+            # subset. So just overwrite it.
         elif (
             base_height < networks.net.VERIFICATION_BLOCK_HEIGHT and proof_was_provided
         ):
-            # This was the initial verification request which gets us enough leading headers
-            # that we can calculate difficulty and verify the headers that we add to this
-            # chain above the verification block height.
+            # This was the initial verification request which gets us enough leading
+            # headers that we can calculate difficulty and verify the headers that we
+            # add to this chain above the verification block height.
             if top_height <= self.height():
                 return CHUNK_ACCEPTED
         elif base_height != self.height() + 1:
-            # This chunk covers a segment of this blockchain which we already have headers
-            # for. We need to verify that there isn't a split within the chunk, and if
-            # there is, indicate the need for the server to fork.
+            # This chunk covers a segment of this blockchain which we already have
+            # headers for. We need to verify that there isn't a split within the chunk,
+            # and if there is, indicate the need for the server to fork.
             intersection_height = min(top_height, self.height())
             chunk_header = chunk.get_header_at_height(intersection_height)
             our_header = self.read_header(intersection_height)

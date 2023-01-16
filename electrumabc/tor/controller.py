@@ -206,14 +206,14 @@ class TorController(PrintError):
         else:
             res = os.path.join(os.path.dirname(__file__), "bin", "tor")
         if os.path.isfile(res):
-            return (res, TorController.BinaryType.INTEGRATED)
+            return res, TorController.BinaryType.INTEGRATED
 
         # Tor is not packaged / built, try to locate a system tor
         res = shutil.which("tor")
         if res and os.path.isfile(res):
-            return (res, TorController.BinaryType.SYSTEM)
+            return res, TorController.BinaryType.SYSTEM
 
-        return (None, TorController.BinaryType.MISSING)
+        return None, TorController.BinaryType.MISSING
 
     def detect_tor(self) -> bool:
         path, bintype = self._get_tor_binary()

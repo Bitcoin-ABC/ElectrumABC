@@ -400,8 +400,6 @@ class Network(util.DaemonThread):
         with self.lock:
             for event in events:
                 self.callbacks[event].append(callback)
-                if event in self._deprecated_alternatives:
-                    self._warn_deprecated_callback(event)
 
     def unregister_callback(self, callback):
         with self.lock:
@@ -415,52 +413,6 @@ class Network(util.DaemonThread):
         with self.lock:
             callbacks = self.callbacks[event][:]
         [callback(event, *args) for callback in callbacks]
-        self._legacy_callback_detector_and_mogrifier(event, *args)
-
-    def _legacy_callback_detector_and_mogrifier(self, event, *args):
-        if (
-            event in ("blockchain_updated", "wallet_updated")
-            and "updated" in self.callbacks
-        ):
-            # Translate the blockchain_updated and wallet_updated events
-            # into the legacy 'updated' event for old external plugins that
-            # still rely on this event existing. There are some external
-            # electron cash plugins that still use this event, and we need
-            # to keep this hack here so they don't break on new EC
-            # versions.  "Technical debt" :)
-            #
-            # we will re-enter this function with event == 'updated' (triggering the
-            # warning in the elif clause below)
-            self.trigger_callback("updated")
-        elif event == "verified2" and "verified" in self.callbacks:
-            # pop off the 'wallet' arg as the old bad 'verified' callback lacked it.
-            #
-            # we will re-enter this function with event == 'verified' (triggering the
-            # warning in the elif clause below)
-            self.trigger_callback("verified", args[1:])
-        elif event in self._deprecated_alternatives:
-            # If we see updated or verified events come through here, warn:
-            # deprecated. Note that the above 2 clauses will also trigger this
-            # execution path.
-            self._warn_deprecated_callback(event)
-
-    _deprecated_alternatives = {
-        "updated": "'blockchain_updated' and/or 'wallet_updated'",
-        "verified": "'verified2'",
-    }
-
-    def _warn_deprecated_callback(self, which):
-        alt = self._deprecated_alternatives.get(which)
-        if alt:
-            self.print_error(
-                f"Warning: Legacy '{which}' callback is deprecated, it is recommended "
-                f"that you instead use: {alt}. Please update your code."
-            )
-        else:
-            self.print_error(
-                f"Warning: Legacy '{which}' callback is deprecated. Please update your"
-                f" code."
-            )
 
     def recent_servers_file(self):
         return os.path.join(self.config.path, "recent-servers")
@@ -552,7 +504,7 @@ class Network(util.DaemonThread):
         # Now, if no interface, we will raise AssertionError
         assert isinstance(
             interface, Interface
-        ), "queue_request: No interface! (request={} params={})".format(method, params)
+        ), f"queue_request: No interface! (request={method} params={params})"
         if self.debug:
             self.print_error(interface.host, "-->", method, params, message_id)
         interface.queue_request(method, params, message_id)
@@ -610,9 +562,6 @@ class Network(util.DaemonThread):
             value = self.banner
         elif key == "blockchain_updated":
             value = (self.get_local_height(), self.get_server_height())
-        elif key == "updated":
-            value = (self.get_local_height(), self.get_server_height())
-            self._warn_deprecated_callback(key)
         elif key == "servers":
             value = self.get_servers()
         elif key == "interfaces":
@@ -1430,7 +1379,8 @@ class Network(util.DaemonThread):
                 return
             if not proof_was_provided:
                 interface.print_error(
-                    "disconnecting unverified server for sending verification header chunk without proof"
+                    "disconnecting unverified server for sending verification header"
+                    " chunk without proof"
                 )
                 self.connection_down(interface.server, blacklist=True)
                 return
@@ -1527,9 +1477,8 @@ class Network(util.DaemonThread):
 
         if not request:
             interface.print_error(
-                "disconnecting server for sending unsolicited header, no request, params={}".format(
-                    response["params"]
-                ),
+                f"disconnecting server for sending unsolicited header, no request,"
+                f' params={response["params"]}',
                 blacklist=True,
             )
             self.connection_down(interface.server)
