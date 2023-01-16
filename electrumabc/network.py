@@ -1466,21 +1466,6 @@ class Network(util.DaemonThread):
                     request_base_height, actual_header_count
                 )
             )
-            # We actually have all the headers up to the bad point. In theory we
-            # can use them to detect a fork point in some cases. But that's bonus
-            # work for someone later.
-            # Discard the chunk and do a normal search for the fork point.
-            # Note that this will not give us the right blockchain, the
-            # syncing does not work that way historically.  That might
-            # wait until either a new block appears, or
-            if False:
-                interface.blockchain = None
-                interface.set_mode(Interface.MODE_BACKWARD)
-                interface.bad = request_base_height + actual_header_count - 1
-                interface.bad_header = blockchain.HeaderChunk(
-                    request_base_height, chunk_data
-                ).get_header_at_height(interface.bad)
-                self.request_header(interface, min(interface.tip, interface.bad - 1))
             return
         else:
             interface.print_error(
@@ -1986,37 +1971,9 @@ class Network(util.DaemonThread):
             return False
         self.checkpoint_servers_verified[interface.server]["root"] = checkpoint_root
 
-        # rt12 --- checkpoint generation currently disabled.
-        if False:
-            interface.print_error(
-                "received verification {}".format(self.verifications_required)
-            )
-            self.verifications_required -= 1
-            if self.verifications_required > 0:
-                return False
-
-            if networks.net.VERIFICATION_BLOCK_HEIGHT is None:
-                networks.net.VERIFICATION_BLOCK_HEIGHT = checkpoint_height
-                networks.net.VERIFICATION_BLOCK_MERKLE_ROOT = checkpoint_root
-
-                network_name = "TESTNET" if networks.net.TESTNET else "MAINNET"
-                self.print_error(
-                    "found verified checkpoint for {} at height {} with merkle root {!r}".format(
-                        network_name, checkpoint_height, checkpoint_root
-                    )
-                )
-
         if not self.verified_checkpoint:
             self.init_headers_file()
             self.verified_checkpoint = True
-
-        # rt12 --- checkpoint generation currently disabled.
-        if False:
-            with self.interface_lock:
-                interfaces = list(self.interfaces.values())
-            for interface_entry in interfaces:
-                interface_entry.blockchain = self.blockchains[0]
-                interface_entry.set_mode(Interface.MODE_DEFAULT)
 
         interface.print_error("server was verified correctly")
         interface.set_mode(Interface.MODE_DEFAULT)
