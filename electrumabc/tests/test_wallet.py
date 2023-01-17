@@ -84,7 +84,7 @@ class TestCreateRestoreWallet(WalletTestCase):
             password=password,
             encrypt_file=encrypt_file,
         )
-        wallet = d["wallet"]  # type: Standard_Wallet
+        wallet: Standard_Wallet = d["wallet"]
         wallet.check_password(password)
         self.assertEqual(passphrase, wallet.keystore.get_passphrase(password))
         self.assertEqual(d["seed"], wallet.keystore.get_seed(password))
@@ -103,7 +103,7 @@ class TestCreateRestoreWallet(WalletTestCase):
             encrypt_file=encrypt_file,
             config=self.config,
         )
-        wallet = d["wallet"]  # type: Standard_Wallet
+        wallet: Standard_Wallet = d["wallet"]
         self.assertEqual(passphrase, wallet.keystore.get_passphrase(password))
         self.assertEqual(text, wallet.keystore.get_seed(password))
         self.assertEqual(encrypt_file, wallet.storage.is_encrypted())
@@ -115,7 +115,7 @@ class TestCreateRestoreWallet(WalletTestCase):
     def test_restore_wallet_from_text_xpub(self):
         text = "xpub6CUzEfgtza7ZNtfDGYwHPnbPMPiQh93mAbP6v7C3ozUgkZq4tXSgYb9qqZ62oh8RCeexdSF7ZJmTzCm5bdWLB3zSMF8rNfuY8kccNAsdF4d"
         d = restore_wallet_from_text(text, path=self.wallet_path, config=self.config)
-        wallet = d["wallet"]  # type: Standard_Wallet
+        wallet: Standard_Wallet = d["wallet"]
         self.assertEqual(text, wallet.keystore.get_master_public_key())
         self.assertEqual(
             Address.from_string("qzrseeup3rhehuaf9e6nr3sgm6t5eegufu96l404mu"),
@@ -125,7 +125,7 @@ class TestCreateRestoreWallet(WalletTestCase):
     def test_restore_wallet_from_text_xprv(self):
         text = "xprv9y4nb6Akxru8R68sYGrihutfqUgMNxmiF83ViTf65MobJrRRyHWc1M8mSZJSmZ1nQCJntxmF99sKGkkcQQGziECvdkwA4kqxsH5srNAzRin"
         d = restore_wallet_from_text(text, path=self.wallet_path, config=self.config)
-        wallet = d["wallet"]  # type: Standard_Wallet
+        wallet: Standard_Wallet = d["wallet"]
         self.assertEqual(text, wallet.keystore.get_master_private_key(password=None))
         self.assertEqual(
             Address.from_string("qr2q6aadv6nxmqwjt8qmax76yqp09mlqzq5jsz5fe9"),
@@ -135,7 +135,7 @@ class TestCreateRestoreWallet(WalletTestCase):
     def test_restore_wallet_from_text_addresses(self):
         text = "qr2q6aadv6nxmqwjt8qmax76yqp09mlqzq5jsz5fe9"
         d = restore_wallet_from_text(text, path=self.wallet_path, config=self.config)
-        wallet = d["wallet"]  # type: Abstract_Wallet
+        wallet: Abstract_Wallet = d["wallet"]
         self.assertEqual(
             Address.from_string("qr2q6aadv6nxmqwjt8qmax76yqp09mlqzq5jsz5fe9"),
             wallet.get_receiving_addresses()[0],
@@ -145,7 +145,7 @@ class TestCreateRestoreWallet(WalletTestCase):
     def test_restore_wallet_from_text_privkeys(self):
         text = "Kz7FS9Adyj6RgSVGx5YLjZPanUhuze4yvcziZ1qLA24a3GJJZvBr"
         d = restore_wallet_from_text(text, path=self.wallet_path, config=self.config)
-        wallet = d["wallet"]  # type: Abstract_Wallet
+        wallet: Abstract_Wallet = d["wallet"]
         addr0 = wallet.get_receiving_addresses()[0]
         self.assertEqual(
             Address.from_string("qzrseeup3rhehuaf9e6nr3sgm6t5eegufu96l404mu"), addr0

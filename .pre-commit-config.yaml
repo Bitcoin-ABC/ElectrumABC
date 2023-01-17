@@ -1,7 +1,7 @@
 exclude: 'pb2.py'
 repos:
 -   repo: https://github.com/pycqa/isort
-    rev: 5.9.3
+    rev: 5.11.2
     hooks:
     -   id: isort
         name: isort (python)
@@ -15,11 +15,11 @@ repos:
         types: [pyi]
         args: [--profile=black]
 -   repo: https://github.com/psf/black
-    rev: 22.3.0
+    rev: 22.12.0
     hooks:
     -   id: black
 -   repo: https://github.com/pycqa/flake8
-    rev: 4.0.1
+    rev: 6.0.0
     hooks:
     # Syntax errors checked on all files
     -   id: flake8
