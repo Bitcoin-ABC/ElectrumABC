@@ -32,8 +32,8 @@ from typing import Optional, Tuple, Union
 
 from . import cashaddr, networks
 from .bitcoin import (
-    EC_KEY,
     SCRIPT_TYPES,
+    ECKey,
     OpCodes,
     hash_160,
     is_minikey,
@@ -172,7 +172,7 @@ class PublicKey(namedtuple("PublicKeyTuple", "pubkey")):
         """Create a compressed or uncompressed public key from a private
         key."""
         privkey, compressed = cls.privkey_from_WIF_privkey(WIF_privkey)
-        ec_key = EC_KEY(privkey)
+        ec_key = ECKey(privkey)
         return cls.from_pubkey(ec_key.GetPubKey(compressed))
 
     @classmethod

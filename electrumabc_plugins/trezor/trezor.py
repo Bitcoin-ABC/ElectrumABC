@@ -9,13 +9,13 @@ from electrumabc.bitcoin import (
     deserialize_xpub,
 )
 from electrumabc.i18n import _
-from electrumabc.keystore import Hardware_KeyStore, is_xpubkey, parse_xpubkey
+from electrumabc.keystore import HardwareKeyStore, is_xpubkey, parse_xpubkey
 from electrumabc.networks import NetworkConstants
 from electrumabc.plugins import Device
 from electrumabc.transaction import deserialize
 from electrumabc.util import UserCancelled, bfh, bh2u, versiontuple
 
-from ..hw_wallet import HW_PluginBase
+from ..hw_wallet import HWPluginBase
 
 try:
     import trezorlib
@@ -57,7 +57,7 @@ TIM_NEW, TIM_RECOVER = range(2)
 TREZOR_PRODUCT_KEY = "Trezor"
 
 
-class TrezorKeyStore(Hardware_KeyStore):
+class TrezorKeyStore(HardwareKeyStore):
     hw_type = "trezor"
     device = TREZOR_PRODUCT_KEY
 
@@ -116,7 +116,7 @@ class LibraryFoundButUnusable(Exception):
         self.library_version = library_version
 
 
-class TrezorPlugin(HW_PluginBase):
+class TrezorPlugin(HWPluginBase):
     # Derived classes provide:
     #
     #  class-static variables: client_class, firmware_URL, handler_class,

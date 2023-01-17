@@ -7,7 +7,7 @@ from ..address import Address
 from ..paymentrequest import get_payment_request
 
 
-class Test_PaymentRequests(unittest.TestCase):
+class TestPaymentRequests(unittest.TestCase):
     def setUp(self):
         self.serv = None
         self.th = None

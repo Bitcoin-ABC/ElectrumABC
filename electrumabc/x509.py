@@ -172,7 +172,7 @@ def encode_OID(oid):
     return s
 
 
-class ASN1_Node(bytes):
+class ASN1Node(bytes):
     def get_node(self, ix):
         # return index of first byte, first content byte and last byte.
         first = self[ix + 1]
@@ -250,7 +250,7 @@ class X509(object):
 
         self.bytes = bytearray(b)
 
-        der = ASN1_Node(b)
+        der = ASN1Node(b)
         root = der.root()
         cert = der.first_child(root)
         # data for signature
@@ -306,7 +306,7 @@ class X509(object):
             # pubkey modulus and exponent
             subject_public_key = der.next_node(public_key_algo)
             spk = der.get_value_of_type(subject_public_key, "BIT STRING")
-            spk = ASN1_Node(bitstr_to_bytestr(spk))
+            spk = ASN1Node(bitstr_to_bytestr(spk))
             r = spk.root()
             modulus = spk.first_child(r)
             exponent = spk.next_node(modulus)
@@ -328,7 +328,7 @@ class X509(object):
             i = der.next_node(i)
             d = der.get_dict(i)
             for oid, value in d.items():
-                value = ASN1_Node(value)
+                value = ASN1Node(value)
                 if oid == "2.5.29.19":
                     # Basic Constraints
                     self.CA = bool(value)

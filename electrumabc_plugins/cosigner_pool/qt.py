@@ -41,7 +41,7 @@ from electrumabc.i18n import _
 from electrumabc.plugins import BasePlugin, hook
 from electrumabc.printerror import print_error
 from electrumabc.util import InvalidPassword, Weak, bfh, bh2u
-from electrumabc.wallet import Multisig_Wallet
+from electrumabc.wallet import MultisigWallet
 from electrumabc_gui.qt.transaction_dialog import TxDialog, show_transaction
 
 
@@ -220,7 +220,7 @@ class Plugin(BasePlugin):
                 )
             )
             return
-        if isinstance(wallet, Multisig_Wallet):
+        if isinstance(wallet, MultisigWallet):
             window.cosigner_pool_state = State(self, window)
             self.windows.append(window)
             self.update(window)
@@ -386,7 +386,7 @@ class Plugin(BasePlugin):
             return
 
         wallet = window.wallet
-        if isinstance(wallet.keystore, keystore.Hardware_KeyStore):
+        if isinstance(wallet.keystore, keystore.HardwareKeyStore):
             window.show_warning(
                 _("An encrypted transaction was retrieved from cosigning pool.")
                 + "\n"
@@ -441,7 +441,7 @@ class Plugin(BasePlugin):
             return
         try:
             k = bh2u(bitcoin.deserialize_xprv(xprv)[-1])
-            EC = bitcoin.EC_KEY(bfh(k))
+            EC = bitcoin.ECKey(bfh(k))
             message = bh2u(EC.decrypt_message(message))
         except Exception as e:
             traceback.print_exc(file=sys.stdout)

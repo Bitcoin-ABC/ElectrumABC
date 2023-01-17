@@ -46,7 +46,7 @@ from .wallet import Wallet
 
 if TYPE_CHECKING:
     from .plugins import Plugins
-    from .wallet import Abstract_Wallet
+    from .wallet import AbstractWallet
 
 
 def get_lockfile(config):
@@ -187,7 +187,7 @@ class Daemon(DaemonThread):
             self.network.add_jobs([self.fx])
         self.gui = None
         self.server = None
-        self.wallets: Dict[str, Abstract_Wallet] = {}
+        self.wallets: Dict[str, AbstractWallet] = {}
         if listen_jsonrpc:
             # Setup JSONRPC server
             self.init_server(config, fd)

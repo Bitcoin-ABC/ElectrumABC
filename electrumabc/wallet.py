@@ -59,10 +59,10 @@ from .constants import DUST_THRESHOLD, XEC
 from .contacts import Contacts
 from .i18n import _, ngettext
 from .keystore import (
-    BIP32_KeyStore,
-    Deterministic_KeyStore,
-    Hardware_KeyStore,
-    Imported_KeyStore,
+    BIP32KeyStore,
+    DeterministicKeyStore,
+    HardwareKeyStore,
+    ImportedKeyStore,
     KeyStore,
     load_keystore,
     xpubkey_to_address,
@@ -191,7 +191,7 @@ def sweep(privkeys, network, config, recipient, fee=None, imax=100, sign_schnorr
     return tx
 
 
-class Abstract_Wallet(PrintError, SPVDelegate):
+class AbstractWallet(PrintError, SPVDelegate):
     """
     Wallet classes are created to handle various address generation methods.
     Completion states (watching-only, single account, no seed, etc) are handled inside classes.
@@ -2435,7 +2435,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         for k in self.get_keystores():
             # setup "wallet advice" so Xpub wallets know how to sign 'fd' type tx inputs
             # by giving them the sequence number ahead of time
-            if isinstance(k, BIP32_KeyStore):
+            if isinstance(k, BIP32KeyStore):
                 for txin in tx.inputs():
                     for x_pubkey in txin["x_pubkeys"]:
                         _, addr = xpubkey_to_address(x_pubkey)
@@ -2474,7 +2474,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         if any(
             [
                 (
-                    isinstance(k, Hardware_KeyStore)
+                    isinstance(k, HardwareKeyStore)
                     and k.can_sign(tx)
                     and k.needs_prevtx()
                 )
@@ -2497,7 +2497,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
                 info[addr] = (
                     index,
                     sorted_xpubs,
-                    self.m if isinstance(self, Multisig_Wallet) else None,
+                    self.m if isinstance(self, MultisigWallet) else None,
                     self.txin_type,
                 )
         tx.output_info = info
@@ -2520,7 +2520,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         # hardware wallets require extra info
         if any(
             [
-                (isinstance(k, Hardware_KeyStore) and k.can_sign(tx))
+                (isinstance(k, HardwareKeyStore) and k.can_sign(tx))
                 for k in self.get_keystores()
             ]
         ):
@@ -2826,11 +2826,11 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         return False
 
     def is_multisig(self):
-        # Subclass Multisig_Wallet overrides this
+        # Subclass MultisigWallet overrides this
         return False
 
     def is_hardware(self):
-        return any([isinstance(k, Hardware_KeyStore) for k in self.get_keystores()])
+        return any([isinstance(k, HardwareKeyStore) for k in self.get_keystores()])
 
     def add_address(self, address, *, for_change=False):
         assert isinstance(address, Address)
@@ -2854,7 +2854,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         A wallet file (storage) is either encrypted with this version
         or is stored in plaintext.
         """
-        if isinstance(self.keystore, Hardware_KeyStore):
+        if isinstance(self.keystore, HardwareKeyStore):
             return STO_EV_XPUB_PW
         else:
             return STO_EV_USER_PW
@@ -2932,7 +2932,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
             self.unverified_tx.clear()
             self.verified_tx.clear()
             self.clear_history()
-            if isinstance(self, Standard_Wallet):
+            if isinstance(self, StandardWallet):
                 # reset the address list to default too, just in case. New synchronizer will pick up the addresses again.
                 self.receiving_addresses, self.change_addresses = (
                     self.receiving_addresses[: self.gap_limit],
@@ -3049,7 +3049,7 @@ class Abstract_Wallet(PrintError, SPVDelegate):
         return sh in self.synchronizer.change_scripthashes_that_are_retired
 
 
-class Simple_Wallet(Abstract_Wallet):
+class SimpleWallet(AbstractWallet):
     # wallet with a single keystore
 
     def get_keystore(self):
@@ -3070,7 +3070,7 @@ class Simple_Wallet(Abstract_Wallet):
         self.storage.put("keystore", self.keystore.dump())
 
 
-class ImportedWalletBase(Simple_Wallet):
+class ImportedWalletBase(SimpleWallet):
 
     txin_type = "p2pkh"
 
@@ -3233,7 +3233,7 @@ class ImportedPrivkeyWallet(ImportedWalletBase):
     wallet_type = "imported_privkey"
 
     def __init__(self, storage):
-        Abstract_Wallet.__init__(self, storage)
+        AbstractWallet.__init__(self, storage)
 
     @classmethod
     def from_text(cls, storage, text, password=None):
@@ -3256,7 +3256,7 @@ class ImportedPrivkeyWallet(ImportedWalletBase):
         if self.storage.get("keystore"):
             self.keystore = load_keystore(self.storage, "keystore")
         else:
-            self.keystore = Imported_KeyStore({})
+            self.keystore = ImportedKeyStore({})
 
     def save_keystore(self):
         self.storage.put("keystore", self.keystore.dump())
@@ -3311,10 +3311,10 @@ class ImportedPrivkeyWallet(ImportedWalletBase):
             return pubkey.address
 
 
-class Deterministic_Wallet(Abstract_Wallet):
+class DeterministicWallet(AbstractWallet):
     def __init__(self, storage):
-        self.keystore: Optional[Deterministic_KeyStore] = None
-        Abstract_Wallet.__init__(self, storage)
+        self.keystore: Optional[DeterministicKeyStore] = None
+        AbstractWallet.__init__(self, storage)
         self.gap_limit = storage.get("gap_limit", 20)
 
     def has_seed(self):
@@ -3471,12 +3471,12 @@ class Deterministic_Wallet(Abstract_Wallet):
         return None
 
 
-class Simple_Deterministic_Wallet(Simple_Wallet, Deterministic_Wallet):
+class SimpleDeterministicWallet(SimpleWallet, DeterministicWallet):
 
     """Deterministic Wallet with a single pubkey per address"""
 
     def __init__(self, storage):
-        Deterministic_Wallet.__init__(self, storage)
+        DeterministicWallet.__init__(self, storage)
 
     def get_public_key(self, address):
         sequence = self.get_address_index(address)
@@ -3511,21 +3511,21 @@ class Simple_Deterministic_Wallet(Simple_Wallet, Deterministic_Wallet):
         return self.keystore.derive_pubkey(c, i)
 
 
-class Standard_Wallet(Simple_Deterministic_Wallet):
+class StandardWallet(SimpleDeterministicWallet):
     wallet_type = "standard"
 
     def pubkeys_to_address(self, pubkey):
         return Address.from_pubkey(pubkey)
 
 
-class Multisig_Wallet(Deterministic_Wallet):
+class MultisigWallet(DeterministicWallet):
     # generic m of n
     gap_limit = 20
 
     def __init__(self, storage):
         self.wallet_type = storage.get("wallet_type")
         self.m, self.n = multisig_type(self.wallet_type)
-        Deterministic_Wallet.__init__(self, storage)
+        DeterministicWallet.__init__(self, storage)
 
     def get_public_keys(self, address):
         sequence = self.get_address_index(address)
@@ -3620,9 +3620,9 @@ def register_wallet_type(category):
 
 
 wallet_constructors = {
-    "standard": Standard_Wallet,
-    "old": Standard_Wallet,
-    "xpub": Standard_Wallet,
+    "standard": StandardWallet,
+    "old": StandardWallet,
+    "xpub": StandardWallet,
     "imported_privkey": ImportedPrivkeyWallet,
     "imported_addr": ImportedAddressWallet,
 }
@@ -3638,7 +3638,7 @@ class Wallet:
     This class is actually a factory that will return a wallet of the correct
     type when passed a WalletStorage instance."""
 
-    def __new__(self, storage) -> Abstract_Wallet:
+    def __new__(self, storage) -> AbstractWallet:
         wallet_type = storage.get("wallet_type")
         # check here if I need to load a plugin
         if wallet_type in plugin_loaders:
@@ -3658,7 +3658,7 @@ class Wallet:
     @staticmethod
     def wallet_class(wallet_type):
         if multisig_type(wallet_type):
-            return Multisig_Wallet
+            return MultisigWallet
         if wallet_type in wallet_constructors:
             return wallet_constructors[wallet_type]
         raise WalletFileException("Unknown wallet type: " + str(wallet_type))
@@ -3673,7 +3673,7 @@ def create_new_wallet(
         raise Exception("Remove the existing wallet first!")
 
     if seed_type == "electrum":
-        seed = mnemo.Mnemonic_Electrum("en").make_seed()
+        seed = mnemo.MnemonicElectrum("en").make_seed()
     elif seed_type in [None, "bip39"]:
         seed = mnemo.make_bip39_words("english")
         seed_type = "bip39"
@@ -3718,7 +3718,7 @@ def restore_wallet_from_text(
     elif keystore.is_private_key_list(
         text,
     ):
-        k = keystore.Imported_KeyStore({})
+        k = keystore.ImportedKeyStore({})
         storage.put("keystore", k.dump())
         wallet = ImportedPrivkeyWallet.from_text(storage, text, password)
     else:

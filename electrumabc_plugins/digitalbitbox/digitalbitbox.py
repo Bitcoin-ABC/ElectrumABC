@@ -39,12 +39,12 @@ try:
         verify_message,
     )
     from electrumabc.i18n import _
-    from electrumabc.keystore import Hardware_KeyStore
+    from electrumabc.keystore import HardwareKeyStore
     from electrumabc.printerror import print_error
     from electrumabc.transaction import Transaction
     from electrumabc.util import UserCancelled, to_string
 
-    from ..hw_wallet import HardwareClientBase, HW_PluginBase
+    from ..hw_wallet import HardwareClientBase, HWPluginBase
 
     DIGIBOX = True
 except ImportError:
@@ -69,7 +69,7 @@ def derive_keys(x):
 MIN_MAJOR_VERSION = 5
 
 
-class DigitalBitbox_Client(HardwareClientBase):
+class DigitalBitboxClient(HardwareClientBase):
     def __init__(self, plugin, hidDevice):
         HardwareClientBase.__init__(self, plugin=plugin)
         self.dbb_hid = hidDevice
@@ -504,12 +504,12 @@ class DigitalBitbox_Client(HardwareClientBase):
 #
 
 
-class DigitalBitbox_KeyStore(Hardware_KeyStore):
+class DigitalBitboxKeyStore(HardwareKeyStore):
     hw_type = "digitalbitbox"
     device = "DigitalBitbox"
 
     def __init__(self, d):
-        Hardware_KeyStore.__init__(self, d)
+        HardwareKeyStore.__init__(self, d)
         self.force_watching_only = False
         self.maxInputs = 14  # maximum inputs per single sign command
 
@@ -797,15 +797,15 @@ class DigitalBitbox_KeyStore(Hardware_KeyStore):
             tx.raw = tx.serialize()
 
 
-class DigitalBitboxPlugin(HW_PluginBase):
+class DigitalBitboxPlugin(HWPluginBase):
 
     libraries_available = DIGIBOX
-    keystore_class = DigitalBitbox_KeyStore
+    keystore_class = DigitalBitboxKeyStore
     client = None
     DEVICE_IDS = [(0x03EB, 0x2402)]  # Digital Bitbox
 
     def __init__(self, parent, config, name):
-        HW_PluginBase.__init__(self, parent, config, name)
+        HWPluginBase.__init__(self, parent, config, name)
         if self.libraries_available:
             self.device_manager().register_devices(self.DEVICE_IDS, plugin=self)
 
@@ -822,7 +822,7 @@ class DigitalBitboxPlugin(HW_PluginBase):
             self.handler = handler
             client = self.get_dbb_device(device)
             if client is not None:
-                client = DigitalBitbox_Client(self, client)
+                client = DigitalBitboxClient(self, client)
             return client
         else:
             return None

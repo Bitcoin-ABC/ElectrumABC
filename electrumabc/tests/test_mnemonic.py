@@ -6,9 +6,9 @@ from .. import mnemo, old_mnemonic
 from ..util import bh2u
 
 
-class Test_NewMnemonic(unittest.TestCase):
+class TestNewMnemonic(unittest.TestCase):
     def test_to_seed(self):
-        seed = mnemo.Mnemonic_Electrum.mnemonic_to_seed(
+        seed = mnemo.MnemonicElectrum.mnemonic_to_seed(
             mnemonic="foobar", passphrase="none"
         )
         self.assertEqual(
@@ -19,14 +19,14 @@ class Test_NewMnemonic(unittest.TestCase):
 
     def test_random_seeds(self):
         iters = 10
-        m = mnemo.Mnemonic_Electrum(lang="en")
+        m = mnemo.MnemonicElectrum(lang="en")
         for _ in range(iters):
             seed = m.make_seed()
             i = m.mnemonic_decode(seed)
             self.assertEqual(m.mnemonic_encode(i), seed)
 
 
-class Test_OldMnemonic(unittest.TestCase):
+class TestOldMnemonic(unittest.TestCase):
     def test(self):
         seed = "8edad31a95e7d59f8837667510d75a4d"
         result = old_mnemonic.mn_encode(seed)
@@ -35,7 +35,7 @@ class Test_OldMnemonic(unittest.TestCase):
         self.assertEqual(old_mnemonic.mn_decode(result), seed)
 
 
-class Test_BIP39Checksum(unittest.TestCase):
+class TestBIP39Checksum(unittest.TestCase):
     def test(self):
         words = (
             "gravity machine north sort system female "
@@ -46,7 +46,7 @@ class Test_BIP39Checksum(unittest.TestCase):
         self.assertTrue(mnemon.check(words))
 
 
-class Test_Seeds(unittest.TestCase):
+class TestSeeds(unittest.TestCase):
     """Test old and new seeds."""
 
     mnemonics = {
@@ -124,10 +124,10 @@ class Test_Seeds(unittest.TestCase):
 def suite():
     test_suite = unittest.TestSuite()
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(Test_NewMnemonic))
-    test_suite.addTest(loadTests(Test_OldMnemonic))
-    test_suite.addTest(loadTests(Test_BIP39Checksum))
-    test_suite.addTest(loadTests(Test_Seeds))
+    test_suite.addTest(loadTests(TestNewMnemonic))
+    test_suite.addTest(loadTests(TestOldMnemonic))
+    test_suite.addTest(loadTests(TestBIP39Checksum))
+    test_suite.addTest(loadTests(TestSeeds))
     return test_suite
 
 

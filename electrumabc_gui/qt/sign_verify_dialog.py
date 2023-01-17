@@ -29,7 +29,7 @@ from .password_dialog import PasswordDialog
 from .util import MessageBoxMixin
 
 if TYPE_CHECKING:
-    from electrumabc.wallet import Abstract_Wallet
+    from electrumabc.wallet import AbstractWallet
 
 
 class CollapsibleSection(QWidget):
@@ -81,7 +81,7 @@ class CollapsibleSection(QWidget):
 
 class SignVerifyDialog(QDialog, MessageBoxMixin):
     def __init__(
-        self, wallet: Abstract_Wallet, address: Optional[Address] = None, parent=None
+        self, wallet: AbstractWallet, address: Optional[Address] = None, parent=None
     ):
         super().__init__(parent)
         self.setWindowModality(Qt.WindowModal)

@@ -31,13 +31,13 @@ import sys
 import traceback
 from typing import Any, Callable, Dict, List, NamedTuple, Optional
 
-from electrumabc_plugins.hw_wallet import HW_PluginBase
+from electrumabc_plugins.hw_wallet import HWPluginBase
 
 from . import bitcoin, keystore, mnemo, util
 from .address import Address
 from .constants import CURRENCY, PROJECT_NAME, REPOSITORY_URL
 from .i18n import _
-from .keystore import Hardware_KeyStore
+from .keystore import HardwareKeyStore
 from .plugins import BasePlugin, DeviceInfo
 from .printerror import PrintError
 from .simple_config import SimpleConfig
@@ -511,7 +511,7 @@ class BaseWizard(PrintError):
         from .keystore import hardware_keystore
 
         devmgr = self.plugins.device_manager
-        assert isinstance(self.plugin, HW_PluginBase)
+        assert isinstance(self.plugin, HWPluginBase)
         xtype = "standard"
         try:
             xpub = self.plugin.get_xpub(device_info.device.id_, derivation, xtype, self)
@@ -651,11 +651,11 @@ class BaseWizard(PrintError):
         # note: the following condition ("if") is duplicated logic from
         # wallet.get_available_storage_encryption_version()
         if self.wallet_type == "standard" and isinstance(
-            self.keystores[0], Hardware_KeyStore
+            self.keystores[0], HardwareKeyStore
         ):
             # offer encrypting with a pw derived from the hw device
-            k: Hardware_KeyStore = self.keystores[0]
-            assert isinstance(self.plugin, HW_PluginBase)
+            k: HardwareKeyStore = self.keystores[0]
+            assert isinstance(self.plugin, HWPluginBase)
             try:
                 k.handler = self.plugin.create_handler(self)
                 password = k.get_password_for_storage_encryption()
@@ -750,7 +750,7 @@ class BaseWizard(PrintError):
     def create_seed(self, seed_type):
         self.seed_type = seed_type
         if seed_type in ["standard", "electrum"]:
-            seed = mnemo.Mnemonic_Electrum("en").make_seed()
+            seed = mnemo.MnemonicElectrum("en").make_seed()
         elif seed_type == "bip39":
             seed = mnemo.make_bip39_words("english")
         else:

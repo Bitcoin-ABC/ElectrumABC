@@ -717,7 +717,7 @@ def deserialize_privkey(key, *, net=None):
 
 def regenerate_key(pk):
     assert len(pk) == 32
-    return EC_KEY(pk)
+    return ECKey(pk)
 
 
 def GetPubKey(pubkey, compressed=False):
@@ -832,7 +832,7 @@ def verify_message(
 
 
 def encrypt_message(message, pubkey, magic=b"BIE1"):
-    return EC_KEY.encrypt_message(message, bfh(pubkey), magic)
+    return ECKey.encrypt_message(message, bfh(pubkey), magic)
 
 
 def ECC_YfromX(x, curved=curve_secp256k1, odd=True):
@@ -932,7 +932,7 @@ class MySigningKey(ecdsa.SigningKey):
         return r, s
 
 
-class EC_KEY(object):
+class ECKey(object):
     def __init__(self, k):
         secret = string_to_number(k)
         self.pubkey = ecdsa.ecdsa.Public_key(
@@ -996,7 +996,7 @@ class EC_KEY(object):
         ephemeral_exponent = number_to_string(
             ecdsa.util.randrange(pow(2, 256)), generator_secp256k1.order()
         )
-        ephemeral = EC_KEY(ephemeral_exponent)
+        ephemeral = ECKey(ephemeral_exponent)
         ecdh_key = point_to_ser(pk * ephemeral.privkey.secret_multiplier)
         key = hashlib.sha512(ecdh_key).digest()
         iv, key_e, key_m = key[0:16], key[16:32], key[32:]
@@ -1061,7 +1061,7 @@ def CKD_priv(k, c, n):
 
 def _CKD_priv(k, c, s, is_prime):
     order = generator_secp256k1.order()
-    keypair = EC_KEY(k)
+    keypair = ECKey(k)
     cK = GetPubKey(keypair.pubkey, True)
     data = bytes([0]) + k + s if is_prime else cK + s
     I_ = hmac.new(c, data, hashlib.sha512).digest()

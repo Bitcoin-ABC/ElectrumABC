@@ -9,9 +9,9 @@ from io import StringIO
 from ..simple_config import SimpleConfig, read_user_config
 
 
-class Test_SimpleConfig(unittest.TestCase):
+class TestSimpleConfig(unittest.TestCase):
     def setUp(self):
-        super(Test_SimpleConfig, self).setUp()
+        super(TestSimpleConfig, self).setUp()
         # make sure "read_user_config" and "user_dir" return a temporary directory.
         self.electrum_dir = tempfile.mkdtemp()
         # Do the same for the user dir to avoid overwriting the real configuration
@@ -24,7 +24,7 @@ class Test_SimpleConfig(unittest.TestCase):
         sys.stdout = self._stdout_buffer
 
     def tearDown(self):
-        super(Test_SimpleConfig, self).tearDown()
+        super(TestSimpleConfig, self).tearDown()
         # Remove the temporary directory after each test (to make sure we don't
         # pollute /tmp for nothing.
         shutil.rmtree(self.electrum_dir)
@@ -190,7 +190,7 @@ class TestUserConfig(unittest.TestCase):
 def suite():
     test_suite = unittest.TestSuite()
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(Test_SimpleConfig))
+    test_suite.addTest(loadTests(TestSimpleConfig))
     test_suite.addTest(loadTests(TestUserConfig))
     return test_suite
 

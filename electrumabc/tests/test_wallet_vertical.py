@@ -14,7 +14,7 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
         self.assertFalse(ks.is_watching_only())
         self.assertFalse(ks.can_import())
         self.assertTrue(ks.has_seed())
-        if isinstance(ks, keystore.BIP32_KeyStore):
+        if isinstance(ks, keystore.BIP32KeyStore):
             self.assertTrue(ks.has_derivation())
 
     def _check_xpub_keystore_sanity(self, ks):
@@ -27,7 +27,7 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
         store = storage.WalletStorage("if_this_exists_mocking_failed_648151893")
         store.put("keystore", ks.dump())
         store.put("gap_limit", self.gap_limit)
-        w = wallet.Standard_Wallet(store)
+        w = wallet.StandardWallet(store)
         w.synchronize()
         return w
 
@@ -38,7 +38,7 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
         store.put("x1/", ks1.dump())
         store.put("x2/", ks2.dump())
         store.put("gap_limit", self.gap_limit)
-        w = wallet.Multisig_Wallet(store)
+        w = wallet.MultisigWallet(store)
         w.synchronize()
         return w
 
@@ -50,7 +50,7 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
         ks = keystore.from_seed(seed_words, "")
 
         self._check_seeded_keystore_sanity(ks)
-        self.assertTrue(isinstance(ks, keystore.BIP32_KeyStore))
+        self.assertTrue(isinstance(ks, keystore.BIP32KeyStore))
 
         self.assertEqual(
             ks.xpub,
@@ -76,7 +76,7 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
         ks = keystore.from_seed(seed_words, "")
 
         self._check_seeded_keystore_sanity(ks)
-        self.assertTrue(isinstance(ks, keystore.Old_KeyStore))
+        self.assertTrue(isinstance(ks, keystore.OldKeyStore))
 
         self.assertEqual(
             ks.mpk,
@@ -106,7 +106,7 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
             seed_words, "", seed_type="bip39", derivation="m/44'/0'/0'"
         )
 
-        self.assertTrue(isinstance(ks, keystore.BIP32_KeyStore))
+        self.assertTrue(isinstance(ks, keystore.BIP32KeyStore))
 
         self.assertEqual(
             ks.xpub,
@@ -146,7 +146,7 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
 
         ks1 = keystore.from_seed(seed_words, "")
         self._check_seeded_keystore_sanity(ks1)
-        self.assertTrue(isinstance(ks1, keystore.BIP32_KeyStore))
+        self.assertTrue(isinstance(ks1, keystore.BIP32KeyStore))
         self.assertEqual(
             ks1.xpub,
             "xpub661MyMwAqRbcGNEPu3aJQqXTydqR9t49Tkwb4Esrj112kw8xLthv8uybxvaki4Ygt9xiwZUQGeFTG7T2TUzR3eA4Zp3aq5RXsABHFBUrq4c",
@@ -156,7 +156,7 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
             "xpub661MyMwAqRbcGfCPEkkyo5WmcrhTq8mi3xuBS7VEZ3LYvsgY1cCFDbenT33bdD12axvrmXhuX3xkAbKci3yZY9ZEk8vhLic7KNhLjqdh5ec"
         )
         self._check_xpub_keystore_sanity(ks2)
-        self.assertTrue(isinstance(ks2, keystore.BIP32_KeyStore))
+        self.assertTrue(isinstance(ks2, keystore.BIP32KeyStore))
 
         w = self._create_multisig_wallet(ks1, ks2)
 
@@ -179,7 +179,7 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
         ks1 = keystore.from_seed(
             seed_words, "", seed_type="bip39", derivation="m/45'/0"
         )
-        self.assertTrue(isinstance(ks1, keystore.BIP32_KeyStore))
+        self.assertTrue(isinstance(ks1, keystore.BIP32KeyStore))
         self.assertEqual(ks1.derivation, "m/45'/0")
         self.assertEqual(ks1.seed_type, "bip39")
         self.assertEqual(
@@ -191,7 +191,7 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
             "xpub6Bco9vrgo8rNUSi8Bjomn8xLA41DwPXeuPcgJamNRhTTyGVHsp8fZXaGzp9ypHoei16J6X3pumMAP1u3Dy4jTSWjm4GZowL7Dcn9u4uZC9W"
         )
         self._check_xpub_keystore_sanity(ks2)
-        self.assertTrue(isinstance(ks2, keystore.BIP32_KeyStore))
+        self.assertTrue(isinstance(ks2, keystore.BIP32KeyStore))
 
         w = self._create_multisig_wallet(ks1, ks2)
 

@@ -40,7 +40,7 @@ from .transaction import Transaction
 from .util import ThreadJob, bh2u
 
 if TYPE_CHECKING:
-    from .wallet import Abstract_Wallet
+    from .wallet import AbstractWallet
 
 
 class Synchronizer(ThreadJob):
@@ -54,7 +54,7 @@ class Synchronizer(ThreadJob):
     External interface: __init__() and add() member functions.
     """
 
-    def __init__(self, wallet: Abstract_Wallet, network):
+    def __init__(self, wallet: AbstractWallet, network):
         self.wallet = wallet
         self.network = network
         assert self.wallet and self.wallet.storage and self.network

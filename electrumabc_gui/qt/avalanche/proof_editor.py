@@ -21,7 +21,7 @@ from electrumabc.i18n import _
 from electrumabc.transaction import get_address_from_output_script
 from electrumabc.uint256 import UInt256
 from electrumabc.util import format_satoshis
-from electrumabc.wallet import AddressNotFoundError, Deterministic_Wallet
+from electrumabc.wallet import AddressNotFoundError, DeterministicWallet
 
 from .delegation_editor import AvaDelegationDialog
 from .util import CachedWalletPasswordWidget, get_auxiliary_privkey
@@ -77,7 +77,7 @@ def proof_to_rich_text(proof: Proof) -> str:
 class AvaProofEditor(CachedWalletPasswordWidget):
     def __init__(
         self,
-        wallet: Deterministic_Wallet,
+        wallet: DeterministicWallet,
         receive_address: Optional[Address] = None,
         parent: Optional[QtWidgets.QWidget] = None,
     ):
@@ -652,7 +652,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
 class AvaProofDialog(QtWidgets.QDialog):
     def __init__(
         self,
-        wallet: Deterministic_Wallet,
+        wallet: DeterministicWallet,
         receive_address: Optional[Address] = None,
         parent: Optional[QtWidgets.QWidget] = None,
     ):
@@ -784,7 +784,7 @@ def check_utxos(utxos: List[dict], parent: Optional[QtWidgets.QWidget] = None) -
 class UtxosDialog(QtWidgets.QDialog):
     """A widget listing all coins in a wallet and allowing to load multiple coins"""
 
-    def __init__(self, wallet: Deterministic_Wallet):
+    def __init__(self, wallet: DeterministicWallet):
         super().__init__()
         self.setMinimumWidth(750)
 

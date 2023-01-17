@@ -167,7 +167,7 @@ class WalletStorage(PrintError):
         secret = hashlib.pbkdf2_hmac(
             "sha512", password.encode("utf-8"), b"", iterations=1024
         )
-        ec_key = bitcoin.EC_KEY(secret)
+        ec_key = bitcoin.ECKey(secret)
         return ec_key
 
     def _get_encryption_magic(self):

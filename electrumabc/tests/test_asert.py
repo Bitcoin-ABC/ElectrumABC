@@ -3,7 +3,7 @@ import unittest
 from ..asert_daa import ASERTDaa
 
 
-class Test_ASERTDaa(unittest.TestCase):
+class TestASERTDaa(unittest.TestCase):
     def validate_blocksequence(self, anchor_height, ref_time, ref_bits, blocks):
         asert = ASERTDaa()
         for block in blocks:

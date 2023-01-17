@@ -80,7 +80,7 @@ from electrumabc.util import (
     get_new_wallet_name,
     standardize_path,
 )
-from electrumabc.wallet import Abstract_Wallet, Wallet
+from electrumabc.wallet import AbstractWallet, Wallet
 
 # This needs to be imported once app-wide then the :icons/ namespace becomes available
 # for Qt icon filenames.
@@ -629,7 +629,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         if jumpto:
             self.nd.jumpto(jumpto)
 
-    def _create_window_for_wallet(self, wallet: Abstract_Wallet):
+    def _create_window_for_wallet(self, wallet: AbstractWallet):
         w = ElectrumWindow(self, wallet)
         self.windows.append(w)
         finalization_print_error(w, "[{}] finalized".format(w.diagnostic_name()))
@@ -746,7 +746,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
 
     def _start_wizard_to_select_or_create_wallet(
         self, path
-    ) -> Optional[Abstract_Wallet]:
+    ) -> Optional[AbstractWallet]:
         wizard = InstallWizard(self.config, self.app, self.plugins, gui_object=self)
         try:
             path, storage = wizard.select_storage(path, self.daemon.get_wallet)

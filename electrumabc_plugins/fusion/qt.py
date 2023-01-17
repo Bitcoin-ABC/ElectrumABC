@@ -39,7 +39,7 @@ from electrumabc.address import Address
 from electrumabc.i18n import _, ngettext
 from electrumabc.plugins import hook, run_hook
 from electrumabc.util import InvalidPassword, do_in_main_thread, inv_dict
-from electrumabc.wallet import Abstract_Wallet
+from electrumabc.wallet import AbstractWallet
 from electrumabc_gui.qt.amountedit import XECAmountEdit
 from electrumabc_gui.qt.main_window import ElectrumWindow
 from electrumabc_gui.qt.popup_widget import KillPopupLabel, ShowPopupLabel
@@ -619,14 +619,14 @@ class Plugin(FusionPlugin, QObject):
         """Convenience: Given a wallet instance, derefernces the weak_window
         attribute of the wallet and returns a strong reference to the window.
         May return None if the window is gone (deallocated)."""
-        assert isinstance(wallet, Abstract_Wallet)
+        assert isinstance(wallet, AbstractWallet)
         return (wallet.weak_window and wallet.weak_window()) or None
 
     @classmethod
     def get_suitable_dialog_window_parent(cls, wallet_or_window):
         """Convenience: Given a wallet or a window instance, return a suitable
         'top level window' parent to use for dialog boxes."""
-        if isinstance(wallet_or_window, Abstract_Wallet):
+        if isinstance(wallet_or_window, AbstractWallet):
             wallet = wallet_or_window
             window = cls.window_for_wallet(wallet)
             return (window and window.top_level_window()) or None

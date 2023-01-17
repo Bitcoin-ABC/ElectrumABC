@@ -52,7 +52,7 @@ class Plugin(SatochipPlugin, QtPluginBase):
     #    BasePlugin.__init__(self, parent, config, name)
 
     def create_handler(self, window):
-        return Satochip_Handler(window)
+        return SatochipHandler(window)
 
     def requires_settings(self):
         # Return True to add a Settings button.
@@ -79,9 +79,9 @@ class Plugin(SatochipPlugin, QtPluginBase):
             SatochipSettingsDialog(window, self, keystore, device_id).exec_()
 
 
-class Satochip_Handler(QtHandlerBase):
+class SatochipHandler(QtHandlerBase):
     def __init__(self, win):
-        super(Satochip_Handler, self).__init__(win, "Satochip")
+        super(SatochipHandler, self).__init__(win, "Satochip")
 
     # TODO: something?
 

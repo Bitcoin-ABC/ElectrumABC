@@ -5,7 +5,7 @@ from PyQt5.QtCore import pyqtSignal
 
 from electrumabc.i18n import _
 from electrumabc.plugins import hook
-from electrumabc.wallet import Standard_Wallet
+from electrumabc.wallet import StandardWallet
 from electrumabc_gui.qt.util import WindowModalDialog
 
 from ..hw_wallet.qt import QtHandlerBase, QtPluginBase
@@ -17,11 +17,11 @@ class Plugin(LedgerPlugin, QtPluginBase):
     icon_paired = ":icons/ledger.png"
 
     def create_handler(self, window):
-        return Ledger_Handler(window)
+        return LedgerHandler(window)
 
     @hook
     def receive_menu(self, menu, addrs, wallet):
-        if type(wallet) is not Standard_Wallet:
+        if type(wallet) is not StandardWallet:
             return
         keystore = wallet.get_keystore()
         if type(keystore) == self.keystore_class and len(addrs) == 1:
@@ -32,12 +32,12 @@ class Plugin(LedgerPlugin, QtPluginBase):
             menu.addAction(_("Show on Ledger"), show_address)
 
 
-class Ledger_Handler(QtHandlerBase):
+class LedgerHandler(QtHandlerBase):
     setup_signal = pyqtSignal()
     auth_signal = pyqtSignal(object)
 
     def __init__(self, win):
-        super(Ledger_Handler, self).__init__(win, "Ledger")
+        super(LedgerHandler, self).__init__(win, "Ledger")
         self.setup_signal.connect(self.setup_dialog)
         self.auth_signal.connect(self.auth_dialog)
 

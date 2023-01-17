@@ -35,7 +35,7 @@ from .qrcodewidget import QRCodeWidget, copy_to_clipboard, save_to_file
 from .util import Buttons, MessageBoxMixin, WWLabel
 
 
-class QR_Window(QtWidgets.QWidget, MessageBoxMixin):
+class QRWindow(QtWidgets.QWidget, MessageBoxMixin):
     def __init__(self):
         # Top-level window.
         super().__init__()

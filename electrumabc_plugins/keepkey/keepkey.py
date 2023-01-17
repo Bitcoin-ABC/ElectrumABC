@@ -9,12 +9,12 @@ from electrumabc.bitcoin import (
     deserialize_xpub,
 )
 from electrumabc.i18n import _
-from electrumabc.keystore import Hardware_KeyStore, is_xpubkey, parse_xpubkey
+from electrumabc.keystore import HardwareKeyStore, is_xpubkey, parse_xpubkey
 from electrumabc.plugins import Device
 from electrumabc.transaction import deserialize
 from electrumabc.util import UserCancelled, bfh, bh2u
 
-from ..hw_wallet import HW_PluginBase
+from ..hw_wallet import HWPluginBase
 from ..hw_wallet.plugin import (
     is_any_tx_output_on_change_branch,
     validate_op_return_output_and_get_data,
@@ -24,7 +24,7 @@ from ..hw_wallet.plugin import (
 TIM_NEW, TIM_RECOVER, TIM_MNEMONIC, TIM_PRIVKEY = range(0, 4)
 
 
-class KeepKey_KeyStore(Hardware_KeyStore):
+class KeepKeyKeyStore(HardwareKeyStore):
     hw_type = "keepkey"
     device = "KeepKey"
 
@@ -75,7 +75,7 @@ class KeepKey_KeyStore(Hardware_KeyStore):
         self.plugin.sign_transaction(self, tx, prev_tx, xpub_path)
 
 
-class KeepKeyPlugin(HW_PluginBase):
+class KeepKeyPlugin(HWPluginBase):
     # Derived classes provide:
     #
     #  class-static variables: client_class, firmware_URL, handler_class,
@@ -85,14 +85,14 @@ class KeepKeyPlugin(HW_PluginBase):
     firmware_URL = "https://www.keepkey.com"
     libraries_URL = "https://github.com/keepkey/python-keepkey"
     minimum_firmware = (1, 0, 0)
-    keystore_class = KeepKey_KeyStore
+    keystore_class = KeepKeyKeyStore
     usb_context = None
     SUPPORTED_XTYPES = ("standard", "p2wsh-p2sh", "p2wsh")
 
     MAX_LABEL_LEN = 32
 
     def __init__(self, parent, config, name):
-        HW_PluginBase.__init__(self, parent, config, name)
+        HWPluginBase.__init__(self, parent, config, name)
 
         try:
             import keepkeylib

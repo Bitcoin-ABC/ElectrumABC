@@ -14,7 +14,7 @@ from electrumabc.avalanche.primitives import Key, PublicKey
 from electrumabc.avalanche.proof import LimitedProofId, Proof
 from electrumabc.avalanche.serialize import DeserializationError
 from electrumabc.bitcoin import is_private_key
-from electrumabc.wallet import Deterministic_Wallet
+from electrumabc.wallet import DeterministicWallet
 
 from .util import AuxiliaryKeysDialog, CachedWalletPasswordWidget
 
@@ -22,7 +22,7 @@ from .util import AuxiliaryKeysDialog, CachedWalletPasswordWidget
 class AvaDelegationWidget(CachedWalletPasswordWidget):
     def __init__(
         self,
-        wallet: Deterministic_Wallet,
+        wallet: DeterministicWallet,
         pwd: Optional[str] = None,
         parent: Optional[QtWidgets.QWidget] = None,
     ):
@@ -241,7 +241,7 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
 class AvaDelegationDialog(QtWidgets.QDialog):
     def __init__(
         self,
-        wallet: Deterministic_Wallet,
+        wallet: DeterministicWallet,
         pwd: Optional[str] = None,
         parent: Optional[QtWidgets.QWidget] = None,
     ):

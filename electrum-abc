@@ -56,7 +56,7 @@ from electrumabc.simple_config import SimpleConfig
 from electrumabc.storage import WalletStorage
 from electrumabc.util import InvalidPassword, json_decode, json_encode
 from electrumabc.wallet import (
-    Abstract_Wallet,
+    AbstractWallet,
     ImportedAddressWallet,
     ImportedPrivkeyWallet,
     Wallet,
@@ -178,7 +178,7 @@ def run_non_rpc(simple_config: SimpleConfig):
 
 def restore_wallet(
     simple_config: SimpleConfig, storage: WalletStorage
-) -> Abstract_Wallet:
+) -> AbstractWallet:
     """Restore an existing wallet"""
     text = simple_config.get("text").strip()
     passphrase = simple_config.get("passphrase", "")
@@ -230,7 +230,7 @@ def restore_wallet(
     return wallet
 
 
-def create_wallet(simple_config: SimpleConfig) -> Abstract_Wallet:
+def create_wallet(simple_config: SimpleConfig) -> AbstractWallet:
     """Create a new wallet"""
     password = prompt_create_wallet_password()
     seed_type = simple_config.get("seed_type", "bip39")

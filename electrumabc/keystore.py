@@ -43,7 +43,7 @@ from .util import BitcoinException, InvalidPassword, WalletFileException, bh2u
 
 if TYPE_CHECKING:
     from electrumabc_gui.qt.util import TaskThread
-    from electrumabc_plugins.hw_wallet import HardwareHandlerBase, HW_PluginBase
+    from electrumabc_plugins.hw_wallet import HardwareHandlerBase, HWPluginBase
 
 
 class KeyStore(PrintError):
@@ -100,7 +100,7 @@ class KeyStore(PrintError):
         pass
 
 
-class Software_KeyStore(KeyStore):
+class SoftwareKeyStore(KeyStore):
     def __init__(self):
         KeyStore.__init__(self)
 
@@ -132,12 +132,12 @@ class Software_KeyStore(KeyStore):
             tx.sign(keypairs, use_cache=use_cache)
 
 
-class Imported_KeyStore(Software_KeyStore):
+class ImportedKeyStore(SoftwareKeyStore):
     # keystore for imported private keys
     # private keys are encrypted versions of the WIF encoding
 
     def __init__(self, d):
-        Software_KeyStore.__init__(self)
+        SoftwareKeyStore.__init__(self)
         keypairs = d.get("keypairs", {})
         self.keypairs = {
             PublicKey.from_string(pubkey): enc_privkey
@@ -228,9 +228,9 @@ class Imported_KeyStore(Software_KeyStore):
             self.keypairs[k] = c
 
 
-class Deterministic_KeyStore(Software_KeyStore):
+class DeterministicKeyStore(SoftwareKeyStore):
     def __init__(self, d):
-        Software_KeyStore.__init__(self)
+        SoftwareKeyStore.__init__(self)
         self.seed = d.get("seed", "")
         self.passphrase = d.get("passphrase", "")
         self.seed_type = d.get("seed_type")
@@ -355,16 +355,16 @@ class Xpub:
         return derivation
 
 
-class BIP32_KeyStore(Deterministic_KeyStore, Xpub):
+class BIP32KeyStore(DeterministicKeyStore, Xpub):
     def __init__(self, d):
         Xpub.__init__(self)
-        Deterministic_KeyStore.__init__(self, d)
+        DeterministicKeyStore.__init__(self, d)
         self.xpub = d.get("xpub")
         self.xprv = d.get("xprv")
         self.derivation = d.get("derivation")
 
     def dump(self):
-        d = Deterministic_KeyStore.dump(self)
+        d = DeterministicKeyStore.dump(self)
         d["type"] = "bip32"
         d["xpub"] = self.xpub
         d["xprv"] = self.xprv
@@ -426,22 +426,22 @@ class BIP32_KeyStore(Deterministic_KeyStore, Xpub):
         self.wallet_advice[addr] = advice
 
 
-class Old_KeyStore(Deterministic_KeyStore):
+class OldKeyStore(DeterministicKeyStore):
     def __init__(self, d):
-        Deterministic_KeyStore.__init__(self, d)
+        DeterministicKeyStore.__init__(self, d)
         self.mpk = d.get("mpk")
 
     def get_hex_seed(self, password):
         return bitcoin.pw_decode(self.seed, password).encode("utf8")
 
     def dump(self):
-        d = Deterministic_KeyStore.dump(self)
+        d = DeterministicKeyStore.dump(self)
         d["mpk"] = self.mpk
         d["type"] = "old"
         return d
 
     def add_seed(self, seedphrase, *, seed_type="old"):
-        Deterministic_KeyStore.add_seed(self, seedphrase, seed_type=seed_type)
+        DeterministicKeyStore.add_seed(self, seedphrase, seed_type=seed_type)
         s = self.get_hex_seed(None)
         self.mpk = self.mpk_from_seed(s)
 
@@ -578,10 +578,10 @@ class Old_KeyStore(Deterministic_KeyStore):
             self.seed = bitcoin.pw_encode(decoded, new_password)
 
 
-class Hardware_KeyStore(KeyStore, Xpub):
+class HardwareKeyStore(KeyStore, Xpub):
     hw_type: str
     device: str
-    plugin: HW_PluginBase
+    plugin: HWPluginBase
     thread: Optional[TaskThread]
 
     # restore_wallet_class = BIP32_RD_Wallet
@@ -664,7 +664,7 @@ def is_xpubkey(x_pubkey):
 
 def parse_xpubkey(x_pubkey):
     assert x_pubkey[0:2] == "ff"
-    return BIP32_KeyStore.parse_xpubkey(x_pubkey)
+    return BIP32KeyStore.parse_xpubkey(x_pubkey)
 
 
 def xpubkey_to_address(x_pubkey):
@@ -674,11 +674,11 @@ def xpubkey_to_address(x_pubkey):
     if x_pubkey[0:2] in ["02", "03", "04"]:
         pubkey = x_pubkey
     elif x_pubkey[0:2] == "ff":
-        xpub, s = BIP32_KeyStore.parse_xpubkey(x_pubkey)
-        pubkey = BIP32_KeyStore.get_pubkey_from_xpub(xpub, s)
+        xpub, s = BIP32KeyStore.parse_xpubkey(x_pubkey)
+        pubkey = BIP32KeyStore.get_pubkey_from_xpub(xpub, s)
     elif x_pubkey[0:2] == "fe":
-        mpk, s = Old_KeyStore.parse_xpubkey(x_pubkey)
-        pubkey = Old_KeyStore.get_pubkey_from_mpk(mpk, s[0], s[1])
+        mpk, s = OldKeyStore.parse_xpubkey(x_pubkey)
+        pubkey = OldKeyStore.get_pubkey_from_mpk(mpk, s[0], s[1])
     else:
         raise BitcoinException(f"Cannot parse pubkey. prefix: {x_pubkey[0:2]}")
     if pubkey:
@@ -714,11 +714,11 @@ def load_keystore(storage, name):
             f"Wallet format requires update.\nCannot find keystore for name {name}"
         )
     if t == "old":
-        k = Old_KeyStore(d)
+        k = OldKeyStore(d)
     elif t == "imported":
-        k = Imported_KeyStore(d)
+        k = ImportedKeyStore(d)
     elif t == "bip32":
-        k = BIP32_KeyStore(d)
+        k = BIP32KeyStore(d)
     elif t == "hardware":
         k = hardware_keystore(d)
     else:
@@ -819,18 +819,18 @@ def from_seed(seed, passphrase, *, seed_type="", derivation=None) -> KeyStore:
     if not seed_type:
         seed_type = mnemo.seed_type_name(seed)  # auto-detect
     if seed_type == "old":
-        keystore = Old_KeyStore({})
+        keystore = OldKeyStore({})
         keystore.add_seed(seed, seed_type=seed_type)
     elif seed_type in ["standard", "electrum"]:
-        keystore = BIP32_KeyStore({})
+        keystore = BIP32KeyStore({})
         keystore.add_seed(seed, seed_type="electrum")  # force it to be "electrum"
         keystore.passphrase = passphrase
-        bip32_seed = mnemo.Mnemonic_Electrum.mnemonic_to_seed(seed, passphrase)
+        bip32_seed = mnemo.MnemonicElectrum.mnemonic_to_seed(seed, passphrase)
         derivation = "m/"
         xtype = "standard"
         keystore.add_xprv_from_seed(bip32_seed, xtype, derivation)
     elif seed_type == "bip39":
-        keystore = BIP32_KeyStore({})
+        keystore = BIP32KeyStore({})
         keystore.add_seed(seed, seed_type=seed_type)
         keystore.passphrase = passphrase
         bip32_seed = mnemo.bip39_mnemonic_to_seed(seed, passphrase or "")
@@ -847,27 +847,27 @@ class InvalidSeed(Exception):
 
 
 def from_private_key_list(text):
-    keystore = Imported_KeyStore({})
+    keystore = ImportedKeyStore({})
     for x in get_private_keys(text):
         keystore.import_privkey(x, None)
     return keystore
 
 
 def from_old_mpk(mpk):
-    keystore = Old_KeyStore({})
+    keystore = OldKeyStore({})
     keystore.add_master_public_key(mpk)
     return keystore
 
 
 def from_xpub(xpub):
-    k = BIP32_KeyStore({})
+    k = BIP32KeyStore({})
     k.xpub = xpub
     return k
 
 
 def from_xprv(xprv):
     xpub = bitcoin.xpub_from_xprv(xprv)
-    k = BIP32_KeyStore({})
+    k = BIP32KeyStore({})
     k.xprv = xprv
     k.xpub = xpub
     return k

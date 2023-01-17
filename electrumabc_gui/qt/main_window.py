@@ -84,7 +84,7 @@ from electrumabc.util import (
     format_satoshis_plain,
     format_time,
 )
-from electrumabc.wallet import Abstract_Wallet, Multisig_Wallet, sweep_preparations
+from electrumabc.wallet import AbstractWallet, MultisigWallet, sweep_preparations
 
 from . import address_dialog, exception_window, external_plugins_window, qrwindow
 from .address_list import AddressList
@@ -212,7 +212,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     # signal, preferably via Qt.DirectConnection
     on_timer_signal = pyqtSignal()
 
-    def __init__(self, gui_object: ElectrumGui, wallet: Abstract_Wallet):
+    def __init__(self, gui_object: ElectrumGui, wallet: AbstractWallet):
         QtWidgets.QMainWindow.__init__(self)
 
         self.gui_object = gui_object
@@ -1796,7 +1796,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
     def show_qr_window(self):
         if not self.qr_window:
-            self.qr_window = qrwindow.QR_Window()
+            self.qr_window = qrwindow.QRWindow()
             self.qr_window.setAttribute(Qt.WA_DeleteOnClose, True)
             weakSelf = Weak.ref(self)
 
@@ -3505,7 +3505,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             if len(mpk_list) > 1:
 
                 def label(key):
-                    if isinstance(self.wallet, Multisig_Wallet):
+                    if isinstance(self.wallet, MultisigWallet):
                         return _("cosigner") + " " + str(key + 1)
                     return ""
 
@@ -4005,7 +4005,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.show_message(_("This is a watching-only wallet"))
             return
 
-        if isinstance(self.wallet, Multisig_Wallet):
+        if isinstance(self.wallet, MultisigWallet):
             if bip38:
                 self.show_error(
                     _("WARNING: This is a multi-signature wallet.")

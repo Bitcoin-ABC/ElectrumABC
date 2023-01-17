@@ -6,14 +6,14 @@ from PyQt5 import QtWidgets
 
 from electrumabc.address import PublicKey
 from electrumabc.bitcoin import is_private_key
-from electrumabc.wallet import Deterministic_Wallet
+from electrumabc.wallet import DeterministicWallet
 
 from ..password_dialog import PasswordDialog
 from ..util import ButtonsLineEdit
 
 
 def get_auxiliary_privkey(
-    wallet: Deterministic_Wallet,
+    wallet: DeterministicWallet,
     key_index: int = 0,
     pwd: Optional[str] = None,
 ) -> str:
@@ -40,7 +40,7 @@ class CachedWalletPasswordWidget(QtWidgets.QWidget):
 
     def __init__(
         self,
-        wallet: Deterministic_Wallet,
+        wallet: DeterministicWallet,
         pwd: Optional[str] = None,
         parent: Optional[QtWidgets.QWidget] = None,
     ):
@@ -109,7 +109,7 @@ class AuxiliaryKeysWidget(CachedWalletPasswordWidget):
 
     def __init__(
         self,
-        wallet: Deterministic_Wallet,
+        wallet: DeterministicWallet,
         pwd: Optional[str] = None,
         parent: Optional[QtWidgets.QWidget] = None,
         additional_info: Optional[str] = None,
@@ -166,7 +166,7 @@ class AuxiliaryKeysWidget(CachedWalletPasswordWidget):
 class AuxiliaryKeysDialog(QtWidgets.QDialog):
     def __init__(
         self,
-        wallet: Deterministic_Wallet,
+        wallet: DeterministicWallet,
         pwd: Optional[str] = None,
         parent: Optional[QtWidgets.QWidget] = None,
         additional_info: Optional[str] = None,

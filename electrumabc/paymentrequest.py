@@ -553,7 +553,7 @@ class InvoiceStore(object):
                 raw = bfh(v.get("hex"))
                 try:
                     # First try BitPay 2.0 style PR -- this contains compressed raw bytes of the headers & json associated with the request; will raise if wrong format
-                    pr = PaymentRequest_BitPay20.deserialize(raw)
+                    pr = PaymentRequestBitPay20.deserialize(raw)
                 except Exception:
                     pass
                 if not pr:
@@ -644,7 +644,7 @@ class ResponseError(Exception):
     """Contains the exact text of the bad response error message from BitPay"""
 
 
-class PaymentRequest_BitPay20(PaymentRequest, PrintError):
+class PaymentRequestBitPay20(PaymentRequest, PrintError):
     """Work-alike to the existing BIP70 PaymentRequest class.
     Wraps payment requests based on the new BitPay 2.0 JSON API."""
 
@@ -1016,14 +1016,14 @@ def get_payment_request_bitpay20(url, timeout=10.0):
     """Synchronously contacts BitPay and gets the payment request.
     Returns the PaymentRequest object. Returned PaymentRequest
     has .error != None on error."""
-    headers = PaymentRequest_BitPay20.HEADERS.copy()
+    headers = PaymentRequestBitPay20.HEADERS.copy()
     headers.update({"accept": "application/payment-request"})
     try:
         r = requests.get(url, headers=headers, timeout=timeout, verify=True)
         if r.status_code == 400:
             raise ResponseError(r.text)
         r.raise_for_status()
-        return PaymentRequest_BitPay20(PaymentRequest_BitPay20.Raw(response=r))
+        return PaymentRequestBitPay20(PaymentRequestBitPay20.Raw(response=r))
     except Exception as e:
         print_error("[BitPay2.0] get_payment_request:", repr(e))
         return PaymentRequest(None, error=str(e))

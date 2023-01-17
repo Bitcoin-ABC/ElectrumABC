@@ -200,7 +200,7 @@ def is_electrum_seed(seed: str, prefix: str = version.SEED_PREFIX) -> bool:
     Returns True if the text in question matches the checksum for Electrum
     seeds. Does not depend on any particular word list, just checks unicode
     data.  Very fast."""
-    return Mnemonic_Electrum.verify_checksum_only(seed, prefix)
+    return MnemonicElectrum.verify_checksum_only(seed, prefix)
 
 
 def is_old_seed(seed: str) -> bool:
@@ -389,7 +389,7 @@ class MnemonicBase(PrintError):
         return self.is_checksum_valid(mnemonic)[0]
 
 
-class Mnemonic_Electrum(MnemonicBase):
+class MnemonicElectrum(MnemonicBase):
     """This implements the "Electrum" mnemonic seed phrase format, which was
     used for many years, but starting in 2020, Electron Cash switched back to
     BIP39 since it has wider support.

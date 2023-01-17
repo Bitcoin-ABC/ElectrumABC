@@ -7,7 +7,7 @@ from PyQt5 import QtGui, QtWidgets
 from electrumabc import transaction
 from electrumabc.bitcoin import sha256
 from electrumabc.constants import XEC
-from electrumabc.wallet import Abstract_Wallet
+from electrumabc.wallet import AbstractWallet
 
 from .util import MessageBoxMixin
 
@@ -18,7 +18,7 @@ class MultiTransactionsWidget(QtWidgets.QWidget, MessageBoxMixin):
     def __init__(self, wallet, main_window, parent=None):
         super().__init__(parent)
         self.setMinimumWidth(800)
-        self.wallet: Abstract_Wallet = wallet
+        self.wallet: AbstractWallet = wallet
         self.transactions: Sequence[transaction.Transaction] = []
         self.main_window = main_window
 

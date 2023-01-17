@@ -40,7 +40,7 @@ from electrumabc.address import Address
 from electrumabc.i18n import _
 from electrumabc.plugins import run_hook
 from electrumabc.util import profiler
-from electrumabc.wallet import Multisig_Wallet
+from electrumabc.wallet import MultisigWallet
 
 from .consolidate_coins_dialog import ConsolidateCoinsWizard
 from .invoice_dialog import InvoiceDialog
@@ -285,7 +285,7 @@ class AddressList(MyTreeWidget):
             # picker mode has no menu
             return
 
-        is_multisig = isinstance(self.wallet, Multisig_Wallet)
+        is_multisig = isinstance(self.wallet, MultisigWallet)
         can_delete = self.wallet.can_delete_address()
         addrs = self.get_selected_addresses()
         multi_select = len(addrs) > 1

@@ -40,7 +40,7 @@ from . import bitcoin, util
 from .address import Address, AddressError
 from .bitcoin import CASH, TYPE_ADDRESS, hash_160
 from .constants import PROJECT_NAME, SCRIPT_NAME, XEC
-from .mnemo import Mnemonic_Electrum, make_bip39_words
+from .mnemo import MnemonicElectrum, make_bip39_words
 from .paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNKNOWN, PR_UNPAID
 from .plugins import run_hook
 from .printerror import print_error
@@ -353,7 +353,7 @@ class Commands:
     def make_electrum_seed(self, nbits=132, entropy=1, language=None):
         """Create an Electrum seed"""
         t = "electrum"
-        s = Mnemonic_Electrum(language).make_seed(t, nbits, custom_entropy=entropy)
+        s = MnemonicElectrum(language).make_seed(t, nbits, custom_entropy=entropy)
         return s
 
     @command("")
@@ -365,7 +365,7 @@ class Commands:
     @command("")
     def check_electrum_seed(self, seed, entropy=1, language=None):
         """Check that an Electrum seed was generated with given entropy"""
-        return Mnemonic_Electrum(language).check_seed(seed, entropy)
+        return MnemonicElectrum(language).check_seed(seed, entropy)
 
     @command("")
     def check_seed(self, seed, entropy=1, language=None):

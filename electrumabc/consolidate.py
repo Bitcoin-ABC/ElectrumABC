@@ -51,7 +51,7 @@ class AddressConsolidator:
     def __init__(
         self,
         address: Address,
-        wallet_instance: wallet.Abstract_Wallet,
+        wallet_instance: wallet.AbstractWallet,
         include_coinbase: bool = True,
         include_non_coinbase: bool = True,
         include_frozen: bool = False,
@@ -104,7 +104,7 @@ class AddressConsolidator:
                 "signatures": [None],
                 "num_sig": 1,
             }
-        elif isinstance(self.wallet, wallet.Multisig_Wallet):
+        elif isinstance(self.wallet, wallet.MultisigWallet):
             derivation = self.wallet.get_address_index(address)
             sig_info = {
                 "x_pubkeys": [

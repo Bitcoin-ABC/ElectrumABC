@@ -67,10 +67,10 @@ if TYPE_CHECKING:
     from electrumabc_plugins.hw_wallet import (
         HardwareClientBase,
         HardwareHandlerBase,
-        HW_PluginBase,
+        HWPluginBase,
     )
 
-    from .keystore import Hardware_KeyStore
+    from .keystore import HardwareKeyStore
 
 plugin_loaders = {}
 hooks = defaultdict(list)
@@ -883,8 +883,8 @@ class DeviceMgr(ThreadJob):
         # a (path, id_) pair. Needs self.lock.
         self.clients: Dict[HardwareClientBase, Tuple[Union[str, bytes], str]] = {}
         # What we recognise.  (vendor_id, product_id) -> Plugin
-        self._recognised_hardware: Dict[Tuple[int, int], HW_PluginBase] = {}
-        self._recognised_vendor: Dict[int, HW_PluginBase] = {}
+        self._recognised_hardware: Dict[Tuple[int, int], HWPluginBase] = {}
+        self._recognised_vendor: Dict[int, HWPluginBase] = {}
         """vendor_id -> Plugin"""
         # Custom enumerate functions for devices we don't know about.
         self.enumerate_func = set()
@@ -925,11 +925,11 @@ class DeviceMgr(ThreadJob):
         for client in clients:
             client.timeout(cutoff)
 
-    def register_devices(self, device_pairs, *, plugin: HW_PluginBase):
+    def register_devices(self, device_pairs, *, plugin: HWPluginBase):
         for pair in device_pairs:
             self._recognised_hardware[pair] = plugin
 
-    def register_vendor_ids(self, vendor_ids: Iterable[int], *, plugin: HW_PluginBase):
+    def register_vendor_ids(self, vendor_ids: Iterable[int], *, plugin: HWPluginBase):
         for vendor_id in vendor_ids:
             self._recognised_vendor[vendor_id] = plugin
 
@@ -937,7 +937,7 @@ class DeviceMgr(ThreadJob):
         self.enumerate_func.add(func)
 
     def create_client(
-        self, device: Device, handler: HardwareHandlerBase, plugin: HW_PluginBase
+        self, device: Device, handler: HardwareHandlerBase, plugin: HWPluginBase
     ) -> Optional[HardwareClientBase]:
         # Get from cache first
         client = self._client_by_id(device.id_)
@@ -1005,9 +1005,9 @@ class DeviceMgr(ThreadJob):
     @with_scan_lock
     def client_for_keystore(
         self,
-        plugin: HW_PluginBase,
+        plugin: HWPluginBase,
         handler: Optional[HardwareHandlerBase],
-        keystore: Hardware_KeyStore,
+        keystore: HardwareKeyStore,
         force_pair: bool,
     ) -> Optional[HardwareClientBase]:
         self.print_error("getting client for keystore")
@@ -1034,7 +1034,7 @@ class DeviceMgr(ThreadJob):
 
     def client_by_xpub(
         self,
-        plugin: HW_PluginBase,
+        plugin: HWPluginBase,
         xpub,
         handler: HardwareHandlerBase,
         devices: Iterable[Device],
@@ -1053,7 +1053,7 @@ class DeviceMgr(ThreadJob):
 
     def force_pair_xpub(
         self,
-        plugin: HW_PluginBase,
+        plugin: HWPluginBase,
         handler: HardwareHandlerBase,
         info: DeviceInfo,
         xpub,
@@ -1091,7 +1091,7 @@ class DeviceMgr(ThreadJob):
     def unpaired_device_infos(
         self,
         handler: Optional[HardwareHandlerBase],
-        plugin: HW_PluginBase,
+        plugin: HWPluginBase,
         devices: Optional[List[Device]] = None,
     ) -> List["DeviceInfo"]:
         """Returns a list of DeviceInfo objects: one for each connected,
@@ -1119,9 +1119,9 @@ class DeviceMgr(ThreadJob):
 
     def select_device(
         self,
-        plugin: HW_PluginBase,
+        plugin: HWPluginBase,
         handler: HardwareHandlerBase,
-        keystore: Hardware_KeyStore,
+        keystore: HardwareKeyStore,
         devices: Optional[List["Device"]] = None,
     ) -> DeviceInfo:
         """Ask the user to select a device to use if there is more than one,

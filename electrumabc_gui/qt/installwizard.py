@@ -27,7 +27,7 @@ from electrumabc.util import (
     WalletFileException,
     finalization_print_error,
 )
-from electrumabc.wallet import Abstract_Wallet, Standard_Wallet
+from electrumabc.wallet import AbstractWallet, StandardWallet
 
 from .bip38_importer import Bip38Importer
 from .network_dialog import NetworkChoiceLayout
@@ -127,7 +127,7 @@ def wizard_dialog(func):
 
 
 class WalletAlreadyOpenInMemory(Exception):
-    def __init__(self, wallet: Abstract_Wallet):
+    def __init__(self, wallet: AbstractWallet):
         super().__init__()
         self.wallet = wallet
 
@@ -898,7 +898,7 @@ class DerivationPathScanner(QThread):
             tmp_storage = WalletStorage(storage_path, in_memory_only=True)
             tmp_storage.put("seed_type", self.seed_type)
             tmp_storage.put("keystore", k.dump())
-            wallet = Standard_Wallet(tmp_storage)
+            wallet = StandardWallet(tmp_storage)
             try:
                 wallet.start_threads(network)
                 wallet.synchronize()

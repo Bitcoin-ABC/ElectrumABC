@@ -31,7 +31,7 @@
 
 import binascii
 
-from .x509 import ASN1_Node, bytestr_to_int, decode_OID
+from .x509 import ASN1Node, bytestr_to_int, decode_OID
 
 
 def a2b_base64(s):
@@ -156,7 +156,7 @@ def parse_private_key(s):
 
 
 def _parsePKCS8(_bytes):
-    s = ASN1_Node(_bytes)
+    s = ASN1Node(_bytes)
     root = s.root()
     version_node = s.first_child(root)
     version = bytestr_to_int(s.get_value_of_type(version_node, "INTEGER"))
@@ -173,7 +173,7 @@ def _parsePKCS8(_bytes):
 
 
 def _parseSSLeay(bytes):
-    return _parseASN1PrivateKey(ASN1_Node(bytes))
+    return _parseASN1PrivateKey(ASN1Node(bytes))
 
 
 def bytesToNumber(s):
@@ -181,7 +181,7 @@ def bytesToNumber(s):
 
 
 def _parseASN1PrivateKey(s):
-    s = ASN1_Node(s)
+    s = ASN1Node(s)
     root = s.root()
     version_node = s.first_child(root)
     version = bytestr_to_int(s.get_value_of_type(version_node, "INTEGER"))

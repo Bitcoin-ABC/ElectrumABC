@@ -17,13 +17,13 @@ from electrumabc.bitcoin import (
     var_int,
 )
 from electrumabc.i18n import _
-from electrumabc.keystore import Hardware_KeyStore
+from electrumabc.keystore import HardwareKeyStore
 from electrumabc.plugins import Device
 from electrumabc.printerror import is_verbose, print_error
 from electrumabc.transaction import Transaction
 from electrumabc.util import bfh, bh2u, versiontuple
 
-from ..hw_wallet import HardwareClientBase, HW_PluginBase
+from ..hw_wallet import HardwareClientBase, HWPluginBase
 from ..hw_wallet.plugin import (
     is_any_tx_output_on_change_branch,
     validate_op_return_output_and_get_data,
@@ -79,9 +79,9 @@ def test_pin_unlocked(func):
     return catch_exception
 
 
-class Ledger_Client(HardwareClientBase):
+class LedgerClient(HardwareClientBase):
     def __init__(
-        self, hidDevice, *, product_key: Tuple[int, int], plugin: HW_PluginBase
+        self, hidDevice, *, product_key: Tuple[int, int], plugin: HWPluginBase
     ):
         HardwareClientBase.__init__(self, plugin=plugin)
         self.device = plugin.device
@@ -309,12 +309,12 @@ class Ledger_Client(HardwareClientBase):
         return True, response, response
 
 
-class Ledger_KeyStore(Hardware_KeyStore):
+class LedgerKeyStore(HardwareKeyStore):
     hw_type = "ledger"
     device = "Ledger"
 
     def __init__(self, d):
-        Hardware_KeyStore.__init__(self, d)
+        HardwareKeyStore.__init__(self, d)
         # Errors and other user interaction is done through the wallet's
         # handler.  The handler is per-window and preserved across
         # device reconnects
@@ -323,7 +323,7 @@ class Ledger_KeyStore(Hardware_KeyStore):
         self.cfg = d.get("cfg", {"mode": 0})
 
     def dump(self):
-        obj = Hardware_KeyStore.dump(self)
+        obj = HardwareKeyStore.dump(self)
         obj["cfg"] = self.cfg
         return obj
 
@@ -723,9 +723,9 @@ class Ledger_KeyStore(Hardware_KeyStore):
             self.handler.finished()
 
 
-class LedgerPlugin(HW_PluginBase):
+class LedgerPlugin(HWPluginBase):
     libraries_available = BTCHIP
-    keystore_class = Ledger_KeyStore
+    keystore_class = LedgerKeyStore
     client = None
     DEVICE_IDS = [
         (0x2581, 0x1807),  # HW.1 legacy btchip
@@ -754,7 +754,7 @@ class LedgerPlugin(HW_PluginBase):
     }
 
     def __init__(self, parent, config, name):
-        HW_PluginBase.__init__(self, parent, config, name)
+        HWPluginBase.__init__(self, parent, config, name)
         if not self.libraries_available:
             return
         # to support legacy devices and legacy firmwares
@@ -823,7 +823,7 @@ class LedgerPlugin(HW_PluginBase):
 
         client = self.get_btchip_device(device)
         if client is not None:
-            client = Ledger_Client(client, product_key=device.product_key, plugin=self)
+            client = LedgerClient(client, product_key=device.product_key, plugin=self)
         return client
 
     def setup_device(self, device_info, wizard, purpose):

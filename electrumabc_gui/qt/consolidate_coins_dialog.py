@@ -11,7 +11,7 @@ from electrumabc.consolidate import (
 )
 from electrumabc.constants import PROJECT_NAME, XEC
 from electrumabc.transaction import Transaction
-from electrumabc.wallet import Abstract_Wallet
+from electrumabc.wallet import AbstractWallet
 
 from .multi_transactions_dialog import MultiTransactionsWidget
 
@@ -37,7 +37,7 @@ class ConsolidateWorker(QtCore.QObject):
     def __init__(
         self,
         address: Address,
-        wallet: Abstract_Wallet,
+        wallet: AbstractWallet,
         include_coinbase: bool,
         include_non_coinbase: bool,
         include_frozen: bool,
@@ -109,7 +109,7 @@ class ConsolidateCoinsWizard(QtWidgets.QWizard):
     def __init__(
         self,
         address: Address,
-        wallet: Abstract_Wallet,
+        wallet: AbstractWallet,
         main_window,
         parent: Optional[QtWidgets.QWidget] = None,
     ):
@@ -119,7 +119,7 @@ class ConsolidateCoinsWizard(QtWidgets.QWizard):
         self.tx_thread: Optional[QtCore.QThread] = None
 
         self.address: Address = address
-        self.wallet: Abstract_Wallet = wallet
+        self.wallet: AbstractWallet = wallet
         self.transactions: Sequence[Transaction] = []
 
         self.coins_page = CoinSelectionPage()

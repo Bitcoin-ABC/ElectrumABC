@@ -39,12 +39,12 @@ if TYPE_CHECKING:
     import threading
 
     from electrumabc.base_wizard import BaseWizard
-    from electrumabc.keystore import Hardware_KeyStore
-    from electrumabc.wallet import Abstract_Wallet
+    from electrumabc.keystore import HardwareKeyStore
+    from electrumabc.wallet import AbstractWallet
 
 
-class HW_PluginBase(BasePlugin):
-    keystore_class: Type[Hardware_KeyStore]
+class HWPluginBase(BasePlugin):
+    keystore_class: Type[HardwareKeyStore]
     libraries_available: bool
 
     DEVICE_IDS: Iterable[Any]
@@ -87,7 +87,7 @@ class HW_PluginBase(BasePlugin):
         return device
 
     @hook
-    def close_wallet(self, wallet: Abstract_Wallet):
+    def close_wallet(self, wallet: AbstractWallet):
         for keystore in wallet.get_keystores():
             if isinstance(keystore, self.keystore_class):
                 self.device_manager().unpair_xpub(keystore.xpub)
@@ -165,7 +165,7 @@ class HardwareClientBase:
 
     handler: Optional[HardwareHandlerBase]
 
-    def __init__(self, *, plugin: HW_PluginBase):
+    def __init__(self, *, plugin: HWPluginBase):
         self.plugin = plugin
 
     def device_manager(self) -> DeviceMgr:
@@ -215,7 +215,7 @@ class HardwareHandlerBase:
     win = None
     device: str
 
-    def get_wallet(self) -> Optional[Abstract_Wallet]:
+    def get_wallet(self) -> Optional[AbstractWallet]:
         if self.win is not None:
             if hasattr(self.win, "wallet"):
                 return self.win.wallet
@@ -322,7 +322,7 @@ def validate_op_return_output_and_get_data(
 def only_hook_if_libraries_available(func):
     # note: this decorator must wrap @hook, not the other way around,
     # as 'hook' uses the name of the function it wraps
-    def wrapper(self: HW_PluginBase, *args, **kwargs):
+    def wrapper(self: HWPluginBase, *args, **kwargs):
         if not self.libraries_available:
             return None
         return func(self, *args, **kwargs)

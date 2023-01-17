@@ -58,7 +58,7 @@ from electrumabc.util import (
     do_in_main_thread,
     format_satoshis,
 )
-from electrumabc.wallet import Multisig_Wallet, Standard_Wallet
+from electrumabc.wallet import MultisigWallet, StandardWallet
 
 from . import compatibility, encrypt
 from . import fusion_pb2 as pb
@@ -111,14 +111,14 @@ def can_fuse_from(wallet):
     return not (
         wallet.is_watching_only()
         or wallet.is_hardware()
-        or isinstance(wallet, Multisig_Wallet)
+        or isinstance(wallet, MultisigWallet)
     )
 
 
 def can_fuse_to(wallet):
     """We can only fuse to wallets that are p2pkh with HD generation. We do
     *not* need the private keys."""
-    return isinstance(wallet, Standard_Wallet)
+    return isinstance(wallet, StandardWallet)
 
 
 # Some internal stuff

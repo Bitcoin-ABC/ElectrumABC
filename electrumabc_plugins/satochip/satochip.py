@@ -11,9 +11,9 @@ from electrumabc import networks
 from electrumabc.bitcoin import Hash, SignatureType, hash_160, serialize_xpub, var_int
 from electrumabc.constants import PROJECT_NAME
 from electrumabc.i18n import _
-from electrumabc.keystore import Hardware_KeyStore
+from electrumabc.keystore import HardwareKeyStore
 from electrumabc.mnemo import (
-    Mnemonic_Electrum,
+    MnemonicElectrum,
     bip39_mnemonic_to_seed,
     is_seed,
     seed_type_name,
@@ -22,10 +22,10 @@ from electrumabc.plugins import Device
 from electrumabc.printerror import PrintError, is_verbose, print_error
 from electrumabc.transaction import Transaction
 from electrumabc.util import bfh, bh2u
-from electrumabc.wallet import Standard_Wallet
+from electrumabc.wallet import StandardWallet
 from electrumabc_gui.qt.qrcodewidget import QRDialog
 
-from ..hw_wallet.plugin import HardwareClientBase, HW_PluginBase
+from ..hw_wallet.plugin import HardwareClientBase, HWPluginBase
 
 try:
     # pysatochip
@@ -298,12 +298,12 @@ class SatochipClient(HardwareClientBase, PrintError):
                 return (True, oldpin, newpin)
 
 
-class Satochip_KeyStore(Hardware_KeyStore):
+class SatochipKeyStore(HardwareKeyStore):
     hw_type = "satochip"
     device = "Satochip"
 
     def __init__(self, d):
-        Hardware_KeyStore.__init__(self, d)
+        HardwareKeyStore.__init__(self, d)
         # print_error("[satochip] Satochip_KeyStore: __init__(): xpub:"+str(d.get('xpub')) )#debugSatochip
         # print_error("[satochip] Satochip_KeyStore: __init__(): derivation"+str(d.get('derivation')))#debugSatochip
         self.force_watching_only = False
@@ -311,7 +311,7 @@ class Satochip_KeyStore(Hardware_KeyStore):
 
     def dump(self):
         # our additions to the stored data about keystore -- only during creation?
-        d = Hardware_KeyStore.dump(self)
+        d = HardwareKeyStore.dump(self)
         return d
 
     def get_derivation(self):
@@ -578,17 +578,17 @@ class Satochip_KeyStore(Hardware_KeyStore):
         return
 
 
-class SatochipPlugin(HW_PluginBase):
+class SatochipPlugin(HWPluginBase):
     SUPPORTS_XEC_BIP44_DERIVATION = True
 
     libraries_available = LIBS_AVAILABLE
     minimum_library = (0, 0, 0)
-    keystore_class = Satochip_KeyStore
+    keystore_class = SatochipKeyStore
     DEVICE_IDS = [(SATOCHIP_VID, SATOCHIP_PID)]
     SUPPORTED_XTYPES = "standard"
 
     def __init__(self, parent, config, name):
-        HW_PluginBase.__init__(self, parent, config, name)
+        HWPluginBase.__init__(self, parent, config, name)
 
         if not LIBS_AVAILABLE:
             return
@@ -848,7 +848,7 @@ class SatochipPlugin(HW_PluginBase):
             return
 
         # Standard_Wallet => not multisig, must be bip32
-        if type(wallet) is not Standard_Wallet:
+        if type(wallet) is not StandardWallet:
             keystore.handler.show_error(
                 _(
                     "This function is only available for standard wallets when using {}."
@@ -969,7 +969,7 @@ class SatochipPlugin(HW_PluginBase):
             raise Exception("Unknown seed type", wizard.seed_type)
 
     def derive_bip32_seed(self, seed, passphrase):
-        self.bip32_seed = Mnemonic_Electrum("en").mnemonic_to_seed(seed, passphrase)
+        self.bip32_seed = MnemonicElectrum("en").mnemonic_to_seed(seed, passphrase)
 
     def derive_bip39_seed(self, seed, passphrase):
         self.bip32_seed = bip39_mnemonic_to_seed(seed, passphrase)

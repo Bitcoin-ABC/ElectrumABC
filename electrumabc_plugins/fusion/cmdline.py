@@ -37,16 +37,16 @@ from .plugin import FusionPlugin
 if TYPE_CHECKING:
     from electrumabc.daemon import Daemon
     from electrumabc.simple_config import SimpleConfig
-    from electrumabc.wallet import Abstract_Wallet
+    from electrumabc.wallet import AbstractWallet
 
 
 class WalletToFuse(NamedTuple):
     name: str
-    wallet: Abstract_Wallet
+    wallet: AbstractWallet
     password: Optional[str]
 
 
-def is_password_valid(wallet: Abstract_Wallet, pwd: str) -> bool:
+def is_password_valid(wallet: AbstractWallet, pwd: str) -> bool:
     try:
         wallet.storage.check_password(pwd)
     except InvalidPassword:
@@ -55,7 +55,7 @@ def is_password_valid(wallet: Abstract_Wallet, pwd: str) -> bool:
 
 
 def find_password_in_list(
-    wallet: Abstract_Wallet, passwords: List[str]
+    wallet: AbstractWallet, passwords: List[str]
 ) -> Optional[str]:
     for pwd in passwords:
         if is_password_valid(wallet, pwd):

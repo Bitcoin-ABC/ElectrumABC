@@ -29,7 +29,7 @@ from electrumabc.paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_U
 from electrumabc.printerror import PrintError, print_error
 from electrumabc.simple_config import SimpleConfig
 from electrumabc.util import Weak, finalization_print_error
-from electrumabc.wallet import Abstract_Wallet
+from electrumabc.wallet import AbstractWallet
 
 if platform.system() == "Windows":
     MONOSPACE_FONT = "Consolas"
@@ -678,7 +678,7 @@ class MyTreeWidget(QtWidgets.QTreeWidget):
         parent: QtWidgets.QWidget,
         headers,
         config: SimpleConfig,
-        wallet: Abstract_Wallet,
+        wallet: AbstractWallet,
         stretch_column=None,
         editable_columns=None,
         *,

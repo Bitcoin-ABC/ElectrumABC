@@ -6,8 +6,8 @@ from ecdsa.util import number_to_string
 
 from ..address import Address
 from ..bitcoin import (
-    EC_KEY,
     Bip38Key,
+    ECKey,
     Hash,
     OpCodes,
     SignatureType,
@@ -48,7 +48,7 @@ except ImportError:
     )
 
 
-class Test_bitcoin(unittest.TestCase):
+class TestBitcoin(unittest.TestCase):
     def test_crypto(self):
         for message in [
             b"Chancellor on brink of second bailout for banks",
@@ -66,9 +66,9 @@ class Test_bitcoin(unittest.TestCase):
         # pubkey_u = point_to_ser(Pub,False)
         public_key_to_p2pkh(pubkey_c)
 
-        eck = EC_KEY(number_to_string(pvk, _r))
+        eck = ECKey(number_to_string(pvk, _r))
 
-        enc = EC_KEY.encrypt_message(message, pubkey_c)
+        enc = ECKey.encrypt_message(message, pubkey_c)
         dec = eck.decrypt_message(enc)
         self.assertEqual(message, dec)
 
@@ -78,7 +78,7 @@ class Test_bitcoin(unittest.TestCase):
 
         signature = eck.sign_message(message, True)
         # print signature
-        EC_KEY.verify_message(eck, signature, message)
+        ECKey.verify_message(eck, signature, message)
 
     def test_msg_signing(self):
         msg1 = b"Chancellor on brink of second bailout for banks"
@@ -300,7 +300,7 @@ class Test_bitcoin(unittest.TestCase):
         )
 
 
-class Test_bitcoin_testnet(unittest.TestCase):
+class TestBitcoinTestnet(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -312,7 +312,7 @@ class Test_bitcoin_testnet(unittest.TestCase):
         set_mainnet()
 
 
-class Test_xprv_xpub(unittest.TestCase):
+class TestXprvXpub(unittest.TestCase):
 
     xprv_xpub = (
         # Taken from test vectors in https://en.bitcoin.it/wiki/BIP_0032_TestVectors
@@ -410,7 +410,7 @@ class Test_xprv_xpub(unittest.TestCase):
         self.assertFalse(is_bip32_derivation("m/q8462"))
 
 
-class Test_keyImport(unittest.TestCase):
+class TestKeyImport(unittest.TestCase):
 
     priv_pub_addr = (
         {
@@ -492,7 +492,7 @@ class Test_keyImport(unittest.TestCase):
             )
 
 
-class Test_Bip38(unittest.TestCase):
+class TestBip38(unittest.TestCase):
     """Test Bip38 encryption/decryption. Test cases taken from:
 
     https://github.com/bitcoin/bips/blob/master/bip-0038.mediawiki"""
@@ -653,11 +653,11 @@ class Test_Bip38(unittest.TestCase):
 def suite():
     test_suite = unittest.TestSuite()
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
-    test_suite.addTest(loadTests(Test_bitcoin))
-    test_suite.addTest(loadTests(Test_bitcoin_testnet))
-    test_suite.addTest(loadTests(Test_xprv_xpub))
-    test_suite.addTest(loadTests(Test_keyImport))
-    test_suite.addTest(loadTests(Test_Bip38))
+    test_suite.addTest(loadTests(TestBitcoin))
+    test_suite.addTest(loadTests(TestBitcoinTestnet))
+    test_suite.addTest(loadTests(TestXprvXpub))
+    test_suite.addTest(loadTests(TestKeyImport))
+    test_suite.addTest(loadTests(TestBip38))
     return test_suite
 
 

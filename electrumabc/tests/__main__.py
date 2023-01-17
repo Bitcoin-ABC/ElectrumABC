@@ -1,7 +1,7 @@
 import unittest
 
 from .test_address import TestAddressFromString
-from .test_asert import Test_ASERTDaa
+from .test_asert import TestASERTDaa
 from .test_avalanche import suite as test_avalanche_suite
 from .test_bip44_derivation_path import TestBip44Derivations
 from .test_bitcoin import suite as test_bitcoin_suite
@@ -13,7 +13,7 @@ from .test_dnssec import TestDnsSec
 from .test_interface import TestInterface
 from .test_invoice import TestInvoice
 from .test_mnemonic import suite as test_mnemonic_suite
-from .test_paymentrequests import Test_PaymentRequests
+from .test_paymentrequests import TestPaymentRequests
 from .test_schnorr import suite as test_schnorr_suite
 from .test_simple_config import suite as test_simple_config_suite
 from .test_slp import SLPTests
@@ -29,7 +29,7 @@ def suite():
     test_suite = unittest.TestSuite()
     loadTests = unittest.defaultTestLoader.loadTestsFromTestCase
     test_suite.addTest(loadTests(TestAddressFromString))
-    test_suite.addTest(loadTests(Test_ASERTDaa))
+    test_suite.addTest(loadTests(TestASERTDaa))
     test_suite.addTest(test_avalanche_suite())
     test_suite.addTest(loadTests(TestBip44Derivations))
     test_suite.addTest(test_bitcoin_suite())
@@ -41,7 +41,7 @@ def suite():
     test_suite.addTest(loadTests(TestInterface))
     test_suite.addTest(loadTests(TestInvoice))
     test_suite.addTest(test_mnemonic_suite())
-    test_suite.addTest(loadTests(Test_PaymentRequests))
+    test_suite.addTest(loadTests(TestPaymentRequests))
     test_suite.addTest(test_schnorr_suite())
     test_suite.addTest(test_simple_config_suite())
     test_suite.addTest(loadTests(SLPTests))

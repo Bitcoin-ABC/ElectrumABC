@@ -55,11 +55,11 @@ from electrumabc_gui.qt.util import (
     char_width_in_lineedit,
 )
 
-from .plugin import HardwareHandlerBase, HW_PluginBase
+from .plugin import HardwareHandlerBase, HWPluginBase
 
 if TYPE_CHECKING:
-    from electrumabc.keystore import Hardware_KeyStore
-    from electrumabc.wallet import Abstract_Wallet
+    from electrumabc.keystore import HardwareKeyStore
+    from electrumabc.wallet import AbstractWallet
 
 
 # The trickiest thing about this handler was getting windows properly
@@ -218,7 +218,7 @@ class QtHandlerBase(HardwareHandlerBase, QObject, PrintError):
         self.done.set()
 
 
-class ThreadJob_TaskThread_Facade(TaskThread):
+class ThreadJobTaskThreadFacade(TaskThread):
     """This class is really a ThreadJob intended to mimic the TaskThread's
     semantics. (Which we need since it can send signals/callbacks to the GUI
     thread).
@@ -271,8 +271,8 @@ class ThreadJob_TaskThread_Facade(TaskThread):
 class QtPluginBase(object):
     @hook
     def load_wallet(
-        self: Union[QtPluginBase, HW_PluginBase],
-        wallet: Abstract_Wallet,
+        self: Union[QtPluginBase, HWPluginBase],
+        wallet: AbstractWallet,
         window: ElectrumWindow,
     ):
         for i, keystore in enumerate(wallet.get_keystores()):
@@ -297,16 +297,16 @@ class QtPluginBase(object):
             handler = self.create_handler(window)
             handler.button = button
             keystore.handler = handler
-            keystore.thread = ThreadJob_TaskThread_Facade(
+            keystore.thread = ThreadJobTaskThreadFacade(
                 self, window.on_error, name=wallet.diagnostic_name() + f"/keystore{i}"
             )
             # Trigger a pairing
             keystore.thread.add(partial(self.get_client, keystore))
 
     def choose_device(
-        self: Union["QtPluginBase", HW_PluginBase],
+        self: Union["QtPluginBase", HWPluginBase],
         window: ElectrumWindow,
-        keystore: Hardware_KeyStore,
+        keystore: HardwareKeyStore,
     ) -> Optional[str]:
         """This dialog box should be usable even if the user has
         forgotten their PIN or it is in bootloader mode."""
@@ -321,7 +321,7 @@ class QtPluginBase(object):
             device_id = info.device.id_
         return device_id
 
-    def show_settings_dialog(self, window: ElectrumWindow, keystore: Hardware_KeyStore):
+    def show_settings_dialog(self, window: ElectrumWindow, keystore: HardwareKeyStore):
         def connect():
             self.choose_device(window, keystore)
 
