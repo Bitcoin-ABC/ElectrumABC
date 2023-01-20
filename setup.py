@@ -215,7 +215,6 @@ setup(
         "electrumabc_plugins.email_requests",
         "electrumabc_plugins.hw_wallet",
         "electrumabc_plugins.keepkey",
-        "electrumabc_plugins.labels",
         "electrumabc_plugins.ledger",
         "electrumabc_plugins.trezor",
         "electrumabc_plugins.digitalbitbox",
