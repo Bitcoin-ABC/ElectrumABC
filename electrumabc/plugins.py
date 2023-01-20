@@ -170,6 +170,9 @@ class Plugins(DaemonThread):
         for loader, name, ispkg in pkgutil.iter_modules(
             [self.internal_plugins_pkgpath]
         ):
+            # we don't  have a server for cosigner_pool
+            if name == "cosigner_pool":
+                continue
             full_name = f"electrumabc_plugins.{name}"
             spec = importlib.util.find_spec(full_name)
             # pkgutil found it but importlib can't ?!
