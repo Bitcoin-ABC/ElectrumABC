@@ -44,6 +44,7 @@ from .address import (
 )
 from .bitcoin import OpCodes as opcodes
 from .caches import ExpiringCache
+from .constants import DEFAULT_TXIN_SEQUENCE
 
 #
 # Workalike python implementation of Bitcoin's CDataStream class.
@@ -767,7 +768,7 @@ class Transaction:
         # Script length, script, sequence
         s += bitcoin.var_int(len(script) // 2)
         s += script
-        s += bitcoin.int_to_hex(txin.get("sequence", 0xFFFFFFFF - 1), 4)
+        s += bitcoin.int_to_hex(txin.get("sequence", DEFAULT_TXIN_SEQUENCE), 4)
         # offline signing needs to know the input value
         if (
             "value" in txin
@@ -846,7 +847,7 @@ class Transaction:
         hashSequence = bitcoin.Hash(
             bfh(
                 "".join(
-                    bitcoin.int_to_hex(txin.get("sequence", 0xFFFFFFFF - 1), 4)
+                    bitcoin.int_to_hex(txin.get("sequence", DEFAULT_TXIN_SEQUENCE), 4)
                     for txin in inputs
                 )
             )
@@ -878,7 +879,7 @@ class Transaction:
             amount = bitcoin.int_to_hex(txin["value"], 8)
         except KeyError:
             raise InputValueMissing
-        nSequence = bitcoin.int_to_hex(txin.get("sequence", 0xFFFFFFFF - 1), 4)
+        nSequence = bitcoin.int_to_hex(txin.get("sequence", DEFAULT_TXIN_SEQUENCE), 4)
 
         hashPrevouts, hashSequence, hashOutputs = self.calc_common_sighash(
             use_cache=use_cache
@@ -1156,7 +1157,10 @@ class Transaction:
 
     def is_final(self):
         return not any(
-            [x.get("sequence", 0xFFFFFFFF - 1) < 0xFFFFFFFF - 1 for x in self.inputs()]
+            [
+                x.get("sequence", DEFAULT_TXIN_SEQUENCE) < DEFAULT_TXIN_SEQUENCE
+                for x in self.inputs()
+            ]
         )
 
     def as_dict(self):

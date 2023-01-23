@@ -8,6 +8,7 @@ from electrumabc.bitcoin import (
     SignatureType,
     deserialize_xpub,
 )
+from electrumabc.constants import DEFAULT_TXIN_SEQUENCE
 from electrumabc.i18n import _
 from electrumabc.keystore import HardwareKeyStore, is_xpubkey, parse_xpubkey
 from electrumabc.plugins import Device
@@ -484,7 +485,7 @@ class KeepKeyPlugin(HWPluginBase):
                 script_sig = bfh(txin["scriptSig"])
                 txinputtype.script_sig = script_sig
 
-            txinputtype.sequence = txin.get("sequence", 0xFFFFFFFF - 1)
+            txinputtype.sequence = txin.get("sequence", DEFAULT_TXIN_SEQUENCE)
 
             inputs.append(txinputtype)
 

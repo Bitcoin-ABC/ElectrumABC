@@ -16,6 +16,7 @@ from electrumabc.bitcoin import (
     int_to_hex,
     var_int,
 )
+from electrumabc.constants import DEFAULT_TXIN_SEQUENCE
 from electrumabc.i18n import _
 from electrumabc.keystore import HardwareKeyStore
 from electrumabc.plugins import Device
@@ -486,7 +487,7 @@ class LedgerKeyStore(HardwareKeyStore):
                     redeemScript,
                     txin["prevout_hash"],
                     signingPos,
-                    txin.get("sequence", 0xFFFFFFFF - 1),
+                    txin.get("sequence", DEFAULT_TXIN_SEQUENCE),
                 ]
             )
             inputsPaths.append(hwAddress)

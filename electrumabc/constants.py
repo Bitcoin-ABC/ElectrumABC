@@ -85,3 +85,5 @@ PROOF_DUST_THRESHOLD: int = XEC.unit_to_satoshis(Decimal("100_000_000.00"))
 
 STAKE_UTXO_CONFIRMATIONS: int = 2016
 """Minimum number of confirmations for a utxo to be used as a stake in a proof."""
+
+DEFAULT_TXIN_SEQUENCE: int = 0xFFFFFFFE
