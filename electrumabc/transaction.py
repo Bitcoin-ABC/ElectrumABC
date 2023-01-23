@@ -466,7 +466,7 @@ class Transaction:
         self._inputs = None
         self._outputs = None
         self.locktime = 0
-        self.version = 1
+        self.version = 2
         self._sign_schnorr = sign_schnorr
 
         # attribute used by HW wallets to tell the hw keystore about any outputs
@@ -627,7 +627,7 @@ class Transaction:
         return d
 
     @classmethod
-    def from_io(klass, inputs, outputs, locktime=0, sign_schnorr=False):
+    def from_io(klass, inputs, outputs, locktime=0, sign_schnorr=False, version=None):
         assert all(
             isinstance(output[1], (PublicKey, Address, ScriptOutput))
             for output in outputs
@@ -636,6 +636,8 @@ class Transaction:
         self._inputs = inputs
         self._outputs = outputs.copy()
         self.locktime = locktime
+        if version is not None:
+            self.version = version
         self.set_sign_schnorr(sign_schnorr)
         return self
 

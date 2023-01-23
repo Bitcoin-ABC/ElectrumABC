@@ -183,8 +183,7 @@ def tx_from_components(all_components, session_hash):
             outputs.append((TYPE_ADDRESS, addr, out.amount))
         elif ctype != "blank":
             raise FusionError("bad component")
-    tx = Transaction.from_io(inputs, outputs, locktime=0, sign_schnorr=True)
-    tx.version = 1
+    tx = Transaction.from_io(inputs, outputs, locktime=0, sign_schnorr=True, version=1)
     return tx, input_indices
 
 
