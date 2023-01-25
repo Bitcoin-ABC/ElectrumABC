@@ -327,6 +327,7 @@ class SettingsDialog(WindowModalDialog):
             self.config.set_key("decimal_point", dp, True)
             nz.setMaximum(dp)
             self.unit_changed.emit()
+            self.need_restart = True
 
         unit_combo.currentIndexChanged.connect(lambda x: on_unit(x, nz))
         gui_widgets.append((unit_label, unit_combo))
