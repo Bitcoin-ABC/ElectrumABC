@@ -87,8 +87,9 @@ from electrumabc.wallet import AbstractWallet, Wallet
 from . import icons  # noqa: F401
 from .exception_window import ExceptionHook
 from .installwizard import GoBack, InstallWizard, WalletAlreadyOpenInMemory
-from .main_window import ElectrumWindow, windows_qt_use_freetype
+from .main_window import ElectrumWindow
 from .network_dialog import NetworkDialog
+from .settings_dialog import windows_qt_use_freetype
 from .update_checker import UpdateChecker
 from .util import (
     ColorScheme,
