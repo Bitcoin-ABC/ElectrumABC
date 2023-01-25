@@ -223,7 +223,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         # wallet, but eventually be able to find the window it belongs to.
         self.wallet.weak_window = Weak.ref(self)
 
-        self.config = config = gui_object.config
+        self.config = gui_object.config
         assert self.wallet and self.config and self.gui_object
 
         self.network = gui_object.daemon.network
@@ -261,10 +261,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         self.need_update = threading.Event()
         self.labels_need_update = threading.Event()
-
-        self.decimal_point = config.get("decimal_point", 2)
-        self.fee_unit = config.get("fee_unit", 0)
-        self.num_zeros = int(config.get("num_zeros", 2))
 
         self.completions = QStringListModel()
 
@@ -1183,8 +1179,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
     def format_amount(self, x, is_diff=False, whitespaces=False):
         return format_satoshis(
             x,
-            self.num_zeros,
-            self.decimal_point,
+            self.get_num_zeros(),
+            self.get_decimal_point(),
             is_diff=is_diff,
             whitespaces=whitespaces,
         )
@@ -1197,15 +1193,22 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         return text
 
     def format_fee_rate(self, fee_rate):
-        sats_per_byte = format_fee_satoshis(fee_rate / 1000, max(self.num_zeros, 1))
+        sats_per_byte = format_fee_satoshis(
+            fee_rate / 1000, max(self.get_num_zeros(), 1)
+        )
         return _("{sats_per_byte} sat/byte").format(sats_per_byte=sats_per_byte)
 
-    def get_decimal_point(self):
-        return self.decimal_point
+    def get_decimal_point(self) -> int:
+        return self.config.get("decimal_point", 2)
+
+    def get_num_zeros(self) -> int:
+        return int(self.config.get("num_zeros", 2))
 
     def base_unit(self):
-        if self.decimal_point in electrumabc.constants.BASE_UNITS_BY_DECIMALS:
-            return electrumabc.constants.BASE_UNITS_BY_DECIMALS[self.decimal_point]
+        if self.get_decimal_point() in electrumabc.constants.BASE_UNITS_BY_DECIMALS:
+            return electrumabc.constants.BASE_UNITS_BY_DECIMALS[
+                self.get_decimal_point()
+            ]
         raise Exception("Unknown base unit")
 
     def connect_fields(self, window, btc_e, fiat_e, fee_e):
@@ -2863,7 +2866,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.payto_e.setExpired()
         self.payto_e.setText(pr.get_requestor())
         self.amount_e.setText(
-            format_satoshis_plain(pr.get_amount(), self.decimal_point)
+            format_satoshis_plain(pr.get_amount(), self.get_decimal_point())
         )
         self.message_e.setText(pr.get_memo())
         # signal to set fee
@@ -3952,7 +3955,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         invoice = load_invoice_from_file_and_show_error_message(filename, self)
         xec_amount = invoice.get_xec_amount()
-        amount_str = format_satoshis_plain(int(xec_amount * 100), self.decimal_point)
+        amount_str = format_satoshis_plain(
+            int(xec_amount * 100), self.get_decimal_point()
+        )
         computed_rate = invoice.amount / xec_amount
         if invoice is None:
             return
@@ -4422,7 +4427,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             return wallet.export_history(
                 fx=self.fx,
                 show_addresses=include_addresses,
-                decimal_point=self.decimal_point,
+                decimal_point=self.get_decimal_point(),
                 fee_calc_timeout=timeout,
                 download_inputs=download_inputs,
                 progress_callback=update_prog,
@@ -4792,16 +4797,15 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         nz_label = HelpLabel(_("Zeros after decimal point") + ":", nz_help)
         nz = QtWidgets.QSpinBox()
         nz.setMinimum(0)
-        nz.setMaximum(self.decimal_point)
-        nz.setValue(self.num_zeros)
+        nz.setMaximum(self.get_decimal_point())
+        nz.setValue(self.get_num_zeros())
         if not self.config.is_modifiable("num_zeros"):
             for w in [nz, nz_label]:
                 w.setEnabled(False)
 
         def on_nz():
             value = nz.value()
-            if self.num_zeros != value:
-                self.num_zeros = value
+            if self.config.get("num_zeros", 2) != value:
                 self.config.set_key("num_zeros", value, True)
                 self.update_tabs()
                 self.update_status()
@@ -4975,12 +4979,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             edits = self.amount_e, self.fee_e, self.receive_amount_e
             amounts = [edit.get_amount() for edit in edits]
             dp = electrumabc.constants.BASE_UNITS[unit_index].decimals
-            if dp is not None:
-                self.decimal_point = dp
-            else:
-                raise Exception("Unknown base unit")
-            self.config.set_key("decimal_point", self.decimal_point, True)
-            nz.setMaximum(self.decimal_point)
+            self.config.set_key("decimal_point", dp, True)
+            nz.setMaximum(dp)
             for edit, amount in zip(edits, amounts):
                 edit.setAmount(amount)
             self.update_tabs()
