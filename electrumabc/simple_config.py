@@ -326,7 +326,7 @@ class SimpleConfig(PrintError):
         return device
 
     def is_current_block_locktime_enabled(self) -> bool:
-        return self.get("enable_current_block_locktime", True)
+        return self.get("enable_current_block_locktime", False)
 
     def set_current_block_locktime_enabled(self, flag: bool):
         self.set_key("enable_current_block_locktime", flag, save=True)
