@@ -72,24 +72,6 @@ class SettingsDialog(WindowModalDialog):
     show_history_rates_toggled = pyqtSignal(bool)
     show_fiat_balance_toggled = pyqtSignal()
 
-    def showEvent(self, e):
-        super().showEvent(e)
-        self.shown_signal.emit()
-
-    def set_alias_color(self, alias_info: Optional[Tuple[Address, str, bool]]):
-        if not self.config.get("alias"):
-            self.alias_e.setStyleSheet("")
-            return
-        if alias_info is not None:
-            alias_addr, alias_name, validated = alias_info
-            self.alias_e.setStyleSheet(
-                (ColorScheme.GREEN if validated else ColorScheme.RED).as_stylesheet(
-                    True
-                )
-            )
-        else:
-            self.alias_e.setStyleSheet(ColorScheme.RED.as_stylesheet(True))
-
     def __init__(
         self,
         parent: Optional[QtWidgets.QWidget],
@@ -107,6 +89,7 @@ class SettingsDialog(WindowModalDialog):
         self.wallet = wallet
         self.fx = fx
         self.gui_object = gui_object
+        self.base_unit = base_unit
 
         self.need_restart = False
         self.need_wallet_reopen = False
@@ -121,12 +104,12 @@ class SettingsDialog(WindowModalDialog):
         # language
         lang_help = _("Select which language is used in the GUI (after restart).")
         lang_label = HelpLabel(_("Language") + ":", lang_help)
-        lang_combo = QtWidgets.QComboBox()
+        self.lang_combo = QtWidgets.QComboBox()
 
         language_names = []
-        language_keys = []
+        self.language_keys = []
         for (lang_code, lang_def) in languages.items():
-            language_keys.append(lang_code)
+            self.language_keys.append(lang_code)
             lang_name = []
             lang_name.append(lang_def.name)
             if lang_code == "":
@@ -135,7 +118,7 @@ class SettingsDialog(WindowModalDialog):
                 if sys_lang:
                     lang_name.append(f" [{languages[sys_lang].name}]")
             language_names.append("".join(lang_name))
-        lang_combo.addItems(language_names)
+        self.lang_combo.addItems(language_names)
         conf_lang = self.config.get("language", "")
         if conf_lang:
             # The below code allows us to rename languages in saved config and
@@ -144,76 +127,54 @@ class SettingsDialog(WindowModalDialog):
             # and it will still match
             conf_lang = match_language(conf_lang)
         try:
-            index = language_keys.index(conf_lang)
+            index = self.language_keys.index(conf_lang)
         except ValueError:
             index = 0
-        lang_combo.setCurrentIndex(index)
+        self.lang_combo.setCurrentIndex(index)
 
         if not self.config.is_modifiable("language"):
-            for w in [lang_combo, lang_label]:
+            for w in [self.lang_combo, lang_label]:
                 w.setEnabled(False)
 
-        def on_lang(x):
-            lang_request = language_keys[lang_combo.currentIndex()]
-            if lang_request != self.config.get("language"):
-                self.config.set_key("language", lang_request, True)
-                self.need_restart = True
-
-        lang_combo.currentIndexChanged.connect(on_lang)
-        gui_widgets.append((lang_label, lang_combo))
+        self.lang_combo.currentIndexChanged.connect(self.on_lang)
+        gui_widgets.append((lang_label, self.lang_combo))
 
         nz_help = _(
             'Number of zeros displayed after the decimal point. For example, if this is set to 2, "1." will be displayed as "1.00"'
         )
         nz_label = HelpLabel(_("Zeros after decimal point") + ":", nz_help)
-        nz = QtWidgets.QSpinBox()
-        nz.setMinimum(0)
-        nz.setMaximum(self.config.get("decimal_point", 2))
-        nz.setValue(int(self.config.get("num_zeros", 2)))
+        self.nz = QtWidgets.QSpinBox()
+        self.nz.setMinimum(0)
+        self.nz.setMaximum(self.config.get("decimal_point", 2))
+        self.nz.setValue(int(self.config.get("num_zeros", 2)))
         if not self.config.is_modifiable("num_zeros"):
-            for w in [nz, nz_label]:
+            for w in [self.nz, nz_label]:
                 w.setEnabled(False)
 
-        def on_nz():
-            value = nz.value()
-            if self.config.get("num_zeros", 2) != value:
-                self.config.set_key("num_zeros", value, True)
-                self.num_zeros_changed.emit()
-
-        nz.valueChanged.connect(on_nz)
-        gui_widgets.append((nz_label, nz))
-
-        def on_customfee(x):
-            amt = customfee_e.get_amount()
-            m = int(amt * 1000.0) if amt is not None else None
-            self.config.set_key("customfee", m)
-            self.custom_fee_changed.emit()
+        self.nz.valueChanged.connect(self.on_nz)
+        gui_widgets.append((nz_label, self.nz))
 
         fee_gb = QtWidgets.QGroupBox(_("Fees"))
         fee_lo = QtWidgets.QGridLayout(fee_gb)
 
-        customfee_e = XECSatsByteEdit()
-        customfee_e.setAmount(
+        self.customfee_e = XECSatsByteEdit()
+        self.customfee_e.setAmount(
             self.config.custom_fee_rate() / 1000.0
             if self.config.has_custom_fee_rate()
             else None
         )
-        customfee_e.textChanged.connect(on_customfee)
+        self.customfee_e.textChanged.connect(self.on_customfee)
         customfee_label = HelpLabel(
             _("Custom fee rate:"), _("Custom Fee Rate in Satoshis per byte")
         )
         fee_lo.addWidget(customfee_label, 0, 0, 1, 1, Qt.AlignRight)
-        fee_lo.addWidget(customfee_e, 0, 1, 1, 1, Qt.AlignLeft)
+        fee_lo.addWidget(self.customfee_e, 0, 1, 1, 1, Qt.AlignLeft)
 
         feebox_cb = QtWidgets.QCheckBox(_("Edit fees manually"))
         feebox_cb.setChecked(self.config.get("show_fee", False))
         feebox_cb.setToolTip(_("Show fee edit box in send tab."))
 
-        def on_feebox(x):
-            self.config.set_key("show_fee", x == Qt.Checked)
-            self.show_fee_changed.emit(bool(x))
-
-        feebox_cb.stateChanged.connect(on_feebox)
+        feebox_cb.stateChanged.connect(self.on_feebox)
         fee_lo.addWidget(feebox_cb, 1, 0, 1, 2, Qt.AlignJustify)
 
         # Fees box up top
@@ -232,15 +193,8 @@ class SettingsDialog(WindowModalDialog):
         alias = self.config.get("alias", "")
         self.alias_e = QtWidgets.QLineEdit(alias)
 
-        def on_alias_edit():
-            self.alias_e.setStyleSheet("")
-            alias = str(self.alias_e.text())
-            self.config.set_key("alias", alias, True)
-            if alias:
-                self.alias_changed.emit()
-
         self.set_alias_color(alias_info)
-        self.alias_e.editingFinished.connect(on_alias_edit)
+        self.alias_e.editingFinished.connect(self.on_alias_edit)
         id_gb = QtWidgets.QGroupBox(_("Identity"))
         id_form = QtWidgets.QFormLayout(id_gb)
         id_form.addRow(alias_label, self.alias_e)
@@ -306,7 +260,7 @@ class SettingsDialog(WindowModalDialog):
         misc_widgets.append((cr_gb, None))  # commit crash reporter gb to layout
 
         units_for_menu = tuple(u.name_for_selection_menu for u in BASE_UNITS)
-        unit_names = tuple(u.ticker for u in BASE_UNITS)
+        self.unit_names = tuple(u.ticker for u in BASE_UNITS)
         msg = (
             _("Base unit of your wallet.")
             + "\n1 MegaXEC = 1 BCHA = 1,000,000 XEC.\n"
@@ -314,118 +268,55 @@ class SettingsDialog(WindowModalDialog):
             + " "
         )
         unit_label = HelpLabel(_("Base unit") + ":", msg)
-        unit_combo = QtWidgets.QComboBox()
-        unit_combo.addItems(units_for_menu)
-        unit_combo.setCurrentIndex(unit_names.index(base_unit))
+        self.unit_combo = QtWidgets.QComboBox()
+        self.unit_combo.addItems(units_for_menu)
+        self.unit_combo.setCurrentIndex(self.unit_names.index(self.base_unit))
+        self.unit_combo.currentIndexChanged.connect(self.on_unit)
+        gui_widgets.append((unit_label, self.unit_combo))
 
-        def on_unit(x, nz):
-            unit_index = unit_combo.currentIndex()
-            unit_result = unit_names[unit_index]
-            if base_unit == unit_result:
-                return
-            dp = BASE_UNITS[unit_index].decimals
-            self.config.set_key("decimal_point", dp, True)
-            nz.setMaximum(dp)
-            self.unit_changed.emit()
-            self.need_restart = True
-
-        unit_combo.currentIndexChanged.connect(lambda x: on_unit(x, nz))
-        gui_widgets.append((unit_label, unit_combo))
-
-        block_explorers = web.BE_sorted_list()
         msg = _(
             "Choose which online block explorer to use for functions that open a web "
             "browser"
         )
         block_ex_label = HelpLabel(_("Online block explorer") + ":", msg)
-        block_ex_combo = QtWidgets.QComboBox()
-        block_ex_combo.addItems(block_explorers)
-        block_ex_combo.setCurrentIndex(
-            block_ex_combo.findText(web.BE_name_from_config(self.config))
+        self.block_ex_combo = QtWidgets.QComboBox()
+        self.block_ex_combo.addItems(web.BE_sorted_list())
+        self.block_ex_combo.setCurrentIndex(
+            self.block_ex_combo.findText(web.BE_name_from_config(self.config))
         )
 
-        def on_be(x):
-            be_result = block_explorers[block_ex_combo.currentIndex()]
-            self.config.set_key("block_explorer", be_result, True)
+        self.block_ex_combo.currentIndexChanged.connect(self.on_be)
+        gui_widgets.append((block_ex_label, self.block_ex_combo))
 
-        block_ex_combo.currentIndexChanged.connect(on_be)
-        gui_widgets.append((block_ex_label, block_ex_combo))
-
-        qr_combo = QtWidgets.QComboBox()
-        qr_label = HelpLabel(_("Video device"), "")
-        qr_did_scan = False
-
-        def set_no_camera(e=""):
-            # Older Qt or missing libs -- disable GUI control and inform user why
-            qr_combo.setEnabled(False)
-            qr_combo.clear()
-            qr_combo.addItem(_("Default"), "default")
-            qr_combo.setToolTip(
-                _(
-                    "Unable to probe for cameras on this system. QtMultimedia is "
-                    "likely missing."
-                )
-            )
-            qr_label.setText(_("Video device") + " " + _("(disabled)") + ":")
-            qr_label.help_text = qr_combo.toolTip() + "\n\n" + str(e)
-            qr_label.setToolTip(qr_combo.toolTip())
-
-        def scan_cameras():
-            nonlocal qr_did_scan
-            # dialog_finished guard needed because QueuedConnection
-            # already scanned or dialog finished quickly
-            if qr_did_scan or self.dialog_finished:
-                return
-            qr_did_scan = True
-            try:
-                from PyQt5.QtMultimedia import QCameraInfo
-            except ImportError as e:
-                set_no_camera(e)
-                return
-            system_cameras = QCameraInfo.availableCameras()
-            qr_combo.clear()
-            qr_combo.addItem(_("Default"), "default")
-            qr_label.setText(_("Video device") + ":")
-            qr_label.help_text = _("For scanning QR codes.")
-            qr_combo.setToolTip(qr_label.help_text)
-            qr_label.setToolTip(qr_label.help_text)
-            for cam in system_cameras:
-                qr_combo.addItem(cam.description(), cam.deviceName())
-            video_device = self.config.get("video_device")
-            video_device_index = 0
-            if video_device:
-                # if not found, default to 0 (the default item)
-                video_device_index = max(0, qr_combo.findData(video_device))
-            qr_combo.setCurrentIndex(video_device_index)
-            qr_combo.setEnabled(True)
-
-        def on_video_device(x):
-            if qr_combo.isEnabled():
-                self.config.set_key("video_device", qr_combo.itemData(x), True)
+        self.qr_combo = QtWidgets.QComboBox()
+        self.qr_label = HelpLabel(_("Video device"), "")
+        self.qr_did_scan = False
 
         # pre-populate combo box with default so it has a sizeHint
-        set_no_camera()
+        self.set_no_camera()
 
         # do the camera scan once dialog is shown, using QueuedConnection so it's
         # called from top level event loop and not from the showEvent handler
-        self.shown_signal.connect(scan_cameras, Qt.QueuedConnection)
-        qr_combo.currentIndexChanged.connect(on_video_device)
-        gui_widgets.append((qr_label, qr_combo))
+        self.shown_signal.connect(self.scan_cameras, Qt.QueuedConnection)
+        self.qr_combo.currentIndexChanged.connect(self.on_video_device)
+        gui_widgets.append((self.qr_label, self.qr_combo))
 
-        colortheme_combo = QtWidgets.QComboBox()
+        self.colortheme_combo = QtWidgets.QComboBox()
         # We can't name this "light" in the UI as sometimes the default is actually
         # dark-looking eg on Mojave or on some Linux desktops.
-        colortheme_combo.addItem(_("Default"), "default")
-        colortheme_combo.addItem(_("Dark"), "dark")
-        theme_name = self.config.get("qt_gui_color_theme", "default")
-        dark_theme_available = self.gui_object.is_dark_theme_available()
-        if theme_name == "dark" and not dark_theme_available:
-            theme_name = "default"
-        index = colortheme_combo.findData(theme_name)
+        self.colortheme_combo.addItem(_("Default"), "default")
+        self.colortheme_combo.addItem(_("Dark"), "dark")
+        self.theme_name = self.config.get("qt_gui_color_theme", "default")
+        if self.theme_name == "dark" and not self.gui_object.is_dark_theme_available():
+            self.theme_name = "default"
+        index = self.colortheme_combo.findData(self.theme_name)
         if index < 0:
             index = 0
-        colortheme_combo.setCurrentIndex(index)
-        if sys.platform in ("darwin",) and not dark_theme_available:
+        self.colortheme_combo.setCurrentIndex(index)
+        if (
+            sys.platform in ("darwin",)
+            and not self.gui_object.is_dark_theme_available()
+        ):
             msg = _(
                 "Color theme support is provided by macOS if using Mojave or above."
                 " Use the System Preferences to switch color themes."
@@ -434,60 +325,52 @@ class SettingsDialog(WindowModalDialog):
         else:
             msg = (
                 _(
-                    "Dark theme support requires the package 'QDarkStyle' (typically installed via the 'pip3' command on Unix & macOS)."
+                    "Dark theme support requires the package 'QDarkStyle' (typically "
+                    "installed via the 'pip3' command on Unix & macOS)."
                 )
-                if not dark_theme_available
+                if not self.gui_object.is_dark_theme_available()
                 else ""
             )
             err_msg = _(
-                "Dark theme is not available. Please install QDarkStyle to access this feature."
+                "Dark theme is not available. Please install QDarkStyle to access "
+                "this feature."
             )
         lbltxt = _("Color theme") + ":"
         colortheme_label = HelpLabel(lbltxt, msg) if msg else QtWidgets.QLabel(lbltxt)
 
-        def on_colortheme(x):
-            item_data = colortheme_combo.itemData(x)
-            if not dark_theme_available and item_data == "dark":
-                self.show_error(err_msg)
-                colortheme_combo.setCurrentIndex(0)
-                return
-            self.config.set_key("qt_gui_color_theme", item_data, True)
-            if theme_name != item_data:
-                self.need_restart = True
-
-        colortheme_combo.currentIndexChanged.connect(on_colortheme)
-        gui_widgets.append((colortheme_label, colortheme_combo))
+        self.colortheme_combo.currentIndexChanged.connect(
+            lambda x: self.on_colortheme(x, err_msg)
+        )
+        gui_widgets.append((colortheme_label, self.colortheme_combo))
 
         if sys.platform not in ("darwin",):
             # Enable/Disable HighDPI -- this option makes no sense for macOS
             # and thus does not appear on that platform
-            hidpi_chk = QtWidgets.QCheckBox(_("Automatic high-DPI scaling"))
+            self.hidpi_chk = QtWidgets.QCheckBox(_("Automatic high-DPI scaling"))
             if sys.platform in ("linux",):
-                hidpi_chk.setToolTip(
+                self.hidpi_chk.setToolTip(
                     _(
-                        "Enable/disable this option if you experience graphical glitches (such as overly large status bar icons)"
+                        "Enable/disable this option if you experience graphical "
+                        "glitches (such as overly large status bar icons)"
                     )
                 )
             else:  # windows
-                hidpi_chk.setToolTip(
+                self.hidpi_chk.setToolTip(
                     _(
-                        "Enable/disable this option if you experience graphical glitches (such as dialog box text being cut off"
+                        "Enable/disable this option if you experience graphical "
+                        "glitches (such as dialog box text being cut off"
                     )
                 )
-            hidpi_chk.setChecked(bool(self.config.get("qt_enable_highdpi", True)))
+            self.hidpi_chk.setChecked(bool(self.config.get("qt_enable_highdpi", True)))
             if self.config.get("qt_disable_highdpi"):
-                hidpi_chk.setToolTip(
+                self.hidpi_chk.setToolTip(
                     _("Automatic high DPI scaling was disabled from the command-line")
                 )
-                hidpi_chk.setChecked(False)
-                hidpi_chk.setDisabled(True)
+                self.hidpi_chk.setChecked(False)
+                self.hidpi_chk.setDisabled(True)
 
-            def on_hi_dpi_toggle():
-                self.config.set_key("qt_enable_highdpi", hidpi_chk.isChecked())
-                self.need_restart = True
-
-            hidpi_chk.stateChanged.connect(on_hi_dpi_toggle)
-            gui_widgets.append((hidpi_chk, None))
+            self.hidpi_chk.stateChanged.connect(self.on_hi_dpi_toggle)
+            gui_widgets.append((self.hidpi_chk, None))
 
             if sys.platform in ("win32", "cygwin"):
                 # Enable/Disable the use of the FreeType library on Qt
@@ -499,7 +382,8 @@ class SettingsDialog(WindowModalDialog):
                 )
                 freetype_chk.setToolTip(
                     _(
-                        "Enable/disable this option if you experience font rendering glitches (such as blurred text or monochrome emoji characters)"
+                        "Enable/disable this option if you experience font rendering "
+                        "glitches (such as blurred text or monochrome emoji characters)"
                     )
                 )
 
@@ -512,29 +396,23 @@ class SettingsDialog(WindowModalDialog):
             elif sys.platform in ("linux",):
                 # Enable/Disable the use of the fonts.xml FontConfig override
                 # (Linux only)
-                fontconfig_chk = QtWidgets.QCheckBox(
+                self.fontconfig_chk = QtWidgets.QCheckBox(
                     _("Use custom fontconfig for emojis")
                 )
-                fontconfig_chk.setChecked(
+                self.fontconfig_chk.setChecked(
                     self.gui_object.linux_qt_use_custom_fontconfig
                 )
-                fontconfig_chk.setEnabled(
+                self.fontconfig_chk.setEnabled(
                     self.config.is_modifiable("linux_qt_use_custom_fontconfig")
                 )
-                fontconfig_chk.setToolTip(
+                self.fontconfig_chk.setToolTip(
                     _(
-                        "Enable/disable this option if you experience font rendering glitches (such as blurred text or monochrome emoji characters)"
+                        "Enable/disable this option if you experience font rendering "
+                        "glitches (such as blurred text or monochrome emoji characters)"
                     )
                 )
-
-                def on_fontconfig_chk():
-                    self.gui_object.linux_qt_use_custom_fontconfig = (
-                        fontconfig_chk.isChecked()
-                    )  # property has a method backing it
-                    self.need_restart = True
-
-                fontconfig_chk.stateChanged.connect(on_fontconfig_chk)
-                gui_widgets.append((fontconfig_chk, None))
+                self.fontconfig_chk.stateChanged.connect(self.on_fontconfig_chk)
+                gui_widgets.append((self.fontconfig_chk, None))
 
         # CashAddr control
         gui_widgets.append((None, None))  # spacer
@@ -543,25 +421,22 @@ class SettingsDialog(WindowModalDialog):
             _("Select between Cash Address and Legacy formats for addresses")
         )
         hbox = QtWidgets.QHBoxLayout(address_w)
-        cashaddr_cbox = QtWidgets.QComboBox()
-        cashaddr_cbox.addItem(
+        self.cashaddr_cbox = QtWidgets.QComboBox()
+        self.cashaddr_cbox.addItem(
             QIcon(":icons/tab_converter.svg"), _("CashAddr"), Address.FMT_CASHADDR
         )
-        cashaddr_cbox.addItem(
+        self.cashaddr_cbox.addItem(
             QIcon(":icons/tab_converter_bw.svg"), _("Legacy"), Address.FMT_LEGACY
         )
-        cashaddr_cbox.setCurrentIndex(0 if self.gui_object.is_cashaddr() else 1)
+        self.cashaddr_cbox.setCurrentIndex(0 if self.gui_object.is_cashaddr() else 1)
 
-        def cashaddr_cbox_handler(ignored_param):
-            fmt = cashaddr_cbox.currentData()
-            self.gui_object.set_address_format(fmt)
-
-        cashaddr_cbox.currentIndexChanged.connect(cashaddr_cbox_handler)
-        hbox.addWidget(cashaddr_cbox)
+        self.cashaddr_cbox.currentIndexChanged.connect(self.cashaddr_cbox_handler)
+        hbox.addWidget(self.cashaddr_cbox)
         toggle_cashaddr_control = QtWidgets.QCheckBox(_("Hide status button"))
         toggle_cashaddr_control.setToolTip(
             _(
-                "If checked, the status bar button for toggling address formats will be hidden"
+                "If checked, the status bar button for toggling address formats will "
+                "be hidden"
             )
         )
         toggle_cashaddr_control.setChecked(
@@ -584,48 +459,37 @@ class SettingsDialog(WindowModalDialog):
             )
         )
 
-        def on_set_updatecheck(v):
-            self.gui_object.set_auto_update_check(v == Qt.Checked)
-
-        updatecheck_cb.stateChanged.connect(on_set_updatecheck)
+        updatecheck_cb.stateChanged.connect(self.on_set_updatecheck)
         gui_widgets.append((updatecheck_cb, None))
 
         notify_tx_cb = QtWidgets.QCheckBox(_("Notify when receiving funds"))
         notify_tx_cb.setToolTip(
             _(
-                "If enabled, a system notification will be presented when you receive funds to this wallet."
+                "If enabled, a system notification will be presented when you receive "
+                "funds to this wallet."
             )
         )
         notify_tx_cb.setChecked(bool(self.wallet.storage.get("gui_notify_tx", True)))
 
-        def on_notify_tx(b):
-            self.wallet.storage.put("gui_notify_tx", bool(b))
-
-        notify_tx_cb.stateChanged.connect(on_notify_tx)
+        notify_tx_cb.stateChanged.connect(self.on_notify_tx)
         per_wallet_tx_widgets.append((notify_tx_cb, None))
 
         usechange_cb = QtWidgets.QCheckBox(_("Use change addresses"))
         usechange_cb.setChecked(self.wallet.use_change)
         usechange_cb.setToolTip(
             _(
-                "Using change addresses makes it more difficult for other people to track your transactions."
+                "Using change addresses makes it more difficult for other people to "
+                "track your transactions."
             )
         )
 
-        def on_usechange(x):
-            usechange_result = x == Qt.Checked
-            if self.wallet.use_change != usechange_result:
-                self.wallet.use_change = usechange_result
-                self.wallet.storage.put("use_change", self.wallet.use_change)
-                multiple_cb.setEnabled(self.wallet.use_change)
-
-        usechange_cb.stateChanged.connect(on_usechange)
+        usechange_cb.stateChanged.connect(self.on_usechange)
         per_wallet_tx_widgets.append((usechange_cb, None))
 
         multiple_change = self.wallet.multiple_change
-        multiple_cb = QtWidgets.QCheckBox(_("Use multiple change addresses"))
-        multiple_cb.setEnabled(self.wallet.use_change)
-        multiple_cb.setToolTip(
+        self.multiple_cb = QtWidgets.QCheckBox(_("Use multiple change addresses"))
+        self.multiple_cb.setEnabled(self.wallet.use_change)
+        self.multiple_cb.setToolTip(
             "\n".join(
                 [
                     _(
@@ -636,36 +500,23 @@ class SettingsDialog(WindowModalDialog):
                 ]
             )
         )
-        multiple_cb.setChecked(multiple_change)
+        self.multiple_cb.setChecked(multiple_change)
 
-        def on_multiple(x):
-            multiple = x == Qt.Checked
-            if self.wallet.multiple_change != multiple:
-                self.wallet.multiple_change = multiple
-                self.wallet.storage.put("multiple_change", multiple)
-
-        multiple_cb.stateChanged.connect(on_multiple)
-        per_wallet_tx_widgets.append((multiple_cb, None))
-
-        def fmt_docs(key, klass):
-            lines = [ln.lstrip(" ") for ln in klass.__doc__.split("\n")]
-            return "\n".join([key, "", " ".join(lines)])
-
-        def on_unconf(x):
-            self.config.set_key("confirmed_only", bool(x))
+        self.multiple_cb.stateChanged.connect(self.on_multiple)
+        per_wallet_tx_widgets.append((self.multiple_cb, None))
 
         conf_only = self.config.get("confirmed_only", False)
         unconf_cb = QtWidgets.QCheckBox(_("Spend only confirmed coins"))
         unconf_cb.setToolTip(_("Spend only confirmed inputs."))
         unconf_cb.setChecked(conf_only)
-        unconf_cb.stateChanged.connect(on_unconf)
+        unconf_cb.stateChanged.connect(self.on_unconf)
         global_tx_widgets.append((unconf_cb, None))
 
         # Fiat Currency
-        hist_checkbox = QtWidgets.QCheckBox()
-        fiat_address_checkbox = QtWidgets.QCheckBox()
-        ccy_combo = QtWidgets.QComboBox()
-        ex_combo = QtWidgets.QComboBox()
+        self.hist_checkbox = QtWidgets.QCheckBox()
+        self.fiat_address_checkbox = QtWidgets.QCheckBox()
+        self.ccy_combo = QtWidgets.QComboBox()
+        self.ex_combo = QtWidgets.QComboBox()
 
         enable_opreturn = bool(self.config.get("enable_opreturn"))
         opret_cb = QtWidgets.QCheckBox(_("Enable OP_RETURN output"))
@@ -686,10 +537,7 @@ class SettingsDialog(WindowModalDialog):
         )
         legacy_p2sh_cb.setChecked(bool(self.config.get("allow_legacy_p2sh", False)))
 
-        def on_legacy_p2sh_cb(b):
-            self.config.set_key("allow_legacy_p2sh", bool(b))
-
-        legacy_p2sh_cb.stateChanged.connect(on_legacy_p2sh_cb)
+        legacy_p2sh_cb.stateChanged.connect(self.on_legacy_p2sh_cb)
         global_tx_widgets.append((legacy_p2sh_cb, None))
 
         # Schnorr
@@ -712,17 +560,17 @@ class SettingsDialog(WindowModalDialog):
         limit_change_w = QtWidgets.QWidget()
         vb = QtWidgets.QVBoxLayout(limit_change_w)
         vb.setContentsMargins(0, 0, 0, 0)
-        limit_change_chk = QtWidgets.QCheckBox(_("Retire unused change addresses"))
-        limit_change_chk.setChecked(self.wallet.limit_change_addr_subs > 0)
-        vb.addWidget(limit_change_chk)
-        limit_change_inner_w = QtWidgets.QWidget()
-        hb = QtWidgets.QHBoxLayout(limit_change_inner_w)
+        self.limit_change_chk = QtWidgets.QCheckBox(_("Retire unused change addresses"))
+        self.limit_change_chk.setChecked(self.wallet.limit_change_addr_subs > 0)
+        vb.addWidget(self.limit_change_chk)
+        self.limit_change_inner_w = QtWidgets.QWidget()
+        hb = QtWidgets.QHBoxLayout(self.limit_change_inner_w)
         hb.addSpacing(24)
         hb.setContentsMargins(0, 0, 0, 0)
-        limit_change_sb = QtWidgets.QSpinBox()
-        limit_change_sb.setMinimum(0)
-        limit_change_sb.setMaximum(2**31 - 1)
-        limit_change_sb.setValue(
+        self.limit_change_sb = QtWidgets.QSpinBox()
+        self.limit_change_sb.setMinimum(0)
+        self.limit_change_sb.setMaximum(2**31 - 1)
+        self.limit_change_sb.setValue(
             self.wallet.limit_change_addr_subs
             or self.wallet.DEFAULT_CHANGE_ADDR_SUBS_LIMIT
         )
@@ -731,27 +579,16 @@ class SettingsDialog(WindowModalDialog):
         f.setPointSize(f.pointSize() - 1)
         l1.setFont(f)
         hb.addWidget(l1)
-        hb.addWidget(limit_change_sb)
+        hb.addWidget(self.limit_change_sb)
         l2 = QtWidgets.QLabel(_("from latest index"))
         l2.setFont(f)
         hb.addWidget(l2)
-        limit_change_sb.setFont(f)
-        orig_limit_change_subs = self.wallet.limit_change_addr_subs
+        self.limit_change_sb.setFont(f)
 
-        def limit_change_subs_changed():
-            limit_change_inner_w.setEnabled(limit_change_chk.isChecked())
-            self.wallet.limit_change_addr_subs = (
-                limit_change_sb.value() if limit_change_chk.isChecked() else 0
-            )
-            if self.wallet.limit_change_addr_subs != orig_limit_change_subs:
-                self.need_wallet_reopen = True
-                if self.wallet.synchronizer:
-                    self.wallet.synchronizer.clear_retired_change_addrs()
-
-        limit_change_inner_w.setEnabled(limit_change_chk.isChecked())
-        limit_change_sb.valueChanged.connect(limit_change_subs_changed)
-        limit_change_chk.stateChanged.connect(limit_change_subs_changed)
-        vb.addWidget(limit_change_inner_w)
+        self.limit_change_inner_w.setEnabled(self.limit_change_chk.isChecked())
+        self.limit_change_sb.valueChanged.connect(self.limit_change_subs_changed)
+        self.limit_change_chk.stateChanged.connect(self.limit_change_subs_changed)
+        vb.addWidget(self.limit_change_inner_w)
         vb.addStretch(1)
         limit_change_w.setToolTip(
             "<p>"
@@ -769,7 +606,7 @@ class SettingsDialog(WindowModalDialog):
             )
             + "</p>"
         )
-        limit_change_inner_w.setToolTip(
+        self.limit_change_inner_w.setToolTip(
             "<p>"
             + _(
                 "Specify how old a change address must be in order to be considered"
@@ -781,108 +618,24 @@ class SettingsDialog(WindowModalDialog):
         per_wallet_tx_widgets.append((limit_change_w, None))
 
         # Fiat Tab
-        def update_currencies():
-            if not self.fx:
-                return
-            currencies = sorted(self.fx.get_currencies(self.fx.get_history_config()))
-            ccy_combo.clear()
-            ccy_combo.addItems(
-                [pgettext("Referencing Fiat currency", "None")] + currencies
-            )
-            if self.fx.is_enabled():
-                ccy_combo.setCurrentIndex(ccy_combo.findText(self.fx.get_currency()))
+        self.update_currencies()
+        self.update_history_cb()
+        self.update_fiat_address_cb()
+        self.update_exchanges()
+        self.ccy_combo.currentIndexChanged.connect(self.on_currency)
+        self.hist_checkbox.stateChanged.connect(self.on_history)
+        self.fiat_address_checkbox.stateChanged.connect(self.on_fiat_address)
+        self.ex_combo.currentIndexChanged.connect(self.on_exchange)
 
-        def update_history_cb():
-            if not self.fx:
-                return
-            hist_checkbox.setChecked(self.fx.get_history_config())
-            hist_checkbox.setEnabled(self.fx.is_enabled())
+        self.hist_checkbox.setText(_("Show history rates"))
+        self.fiat_address_checkbox.setText(_("Show fiat balance for addresses"))
 
-        def update_fiat_address_cb():
-            if not self.fx:
-                return
-            fiat_address_checkbox.setChecked(self.fx.get_fiat_address_config())
-
-        def update_exchanges():
-            if not self.fx:
-                return
-            b = self.fx.is_enabled()
-            ex_combo.setEnabled(b)
-            if b:
-                c = self.fx.get_currency()
-                h = self.fx.get_history_config()
-            else:
-                c, h = self.fx.default_currency, False
-            exchanges = self.fx.get_exchanges_by_ccy(c, h)
-            conf_exchange = self.fx.config_exchange()
-            ex_combo.clear()
-            ex_combo.addItems(sorted(exchanges))
-            # try and restore previous exchange if in new list
-            idx = ex_combo.findText(conf_exchange)
-            if idx < 0:
-                # hmm, previous exchange wasn't in new h= setting. Try default exchange.
-                idx = ex_combo.findText(self.fx.default_exchange)
-            # if still no success (idx < 0) -> default to the first exchange in combo
-            idx = 0 if idx < 0 else idx
-            # don't set index if no exchanges, as any index is illegal.
-            # this shouldn't happen.
-            if exchanges:
-                ex_combo.setCurrentIndex(
-                    idx
-                )  # note this will emit a currentIndexChanged signal if it's changed
-
-        def on_currency(hh):
-            if not self.fx:
-                return
-            b = bool(ccy_combo.currentIndex())
-            ccy = str(ccy_combo.currentText()) if b else None
-            self.fx.set_enabled(b)
-            if b and ccy != self.fx.ccy:
-                self.fx.set_currency(ccy)
-            update_history_cb()
-            update_exchanges()
-            self.currency_changed.emit()
-
-        def on_exchange(idx):
-            exchange = str(ex_combo.currentText())
-            if (
-                self.fx
-                and self.fx.is_enabled()
-                and exchange
-                and exchange != self.fx.exchange.name()
-            ):
-                self.fx.set_exchange(exchange)
-
-        def on_history(checked):
-            if not self.fx:
-                return
-            self.fx.set_history_config(checked)
-            update_exchanges()
-            self.show_history_rates_toggled.emit(checked)
-
-        def on_fiat_address(checked):
-            if not self.fx:
-                return
-            self.fx.set_fiat_address_config(checked)
-            self.show_fiat_balance_toggled.emit()
-
-        update_currencies()
-        update_history_cb()
-        update_fiat_address_cb()
-        update_exchanges()
-        ccy_combo.currentIndexChanged.connect(on_currency)
-        hist_checkbox.stateChanged.connect(on_history)
-        fiat_address_checkbox.stateChanged.connect(on_fiat_address)
-        ex_combo.currentIndexChanged.connect(on_exchange)
-
-        hist_checkbox.setText(_("Show history rates"))
-        fiat_address_checkbox.setText(_("Show fiat balance for addresses"))
-
-        fiat_widgets = []
-        fiat_widgets.append((QtWidgets.QLabel(_("Fiat currency:")), ccy_combo))
-        fiat_widgets.append((QtWidgets.QLabel(_("Source:")), ex_combo))
-        fiat_widgets.append((hist_checkbox, None))
-        fiat_widgets.append((fiat_address_checkbox, None))
+        fiat_widgets = [
+            (QtWidgets.QLabel(_("Fiat currency:")), self.ccy_combo),
+            (QtWidgets.QLabel(_("Source:")), self.ex_combo),
+            (self.hist_checkbox, None),
+            (self.fiat_address_checkbox, None),
+        ]
 
         tabs_info = [
             (gui_widgets, _("General")),
@@ -944,3 +697,258 @@ class SettingsDialog(WindowModalDialog):
         vbox.addStretch(1)
         vbox.addLayout(Buttons(CloseButton(self)))
         self.setLayout(vbox)
+
+    def showEvent(self, e):
+        super().showEvent(e)
+        self.shown_signal.emit()
+
+    def set_alias_color(self, alias_info: Optional[Tuple[Address, str, bool]]):
+        if not self.config.get("alias"):
+            self.alias_e.setStyleSheet("")
+            return
+        if alias_info is not None:
+            alias_addr, alias_name, validated = alias_info
+            self.alias_e.setStyleSheet(
+                (ColorScheme.GREEN if validated else ColorScheme.RED).as_stylesheet(
+                    True
+                )
+            )
+        else:
+            self.alias_e.setStyleSheet(ColorScheme.RED.as_stylesheet(True))
+
+    def on_lang(self, x):
+        lang_request = self.language_keys[self.lang_combo.currentIndex()]
+        if lang_request != self.config.get("language"):
+            self.config.set_key("language", lang_request, True)
+            self.need_restart = True
+
+    def on_nz(self):
+        value = self.nz.value()
+        if self.config.get("num_zeros", 2) != value:
+            self.config.set_key("num_zeros", value, True)
+            self.num_zeros_changed.emit()
+
+    def on_unit(self, x):
+        unit_index = self.unit_combo.currentIndex()
+        unit_result = self.unit_names[unit_index]
+        if self.base_unit == unit_result:
+            return
+        dp = BASE_UNITS[unit_index].decimals
+        self.config.set_key("decimal_point", dp, True)
+        self.nz.setMaximum(dp)
+        self.unit_changed.emit()
+        self.need_restart = True
+
+    def on_customfee(self, x):
+        amt = self.customfee_e.get_amount()
+        m = int(amt * 1000.0) if amt is not None else None
+        self.config.set_key("customfee", m)
+        self.custom_fee_changed.emit()
+
+    def on_feebox(self, x):
+        self.config.set_key("show_fee", x == Qt.Checked)
+        self.show_fee_changed.emit(bool(x))
+
+    def on_alias_edit(self):
+        self.alias_e.setStyleSheet("")
+        alias = str(self.alias_e.text())
+        self.config.set_key("alias", alias, True)
+        if alias:
+            self.alias_changed.emit()
+
+    def on_be(self, x):
+        be_result = web.BE_sorted_list()[self.block_ex_combo.currentIndex()]
+        self.config.set_key("block_explorer", be_result, True)
+
+    def set_no_camera(self, e=""):
+        # Older Qt or missing libs -- disable GUI control and inform user why
+        self.qr_combo.setEnabled(False)
+        self.qr_combo.clear()
+        self.qr_combo.addItem(_("Default"), "default")
+        self.qr_combo.setToolTip(
+            _(
+                "Unable to probe for cameras on this system. QtMultimedia is "
+                "likely missing."
+            )
+        )
+        self.qr_label.setText(_("Video device") + " " + _("(disabled)") + ":")
+        self.qr_label.help_text = self.qr_combo.toolTip() + "\n\n" + str(e)
+        self.qr_label.setToolTip(self.qr_combo.toolTip())
+
+    def scan_cameras(self):
+        # dialog_finished guard needed because QueuedConnection
+        # already scanned or dialog finished quickly
+        if self.qr_did_scan or self.dialog_finished:
+            return
+        self.qr_did_scan = True
+        try:
+            from PyQt5.QtMultimedia import QCameraInfo
+        except ImportError as e:
+            self.set_no_camera(e)
+            return
+        system_cameras = QCameraInfo.availableCameras()
+        self.qr_combo.clear()
+        self.qr_combo.addItem(_("Default"), "default")
+        self.qr_label.setText(_("Video device") + ":")
+        self.qr_label.help_text = _("For scanning QR codes.")
+        self.qr_combo.setToolTip(self.qr_label.help_text)
+        self.qr_label.setToolTip(self.qr_label.help_text)
+        for cam in system_cameras:
+            self.qr_combo.addItem(cam.description(), cam.deviceName())
+        video_device = self.config.get("video_device")
+        video_device_index = 0
+        if video_device:
+            # if not found, default to 0 (the default item)
+            video_device_index = max(0, self.qr_combo.findData(video_device))
+        self.qr_combo.setCurrentIndex(video_device_index)
+        self.qr_combo.setEnabled(True)
+
+    def on_video_device(self, x):
+        if self.qr_combo.isEnabled():
+            self.config.set_key("video_device", self.qr_combo.itemData(x), True)
+
+    def on_colortheme(self, x, err_msg: str):
+        item_data = self.colortheme_combo.itemData(x)
+        if not self.gui_object.is_dark_theme_available() and item_data == "dark":
+            self.show_error(err_msg)
+            self.colortheme_combo.setCurrentIndex(0)
+            return
+        self.config.set_key("qt_gui_color_theme", item_data, True)
+        if self.theme_name != item_data:
+            self.need_restart = True
+
+    def on_hi_dpi_toggle(self):
+        self.config.set_key("qt_enable_highdpi", self.hidpi_chk.isChecked())
+        self.need_restart = True
+
+    def on_fontconfig_chk(self):
+        # property has a method backing it
+        self.gui_object.linux_qt_use_custom_fontconfig = self.fontconfig_chk.isChecked()
+        self.need_restart = True
+
+    def cashaddr_cbox_handler(self, ignored_param):
+        fmt = self.cashaddr_cbox.currentData()
+        self.gui_object.set_address_format(fmt)
+
+    def on_set_updatecheck(self, v):
+        self.gui_object.set_auto_update_check(v == Qt.Checked)
+
+    def on_notify_tx(self, b):
+        self.wallet.storage.put("gui_notify_tx", bool(b))
+
+    def on_usechange(self, x):
+        usechange_result = x == Qt.Checked
+        if self.wallet.use_change != usechange_result:
+            self.wallet.use_change = usechange_result
+            self.wallet.storage.put("use_change", self.wallet.use_change)
+            self.multiple_cb.setEnabled(self.wallet.use_change)
+
+    def on_multiple(self, x):
+        multiple = x == Qt.Checked
+        if self.wallet.multiple_change != multiple:
+            self.wallet.multiple_change = multiple
+            self.wallet.storage.put("multiple_change", multiple)
+
+    def on_unconf(self, x):
+        self.config.set_key("confirmed_only", bool(x))
+
+    def on_legacy_p2sh_cb(self, b):
+        self.config.set_key("allow_legacy_p2sh", bool(b))
+
+    def limit_change_subs_changed(self):
+        orig_limit_change_subs = self.wallet.limit_change_addr_subs
+        self.limit_change_inner_w.setEnabled(self.limit_change_chk.isChecked())
+        self.wallet.limit_change_addr_subs = (
+            self.limit_change_sb.value() if self.limit_change_chk.isChecked() else 0
+        )
+        if self.wallet.limit_change_addr_subs != orig_limit_change_subs:
+            self.need_wallet_reopen = True
+            if self.wallet.synchronizer:
+                self.wallet.synchronizer.clear_retired_change_addrs()
+
+    def update_currencies(self):
+        if not self.fx:
+            return
+        currencies = sorted(self.fx.get_currencies(self.fx.get_history_config()))
+        self.ccy_combo.clear()
+        self.ccy_combo.addItems(
+            [pgettext("Referencing Fiat currency", "None")] + currencies
+        )
+        if self.fx.is_enabled():
+            self.ccy_combo.setCurrentIndex(
+                self.ccy_combo.findText(self.fx.get_currency())
+            )
+
+    def update_history_cb(self):
+        if not self.fx:
+            return
+        self.hist_checkbox.setChecked(self.fx.get_history_config())
+        self.hist_checkbox.setEnabled(self.fx.is_enabled())
+
+    def update_fiat_address_cb(self):
+        if not self.fx:
+            return
+        self.fiat_address_checkbox.setChecked(self.fx.get_fiat_address_config())
+
+    def update_exchanges(self):
+        if not self.fx:
+            return
+        b = self.fx.is_enabled()
+        self.ex_combo.setEnabled(b)
+        if b:
+            c = self.fx.get_currency()
+            h = self.fx.get_history_config()
+        else:
+            c, h = self.fx.default_currency, False
+        exchanges = self.fx.get_exchanges_by_ccy(c, h)
+        conf_exchange = self.fx.config_exchange()
+        self.ex_combo.clear()
+        self.ex_combo.addItems(sorted(exchanges))
+        # try and restore previous exchange if in new list
+        idx = self.ex_combo.findText(conf_exchange)
+        if idx < 0:
+            # hmm, previous exchange wasn't in new h= setting. Try default exchange.
+            idx = self.ex_combo.findText(self.fx.default_exchange)
+        # if still no success (idx < 0) -> default to the first exchange in combo
+        idx = 0 if idx < 0 else idx
+        # don't set index if no exchanges, as any index is illegal.
+        # this shouldn't happen.
+        if exchanges:
+            self.ex_combo.setCurrentIndex(
+                idx
+            )  # note this will emit a currentIndexChanged signal if it's changed
+
+    def on_currency(self, hh):
+        if not self.fx:
+            return
+        b = bool(self.ccy_combo.currentIndex())
+        ccy = str(self.ccy_combo.currentText()) if b else None
+        self.fx.set_enabled(b)
+        if b and ccy != self.fx.ccy:
+            self.fx.set_currency(ccy)
+        self.update_history_cb()
+        self.update_exchanges()
+        self.currency_changed.emit()
+
+    def on_exchange(self, idx):
+        exchange = str(self.ex_combo.currentText())
+        if (
+            self.fx
+            and self.fx.is_enabled()
+            and exchange
+            and exchange != self.fx.exchange.name()
+        ):
+            self.fx.set_exchange(exchange)
+
+    def on_history(self, checked):
+        if not self.fx:
+            return
+        self.fx.set_history_config(checked)
+        self.update_exchanges()
+        self.show_history_rates_toggled.emit(checked)
+
+    def on_fiat_address(self, checked):
+        if not self.fx:
+            return
+        self.fx.set_fiat_address_config(checked)
+        self.show_fiat_balance_toggled.emit()
