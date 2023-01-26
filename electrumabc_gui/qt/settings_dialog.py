@@ -110,8 +110,7 @@ class SettingsDialog(WindowModalDialog):
         self.language_keys = []
         for (lang_code, lang_def) in languages.items():
             self.language_keys.append(lang_code)
-            lang_name = []
-            lang_name.append(lang_def.name)
+            lang_name = [lang_def.name]
             if lang_code == "":
                 # System entry in languages list (==''), gets system setting
                 sys_lang = get_system_language_match()
@@ -140,7 +139,8 @@ class SettingsDialog(WindowModalDialog):
         gui_widgets.append((lang_label, self.lang_combo))
 
         nz_help = _(
-            'Number of zeros displayed after the decimal point. For example, if this is set to 2, "1." will be displayed as "1.00"'
+            "Number of zeros displayed after the decimal point. For example, if this "
+            'is set to 2, "1." will be displayed as "1.00"'
         )
         nz_label = HelpLabel(_("Zeros after decimal point") + ":", nz_help)
         self.nz = QtWidgets.QSpinBox()
@@ -208,23 +208,23 @@ class SettingsDialog(WindowModalDialog):
         )
         if self.config.get("ssl_privkey") or self.config.get("ssl_chain"):
             try:
-                SSL_identity = paymentrequest.check_ssl_config(self.config)
-                SSL_error = None
+                ssl_identity = paymentrequest.check_ssl_config(self.config)
+                ssl_error = None
             except Exception as e:
-                SSL_identity = "error"
-                SSL_error = str(e)
+                ssl_identity = "error"
+                ssl_error = str(e)
         else:
-            SSL_identity = ""
-            SSL_error = None
+            ssl_identity = ""
+            ssl_error = None
         SSL_id_label = HelpLabel(_("SSL certificate") + ":", msg)
-        SSL_id_e = QtWidgets.QLineEdit(SSL_identity)
+        SSL_id_e = QtWidgets.QLineEdit(ssl_identity)
         SSL_id_e.setStyleSheet(
-            (ColorScheme.RED if SSL_error else ColorScheme.GREEN).as_stylesheet(True)
-            if SSL_identity
+            (ColorScheme.RED if ssl_error else ColorScheme.GREEN).as_stylesheet(True)
+            if ssl_identity
             else ""
         )
-        if SSL_error:
-            SSL_id_e.setToolTip(SSL_error)
+        if ssl_error:
+            SSL_id_e.setToolTip(ssl_error)
         SSL_id_e.setReadOnly(True)
         id_form.addRow(SSL_id_label, SSL_id_e)
 
@@ -655,43 +655,39 @@ class SettingsDialog(WindowModalDialog):
             (fiat_widgets, _("Fiat")),
         ]
 
-        def add_tabs_info_to_tabs(tabs, tabs_info):
-            def add_widget_pair(a, b, grid):
-                i = grid.rowCount()
-                if b:
-                    if a:
-                        grid.addWidget(a, i, 0)
-                    grid.addWidget(b, i, 1)
+        def add_widget_pair(a, b, grid):
+            i = grid.rowCount()
+            if b:
+                if a:
+                    grid.addWidget(a, i, 0)
+                grid.addWidget(b, i, 1)
+            else:
+                if a:
+                    grid.addWidget(a, i, 0, 1, 2)
                 else:
-                    if a:
-                        grid.addWidget(a, i, 0, 1, 2)
-                    else:
-                        grid.addItem(QtWidgets.QSpacerItem(15, 15), i, 0, 1, 2)
+                    grid.addItem(QtWidgets.QSpacerItem(15, 15), i, 0, 1, 2)
 
-            for thing, name in tabs_info:
-                tab = QtWidgets.QWidget()
-                if isinstance(thing, dict):
-                    # This Prefs tab is laid out as groupboxes one atop another...
-                    d = thing
-                    vbox = QtWidgets.QVBoxLayout(tab)
-                    for groupName, widgets in d.items():
-                        gbox = QtWidgets.QGroupBox(groupName)
-                        grid = QtWidgets.QGridLayout(gbox)
-                        grid.setColumnStretch(0, 1)
-                        for a, b in widgets:
-                            add_widget_pair(a, b, grid)
-                        vbox.addWidget(gbox, len(widgets))
-                else:
-                    # Standard layout.. 1 tab has just a grid of widgets
-                    widgets = thing
-                    grid = QtWidgets.QGridLayout(tab)
+        for thing, name in tabs_info:
+            tab = QtWidgets.QWidget()
+            if isinstance(thing, dict):
+                # This Prefs tab is laid out as groupboxes one atop another...
+                d = thing
+                tabvbox = QtWidgets.QVBoxLayout(tab)
+                for groupName, widgets in d.items():
+                    gbox = QtWidgets.QGroupBox(groupName)
+                    grid = QtWidgets.QGridLayout(gbox)
                     grid.setColumnStretch(0, 1)
                     for a, b in widgets:
                         add_widget_pair(a, b, grid)
-                tabs.addTab(tab, name)
-
-        # / add_tabs_info_to_tabs
-        add_tabs_info_to_tabs(tabs, tabs_info)
+                    tabvbox.addWidget(gbox, len(widgets))
+            else:
+                # Standard layout.. 1 tab has just a grid of widgets
+                widgets = thing
+                grid = QtWidgets.QGridLayout(tab)
+                grid.setColumnStretch(0, 1)
+                for a, b in widgets:
+                    add_widget_pair(a, b, grid)
+            tabs.addTab(tab, name)
 
         vbox.addWidget(tabs)
         vbox.addStretch(1)
@@ -914,9 +910,8 @@ class SettingsDialog(WindowModalDialog):
         # don't set index if no exchanges, as any index is illegal.
         # this shouldn't happen.
         if exchanges:
-            self.ex_combo.setCurrentIndex(
-                idx
-            )  # note this will emit a currentIndexChanged signal if it's changed
+            # note this will emit a currentIndexChanged signal if it's changed
+            self.ex_combo.setCurrentIndex(idx)
 
     def on_currency(self, hh):
         if not self.fx:
