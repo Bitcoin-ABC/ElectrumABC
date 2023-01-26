@@ -540,6 +540,15 @@ class SettingsDialog(WindowModalDialog):
         legacy_p2sh_cb.stateChanged.connect(self.on_legacy_p2sh_cb)
         global_tx_widgets.append((legacy_p2sh_cb, None))
 
+        locktime_cb = QtWidgets.QCheckBox(_("Enable current block locktime"))
+        locktime_cb.setToolTip(
+            _("Enable setting transaction locktime to current block height")
+        )
+        locktime_cb.setChecked(self.config.is_current_block_locktime_enabled())
+        locktime_cb.toggled.connect(self.config.set_current_block_locktime_enabled)
+
+        global_tx_widgets.append((locktime_cb, None))
+
         # Schnorr
         use_schnorr_cb = QtWidgets.QCheckBox(_("Sign with Schnorr signatures"))
         use_schnorr_cb.setChecked(self.wallet.is_schnorr_enabled())
