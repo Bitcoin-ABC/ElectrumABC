@@ -28,7 +28,7 @@
 #   - ImportedPrivkeyWallet: imported private keys, keystore
 #   - Standard_Wallet: one keystore, P2PKH
 #   - Multisig_Wallet: several keystores, P2SH
-
+from __future__ import annotations
 
 import copy
 import errno
@@ -42,7 +42,16 @@ import time
 from abc import abstractmethod
 from collections import defaultdict, namedtuple
 from enum import Enum, auto
-from typing import ItemsView, List, Optional, Set, Tuple, Union, ValuesView
+from typing import (
+    TYPE_CHECKING,
+    ItemsView,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+    ValuesView,
+)
 
 from . import (
     bitcoin,
@@ -97,6 +106,10 @@ from .util import (
 )
 from .verifier import SPV, SPVDelegate
 from .version import PACKAGE_VERSION
+
+if TYPE_CHECKING:
+    from .simple_config import SimpleConfig
+
 
 DEFAULT_CONFIRMED_ONLY = False
 
@@ -162,7 +175,15 @@ def sweep_preparations(privkeys, network, imax=100):
     return inputs, keypairs
 
 
-def sweep(privkeys, network, config, recipient, fee=None, imax=100, sign_schnorr=False):
+def sweep(
+    privkeys,
+    network,
+    config: SimpleConfig,
+    recipient,
+    fee=None,
+    imax=100,
+    sign_schnorr=False,
+):
     inputs, keypairs = sweep_preparations(privkeys, network, imax)
     total = sum(i.get("value") for i in inputs)
     if fee is None:
@@ -181,7 +202,9 @@ def sweep(privkeys, network, config, recipient, fee=None, imax=100, sign_schnorr
         )
 
     outputs = [(bitcoin.TYPE_ADDRESS, recipient, total - fee)]
-    locktime = network.get_local_height()
+    locktime = 0
+    if config.is_current_block_locktime_enabled():
+        locktime = network.get_local_height()
 
     tx = Transaction.from_io(
         inputs, outputs, locktime=locktime, sign_schnorr=sign_schnorr
@@ -2020,7 +2043,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         self,
         inputs,
         outputs,
-        config,
+        config: SimpleConfig,
         fixed_fee=None,
         change_addr=None,
         sign_schnorr=None,
@@ -2140,9 +2163,11 @@ class AbstractWallet(PrintError, SPVDelegate):
         # Sort the inputs and outputs deterministically
         tx.BIP_LI01_sort()
         # Timelock tx to current height.
-        locktime = self.get_local_height()
-        if locktime == -1:  # We have no local height data (no headers synced).
-            locktime = 0
+        locktime = 0
+        if config.is_current_block_locktime_enabled():
+            locktime = self.get_local_height()
+            if locktime == -1:  # We have no local height data (no headers synced).
+                locktime = 0
         tx.locktime = locktime
         run_hook("make_unsigned_transaction", self, tx)
 
@@ -2393,7 +2418,7 @@ class AbstractWallet(PrintError, SPVDelegate):
                 break  # ok, it's old. not need to keep looping
         return age > age_limit
 
-    def cpfp(self, tx, fee, sign_schnorr=None):
+    def cpfp(self, tx, fee, sign_schnorr=None, enable_current_block_locktime=True):
         """sign_schnorr is a bool or None for auto"""
         sign_schnorr = (
             self.is_schnorr_enabled() if sign_schnorr is None else bool(sign_schnorr)
@@ -2412,7 +2437,9 @@ class AbstractWallet(PrintError, SPVDelegate):
         self.add_input_info(item)
         inputs = [item]
         outputs = [(bitcoin.TYPE_ADDRESS, address, value - fee)]
-        locktime = self.get_local_height()
+        locktime = 0
+        if enable_current_block_locktime:
+            locktime = self.get_local_height()
         # note: no need to call tx.BIP_LI01_sort() here - single input/output
         return Transaction.from_io(
             inputs, outputs, locktime=locktime, sign_schnorr=sign_schnorr

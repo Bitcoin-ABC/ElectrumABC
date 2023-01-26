@@ -5141,7 +5141,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         if fee > max_fee:
             self.show_error(_("Max fee exceeded"))
             return
-        new_tx = self.wallet.cpfp(parent_tx, fee)
+        new_tx = self.wallet.cpfp(
+            parent_tx, fee, self.config.is_current_block_locktime_enabled()
+        )
         if new_tx is None:
             self.show_error(_("CPFP no longer valid"))
             return

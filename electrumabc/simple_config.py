@@ -325,6 +325,9 @@ class SimpleConfig(PrintError):
             device = ""
         return device
 
+    def is_current_block_locktime_enabled(self) -> bool:
+        return self.get("enable_current_block_locktime", True)
+
 
 def read_user_config(path: str) -> dict:
     """Parse the user config settings and return it as a dictionary.

@@ -316,7 +316,9 @@ class HistoryList(MyTreeWidget):
             _("&Details"), lambda: self.main_window.show_transaction(tx, label)
         )
         if is_unconfirmed and tx:
-            child_tx = self.wallet.cpfp(tx, 0)
+            child_tx = self.wallet.cpfp(
+                tx, 0, self.config.is_current_block_locktime_enabled()
+            )
             if child_tx:
                 menu.addAction(
                     _("Child pays for parent"),
