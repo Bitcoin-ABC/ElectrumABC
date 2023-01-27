@@ -122,7 +122,7 @@ class ConsolidateCoinsWizard(QtWidgets.QWizard):
         self.wallet: AbstractWallet = wallet
         self.transactions: Sequence[Transaction] = []
 
-        self.coins_page = CoinSelectionPage()
+        self.coins_page = CoinSelectionPage(self.wallet.get_local_height())
         self.addPage(self.coins_page)
 
         self.output_page = OutputsPage(address)
@@ -213,7 +213,7 @@ class BlockHeightSpinBox(QtWidgets.QSpinBox):
 
 
 class CoinSelectionPage(QtWidgets.QWizardPage):
-    def __init__(self, parent=None):
+    def __init__(self, blockchain_height, parent=None):
         super().__init__(parent)
         self.setTitle("Filter coins")
 
@@ -259,7 +259,9 @@ class CoinSelectionPage(QtWidgets.QWizardPage):
         )
 
         self.maximum_height_sb = BlockHeightSpinBox()
-        self.maximum_height_sb.setValue(10_000_000)
+        self.maximum_height_sb.setValue(
+            blockchain_height + 1 if blockchain_height > 0 else 10_000_000
+        )
         self.maximum_height_sb.valueChanged.connect(self.on_min_or_max_height_changed)
         self.filter_by_max_height_cb = self.add_filter_by_value_line(
             "Maximum block height", self.maximum_height_sb
