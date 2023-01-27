@@ -49,11 +49,14 @@ def _read_json_dict(filename):
 class AbstractNet:
     TESTNET = False
     REGTEST = False
-    LEGACY_POW_TARGET_TIMESPAN = 14 * 24 * 60 * 60  # 2 weeks
-    LEGACY_POW_TARGET_INTERVAL = 10 * 60  # 10 minutes
+    # 2 weeks
+    LEGACY_POW_TARGET_TIMESPAN = 14 * 24 * 60 * 60
+    # 10 minutes
+    LEGACY_POW_TARGET_INTERVAL = 10 * 60
+    # 2016 blocks
     LEGACY_POW_RETARGET_BLOCKS = (
         LEGACY_POW_TARGET_TIMESPAN // LEGACY_POW_TARGET_INTERVAL
-    )  # 2016 blocks
+    )
 
 
 class MainNet(AbstractNet):
@@ -65,7 +68,8 @@ class MainNet(AbstractNet):
     CASHADDR_PREFIX_BCH = CASHADDR_PREFIX_BCH
     GENESIS = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
     DEFAULT_PORTS = {"t": "50001", "s": "50002"}
-    DEFAULT_SERVERS = _read_json_dict("servers.json")  # DO NOT MODIFY IN CLIENT CODE
+    # DO NOT MODIFY IN CLIENT CODE
+    DEFAULT_SERVERS = _read_json_dict("servers.json")
     TITLE = "Electrum ABC"
 
     # Bitcoin Cash fork block specification
@@ -77,10 +81,10 @@ class MainNet(AbstractNet):
     # Nov 13. 2017 HF to CW144 DAA height (height of last block mined on old DAA)
     CW144_HEIGHT = 504031
 
-    # Note: this is not the Merkle root of the verification block itself , but a Merkle root of
-    # all blockchain headers up until and including this block. To get this value you need to
-    # connect to an ElectrumX server you trust and issue it a protocol command. This can be
-    # done in the console as follows:
+    # Note: this is not the Merkle root of the verification block itself , but a Merkle
+    # root of all blockchain headers up until and including this block. To get this
+    # value you need to connect to an ElectrumX server you trust and issue it a
+    # protocol command. This can be done in the console as follows:
     #
     #    network.synchronous_get(("blockchain.block.header", [height, height]))
     #
@@ -90,9 +94,9 @@ class MainNet(AbstractNet):
     )
     VERIFICATION_BLOCK_HEIGHT = 713661
     asert_daa = ASERTDaa(is_testnet=False)
-    # Note: We *must* specify the anchor if the checkpoint is after the anchor, due to the way
-    # blockchain.py skips headers after the checkpoint.  So all instances that have a checkpoint
-    # after the anchor must specify the anchor as well.
+    # Note: We *must* specify the anchor if the checkpoint is after the anchor, due to
+    # the way blockchain.py skips headers after the checkpoint.  So all instances that
+    # have a checkpoint after the anchor must specify the anchor as well.
     asert_daa.anchor = Anchor(height=661647, bits=402971390, prev_time=1605447844)
 
     # Version numbers for BIP32 extended keys
@@ -117,9 +121,8 @@ class TestNet(AbstractNet):
     CASHADDR_PREFIX_BCH = CASHADDR_TESTNET_PREFIX_BCH
     GENESIS = "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"
     DEFAULT_PORTS = {"t": "51001", "s": "51002"}
-    DEFAULT_SERVERS = _read_json_dict(
-        "servers_testnet.json"
-    )  # DO NOT MODIFY IN CLIENT CODE
+    # DO NOT MODIFY IN CLIENT CODE
+    DEFAULT_SERVERS = _read_json_dict("servers_testnet.json")
     TITLE = "Electrum ABC Testnet"
 
     # Nov 13. 2017 HF to CW144 DAA height (height of last block mined on old DAA)
@@ -161,9 +164,8 @@ class RegtestNet(TestNet):
     VERIFICATION_BLOCK_MERKLE_ROOT = None
     asert_daa = ASERTDaa(is_testnet=True)  # not used on regtest
 
-    DEFAULT_SERVERS = _read_json_dict(
-        "servers_regtest.json"
-    )  # DO NOT MODIFY IN CLIENT CODE
+    # DO NOT MODIFY IN CLIENT CODE
+    DEFAULT_SERVERS = _read_json_dict("servers_regtest.json")
 
 
 # All new code should access this to get the current network config.
