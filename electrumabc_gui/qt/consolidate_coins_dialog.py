@@ -142,6 +142,20 @@ class ConsolidateCoinsWizard(QtWidgets.QWizard):
         if self.currentPage() is self.tx_page:
             self.tx_page.update_status(TransactionsStatus.NOT_STARTED)
             self.tx_thread = QtCore.QThread()
+
+            min_value = None
+            if self.coins_page.filter_by_min_value_cb.isChecked():
+                min_value = self.coins_page.get_minimum_value()
+            max_value = None
+            if self.coins_page.filter_by_max_value_cb.isChecked():
+                max_value = self.coins_page.get_maximum_value()
+            min_height = None
+            if self.coins_page.filter_by_min_height_cb.isChecked():
+                min_height = self.coins_page.minimum_height_sb.value()
+            max_height = None
+            if self.coins_page.filter_by_max_height_cb.isChecked():
+                max_height = self.coins_page.maximum_height_sb.value()
+
             self.worker = ConsolidateWorker(
                 self.address,
                 self.wallet,
@@ -149,10 +163,10 @@ class ConsolidateCoinsWizard(QtWidgets.QWizard):
                 self.coins_page.include_non_coinbase_cb.isChecked(),
                 self.coins_page.include_frozen_cb.isChecked(),
                 self.coins_page.include_slp_cb.isChecked(),
-                self.coins_page.get_minimum_value(),
-                self.coins_page.get_maximum_value(),
-                self.coins_page.minimum_height_sb.value(),
-                self.coins_page.maximum_height_sb.value(),
+                min_value,
+                max_value,
+                min_height,
+                max_height,
                 self.output_page.get_output_address(),
                 self.output_page.tx_size_sb.value(),
             )
@@ -245,7 +259,7 @@ class CoinSelectionPage(QtWidgets.QWizardPage):
         )
 
         self.maximum_height_sb = BlockHeightSpinBox()
-        self.maximum_height_sb.setValue(1_000_000)
+        self.maximum_height_sb.setValue(10_000_000)
         self.maximum_height_sb.valueChanged.connect(self.on_min_or_max_height_changed)
         self.filter_by_max_height_cb = self.add_filter_by_value_line(
             "Maximum block height", self.maximum_height_sb
