@@ -86,11 +86,6 @@ class ASERTDaa:
     # If left as none, blockchain.py will calculate this at runtime as we read headers.
     anchor: Optional[Anchor] = None
 
-    def __init__(self, is_testnet=False):
-        if is_testnet:
-            # From ASERT spec, testnet has 1 hour half-life
-            self.HALF_LIFE = 3600
-
     @staticmethod
     def bits_to_target(bits: int) -> int:
         return bits_to_target(bits)

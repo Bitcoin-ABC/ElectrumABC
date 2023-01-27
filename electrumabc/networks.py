@@ -93,7 +93,7 @@ class MainNet(AbstractNet):
         "33dc6713c2fc5613a4524f1b0039c755e32169e8cec177b41389ebf0b4c07b04"
     )
     VERIFICATION_BLOCK_HEIGHT = 713661
-    asert_daa = ASERTDaa(is_testnet=False)
+    asert_daa = ASERTDaa()
     # Note: We *must* specify the anchor if the checkpoint is after the anchor, due to
     # the way blockchain.py skips headers after the checkpoint.  So all instances that
     # have a checkpoint after the anchor must specify the anchor as well.
@@ -163,7 +163,7 @@ class RegtestNet(TestNet):
 
     VERIFICATION_BLOCK_HEIGHT = 100
     VERIFICATION_BLOCK_MERKLE_ROOT = None
-    asert_daa = ASERTDaa(is_testnet=True)  # not used on regtest
+    asert_daa = ASERTDaa()  # not used on regtest
 
     # DO NOT MODIFY IN CLIENT CODE
     DEFAULT_SERVERS = _read_json_dict("servers_regtest.json")
