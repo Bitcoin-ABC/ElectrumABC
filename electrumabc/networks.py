@@ -112,7 +112,6 @@ class MainNet(AbstractNet):
 
 class TestNet(AbstractNet):
     TESTNET = True
-    asert_daa = ASERTDaa()
 
     WIF_PREFIX = 0xEF
     ADDRTYPE_P2PKH = 111
@@ -138,6 +137,8 @@ class TestNet(AbstractNet):
         "3f8ec0f193d3213a23812e688309a8547da64b48d424dd122bd930c5f061148b"
     )
     VERIFICATION_BLOCK_HEIGHT = 1477500
+    asert_daa = ASERTDaa()
+    asert_daa.anchor = Anchor(height=1421481, bits=486604799, prev_time=1605445400)
 
     # Version numbers for BIP32 extended keys
     # standard: tprv, tpub
