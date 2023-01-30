@@ -22,6 +22,18 @@ transactions as expected.
 
 # Release notes
 
+## Release 5.2.1
+
+- Set `version=2` for transactions (#267).
+- Set `locktime=0` for transactions (#269).
+- Randomize transaction inputs and outputs (#272).
+- Fix plugin selection dialog broken by renaming of python packages
+  in the previous release (#266).
+- Fix disabling of block height selection in the address consolidation
+  tool for testnet (#270).
+- Hardcode the ASERT DAA anchor for testnet to fix a regression affecting
+  users who don't already have all necessary pre-checkpoint headers (#271).
+
 ## Release 5.2.0
 
 - Show selected amount in the status bar when selecting coins or addresses (#256).
