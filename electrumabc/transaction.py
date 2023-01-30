@@ -24,6 +24,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import hashlib
+import random
 import struct
 import warnings
 from typing import Optional, Tuple, Union
@@ -780,10 +781,9 @@ class Transaction:
             s += bitcoin.int_to_hex(txin["value"], 8)
         return s
 
-    def BIP_LI01_sort(self):
-        # See https://github.com/kristovatlas/rfc/blob/master/bips/bip-li01.mediawiki
-        self._inputs.sort(key=lambda i: (i["prevout_hash"], i["prevout_n"]))
-        self._outputs.sort(key=lambda o: (o[2], self.pay_script(o[1])))
+    def shuffle_inputs_outputs(self):
+        random.shuffle(self._inputs)
+        random.shuffle(self._outputs)
 
     def serialize_output(self, output):
         output_type, addr, amount = output
