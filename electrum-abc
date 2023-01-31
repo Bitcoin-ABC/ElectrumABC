@@ -299,6 +299,11 @@ def init_cmdline(config_options: dict, server):
             raise NotImplementedError("CLI functionality of encrypted hw wallets")
         if config.get("password"):
             password = config.get("password")
+        elif "wallet_password" in config_options:
+            print_msg(
+                'Warning: unlocking wallet with commandline argument "--walletpassword"'
+            )
+            password = config_options["wallet_password"]
         else:
             password = prompt_password()
             if not password:
