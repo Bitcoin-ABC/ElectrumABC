@@ -402,7 +402,7 @@ class TrezorPlugin(HWPluginBase):
         client = self.get_client(keystore)
         inputs = self.tx_inputs(tx, xpub_path, True)
         outputs = self.tx_outputs(keystore.get_derivation(), tx, client)
-        details = SignTx(lock_time=tx.locktime)
+        details = SignTx(lock_time=tx.locktime, version=tx.version)
         signatures, signed_tx = client.sign_tx(
             self.get_coin_name(), inputs, outputs, details=details, prev_txes=prev_tx
         )
