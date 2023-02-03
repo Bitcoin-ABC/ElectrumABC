@@ -22,6 +22,11 @@ transactions as expected.
 
 # Release notes
 
+## Release 5.2.2
+
+- Fix support for transaction `version=2` on hardware wallets (#275).
+
+
 ## Release 5.2.1
 
 - Set `version=2` for transactions (#267).
@@ -33,6 +38,7 @@ transactions as expected.
   tool for testnet (#270).
 - Hardcode the ASERT DAA anchor for testnet to fix a regression affecting
   users who don't already have all necessary pre-checkpoint headers (#271).
+
 
 ## Release 5.2.0
 
