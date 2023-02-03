@@ -618,11 +618,16 @@ class LedgerKeyStore(HardwareKeyStore):
                     inputIndex,
                     chipInputs,
                     redeemScripts[inputIndex],
+                    version=tx.version,
                     cashAddr=True,
                 )
             else:
                 client_ledger.startUntrustedTransaction(
-                    True, inputIndex, chipInputs, redeemScripts[inputIndex]
+                    True,
+                    inputIndex,
+                    chipInputs,
+                    redeemScripts[inputIndex],
+                    version=tx.version,
                 )
             # we don't set meaningful outputAddress, amount and fees
             # as we only care about the alternateEncoding==True branch
@@ -647,11 +652,20 @@ class LedgerKeyStore(HardwareKeyStore):
                 singleInput = [chipInputs[inputIndex]]
                 if cashaddr and client_electrum.supports_cashaddr():
                     client_ledger.startUntrustedTransaction(
-                        False, 0, singleInput, redeemScripts[inputIndex], cashAddr=True
+                        False,
+                        0,
+                        singleInput,
+                        redeemScripts[inputIndex],
+                        version=tx.version,
+                        cashAddr=True,
                     )
                 else:
                     client_ledger.startUntrustedTransaction(
-                        False, 0, singleInput, redeemScripts[inputIndex]
+                        False,
+                        0,
+                        singleInput,
+                        redeemScripts[inputIndex],
+                        version=tx.version,
                     )
                 inputSignature = client_ledger.untrustedHashSign(
                     inputsPaths[inputIndex], pin, lockTime=tx.locktime, sighashType=0x41
