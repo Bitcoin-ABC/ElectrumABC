@@ -21,29 +21,29 @@ for p in sys.stdin.read().split():
     p = p.strip()
     if not p:
         continue
-    assert (
-        "==" in p
-    ), "This script expects a list of packages with pinned version, e.g. package==1.2.3, not {}".format(
-        p
+    assert "==" in p, (
+        "This script expects a list of packages with pinned version, e.g. "
+        f"package==1.2.3, not {p}"
     )
     p, v = p.rsplit("==", 1)
     try:
-        data = requests.get("https://pypi.org/pypi/{}/{}/json".format(p, v)).json()[
-            "info"
-        ]
+        data = requests.get(f"https://pypi.org/pypi/{p}/{v}/json").json()["info"]
     except ValueError:
         raise Exception("Package could not be found: {}=={}".format(p, v))
     try:
-        for r in data["requires_dist"]:
+        for r in data["requires_dist"]:  # type: str
             if ";" not in r:
                 continue
-            d, restricted = r.split(";", 1)
-            if check_restriction(d, restricted):
-                print(d, sep=" ")
+            # example value for "r" at this point: "pefile (>=2017.8.1) ; sys_platform == \"win32\""
+            dep, restricted = r.split(";", 1)
+            dep = dep.strip()
+            restricted = restricted.strip()
+            dep_basename = dep.split(" ")[0]
+            if check_restriction(dep, restricted):
+                print(dep_basename, sep=" ")
                 print(
-                    "Installing {} from {} although it is only needed for {}".format(
-                        d, p, restricted
-                    ),
+                    f"Installing {dep} from {p} although it is only needed for "
+                    f"{restricted}",
                     file=sys.stderr,
                 )
     except TypeError:
