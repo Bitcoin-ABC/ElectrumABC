@@ -41,14 +41,16 @@ from ..printerror import PrintError, is_verbose
 from ..simple_config import SimpleConfig
 from ..utils import Event
 
-# Python 3.10 workaround for stem package which is using collections.Iterable (removed in 3.10)
+# Python 3.10 workaround for stem package which is using collections.Iterable
+# (removed in 3.10)
 if sys.version_info >= (3, 10):
     if hasattr(stem, "__version__") and version.parse_package_version(stem.__version__)[
         :2
     ] <= (1, 8):
         import collections.abc
 
-        # monkey-patch collections.Iterable back since stem.control expects to see this name
+        # monkey-patch collections.Iterable back since stem.control expects to see
+        # this name
         stem.control.collections.Iterable = collections.abc.Iterable
 
 
@@ -147,9 +149,8 @@ class TorController(PrintError):
 
     # If a log string matches any of the included regex it is ignored
     _ignored_res = [
-        re.compile(
-            r".*This port is not an HTTP proxy.*"
-        ),  # This is caused by the network dialog TorDetector
+        # This is caused by the network dialog TorDetector
+        re.compile(r".*This port is not an HTTP proxy.*"),
     ]
 
     def _tor_msg_handler(self, message: str):
@@ -192,9 +193,8 @@ class TorController(PrintError):
             if hasattr(subprocess, "CREATE_NO_WINDOW"):
                 kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
             else:
-                kwargs[
-                    "creationflags"
-                ] = 0x08000000  # CREATE_NO_WINDOW, for < Python 3.7
+                # CREATE_NO_WINDOW, for < Python 3.7
+                kwargs["creationflags"] = 0x08000000
         kwargs["start_new_session"] = True
         return TorController._orig_subprocess_popen(*args, **kwargs)
 
@@ -248,7 +248,8 @@ class TorController(PrintError):
             subprocess.Popen = TorController._popen_monkey_patch
             self._tor_process = stem.process.launch_tor_with_config(
                 tor_cmd=self.tor_binary,
-                completion_percent=0,  # We will monitor the bootstrap status
+                # We will monitor the bootstrap status
+                completion_percent=0,
                 init_msg_handler=self._tor_msg_handler,
                 take_ownership=True,
                 close_output=False,
@@ -351,7 +352,8 @@ class TorController(PrintError):
             return False
         if port is None:
             return False
-        if port != 0:  # Port 0 is automatic
+        # Port 0 is automatic
+        if port != 0:
             if port < 1024 or port > 65535:
                 return False
         return True
