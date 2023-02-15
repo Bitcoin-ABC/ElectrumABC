@@ -93,16 +93,15 @@ class TorController(PrintError):
         INTEGRATED = 1
         SYSTEM = 2
 
-    _config: SimpleConfig = None
-    _tor_process: subprocess.Popen = None
-    _tor_read_thread: threading.Thread = None
-    _tor_controller: stem.control.Controller = None
+    _tor_process: Optional[subprocess.Popen] = None
+    _tor_read_thread: Optional[threading.Thread] = None
+    _tor_controller: Optional[stem.control.Controller] = None
 
-    status = Status.STOPPED
+    status: Status = Status.STOPPED
     status_changed = Event()
 
-    active_socks_port: int = None
-    active_control_port: int = None
+    active_socks_port: Optional[int] = None
+    active_control_port: Optional[int] = None
     active_port_changed = Event()
 
     tor_binary: str
@@ -112,7 +111,7 @@ class TorController(PrintError):
         if not config:
             raise AssertionError("TorController: config must be set")
 
-        self._config = config
+        self._config: SimpleConfig = config
 
         if not self.detect_tor() and self.is_enabled():
             self.print_error("Tor enabled but no usable Tor binary found, disabling")
@@ -199,7 +198,7 @@ class TorController(PrintError):
         return TorController._orig_subprocess_popen(*args, **kwargs)
 
     @staticmethod
-    def _get_tor_binary() -> Tuple[Optional[str], BinaryType]:
+    def _get_tor_binary() -> Tuple[str, BinaryType]:
         # Try to locate a bundled tor binary
         if sys.platform in ("windows", "win32"):
             res = os.path.join(os.path.dirname(__file__), "..", "..", "tor.exe")
@@ -213,7 +212,7 @@ class TorController(PrintError):
         if res and os.path.isfile(res):
             return res, TorController.BinaryType.SYSTEM
 
-        return None, TorController.BinaryType.MISSING
+        return "", TorController.BinaryType.MISSING
 
     def detect_tor(self) -> bool:
         path, bintype = self._get_tor_binary()
@@ -225,7 +224,7 @@ class TorController(PrintError):
         return self.tor_binary_type != TorController.BinaryType.MISSING
 
     def start(self):
-        if self._tor_process:
+        if self._tor_process is not None:
             # Tor is already running
             return
 
@@ -297,7 +296,7 @@ class TorController(PrintError):
         )
 
     def stop(self):
-        if not self._tor_process:
+        if self._tor_process is None:
             # Tor is not running
             return
 
@@ -308,13 +307,13 @@ class TorController(PrintError):
         self.active_control_port = None
         self.active_port_changed(self)
 
-        if self._tor_controller:
+        if self._tor_controller is not None:
             # tell tor to shut down
             self._tor_controller.signal(stem.Signal.HALT)  # pylint: disable=no-member
             self._tor_controller.close()
             self._tor_controller = None
 
-        if self._tor_process:
+        if self._tor_process is not None:
             try:
                 try:
                     self._tor_process.wait(1.0)
@@ -327,7 +326,7 @@ class TorController(PrintError):
                 self.print_exception("Failed to terminate Tor process")
             self._tor_process = None
 
-        if self._tor_read_thread:
+        if self._tor_read_thread is not None:
             self._tor_read_thread.join()
             self._tor_read_thread = None
 
