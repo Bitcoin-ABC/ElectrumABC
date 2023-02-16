@@ -193,7 +193,7 @@ info "Making locale..."
 python3 ./contrib/make_locale || fail "Failed to make locale..."
 
 info "Downloading libusb..."
-curl -L https://github.com/PiRK/Electron-Cash-Build-Tools/releases/download/v1.0/libusb-1.0.21.el_capitan.bottle.tar.gz | \
+curl -L https://github.com/PiRK/Electrum-ABC-Build-Tools/releases/download/v1.0/libusb-1.0.21.el_capitan.bottle.tar.gz | \
     tar xz --directory $BUILDDIR || fail "Could not download libusb"
 verify_hash $BUILDDIR/libusb/1.0.21/lib/libusb-1.0.dylib d147e7382dfa676d93e8b17d160d50f68e4b01f58f3647c90a8899a7a0519ca3  # this exits on failure
 cp -fp $BUILDDIR/libusb/1.0.21/lib/libusb-1.0.dylib contrib/osx || fail "Could not copy libusb"
