@@ -37,6 +37,7 @@ from __future__ import annotations
 import argparse
 import getpass
 import logging
+import multiprocessing
 import os
 import sys
 import threading
@@ -607,4 +608,9 @@ def main():
 
 
 if __name__ == "__main__":
+    # freeze_support() is needed to use multiprocessing with frozen app on MacOS
+    # and Windows
+    # See https://github.com/pyinstaller/pyinstaller/issues/4865
+    # and https://docs.python.org/3/library/multiprocessing.html#multiprocessing.freeze_support
+    multiprocessing.freeze_support()
     main()
