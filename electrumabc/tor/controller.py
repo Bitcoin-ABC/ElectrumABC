@@ -90,8 +90,7 @@ class TorController(PrintError):
     @unique
     class BinaryType(IntEnum):
         MISSING = 0
-        INTEGRATED = 1
-        SYSTEM = 2
+        SYSTEM = 1
 
     _tor_process: Optional[subprocess.Popen] = None
     _tor_read_thread: Optional[threading.Thread] = None
@@ -199,15 +198,7 @@ class TorController(PrintError):
 
     @staticmethod
     def _get_tor_binary() -> Tuple[str, BinaryType]:
-        # Try to locate a bundled tor binary
-        if sys.platform in ("windows", "win32"):
-            res = os.path.join(os.path.dirname(__file__), "..", "..", "tor.exe")
-        else:
-            res = os.path.join(os.path.dirname(__file__), "bin", "tor")
-        if os.path.isfile(res):
-            return res, TorController.BinaryType.INTEGRATED
-
-        # Tor is not packaged / built, try to locate a system tor
+        # Try to locate a system tor
         res = shutil.which("tor")
         if res and os.path.isfile(res):
             return res, TorController.BinaryType.SYSTEM

@@ -223,9 +223,6 @@ make -j4 || fail "Could not build secp256k1"
 popd_pkg
 cp -fp contrib/build/secp256k1/.libs/libsecp256k1.0.dylib contrib/osx || fail "Could not copy secp256k1 binary to its destination"
 
-info "Building integrated Tor"
-contrib/make_zlib && contrib/make_libevent && contrib/make_openssl && contrib/make_tor || fail "Could not build Tor"
-
 info "Installing requirements..."
 python3 -m pip install -r ./contrib/deterministic-build/requirements.txt --user || fail "Could not install requirements"
 python3 -m pip install -r ./contrib/deterministic-build/requirements-binaries.txt --user || fail "Could not install binary requirements"
@@ -247,8 +244,6 @@ TMPPACKAGE="Electrum-ABC"
 ELECTRUM_VERSION=$VERSION pyinstaller --clean --noconfirm --ascii contrib/osx/osx.spec || fail "Could not build binary"
 mv dist/$TMPPACKAGE.app dist/$PACKAGE.app
 
-# Sign the Tor binary separately
-DoCodeSignMaybe "tor binary" "dist/${PACKAGE}.app/Contents/MacOS/electrumabc/tor/bin/tor" "$APP_SIGN"
 # Finally, codesign the whole thing
 DoCodeSignMaybe ".app bundle" "dist/${PACKAGE}.app" "$APP_SIGN"
 

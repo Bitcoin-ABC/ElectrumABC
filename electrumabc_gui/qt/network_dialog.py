@@ -874,7 +874,6 @@ class NetworkChoiceLayout(QObject, PrintError):
     _tor_client_names = {
         TorController.BinaryType.MISSING: _("Tor"),
         TorController.BinaryType.SYSTEM: _("system Tor"),
-        TorController.BinaryType.INTEGRATED: _("integrated Tor"),
     }
 
     def update_tor_enabled(self, *args):

@@ -45,7 +45,7 @@ mkdir -p /tmp/electrum-build
 
 (
     cd "$PROJECT_ROOT"
-    for pkg in secp zbar openssl libevent zlib tor ; do
+    for pkg in secp zbar ; do
         "$here"/../make_$pkg || fail "Could not build $pkg"
     done
 )
@@ -184,7 +184,6 @@ prepare_wine() {
         mkdir -p "$WINEPREFIX"/drive_c/tmp
         cp "$here"/../../electrumabc/*.dll "$WINEPREFIX"/drive_c/tmp/ || fail "Could not copy libraries to their destination"
         cp libusb/libusb/.libs/libusb-1.0.dll "$WINEPREFIX"/drive_c/tmp/ || fail "Could not copy libusb to its destination"
-        cp "$here"/../../electrumabc/tor/bin/tor.exe "$WINEPREFIX"/drive_c/tmp/ || fail "Could not copy tor.exe to its destination"
 
         popd  # out of homedir/tmp
         popd  # out of $here

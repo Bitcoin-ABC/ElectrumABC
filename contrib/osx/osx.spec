@@ -48,8 +48,6 @@ binaries = [(home + "contrib/osx/libusb-1.0.dylib", ".")]
 binaries += [(home + "contrib/osx/libsecp256k1.0.dylib", ".")]
 # LibZBar for QR code scanning
 binaries += [(home + "contrib/osx/libzbar.0.dylib", ".")]
-# Add Tor binary
-binaries += [(home + "electrumabc/tor/bin/tor", "electrumabc/tor/bin")]
 
 # Workaround for "Retro Look":
 binaries += [b for b in collect_dynamic_libs('PyQt5') if 'macstyle' in b[0]]
