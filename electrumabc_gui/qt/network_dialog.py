@@ -706,9 +706,25 @@ class NetworkChoiceLayout(QObject, PrintError):
             UserPortValidator(self.tor_socks_port, accept_zero=True)
         )
 
+        self.dl_tor_button = QtWidgets.QPushButton(_("Download Tor"))
+        self.dl_tor_button.clicked.connect(self._show_download_tor_dialog)
+        self.dl_tor_help = HelpButton(
+            _("Download a compiled Tor executable.")
+            + "\n\n"
+            + _(
+                f"A Tor executable is provided by {PROJECT_NAME} for convenience, if "
+                "you don't know how to install Tor on your operating system. Linux "
+                "users are advised to install Tor via their package manager instead."
+            )
+            + "\n\n"
+            + _(f"Restart {PROJECT_NAME} after the download is complete.")
+        )
+
         self.update_tor_enabled()
 
         # Start Tor
+        grid.addWidget(self.dl_tor_button, 0, 1, 1, 2)
+        grid.addWidget(self.dl_tor_help, 0, 4)
         grid.addWidget(self.tor_enabled, 1, 0, 1, 2)
         grid.addWidget(self.tor_enabled_help, 1, 4)
         # Custom Tor port
@@ -880,6 +896,10 @@ class NetworkChoiceLayout(QObject, PrintError):
     def update_tor_enabled(self, *args):
         tbt = self.network.tor_controller.tor_binary_type
         tbname = self._tor_client_names[tbt]
+        available = tbt != TorController.BinaryType.MISSING
+
+        self.dl_tor_button.setVisible(not available)
+        self.dl_tor_help.setVisible(not available)
 
         self.tor_enabled.setText(
             _("Start {tor_binary_name} client").format(
@@ -887,7 +907,6 @@ class NetworkChoiceLayout(QObject, PrintError):
                 tor_binary_name_capitalized=tbname[:1].upper() + tbname[1:],
             )
         )
-        available = tbt != TorController.BinaryType.MISSING
         self.tor_enabled.setEnabled(available)
         self.tor_custom_port_cb.setEnabled(available and self.tor_enabled.isChecked())
         self.tor_socks_port.setEnabled(
@@ -1354,6 +1373,9 @@ class NetworkChoiceLayout(QObject, PrintError):
             self.update()
             return True
         return False
+
+    def _show_download_tor_dialog(self):
+        print("TODO: implement download tor dialog")
 
 
 class TorDetector(QThread):
