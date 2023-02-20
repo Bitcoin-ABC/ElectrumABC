@@ -91,6 +91,7 @@ class TorController(PrintError):
     class BinaryType(IntEnum):
         MISSING = 0
         SYSTEM = 1
+        DOWNLOADED = 2
 
     _tor_process: Optional[subprocess.Popen] = None
     _tor_read_thread: Optional[threading.Thread] = None
@@ -196,12 +197,16 @@ class TorController(PrintError):
         kwargs["start_new_session"] = True
         return TorController._orig_subprocess_popen(*args, **kwargs)
 
-    @staticmethod
-    def _get_tor_binary() -> Tuple[str, BinaryType]:
+    def _get_tor_binary(self) -> Tuple[str, BinaryType]:
         # Try to locate a system tor
         res = shutil.which("tor")
         if res and os.path.isfile(res):
             return res, TorController.BinaryType.SYSTEM
+
+        # Use the automatically downloaded tor
+        res = self._config.get("downloaded_tor_path")
+        if res and os.path.isfile(res):
+            return res, TorController.BinaryType.DOWNLOADED
 
         return "", TorController.BinaryType.MISSING
 
