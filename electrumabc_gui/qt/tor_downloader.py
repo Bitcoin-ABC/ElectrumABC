@@ -22,10 +22,55 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
 
+import hashlib
 import multiprocessing
+import os
+import stat
+import sys
+from typing import TYPE_CHECKING
 
 import requests
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import Qt, QTimer
+
+from electrumabc.i18n import _
+from electrumabc.util import get_user_dir
+
+if TYPE_CHECKING:
+    from electrumabc.simple_config import SimpleConfig
+
+# dict keys are sys.platform string
+TOR_BINARY_URLS = {
+    "linux": "https://github.com/PiRK/Electrum-ABC-Build-Tools/releases/download/v1.0/tor-linux",
+    "win32": "https://github.com/PiRK/Electrum-ABC-Build-Tools/releases/download/v1.0/tor.exe",
+    "darwin": "https://github.com/PiRK/Electrum-ABC-Build-Tools/releases/download/v1.0/tor-macos",
+}
+TOR_BINARY_URL = TOR_BINARY_URLS.get(sys.platform)
+
+
+TOR_BINARY_NAMES = {
+    "linux": "tor",
+    "win32": "tor.exe",
+    "darwin": "tor",
+}
+DOWNLOAD_DIR = os.path.join(get_user_dir(), "tor")
+os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+TOR_BINARY_PATH = None
+if sys.platform in TOR_BINARY_URLS:
+    TOR_BINARY_PATH = os.path.join(DOWNLOAD_DIR, TOR_BINARY_NAMES[sys.platform])
+
+TOR_BINARY_SHA256S = {
+    "linux": "f88b318a72a8b1f7b4c6fb288887d9f7f44b731596399ae658074b1b7b4f9fb1",
+    "win32": "e3ec0b9ed4e22149751309916483e2ef7cfd90d1c864c8dc6709d36cd0cb404b",
+    "darwin": "804c30e3837793d800f82361ed2c240859fba26cdb1cb5c895691dfca2b4571d",
+}
+TOR_BINARY_SHA256 = TOR_BINARY_SHA256S[sys.platform]
+
+WRONG_CHECKSUM_MSG = "@wrong sha256sum@"
+FAILED_TO_SAVE_MSG = "@failed to save file@"
+FINISHED_MSG = "@finished@"
 
 
 class Downloader:
@@ -42,58 +87,137 @@ class Downloader:
       - "@HTTP status@ {status code} {reason}"
         (e.g "@HTTP status@ 200 OK")
       - "@content size@ {size in bytes}"
-      - "@finished@"
+      - "@failed to save file@ {error message}"   (failure)
+      - "@wrong sha256sum@ {expected} {actual}"   (failure)
+      - "@finished@"   (success)
     """
 
-    def __init__(self, url: str, filename: str):
+    def __init__(
+        self,
+        url: str,
+        filename: str,
+        make_executable: bool = False,
+        sha256sum: str = "",
+    ):
         self.url = url
         self.filename = filename
+        self.make_executable = make_executable
+        self.expected_sha256sum = sha256sum
 
         self.queue = multiprocessing.Queue()
 
     def run_download(self):
         self.queue.put("@started@")
-        r = requests.get(url)
+        r = requests.get(self.url)
         self.queue.put(f"@HTTP status@ {r.status_code} {r.reason}")
         self.queue.put(f"@content size@ {len(r.content)}")
-        with open(self.filename, "wb") as f:
-            f.write(r.content)
-        self.queue.put("@finished@")
+        if self.expected_sha256sum:
+            actual_sha256sum = hashlib.sha256(r.content).hexdigest()
+            if self.expected_sha256sum != actual_sha256sum:
+                self.queue.put(
+                    f"{WRONG_CHECKSUM_MSG} {self.expected_sha256sum} {actual_sha256sum}"
+                )
+                return
+        try:
+            with open(self.filename, "wb") as f:
+                f.write(r.content)
+            if self.make_executable:
+                st = os.stat(self.filename)
+                os.chmod(self.filename, st.st_mode | stat.S_IEXEC)
+        except OSError as e:
+            self.queue.put(f"{FAILED_TO_SAVE_MSG} {e}")
+        else:
+            self.queue.put(FINISHED_MSG)
 
 
-if __name__ == "__main__":
-    # Code sample to better document the API
-    import os
-    import sys
-    from pathlib import Path
+class DownloadTorDialog(QtWidgets.QDialog):
+    def __init__(self, config: SimpleConfig, parent=None):
+        self.config = config
 
-    from PyQt5.QtCore import QTimer
-    from PyQt5.QtWidgets import QApplication
+        super().__init__(parent)
+        self.setWindowTitle("Tor downloader")
+        self.setMinimumWidth(650)
+        self.setMinimumHeight(200)
 
-    url = sys.argv[1]
-    fname = sys.argv[2]
+        layout = QtWidgets.QVBoxLayout()
+        self.setLayout(layout)
 
-    dl_path = os.path.join(str(Path.home()), "test_dl")
-    os.makedirs(dl_path, exist_ok=True)
-    app = QApplication([])
+        self.label = QtWidgets.QLabel(_("Downloading Tor..."))
+        layout.addWidget(self.label)
 
-    downloader = Downloader(url, os.path.join(dl_path, fname))
-    process = multiprocessing.Process(target=downloader.run_download)
+        buttons_layout = QtWidgets.QHBoxLayout()
+        layout.addLayout(buttons_layout)
+        self.ok_button = QtWidgets.QPushButton("OK")
+        self.ok_button.setVisible(False)
+        buttons_layout.addWidget(self.ok_button)
+        self.cancel_button = QtWidgets.QPushButton("Cancel")
+        buttons_layout.addWidget(self.cancel_button)
 
-    timer = QTimer()
+        if TOR_BINARY_PATH is None or TOR_BINARY_URL is None:
+            raise NotImplementedError(
+                f"No Tor binary available for platform {sys.platform}."
+            )
+        self.downloader = Downloader(
+            TOR_BINARY_URL,
+            TOR_BINARY_PATH,
+            make_executable=True,
+            sha256sum=TOR_BINARY_SHA256,
+        )
+        self.download_process = multiprocessing.Process(
+            target=self.downloader.run_download
+        )
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.read_queue)
 
-    def read_queue():
-        while not downloader.queue.empty():
-            msg = downloader.queue.get()
-            print(msg)
-            if msg == "@finished@":
-                timer.stop()
+        self.ok_button.clicked.connect(self.accept)
+        self.cancel_button.clicked.connect(self.reject)
 
-    timer.timeout.connect(read_queue)
-    timer.timeout.connect(lambda: print("."))
+        self.start_download()
 
-    process.start()
-    # Read the queue every second
-    timer.start(1000)
+    def start_download(self):
+        QtWidgets.QApplication.setOverrideCursor(Qt.WaitCursor)
+        self.download_process.start()
+        self.timer.start(1000)
 
-    app.exec_()
+    def read_queue(self):
+        while not self.downloader.queue.empty():
+            msg = self.downloader.queue.get()
+            error = "<b>Error:</b> "
+            if msg.startswith(FAILED_TO_SAVE_MSG):
+                error += "Failed to save file<br><br>"
+                error += f"{msg[len(FAILED_TO_SAVE_MSG) + 1:]}"
+                self.on_error(error)
+            if msg.startswith(WRONG_CHECKSUM_MSG):
+                expected, actual = msg[len(WRONG_CHECKSUM_MSG) + 1 :].split()
+                error += (
+                    f"Download failed: File has wrong checksum<br>"
+                    f"<br>Expected sha256sum:<br>    {expected}"
+                    f"<br>Actual sha256sum:<br>    {actual}"
+                )
+                self.on_error(error)
+            if msg == FINISHED_MSG:
+                self.on_download_complete()
+
+    def on_download_complete(self):
+        self.config.set_key("downloaded_tor_path", TOR_BINARY_PATH)
+        self.timer.stop()
+        QtWidgets.QApplication.restoreOverrideCursor()
+        self.label.setText(
+            _("Tor was successfully downloaded and saved to")
+            + f"\n{TOR_BINARY_PATH}\n\n"
+            + _("You need to restart Electrum ABC to use it.")
+        )
+        self.cancel_button.setVisible(False)
+        self.ok_button.setVisible(True)
+
+    def on_error(self, error: str):
+        self.label.setText(error)
+        self.timer.stop()
+        self.cancel_button.setText("Quit")
+        QtWidgets.QApplication.restoreOverrideCursor()
+
+    def reject(self):
+        self.timer.stop()
+        self.download_process.kill()
+        QtWidgets.QApplication.restoreOverrideCursor()
+        super().reject()

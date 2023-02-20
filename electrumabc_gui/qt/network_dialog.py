@@ -49,6 +49,7 @@ from electrumabc.printerror import PrintError, print_error
 from electrumabc.tor import TorController
 from electrumabc.util import Weak, in_main_thread
 
+from .tor_downloader import DownloadTorDialog
 from .util import (
     Buttons,
     CloseButton,
@@ -1375,7 +1376,8 @@ class NetworkChoiceLayout(QObject, PrintError):
         return False
 
     def _show_download_tor_dialog(self):
-        print("TODO: implement download tor dialog")
+        dialog = DownloadTorDialog(self.config, self.parent())
+        dialog.exec_()
 
 
 class TorDetector(QThread):
