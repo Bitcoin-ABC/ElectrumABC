@@ -38,12 +38,14 @@ from PyQt5.QtGui import QCursor, QIcon, QImage, QPainter
 from electrumabc.address import Address
 from electrumabc.i18n import _, ngettext
 from electrumabc.plugins import hook, run_hook
+from electrumabc.tor.controller import TorController
 from electrumabc.util import InvalidPassword, do_in_main_thread, inv_dict
 from electrumabc.wallet import AbstractWallet
 from electrumabc_gui.qt.amountedit import XECAmountEdit
 from electrumabc_gui.qt.main_window import ElectrumWindow
 from electrumabc_gui.qt.popup_widget import KillPopupLabel, ShowPopupLabel
 from electrumabc_gui.qt.statusbar import StatusBarButton
+from electrumabc_gui.qt.tor_downloader import DownloadTorDialog
 from electrumabc_gui.qt.util import (
     Buttons,
     CancelButton,
@@ -681,6 +683,26 @@ class Plugin(FusionPlugin, QObject):
 
     _integrated_tor_timer = None
 
+    def _maybe_download_tor(self, window: ElectrumWindow):
+        icon_pm = get_icon_fusion_logo().pixmap(32)
+        answer = window.question(
+            _(
+                "CashFusion requires Tor to operate anonymously. Would you like to "
+                "download the Tor client now? Alternatively (preferably), you can "
+                "install Tor for Linux and MacOS using your system's package manager."
+            ),
+            icon=icon_pm,
+            title=_("Tor Required"),
+            parent=None,
+            app_modal=True,
+            rich_text=True,
+            defaultButton=QtWidgets.QMessageBox.Yes,
+        )
+        if not answer:
+            return
+        dialog = DownloadTorDialog(self.config, window)
+        dialog.exec_()
+
     def _maybe_prompt_user_if_they_want_integrated_tor_if_no_tor_found(
         self, wallet: AbstractWallet
     ):
@@ -693,6 +715,13 @@ class Plugin(FusionPlugin, QObject):
             # Something's wrong -- no window for wallet
             return
         network = self.gui.daemon.network
+
+        tbt = network.tor_controller.tor_binary_type
+        if tbt == TorController.BinaryType.MISSING:
+            self._maybe_download_tor(weak_window())
+            # We cannot do anything until the user installs or download Tor, then
+            # restarts Electrum ABC
+            return
 
         def chk_tor_ok():
             self: Optional[Plugin] = weak_self()
