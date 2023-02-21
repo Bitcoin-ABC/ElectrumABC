@@ -692,6 +692,7 @@ class Plugin(FusionPlugin, QObject):
         if not weak_window or not weak_window():
             # Something's wrong -- no window for wallet
             return
+        network = self.gui.daemon.network
 
         def chk_tor_ok():
             self: Optional[Plugin] = weak_self()
@@ -699,71 +700,74 @@ class Plugin(FusionPlugin, QObject):
                 return
             self._integrated_tor_timer = None  # kill QTimer reference
             window = weak_window()
+
             if (
-                window
-                and self.active
-                and self.gui
-                and self.gui.windows
-                and self.tor_port_good is None
+                not window
+                or not self.active
+                or not self.gui
+                or not self.gui.windows
+                or self.tor_port_good is not None
             ):
-                network = self.gui.daemon.network
-                if (
-                    network
-                    and network.tor_controller.is_available()
-                    and not network.tor_controller.is_enabled()
-                ):
-                    icon_pm = get_icon_fusion_logo().pixmap(32)
-                    answer = window.question(
-                        _(
-                            "CashFusion requires Tor to operate anonymously. Would"
-                            " you like to enable the Tor client now?"
+                return
+
+            if (
+                not network
+                or not network.tor_controller.is_available()
+                or network.tor_controller.is_enabled()
+            ):
+                return
+
+            icon_pm = get_icon_fusion_logo().pixmap(32)
+            answer = window.question(
+                _(
+                    "CashFusion requires Tor to operate anonymously. Would"
+                    " you like to enable the Tor client now?"
+                ),
+                icon=icon_pm,
+                title=_("Tor Required"),
+                parent=None,
+                app_modal=True,
+                rich_text=True,
+                defaultButton=QtWidgets.QMessageBox.Yes,
+            )
+            if not answer:
+                return
+
+            def on_status(controller):
+                try:
+                    network.tor_controller.status_changed.remove(
+                        on_status
+                    )  # remove the callback immediately
+                except ValueError:
+                    pass
+                if controller.status == controller.Status.STARTED:
+                    buttons = [_("Settings..."), _("Ok")]
+                    index = window.show_message(
+                        _("The Tor client has been successfully started."),
+                        detail_text=(
+                            _(
+                                "The Tor client can be stopped at any time from the Network Settings -> Proxy Tab"
+                                ", however CashFusion does require Tor in order to operate correctly."
+                            )
                         ),
                         icon=icon_pm,
-                        title=_("Tor Required"),
-                        parent=None,
-                        app_modal=True,
                         rich_text=True,
-                        defaultButton=QtWidgets.QMessageBox.Yes,
+                        buttons=buttons,
+                        defaultButton=buttons[1],
+                        escapeButton=buttons[1],
                     )
-                    if answer:
+                    if index == 0:
+                        # They want to go to "Settings..." so send
+                        # them to the Tor settings (in Proxy tab)
+                        self.gui.show_network_dialog(window, jumpto="tor")
+                else:
+                    controller.set_enabled(
+                        False
+                    )  # latch it back to False so we may prompt them again in the future
+                    window.show_error(_("There was an error starting the Tor client"))
 
-                        def on_status(controller):
-                            try:
-                                network.tor_controller.status_changed.remove(
-                                    on_status
-                                )  # remove the callback immediately
-                            except ValueError:
-                                pass
-                            if controller.status == controller.Status.STARTED:
-                                buttons = [_("Settings..."), _("Ok")]
-                                index = window.show_message(
-                                    _("The Tor client has been successfully started."),
-                                    detail_text=(
-                                        _(
-                                            "The Tor client can be stopped at any time from the Network Settings -> Proxy Tab"
-                                            ", however CashFusion does require Tor in order to operate correctly."
-                                        )
-                                    ),
-                                    icon=icon_pm,
-                                    rich_text=True,
-                                    buttons=buttons,
-                                    defaultButton=buttons[1],
-                                    escapeButton=buttons[1],
-                                )
-                                if index == 0:
-                                    # They want to go to "Settings..." so send
-                                    # them to the Tor settings (in Proxy tab)
-                                    self.gui.show_network_dialog(window, jumpto="tor")
-                            else:
-                                controller.set_enabled(
-                                    False
-                                )  # latch it back to False so we may prompt them again in the future
-                                window.show_error(
-                                    _("There was an error starting the Tor client")
-                                )
-
-                        network.tor_controller.status_changed.append(on_status)
-                        network.tor_controller.set_enabled(True)
+            network.tor_controller.status_changed.append(on_status)
+            network.tor_controller.set_enabled(True)
 
         self._integrated_tor_timer = t = QTimer()
         # if in 5 seconds no tor port, ask user if they want to enable the Tor
