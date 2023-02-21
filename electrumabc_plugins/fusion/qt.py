@@ -70,6 +70,7 @@ from .util import get_coin_name
 
 if TYPE_CHECKING:
     from electrumabc_gui.qt.address_list import AddressList
+    from electrumabc_gui.qt import ElectrumGui
 
 from pathlib import Path
 
@@ -110,7 +111,7 @@ class Plugin(FusionPlugin, QObject):
 
     fusions_win = None
     weak_settings_tab = None
-    gui = None
+    gui: Optional[ElectrumGui] = None
     initted = False
     last_server_status = (True, ("Ok", ""))
     _hide_history_txs = False
@@ -680,7 +681,9 @@ class Plugin(FusionPlugin, QObject):
 
     _integrated_tor_timer = None
 
-    def _maybe_prompt_user_if_they_want_integrated_tor_if_no_tor_found(self, wallet):
+    def _maybe_prompt_user_if_they_want_integrated_tor_if_no_tor_found(
+        self, wallet: AbstractWallet
+    ):
         if self._integrated_tor_timer:
             # timer already active or already prompted user
             return
@@ -691,7 +694,7 @@ class Plugin(FusionPlugin, QObject):
             return
 
         def chk_tor_ok():
-            self = weak_self()
+            self: Optional[Plugin] = weak_self()
             if not self:
                 return
             self._integrated_tor_timer = None  # kill QTimer reference

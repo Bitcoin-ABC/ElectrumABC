@@ -40,6 +40,7 @@ from electrumabc.constants import PROJECT_NAME
 from electrumabc.i18n import _, pgettext
 from electrumabc.interface import Interface
 from electrumabc.network import (
+    Network,
     deserialize_server,
     get_eligible_servers,
     serialize_server,
@@ -70,7 +71,7 @@ protocol_letters = "ts"
 class NetworkDialog(MessageBoxMixin, QtWidgets.QDialog):
     network_updated_signal = pyqtSignal()
 
-    def __init__(self, network, config):
+    def __init__(self, network: Network, config):
         QtWidgets.QDialog.__init__(self)
         self.setWindowTitle(_("Network"))
         self.setMinimumSize(500, 350)
@@ -455,7 +456,7 @@ class ServerListWidget(QtWidgets.QTreeWidget):
 
 
 class NetworkChoiceLayout(QObject, PrintError):
-    def __init__(self, parent, network, config, wizard=False):
+    def __init__(self, parent, network: Network, config, wizard=False):
         super().__init__(parent)
         self.network = network
         self.config = config
@@ -1383,7 +1384,7 @@ class NetworkChoiceLayout(QObject, PrintError):
 class TorDetector(QThread):
     found_proxy = pyqtSignal(object)
 
-    def __init__(self, parent, network):
+    def __init__(self, parent, network: Network):
         super().__init__(parent)
         self.network = network
         self.network.tor_controller.active_port_changed.append_weak(

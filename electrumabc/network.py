@@ -22,6 +22,7 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
 
 import errno
 import json
@@ -388,7 +389,7 @@ class Network(util.DaemonThread):
             super().__del__()
 
     @staticmethod
-    def get_instance():
+    def get_instance() -> Network:
         """Returns the extant Network singleton, if any, or None if in offline mode"""
         return Network.INSTANCE
 

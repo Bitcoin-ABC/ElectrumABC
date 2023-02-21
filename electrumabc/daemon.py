@@ -177,9 +177,8 @@ class Daemon(DaemonThread):
         self.plugins = plugins
         self.config = config
         self.listen_jsonrpc = listen_jsonrpc
-        if config.get("offline"):
-            self.network = None
-        else:
+        self.network: Optional[Network] = None
+        if not config.get("offline"):
             self.network = Network(config)
             self.network.start()
         self.fx = FxThread(config, self.network)

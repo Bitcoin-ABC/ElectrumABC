@@ -52,6 +52,7 @@ from typing import (
     Union,
     ValuesView,
 )
+from weakref import ref
 
 from . import (
     bitcoin,
@@ -108,6 +109,8 @@ from .verifier import SPV, SPVDelegate
 from .version import PACKAGE_VERSION
 
 if TYPE_CHECKING:
+    from electrumabc_gui.qt import ElectrumWindow
+
     from .simple_config import SimpleConfig
 
 
@@ -235,9 +238,9 @@ class AbstractWallet(PrintError, SPVDelegate):
         # verifier (SPV) and synchronizer are started in start_threads
         self.synchronizer = None
         self.verifier: Optional[SPV] = None
-        self.weak_window: Optional[
-            Synchronizer
-        ] = None  # Some of the GUI classes, such as the Qt ElectrumWindow, use this to refer back to themselves.  This should always be a weakref.ref (Weak.ref), or None
+        # Some of the GUI classes, such as the Qt ElectrumWindow, use this to refer
+        # back to themselves.  This should always be a weakref.ref (Weak.ref), or None
+        self.weak_window: Optional[ref[ElectrumWindow]] = None
         self.slp = slp.WalletData(self)
         finalization_print_error(self.slp)  # debug object lifecycle
 
