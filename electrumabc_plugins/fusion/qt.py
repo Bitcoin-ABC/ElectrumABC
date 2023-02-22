@@ -683,13 +683,20 @@ class Plugin(FusionPlugin, QObject):
 
     _integrated_tor_timer = None
 
-    def _maybe_download_tor(self, window: ElectrumWindow):
+    def _maybe_download_tor(
+        self, window: ElectrumWindow, tor_controller: TorController
+    ) -> bool:
+        """Ask the user if he wants to download Tor, then download it.
+        If the download was successful or Tor was installed with a package manager,
+        return True.
+        """
         icon_pm = get_icon_fusion_logo().pixmap(32)
         answer = window.question(
             _(
                 "CashFusion requires Tor to operate anonymously. Would you like to "
                 "download the Tor client now? Alternatively (preferably), you can "
-                "install Tor for Linux and MacOS using your system's package manager."
+                "install Tor for Linux and MacOS using your system's package manager "
+                "(in this case click the No button when installing is complete)."
             ),
             icon=icon_pm,
             title=_("Tor Required"),
@@ -698,10 +705,16 @@ class Plugin(FusionPlugin, QObject):
             rich_text=True,
             defaultButton=QtWidgets.QMessageBox.Yes,
         )
-        if not answer:
-            return
-        dialog = DownloadTorDialog(self.config, window)
-        dialog.exec_()
+        if answer:
+            dialog = DownloadTorDialog(self.config, window)
+            dialog.exec_()
+
+        # Check Tor availability no matter if the download succeeded, as the user
+        # could have installed Tor with his package manager while the question dialog
+        # was running.
+        if tor_controller.detect_tor():
+            return True
+        return False
 
     def _maybe_prompt_user_if_they_want_integrated_tor_if_no_tor_found(
         self, wallet: AbstractWallet
@@ -718,10 +731,9 @@ class Plugin(FusionPlugin, QObject):
 
         tbt = network.tor_controller.tor_binary_type
         if tbt == TorController.BinaryType.MISSING:
-            self._maybe_download_tor(weak_window())
-            # We cannot do anything until the user installs or download Tor, then
-            # restarts Electrum ABC
-            return
+            if not self._maybe_download_tor(weak_window(), network.tor_controller):
+                # Tor unavailable and download failed or cancelled
+                return
 
         def chk_tor_ok():
             self: Optional[Plugin] = weak_self()

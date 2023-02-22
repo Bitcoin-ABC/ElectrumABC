@@ -133,6 +133,7 @@ class Downloader:
 class DownloadTorDialog(QtWidgets.QDialog):
     def __init__(self, config: SimpleConfig, parent=None):
         self.config = config
+        self.was_download_successful = False
 
         super().__init__(parent)
         self.setWindowTitle("Tor downloader")
@@ -205,10 +206,10 @@ class DownloadTorDialog(QtWidgets.QDialog):
         self.label.setText(
             _("Tor was successfully downloaded and saved to")
             + f"\n{TOR_BINARY_PATH}\n\n"
-            + _("You need to restart Electrum ABC to use it.")
         )
         self.cancel_button.setVisible(False)
         self.ok_button.setVisible(True)
+        self.was_download_successful = True
 
     def on_error(self, error: str):
         self.label.setText(error)

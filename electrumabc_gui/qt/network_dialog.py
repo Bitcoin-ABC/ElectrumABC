@@ -718,8 +718,6 @@ class NetworkChoiceLayout(QObject, PrintError):
                 "you don't know how to install Tor on your operating system. Linux "
                 "users are advised to install Tor via their package manager instead."
             )
-            + "\n\n"
-            + _(f"Restart {PROJECT_NAME} after the download is complete.")
         )
 
         self.update_tor_enabled()
@@ -1379,6 +1377,9 @@ class NetworkChoiceLayout(QObject, PrintError):
     def _show_download_tor_dialog(self):
         dialog = DownloadTorDialog(self.config, self.parent())
         dialog.exec_()
+        # Let TorController know about the new binary
+        if dialog.was_download_successful:
+            self.network.tor_controller.detect_tor()
 
 
 class TorDetector(QThread):
