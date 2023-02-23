@@ -227,7 +227,9 @@ export SOURCE_DATE_EPOCH=1530212462
 # If the manifest changed, contrib/build-wine/manifest.xml needs to be updated.
 export PYTHON_VERSION=3.9.13
 export PY_VER_MAJOR="3.9"  # as it appears in fs paths
-export PYTHON_SRC_TARBALL_HASH="125b0c598f1e15d2aa65406e83f792df7d171cdf38c16803b149994316a3080f"  # If you change PYTHON_VERSION above, update this by downloading the tarball manually and doing a sha256sum on it.
+# If you change PYTHON_VERSION above, update this by downloading the files manually and doing a sha256sum on it.
+export PYTHON_SRC_TARBALL_HASH="125b0c598f1e15d2aa65406e83f792df7d171cdf38c16803b149994316a3080f"
+export PYTHON_MACOS_BINARY_HASH="351fe18f4fb03be7afac5e4012fc0a51345f43202af43ef620cf1eee5ee36578"
 export DEFAULT_GIT_REPO=https://github.com/Bitcoin-ABC/ElectrumABC
 if [ -z "$GIT_REPO" ] ; then
     # If no override from env is present, use default. Support for overrides

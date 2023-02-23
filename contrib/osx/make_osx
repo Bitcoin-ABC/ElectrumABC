@@ -8,6 +8,11 @@ export PYTHONDONTWRITEBYTECODE=1
 
 . "$build_dir"/../base.sh # functions we use below
 
+CONTRIB_OSX="$(dirname "$(realpath "$0")")"
+CACHEDIR="$CONTRIB_OSX/.cache"
+
+mkdir -p "$CACHEDIR"
+
 OSX_COMPAT=""
 DARWIN_VER=$(uname -r | cut -f 1 -d .)
 if ((DARWIN_VER < 17)); then
@@ -107,27 +112,17 @@ if [ -z "$have_swig" ]; then
     fail "'swig' not found in path, cannot proceed"
 fi
 
-info "Installing Python $PYTHON_VERSION"  # NB: $PYTHON_VERSION comes from ../base.sh
-export PATH=~/.pyenv/bin:~/.pyenv/versions/${PYTHON_VERSION}/bin:~/.pyenv/shims:~/Library/Python/${MAJ_MIN}/bin:"$PATH"
-if [ -d "~/.pyenv" ]; then
-  pyenv update
-else
-  curl -L https://raw.githubusercontent.com/pyenv/pyenv-installer/master/bin/pyenv-installer | bash > /dev/null 2>&1
-fi
-if ~/.pyenv/bin/pyenv versions | grep -q "$PYTHON_VERSION"; then
-    warn "Python $PYTHON_VERSION already exists in pyenv!"
-    warn "We will proceed to use this version but you really should start with a fresh, clean version of Python by removing ~/.pyenv altogether."
-else
-    # Pre-download the tarball and verify its hash
-    mkdir -p ~/.pyenv/cache
-    download_if_not_exist ~/.pyenv/cache/Python-$PYTHON_VERSION.tar.xz "https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tar.xz"
-    verify_hash ~/.pyenv/cache/Python-$PYTHON_VERSION.tar.xz $PYTHON_SRC_TARBALL_HASH
-fi
-# The below just switches to this python version if already installed..
-# or does a build-install from the file in ~/.pyenv/cache if not installed
-PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install -s $PYTHON_VERSION && \
-    pyenv global $PYTHON_VERSION && pyenv rehash || \
-    fail "Unable to use Python $PYTHON_VERSION"
+info "Installing Python $PYTHON_VERSION"
+curl -o "$CACHEDIR/python-${PYTHON_VERSION}-macos11.pkg" \
+    "https://www.python.org/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}-macos11.pkg"
+echo "${PYTHON_MACOS_BINARY_HASH}  $CACHEDIR/python-${PYTHON_VERSION}-macos11.pkg" | shasum -a 256 -c \
+    || fail "python pkg checksum mismatched"
+sudo installer -pkg "$CACHEDIR/python-${PYTHON_VERSION}-macos11.pkg" -target / \
+    || fail "failed to install python"
+# sanity check "python3" has the version we just installed.
+FOUND_PY_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')
+if [[ "$FOUND_PY_VERSION" != "$PYTHON_VERSION" ]]; then
+    fail "python version mismatch: $FOUND_PY_VERSION != $PYTHON_VERSION"
 
 # We use a hashed requirements file for even the build tools to prevent
 # dependency attacks even in the build process
