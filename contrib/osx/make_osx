@@ -3,6 +3,9 @@
 build_dir="$(dirname "$(realpath "$0")")"
 test -n "$build_dir" -a -d "$build_dir" || (echo "Cannot determine build dir. FIXME!" && exit 1)
 
+# don't create __pycache__/ folders with .pyc file
+export PYTHONDONTWRITEBYTECODE=1
+
 . "$build_dir"/../base.sh # functions we use below
 
 OSX_COMPAT=""

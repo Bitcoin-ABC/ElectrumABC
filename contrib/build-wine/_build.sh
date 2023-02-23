@@ -204,6 +204,8 @@ build_the_app() {
 
         NAME_ROOT=$PACKAGE  # PACKAGE comes from ../base.sh
         # These settings probably don't need any change
+
+        # don't create __pycache__/ folders with .pyc files
         export PYTHONDONTWRITEBYTECODE=1
 
         PYHOME=c:/python$PYTHON_VERSION
