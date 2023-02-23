@@ -245,7 +245,7 @@ info "Building binary"
 # the PACKAGE variable in osx.spec.
 # The package file is renamed at the end to remove the -.
 TMPPACKAGE="Electrum-ABC"
-pyinstaller --clean --noconfirm --ascii --name $VERSION contrib/osx/osx.spec || fail "Could not build binary"
+ELECTRUM_VERSION=$VERSION pyinstaller --clean --noconfirm --ascii contrib/osx/osx.spec || fail "Could not build binary"
 mv dist/$TMPPACKAGE.app dist/$PACKAGE.app
 
 # Sign the Tor binary separately
