@@ -146,8 +146,8 @@ mkdir -p "$BUILDDIR"
 
 info "Building PyInstaller."
 PYINSTALLER_REPO="https://github.com/pyinstaller/pyinstaller.git"
-PYINSTALLER_COMMIT="e20e74c03768d432d48665b8ef1e02511b16e4be"
-# ^ tag "4.3"
+PYINSTALLER_COMMIT="fbf7948be85177dd44b41217e9f039e1d176de6b"
+# ^ tag "5.3"
 # TODO test newer versions of pyinstaller for build-reproducibility.
 #      we are using this version for now due to change in code-signing behaviour
 #      (https://github.com/pyinstaller/pyinstaller/pull/5581)
@@ -178,7 +178,6 @@ PYINSTALLER_COMMIT="e20e74c03768d432d48665b8ef1e02511b16e4be"
     popd
     # sanity check bootloader is there:
     [[ -e "PyInstaller/bootloader/Darwin-64bit/runw" || -e "PyInstaller/bootloader/Darwin-64bit-arm/runw" ]] || fail "Could not find runw in target dir!"
-    rm pyinstaller.py  # workaround for https://github.com/pyinstaller/pyinstaller/pull/6701
     popd # $BUILDDIR
     popd # $build_dir
 ) || fail "PyInstaller build failed"

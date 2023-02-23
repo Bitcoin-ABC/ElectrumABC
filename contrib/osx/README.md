@@ -7,6 +7,9 @@ This guide explains how to build binaries for macOS systems.
 We build our binaries on Big Sur (11.7.2). The generated binaries may be
 incompatible with older versions.
 
+The script is only tested on Intel-based Macs, and the binary built
+targets `x86_64` currently.
+
 This assumes that the Xcode Command Line tools (and thus git) are already installed. You can install older (and newer!)
 versions of Xcode from Apple provided you have a developer account
 [from the Apple developer downloads site](https://developer.apple.com/download/more/).

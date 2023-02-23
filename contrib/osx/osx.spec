@@ -128,7 +128,9 @@ exe = EXE(
     strip=False,
     upx=False,
     icon=home+ICONS_FILE,
-    console=False
+    console=False,
+    # TODO investigate building 'universal2'
+    target_arch='x86_64',
 )
 
 app = BUNDLE(
