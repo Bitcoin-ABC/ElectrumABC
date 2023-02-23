@@ -41,7 +41,7 @@ function DoCodeSignMaybe { # ARGS: infoName fileOrDirName codesignIdentity
     codesign -f -v $deep -s "$identity" $preserve_arg $hardened_arg "$file" || fail "Could not code sign ${infoName}"
 }
 
-cd $build_dir/../..
+cd "$build_dir/../.."
 
 VERSION=`git describe --tags`
 GIT_COMMIT_HASH=$(git rev-parse HEAD)
@@ -137,8 +137,8 @@ python3 -m pip install -I --user -r contrib/osx/requirements-osx-build.txt \
     || fail "Could not install osx build requirements"
 
 # Create the build directory in /tmp
-rm  -rf $BUILDDIR > /dev/null 2>&1
-mkdir -p $BUILDDIR
+rm  -rf "$BUILDDIR" > /dev/null 2>&1
+mkdir -p "$BUILDDIR"
 
 info "Building PyInstaller."
 PYINSTALLER_REPO="https://github.com/pyinstaller/pyinstaller.git"
@@ -194,9 +194,9 @@ python3 ./contrib/make_locale || fail "Failed to make locale..."
 
 info "Downloading libusb..."
 curl -L https://github.com/PiRK/Electrum-ABC-Build-Tools/releases/download/v1.0/libusb-1.0.21.el_capitan.bottle.tar.gz | \
-    tar xz --directory $BUILDDIR || fail "Could not download libusb"
+    tar xz --directory "$BUILDDIR" || fail "Could not download libusb"
 verify_hash $BUILDDIR/libusb/1.0.21/lib/libusb-1.0.dylib d147e7382dfa676d93e8b17d160d50f68e4b01f58f3647c90a8899a7a0519ca3  # this exits on failure
-cp -fp $BUILDDIR/libusb/1.0.21/lib/libusb-1.0.dylib contrib/osx || fail "Could not copy libusb"
+cp -fp "$BUILDDIR/libusb/1.0.21/lib/libusb-1.0.dylib" "contrib/osx" || fail "Could not copy libusb"
 
 # Build ZBar
 contrib/make_zbar && mv -vf electrumabc/libzbar.0.dylib contrib/osx/. || fail "Could not build ZBar"
