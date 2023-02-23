@@ -145,6 +145,15 @@ app = BUNDLE(
     bundle_identifier=BUNDLE_IDENTIFIER,
     info_plist = {
         'NSHighResolutionCapable':'True',
-        'NSSupportsAutomaticGraphicsSwitching':'True'
-    }
+        'NSSupportsAutomaticGraphicsSwitching':'True',
+        'CFBundleURLTypes':
+            [{
+                'CFBundleURLName': 'ecash',
+                'CFBundleURLSchemes': ['ecash'],
+            }],
+        'NSCameraUsageDescription':
+             "Electrum ABC would like to access the camera to scan for QR codes",
+        'LSMinimumSystemVersion': '10.14.0',
+        'NSRequiresAquaSystemAppearance': 'False',
+    },
 )

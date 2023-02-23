@@ -248,40 +248,6 @@ TMPPACKAGE="Electrum-ABC"
 pyinstaller --clean --noconfirm --ascii --name $VERSION contrib/osx/osx.spec || fail "Could not build binary"
 mv dist/$TMPPACKAGE.app dist/$PACKAGE.app
 
-info "Adding ecash URI type to Info.plist"
-# NB: Make sure there are no trailing spaces after the '\' characters here
-plutil -insert 'CFBundleURLTypes' \
-	-xml \
-'<array> '\
-'<dict> '\
-'  <key>CFBundleURLName</key> '\
-'  <string>ecash</string> '\
-'  <key>CFBundleURLSchemes</key> '\
-'    <array><string>ecash</string></array> '\
-'</dict> '\
-'</array>' \
-	-- dist/$PACKAGE.app/Contents/Info.plist \
-	|| fail "Could not add keys to Info.plist. Make sure the program 'plutil' exists and is installed."
-
-plutil -insert 'NSCameraUsageDescription' \
-       -string '$PACKAGE would like to access the camera to scan for QR codes' \
-	-- dist/$PACKAGE.app/Contents/Info.plist \
-	|| fail "Could not add keys to Info.plist. Make sure the program 'plutil' exists and is installed."
-
-plutil -insert 'LSMinimumSystemVersion' \
-       -string '10.14.0' \
-	-- dist/$PACKAGE.app/Contents/Info.plist \
-	|| fail "Could not add keys to Info.plist. Make sure the program 'plutil' exists and is installed."
-
-FORCE_MOJAVE_DARK=1  # Set to 1 to try and add the Info.plist key to force mojave dark mode support.
-                     # On PyQt 5.14.1, it doesn't work, but on 5.15.2 it does.
-if ((DARWIN_VER >= 18 && FORCE_MOJAVE_DARK)); then
-    # Add a key to Info.plist key to support Mojave dark mode
-    info "Adding Mojave dark mode support to Info.plist"
-    plutil -insert 'NSRequiresAquaSystemAppearance' -bool NO -- dist/"$PACKAGE".app/Contents/Info.plist \
-      || fail "Could not set Info.plist NSRequiresAquaSystemAppearance"
-fi
-
 # Sign the Tor binary separately
 DoCodeSignMaybe "tor binary" "dist/${PACKAGE}.app/Contents/MacOS/electrumabc/tor/bin/tor" "$APP_SIGN"
 # Finally, codesign the whole thing
