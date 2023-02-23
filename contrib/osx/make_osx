@@ -113,16 +113,19 @@ if [ -z "$have_swig" ]; then
 fi
 
 info "Installing Python $PYTHON_VERSION"
-curl -o "$CACHEDIR/python-${PYTHON_VERSION}-macos11.pkg" \
-    "https://www.python.org/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}-macos11.pkg"
-echo "${PYTHON_MACOS_BINARY_HASH}  $CACHEDIR/python-${PYTHON_VERSION}-macos11.pkg" | shasum -a 256 -c \
-    || fail "python pkg checksum mismatched"
-sudo installer -pkg "$CACHEDIR/python-${PYTHON_VERSION}-macos11.pkg" -target / \
+PKG_FILE="python-${PYTHON_VERSION}-macos11.pkg"
+if [ ! -f "$CACHEDIR/$PKG_FILE" ]; then
+    curl -o "$CACHEDIR/$PKG_FILE" "https://www.python.org/ftp/python/${PYTHON_VERSION}/$PKG_FILE"
+fi
+echo "$PYTHON_MACOS_BINARY_HASH  $CACHEDIR/$PKG_FILE" | shasum -a 256 -c \
+     || fail "python pkg checksum mismatched"
+sudo installer -pkg "$CACHEDIR/$PKG_FILE" -target / \
     || fail "failed to install python"
 # sanity check "python3" has the version we just installed.
 FOUND_PY_VERSION=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')
 if [[ "$FOUND_PY_VERSION" != "$PYTHON_VERSION" ]]; then
     fail "python version mismatch: $FOUND_PY_VERSION != $PYTHON_VERSION"
+fi
 
 # We use a hashed requirements file for even the build tools to prevent
 # dependency attacks even in the build process
