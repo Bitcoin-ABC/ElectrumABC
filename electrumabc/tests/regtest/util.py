@@ -15,8 +15,8 @@ from jsonpath_ng import parse as path_parse
 from jsonrpcclient import parse as rpc_parse
 from jsonrpcclient import request
 
-datadir = ""
-bitcoind = None
+_datadir = None
+_bitcoind = None
 
 SUPPORTED_PLATFORM = (
     platform.machine() in ("AMD64", "x86_64") and platform.system() in "Linux"
@@ -68,16 +68,19 @@ def poll_for_answer(
 
 def bitcoind_rpc_connection() -> AuthServiceProxy:
     """Connects to bitcoind, generates 100 blocks and returns the connection"""
-    bitcoind = AuthServiceProxy(BITCOIND_RPC_URL)
+    global _bitcoind
+    if _bitcoind is not None:
+        return _bitcoind
+    _bitcoind = AuthServiceProxy(BITCOIND_RPC_URL)
 
     poll_for_answer(BITCOIND_RPC_URL, request("uptime"))
-    block_count = bitcoind.getblockcount()
+    block_count = _bitcoind.getblockcount()
     if block_count < 101:
-        bitcoind.createwallet("test_wallet")
-        addr = bitcoind.getnewaddress()
-        bitcoind.generatetoaddress(101, addr)
+        _bitcoind.createwallet("test_wallet")
+        addr = _bitcoind.getnewaddress()
+        _bitcoind.generatetoaddress(101, addr)
 
-    return bitcoind
+    return _bitcoind
 
 
 # Creates a temp directory on disk for wallet storage
@@ -87,21 +90,21 @@ def start_ec_daemon() -> None:
     Creates a temp directory on disk for wallet storage
     Starts a deamon, creates and loads a wallet
     """
-    if datadir is None:
+    if _datadir is None:
         assert False
-    os.mkdir(datadir + "/regtest")
+    os.mkdir(_datadir + "/regtest")
     shutil.copyfile(
         "electrumabc/tests/regtest/configs/electrum-abc-config",
-        datadir + "/regtest/config",
+        _datadir + "/regtest/config",
     )
     subprocess.run(
         [
             "./electrum-abc",
             "--regtest",
             "-D",
-            datadir,
+            _datadir,
             "-w",
-            datadir + "/default_wallet",
+            _datadir + "/default_wallet",
             "daemon",
             "start",
         ],
@@ -113,7 +116,7 @@ def start_ec_daemon() -> None:
 
     assert result == PACKAGE_VERSION
 
-    r = request("create", params={"wallet_path": datadir + "/default_wallet"})
+    r = request("create", params={"wallet_path": _datadir + "/default_wallet"})
     result = poll_for_answer(EC_DAEMON_RPC_URL, r)
     assert "seed" in result
     assert len(result["seed"].split(" ")) == 12
@@ -125,18 +128,18 @@ def start_ec_daemon() -> None:
     poll_for_answer(
         EC_DAEMON_RPC_URL,
         request("getinfo"),
-        expected_answer=('wallets["' + datadir + '/default_wallet"]', True),
+        expected_answer=('wallets["' + _datadir + '/default_wallet"]', True),
     )
 
 
 def stop_ec_daemon() -> None:
     """Stops the daemon and removes the wallet storage from disk"""
     subprocess.run(
-        ["./electrum-abc", "--regtest", "-D", datadir, "daemon", "stop"], check=True
+        ["./electrum-abc", "--regtest", "-D", _datadir, "daemon", "stop"], check=True
     )
-    if datadir is None or datadir.startswith("/tmp") is False:  # Paranoia
+    if _datadir is None or _datadir.startswith("/tmp") is False:
         assert False
-    shutil.rmtree(datadir)
+    shutil.rmtree(_datadir)
 
 
 @pytest.fixture(scope="session")
@@ -150,86 +153,17 @@ def docker_compose_file(pytestconfig) -> str:
 @pytest.fixture(scope="session")
 def fulcrum_service(docker_services: Any) -> Generator[None, None, None]:
     """Makes sure all services (bitcoind, fulcrum and the EC daemon) are up and running"""
-    global datadir
-    global bitcoind
-    datadir = tempfile.mkdtemp()
-    bitcoind = bitcoind_rpc_connection()
-    poll_for_answer(FULCRUM_STATS_URL, expected_answer=("Controller.TxNum", 102))
-
-    try:
-        start_ec_daemon()
+    global _datadir
+    global _bitcoind
+    if _datadir is not None:
         yield
-    finally:
-        stop_ec_daemon()
+    else:
+        _datadir = tempfile.mkdtemp()
+        _bitcoind = bitcoind_rpc_connection()
+        poll_for_answer(FULCRUM_STATS_URL, expected_answer=("Controller.TxNum", 102))
 
-
-@pytest.mark.skipif(not SUPPORTED_PLATFORM, reason="Unsupported platform")
-def test_getunusedaddress(fulcrum_service: Any) -> None:
-    """Verify the `getunusedaddress` RPC"""
-    result = poll_for_answer(EC_DAEMON_RPC_URL, request("getunusedaddress"))
-
-    # The daemon returns an address with a prefix.
-    prefix = "ecregtest:"
-    # Check that the length is 42 and starts with 'q'
-    assert len(result) == len(prefix) + 42
-    assert result.startswith(prefix + "q")
-
-
-@pytest.mark.skipif(not SUPPORTED_PLATFORM, reason="Unsupported platform")
-def test_getservers(fulcrum_service: Any) -> None:
-    """Verify the `getservers` RPC"""
-    result = poll_for_answer(EC_DAEMON_RPC_URL, request("getservers"))
-
-    # Only one server in this setup
-    assert len(result) == 1
-
-
-@pytest.mark.skipif(not SUPPORTED_PLATFORM, reason="Unsupported platform")
-def test_balance(fulcrum_service: Any) -> None:
-    """Verify the `getbalance` RPC"""
-    addr = poll_for_answer(EC_DAEMON_RPC_URL, request("getunusedaddress"))
-
-    bitcoind.generatetoaddress(1, addr)
-    result = poll_for_answer(
-        EC_DAEMON_RPC_URL,
-        request("getbalance"),
-        expected_answer=("unmatured", "50000000"),
-    )
-    assert result["unmatured"] == "50000000"
-
-    bitcoind.sendtoaddress(addr, 10_000_000)
-    result = poll_for_answer(
-        EC_DAEMON_RPC_URL,
-        request("getbalance"),
-        expected_answer=("unconfirmed", "10000000"),
-    )
-    assert result["unmatured"] == "50000000" and result["unconfirmed"] == "10000000"
-
-    bitcoind.generatetoaddress(1, bitcoind.getnewaddress())
-    result = poll_for_answer(
-        EC_DAEMON_RPC_URL,
-        request("getbalance"),
-        expected_answer=("confirmed", "10000000"),
-    )
-    assert result["unmatured"] == "50000000" and result["confirmed"] == "10000000"
-
-    bitcoind.generatetoaddress(97, bitcoind.getnewaddress())
-    bitcoind.sendtoaddress(addr, 10_000_000)
-    result = poll_for_answer(
-        EC_DAEMON_RPC_URL,
-        request("getbalance"),
-        expected_answer=("unconfirmed", "10000000"),
-    )
-    assert (
-        result["unmatured"] == "50000000"
-        and result["confirmed"] == "10000000"
-        and result["unconfirmed"] == "10000000"
-    )
-
-    bitcoind.generatetoaddress(1, bitcoind.getnewaddress())
-    result = poll_for_answer(
-        EC_DAEMON_RPC_URL,
-        request("getbalance"),
-        expected_answer=("confirmed", "70000000"),
-    )
-    assert result["confirmed"] == "70000000"
+        try:
+            start_ec_daemon()
+            yield
+        finally:
+            stop_ec_daemon()
