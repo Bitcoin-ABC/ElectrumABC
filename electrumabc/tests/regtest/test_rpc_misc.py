@@ -13,8 +13,10 @@ from .util import (
     poll_for_answer,
 )
 
+if not SUPPORTED_PLATFORM:
+    pytest.skip(allow_module_level=True)
 
-@pytest.mark.skipif(not SUPPORTED_PLATFORM, reason="Unsupported platform")
+
 def test_getunusedaddress(fulcrum_service: Any) -> None:  # noqa: F811
     """Verify the `getunusedaddress` RPC"""
     result = poll_for_answer(EC_DAEMON_RPC_URL, request("getunusedaddress"))
@@ -26,7 +28,6 @@ def test_getunusedaddress(fulcrum_service: Any) -> None:  # noqa: F811
     assert result.startswith(prefix + "q")
 
 
-@pytest.mark.skipif(not SUPPORTED_PLATFORM, reason="Unsupported platform")
 def test_getservers(fulcrum_service: Any) -> None:  # noqa: F811
     """Verify the `getservers` RPC"""
     result = poll_for_answer(EC_DAEMON_RPC_URL, request("getservers"))
@@ -35,7 +36,6 @@ def test_getservers(fulcrum_service: Any) -> None:  # noqa: F811
     assert len(result) == 1
 
 
-@pytest.mark.skipif(not SUPPORTED_PLATFORM, reason="Unsupported platform")
 def test_balance(fulcrum_service: Any) -> None:  # noqa: F811
     """Verify the `getbalance` RPC"""
     addr = poll_for_answer(EC_DAEMON_RPC_URL, request("getunusedaddress"))

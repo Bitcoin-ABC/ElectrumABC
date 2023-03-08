@@ -19,7 +19,7 @@ _datadir = None
 _bitcoind = None
 
 SUPPORTED_PLATFORM = (
-    platform.machine() in ("AMD64", "x86_64") and platform.system() in "Linux"
+    platform.machine() in ("AMD64", "x86_64") and platform.system() == "Linux"
 )
 
 EC_DAEMON_RPC_URL = "http://user:pass@localhost:12342"
