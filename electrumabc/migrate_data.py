@@ -85,6 +85,11 @@ def update_config():
         _logger.info("Updating the Cash Addr format from bitcoincash: to ecash:")
         config["address_format"] = "CashAddr"
 
+    # The bitcoin-cash-abc-2 CoingGecko API no longer exists
+    if config.get("use_exchange") == "CoinGeckoBcha":
+        _logger.info("Updating the fiat exchange from CoinGeckoBcha to CoinGecko")
+        config["use_exchange"] = "CoinGecko"
+
     # update version number, to avoid doing this again for this version
     config["latest_version_used"] = VERSION_TUPLE
     save_user_config(config, get_user_dir())

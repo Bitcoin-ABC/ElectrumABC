@@ -302,83 +302,6 @@ class CoinGecko(ExchangeBase):
         }
 
 
-class CoinGeckoBcha(ExchangeBase):
-    satoshis_per_unit: int = 100_000_000
-
-    def get_rates(self, ccy):
-        json_data = self.get_json(
-            "api.coingecko.com",
-            "/api/v3/coins/bitcoin-cash-abc-2?localization=False&sparkline=false",
-        )
-        prices = json_data["market_data"]["current_price"]
-        return dict([(a[0].upper(), PyDecimal(a[1])) for a in prices.items()])
-
-    def history_ccys(self):
-        return [
-            "AED",
-            "ARS",
-            "AUD",
-            "BCH",
-            "BTD",
-            "BHD",
-            "BMD",
-            "BRL",
-            "BTC",
-            "CAD",
-            "CHF",
-            "CLP",
-            "CNY",
-            "CZK",
-            "DKK",
-            "ETH",
-            "EUR",
-            "GBP",
-            "HKD",
-            "HUF",
-            "IDR",
-            "ILS",
-            "INR",
-            "JPY",
-            "KRW",
-            "KWD",
-            "LKR",
-            "LTC",
-            "MMK",
-            "MXH",
-            "MYR",
-            "NOK",
-            "NZD",
-            "PHP",
-            "PKR",
-            "PLN",
-            "RUB",
-            "SAR",
-            "SEK",
-            "SGD",
-            "THB",
-            "TRY",
-            "TWD",
-            "USD",
-            "VEF",
-            "XAG",
-            "XAU",
-            "XDR",
-            "ZAR",
-        ]
-
-    def request_history(self, ccy):
-        history = self.get_json(
-            "api.coingecko.com",
-            f"/api/v3/coins/bitcoin-cash-abc-2/market_chart?"
-            f"vs_currency={ccy}&days=max",
-        )
-
-        return {
-            datetime.utcfromtimestamp(h[0] / 1000).strftime("%Y-%m-%d"): h[1]
-            for h in history["prices"]
-        }
-
-
 def dictinvert(d):
     inv = {}
     for k, vlist in d.items():
@@ -500,10 +423,9 @@ class FxThread(ThreadJob):
         if self.is_enabled():
             if self.timeout <= time.time():
                 self.exchange.update(self.ccy)
+                # forced update OR > 24 hours have expired
                 if self.show_history() and (
-                    self.timeout == 0  # forced update
-                    # OR > 24 hours have expired
-                    or self.exchange.is_historical_rate_old(self.ccy)
+                    self.timeout == 0 or self.exchange.is_historical_rate_old(self.ccy)
                 ):
                     # Update historical rates. Note this doesn't actually
                     # go out to the network unless cache file is missing
