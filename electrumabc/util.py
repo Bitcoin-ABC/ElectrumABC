@@ -530,10 +530,11 @@ def format_satoshis(
         decimal_format += "f}"
         result = decimal_format.format(value).rstrip("0")
     dp = _cached_dp
-    try:
+
+    if dp in result:
         integer_part, fract_part = result.split(dp)
-    except ValueError:
-        raise
+    else:
+        integer_part, fract_part = result, ""
 
     if len(fract_part) < num_zeros:
         fract_part += "0" * (num_zeros - len(fract_part))
