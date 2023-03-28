@@ -227,8 +227,6 @@ class ExchangeBase(PrintError):
 
 
 class CoinGecko(ExchangeBase):
-    satoshis_per_unit: int = 100
-
     def get_rates(self, ccy):
         json_data = self.get_json(
             "api.coingecko.com",
@@ -300,6 +298,69 @@ class CoinGecko(ExchangeBase):
             datetime.utcfromtimestamp(h[0] / 1000).strftime("%Y-%m-%d"): h[1]
             for h in history["prices"]
         }
+
+
+class CryptoCompare(ExchangeBase):
+    def get_rates(self, ccy):
+        price = self.get_json(
+            "min-api.cryptocompare.com",
+            f"/data/price?fsym=XEC&tsyms={ccy}",
+        )
+        print(price)
+        return price
+
+    def get_currencies(self):
+        return [
+            "AED",
+            "ARS",
+            "AUD",
+            "BCH",
+            "BTD",
+            "BHD",
+            "BMD",
+            "BRL",
+            "BTC",
+            "CAD",
+            "CHF",
+            "CLP",
+            "CNY",
+            "CZK",
+            "DKK",
+            "ETH",
+            "EUR",
+            "GBP",
+            "HKD",
+            "HUF",
+            "IDR",
+            "ILS",
+            "INR",
+            "JPY",
+            "KRW",
+            "KWD",
+            "LKR",
+            "LTC",
+            "MMK",
+            "MXH",
+            "MYR",
+            "NOK",
+            "NZD",
+            "PHP",
+            "PKR",
+            "PLN",
+            "RUB",
+            "SAR",
+            "SEK",
+            "SGD",
+            "THB",
+            "TRY",
+            "TWD",
+            "USD",
+            "VEF",
+            "XAG",
+            "XAU",
+            "XDR",
+            "ZAR",
+        ]
 
 
 def dictinvert(d):
