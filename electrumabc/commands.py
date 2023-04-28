@@ -1302,7 +1302,7 @@ def add_global_options(parser):
         action="store_true",
         dest="portable",
         default=False,
-        help="Use local 'electron_cash_data' directory",
+        help="Use local 'electrum_abc_data' directory",
     )
     group.add_argument(
         "-w", "--wallet", dest="wallet_path", help="wallet path", type=os.path.abspath
