@@ -4,23 +4,16 @@ The Electrum ABC software is NOT affiliated, associated, or endorsed by
 Electron Cash, electroncash.org, Electrum or electrum.org.
 
 
-# Usage
-
-When you first run Electrum ABC it will use a different configuration
-directory to Electron Cash. On Unix it is ".electrum-abc", and on Windows/MacOS
-it is "ElectrumABC".  Your wallet files will be copied from the Electron Cash
-configuration directory if found.
-
-Initially transactions will show up as unverified because
-Electrum ABC is downloading the blockchain headers to verify the transactions.
-This can take up to 10 minutes, but is only done once.
-
-We STRONGLY recommend you get comfortable and only send a small amount of eCash
-coins at first, to yourself, to confirm the network is processing your
-transactions as expected.
-
-
 # Release notes
+
+## Release 5.2.3
+
+- Fix `--portable` command line option (#288).
+- Add cryptocompare.com as an exchange rate API (#284).
+- Don't bundle Tor with the binary release files, download it when
+  a user first enables Tor (#279).
+- Electrum backports: bump pyinstaller, misc (#280).
+
 
 ## Release 5.2.2
 
