@@ -168,8 +168,8 @@ setup(
     cmdclass={
         "sdist": MakeAllBeforeSdist,
     },
-    name=os.environ.get("EC_PACKAGE_NAME") or PROJECT_NAME_NO_SPACES,
-    version=os.environ.get("EC_PACKAGE_VERSION") or get_version(),
+    name=PROJECT_NAME_NO_SPACES,
+    version=get_version(),
     install_requires=requirements,
     extras_require={
         "hardware": requirements_hw,
