@@ -5,12 +5,6 @@ test -n "$here" -a -d "$here" || (echo "Cannot determine build dir. FIXME!" && e
 
 . "$here"/../../base.sh # functions we use below (fail, et al)
 
-if [ ! -z "$1" ]; then
-    REV="$1"
-else
-    fail "Please specify a release tag or branch to build (eg: master or 4.0.0, etc)"
-fi
-
 if [ ! -d 'contrib' ]; then
     fail "Please run this script from the top-level git directory"
 fi
@@ -53,43 +47,25 @@ $SUDO docker build -t $IMGNAME \
     contrib/build-linux/srcdist_docker \
     || fail "Failed to create docker image"
 
-# This is the place where we checkout and put the exact revision we want to work
-# on. Docker will run mapping this directory to /opt/electrumabc
-FRESH_CLONE=`pwd`/contrib/build-linux/fresh_clone2
-FRESH_CLONE_DIR=$FRESH_CLONE/$GIT_DIR_NAME
-
-(
-    $SUDO rm -fr $FRESH_CLONE && \
-        mkdir -p $FRESH_CLONE && \
-        cd $FRESH_CLONE  && \
-        git clone $GIT_REPO && \
-        cd $GIT_DIR_NAME && \
-        git checkout $REV
-) || fail "Could not create a fresh clone from git"
-
-mkdir "$FRESH_CLONE_DIR/contrib/build-linux/home" || fail "Failed to create home directory"
+mkdir "${ELECTRUM_ROOT}/contrib/build-linux/home" || fail "Failed to create home directory"
 
 (
     $SUDO docker run $DOCKER_RUN_TTY \
     -e HOME="$MAPPED_DIR/contrib/build-linux/home" \
     -e BUILD_DEBUG="$BUILD_DEBUG" \
     --name $CONTAINERNAME \
-    -v $FRESH_CLONE_DIR:$MAPPED_DIR:delegated \
+    -v ${ELECTRUM_ROOT}:$MAPPED_DIR:delegated \
     --rm \
     --workdir $MAPPED_DIR/contrib/build-linux/srcdist_docker \
     -u $(id -u $USER):$(id -g $USER) \
     $IMGNAME \
-    ./_build.sh $REV
+    ./_build.sh
 ) || fail "Build inside docker container failed"
 
 popd
 
-info "Copying built files out of working clone..."
-mkdir -p dist/
-cp -fpvR $FRESH_CLONE_DIR/dist/* dist/ || fail "Could not copy files"
-
-info "Removing $FRESH_CLONE ..."
-$SUDO rm -fr $FRESH_CLONE
+info "Removing temporary docker HOME ..."
+rm -fr "${ELECTRUM_ROOT}/contrib/build-linux/home"
 
 echo ""
 info "Done. Built SrdDist archives (.tar.gz, .zip) have been placed in dist/"
