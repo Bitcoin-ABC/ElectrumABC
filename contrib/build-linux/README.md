@@ -33,11 +33,14 @@ AppImage
 1. To create a deterministic Linux AppImage (standalone bundle):
 
     ```
-    $ contrib/build-linux/appimage/build.sh COMMIT_OR_TAG
+    $ contrib/make_clean
+    $ git checkout COMMIT_OR_TAG
+    $ contrib/build-linux/appimage/build.sh
     ```
 
     Where `COMMIT_OR_TAG` is a git commit or branch or tag (eg `master`, `4.0.2`, etc).
+    The `make_clean` command can be omitted for testing purposes.
 
-2. The built stand-alone Linux program will be placed in `dist/`.
+3. The built stand-alone Linux program will be placed in `dist/`.
 
-3. The above requires docker.  See [appimage/README.md](appimage/README.md).
+4. The above requires docker.  See [appimage/README.md](appimage/README.md).
