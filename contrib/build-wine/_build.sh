@@ -44,7 +44,7 @@ rm -fr /tmp/electrum-build
 mkdir -p /tmp/electrum-build
 
 (
-    cd "$PROJECT_ROOT"
+    cd "$ELECTRUM_ROOT"
     for pkg in secp zbar ; do
         "$here"/../make_$pkg || fail "Could not build $pkg"
     done

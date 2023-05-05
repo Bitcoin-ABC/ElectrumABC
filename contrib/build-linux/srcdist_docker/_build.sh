@@ -2,20 +2,15 @@
 
 set -e
 
-PROJECT_ROOT="$(dirname "$(readlink -e "$0")")/../../.."
-CONTRIB="$PROJECT_ROOT/contrib"
-DISTDIR="$PROJECT_ROOT/dist"
-
 export GCC_STRIP_BINARIES="1"
 
-. "$CONTRIB"/base.sh
+. ../../base.sh
 
-rm -fvr "$DISTDIR"
 mkdir -p "$DISTDIR"
 
 python3 --version || fail "No python"
 
-pushd $PROJECT_ROOT
+pushd ${ELECTRUM_ROOT}
 
 info "Setting up Python venv ..."
 python3 -m venv env

@@ -244,6 +244,11 @@ if [ "$GIT_REPO" != "$DEFAULT_GIT_REPO" ]; then
     info "Picked up override from env: GIT_REPO=${GIT_REPO}"
 fi
 export GIT_DIR_NAME=`basename $GIT_REPO`
+
+: "${ELECTRUM_ROOT:=$(git rev-parse --show-toplevel)}"
+export ELECTRUM_ROOT
+export CONTRIB="${ELECTRUM_ROOT}/contrib"
+export DISTDIR="${ELECTRUM_ROOT}/dist"
 export PACKAGE="ElectrumABC"
 export SCRIPTNAME="electrum-abc"
 export PYI_SKIP_TAG="${PYI_SKIP_TAG:-0}" # Set this to non-zero to make PyInstaller skip tagging the bootloader
@@ -255,6 +260,9 @@ fi
 
 export ELECTRUM_LOCALE_REPO="https://github.com/Electron-Cash/electrum-locale"
 export ELECTRUM_LOCALE_COMMIT="848004f800821a3bceaa23d00eeccf78ddb94eb5"
+
+# Newer git errors-out about permissions here sometimes, so do this
+git config --global --add safe.directory $(readlink -f "$ELECTRUM_ROOT")
 
 # Build a command line argument for docker, enabling interactive mode if stdin
 # is a tty and enabling tty in docker if stdout is a tty.

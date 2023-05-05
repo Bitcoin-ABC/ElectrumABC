@@ -2,15 +2,8 @@
 
 set -e
 
-PROJECT_ROOT="$(dirname "$(readlink -e "$0")")/../../.."
-CONTRIB="$PROJECT_ROOT/contrib"
+. ../../base.sh
 
-# Newer git errors-out about permissions here sometimes, so do this
-git config --global --add safe.directory $(readlink -f "$PROJECT_ROOT")
-
-. "$CONTRIB"/base.sh
-
-DISTDIR="$PROJECT_ROOT/dist"
 BUILDDIR="$CONTRIB/build-linux/appimage/build/appimage"
 APPDIR="$BUILDDIR/$PACKAGE.AppDir"
 CACHEDIR="$CONTRIB/build-linux/appimage/.cache/appimage"
@@ -39,7 +32,7 @@ download_if_not_exist "$CACHEDIR/Python-$PYTHON_VERSION.tar.xz" "https://www.pyt
 verify_hash "$CACHEDIR/Python-$PYTHON_VERSION.tar.xz" $PYTHON_SRC_TARBALL_HASH
 
 (
-    cd "$PROJECT_ROOT"
+    cd "${ELECTRUM_ROOT}"
     for pkg in secp zbar ; do
         "$CONTRIB"/make_$pkg || fail "Could not build $pkg"
     done
@@ -84,13 +77,13 @@ info "Installing pip"
 
 info "Preparing electrum-locale"
 (
-    cd "$PROJECT_ROOT"
+    cd "${ELECTRUM_ROOT}"
     setup_pkg "electrum-locale" ${ELECTRUM_LOCALE_REPO} ${ELECTRUM_LOCALE_COMMIT} "$CONTRIB"
     if ! which msgfmt > /dev/null 2>&1; then
         fail "Please install gettext"
     fi
     for i in ./locale/*; do
-        dir="$PROJECT_ROOT/electrumabc/$i/LC_MESSAGES"
+        dir="${ELECTRUM_ROOT}/electrumabc/$i/LC_MESSAGES"
         mkdir -p $dir
         msgfmt --output-file="$dir/electron-cash.mo" "$i/electron-cash.po" || true
     done
@@ -104,13 +97,13 @@ mkdir -p "$CACHEDIR/pip_cache"
 "$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements.txt"
 "$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --only-binary pyqt5 --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-binaries.txt"
 "$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-hw.txt"
-"$python" -m pip install --no-deps --no-warn-script-location --cache-dir "$CACHEDIR/pip_cache" "$PROJECT_ROOT"
+"$python" -m pip install --no-deps --no-warn-script-location --cache-dir "$CACHEDIR/pip_cache" "${ELECTRUM_ROOT}"
 "$python" -m pip uninstall -y -r "$CONTRIB/requirements/requirements-build-uninstall.txt"
 
 
 info "Copying desktop integration"
-cp -fp "$PROJECT_ROOT/$SCRIPTNAME.desktop" "$APPDIR/$SCRIPTNAME.desktop"
-cp -fp "$PROJECT_ROOT/icons/electrumABC.png" "$APPDIR/electrumABC.png"
+cp -fp "${ELECTRUM_ROOT}/$SCRIPTNAME.desktop" "$APPDIR/$SCRIPTNAME.desktop"
+cp -fp "${ELECTRUM_ROOT}/icons/electrumABC.png" "$APPDIR/electrumABC.png"
 
 
 # add launcher
