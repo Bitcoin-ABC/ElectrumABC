@@ -9,9 +9,14 @@ Don't worry! It's fast and produces 100% reproducible builds.
 You may do so by issuing the following command (from the top-level of this
 repository)::
 
-    $ contrib/build-wine/build.sh BRACH_OR_TAG
+    $ contrib/make_clean
+    $ git checkout BRANCH_OR_TAG
+    $ contrib/build-wine/build.sh
 
 Where BRANCH_OR_TAG above is a git branch or tag you wish to build.
+
+The `make_clean` command can be omitted for testing purposes, if you want
+local uncommited changes to be included in the built .exe files.
 
 Note: If on a Linux host, the above script may ask you for your password as
 docker requires commands be run via sudo.  Make sure you are in the /etc/sudoers

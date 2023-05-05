@@ -24,15 +24,7 @@ git config --global --add safe.directory $(readlink -f "$here"/../..)  # /homedi
 
 . "$here"/../base.sh # functions we use below (fail, et al)
 
-if [ ! -z "$1" ]; then
-    to_build="$1"
-else
-    fail "Please specify a release tag or branch to build (eg: master or 4.0.0, etc)"
-fi
-
 set -e
-
-git checkout "$to_build" || fail "Could not branch or tag $to_build"
 
 GIT_COMMIT_HASH=$(git rev-parse HEAD)
 

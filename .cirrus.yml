@@ -9,8 +9,6 @@ common: &COMMON_TEMPLATE
       git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR
       git reset --hard $CIRRUS_CHANGE_IN_REPO
     fi
-  env:
-    GIT_REPO: $CIRRUS_WORKING_DIR
 
 task:
   name: "Build MacOS DMG"
