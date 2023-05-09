@@ -15,14 +15,7 @@ docker_version=`docker --version`
 
 if [ "$?" != 0 ]; then
     echo ''
-    echo "Please install docker by issuing the following commands (assuming you are on Ubuntu):"
-    echo ''
-    echo '$ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -'
-    echo '$ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"'
-    echo '$ sudo apt-get update'
-    echo '$ sudo apt-get install -y docker-ce'
-    echo ''
-    fail "Docker is required to build for Windows"
+    fail "Docker is required to build for AppImage"
 fi
 
 set -e
