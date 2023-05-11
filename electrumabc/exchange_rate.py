@@ -306,7 +306,6 @@ class CryptoCompare(ExchangeBase):
             "min-api.cryptocompare.com",
             f"/data/price?fsym=XEC&tsyms={ccy}",
         )
-        print(price)
         return price
 
     def get_currencies(self):
