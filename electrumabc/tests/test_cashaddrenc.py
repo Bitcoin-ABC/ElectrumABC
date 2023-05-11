@@ -253,12 +253,12 @@ class TestCashAddrAddress(unittest.TestCase):
 
     def test_valid_scripthash(self):
         """Test whether valid P2PK addresses decode to the correct output."""
-        for (address, hashbytes) in zip(VALID_SCRIPT_ADDRESSES, VALID_HASHES):
+        for address, hashbytes in zip(VALID_SCRIPT_ADDRESSES, VALID_HASHES):
             rprefix, kind, addr_hash = cashaddr.decode(address)
             self.assertEqual(rprefix, ABC_PREFIX)
             self.assertEqual(kind, cashaddr.SCRIPT_TYPE)
             self.assertEqual(addr_hash, hashbytes)
-        for (address, hashbytes) in zip(VALID_SCRIPT_ADDRESSES_BCH, VALID_HASHES_BCH):
+        for address, hashbytes in zip(VALID_SCRIPT_ADDRESSES_BCH, VALID_HASHES_BCH):
             rprefix, kind, addr_hash = cashaddr.decode(address)
             self.assertEqual(rprefix, BCH_PREFIX)
             self.assertEqual(kind, cashaddr.SCRIPT_TYPE)
@@ -266,12 +266,12 @@ class TestCashAddrAddress(unittest.TestCase):
 
     def test_valid_pubkeys(self):
         """Test whether valid P2SH addresses decode to the correct output."""
-        for (address, hashbytes) in zip(VALID_PUBKEY_ADDRESSES, VALID_HASHES):
+        for address, hashbytes in zip(VALID_PUBKEY_ADDRESSES, VALID_HASHES):
             rprefix, kind, addr_hash = cashaddr.decode(address)
             self.assertEqual(rprefix, ABC_PREFIX)
             self.assertEqual(kind, cashaddr.PUBKEY_TYPE)
             self.assertEqual(addr_hash, hashbytes)
-        for (address, hashbytes) in zip(VALID_PUBKEY_ADDRESSES_BCH, VALID_HASHES_BCH):
+        for address, hashbytes in zip(VALID_PUBKEY_ADDRESSES_BCH, VALID_HASHES_BCH):
             rprefix, kind, addr_hash = cashaddr.decode(address)
             self.assertEqual(rprefix, BCH_PREFIX)
             self.assertEqual(kind, cashaddr.PUBKEY_TYPE)

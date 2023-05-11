@@ -289,9 +289,9 @@ class MnemonicBase(PrintError):
             self.data.words = tuple(load_wordlist(filename))
             self.data.word_indices = dict()
             for i, word in enumerate(self.data.words):
-                self.data.word_indices[
-                    word
-                ] = i  # saves on O(N) lookups for words. The alternative is to call wordlist.index(w) for each word which is slow.
+                self.data.word_indices[word] = (
+                    i  # saves on O(N) lookups for words. The alternative is to call wordlist.index(w) for each word which is slow.
+                )
             self.print_error("wordlist has %d words" % len(self.data.words))
             assert len(self.data.words) == len(
                 self.data.word_indices
@@ -432,7 +432,8 @@ class MnemonicElectrum(MnemonicBase):
         if self.lang not in ("en", "es", "pt"):
             raise NotImplementedError(
                 f"Cannot make a seed for language '{self.lang}'. "
-                + "Only English, Spanish, and Portuguese are supported as seed generation languages in this implementation"
+                + "Only English, Spanish, and Portuguese are supported as seed"
+                " generation languages in this implementation"
             )
         if seed_type is None:
             seed_type = "electrum"

@@ -221,12 +221,14 @@ class SeedLayout(QtWidgets.QVBoxLayout):
                     may_clear_warning = False
                     self.seed_warning.setText(
                         _(
-                            "This seed is ambiguous and may also be interpreted as a <b>BIP39</b> seed."
+                            "This seed is ambiguous and may also be interpreted as a"
+                            " <b>BIP39</b> seed."
                         )
                         + "<br/><br/>"
                         + _(
-                            "If you wish this seed to be interpreted as a BIP39 seed, "
-                            "then use the Options button to force BIP39 interpretation of this seed."
+                            "If you wish this seed to be interpreted as a BIP39 seed,"
+                            " then use the Options button to force BIP39 interpretation"
+                            " of this seed."
                         )
                     )
         else:

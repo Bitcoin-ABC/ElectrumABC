@@ -1478,8 +1478,10 @@ class Network(util.DaemonThread):
 
         if not request:
             interface.print_error(
-                f"disconnecting server for sending unsolicited header, no request,"
-                f' params={response["params"]}',
+                (
+                    "disconnecting server for sending unsolicited header, no request,"
+                    f" params={response['params']}"
+                ),
                 blacklist=True,
             )
             self.connection_down(interface.server)
@@ -1492,9 +1494,8 @@ class Network(util.DaemonThread):
         # sort of rewrite.
         if height != response_height:
             interface.print_error(
-                "unsolicited header request={} request_height={} response_height={}".format(
-                    request_params, height, response_height
-                )
+                "unsolicited header request={} request_height={} response_height={}"
+                .format(request_params, height, response_height)
             )
             self.connection_down(interface.server)
             return
@@ -2164,7 +2165,7 @@ class Network(util.DaemonThread):
         server_msg = server_msg.replace("\n", r"\n")
         if r"dust" in server_msg:
             return _(
-                f"Transaction could not be broadcast due to dust outputs (dust "
+                "Transaction could not be broadcast due to dust outputs (dust "
                 f"threshold is {DUST_THRESHOLD} satoshis)."
             )
         elif (

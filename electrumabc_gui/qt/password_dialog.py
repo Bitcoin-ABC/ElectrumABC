@@ -38,7 +38,6 @@ from .util import Buttons, CancelButton, OkButton, PasswordLineEdit, WindowModal
 
 
 def check_password_strength(password):
-
     """
     Check the strength of the password entered by the user and return back the same
     :param password: password entered by user in New Password
@@ -61,7 +60,6 @@ PW_NEW, PW_CHANGE, PW_PASSPHRASE = range(0, 3)
 
 
 class PasswordLayout:
-
     titles = [_("Enter Password"), _("Change Password"), _("Enter Passphrase")]
 
     def __init__(
@@ -294,7 +292,8 @@ class ChangePasswordDialogForSW(ChangePasswordDialogBase):
         else:
             if not is_encrypted:
                 msg = _(
-                    "Your bitcoins are password protected. However, your wallet file is not encrypted."
+                    "Your bitcoins are password protected. However, your wallet file is"
+                    " not encrypted."
                 )
             else:
                 msg = _("Your wallet is password protected and encrypted.")
@@ -328,7 +327,8 @@ class ChangePasswordDialogForHW(ChangePasswordDialogBase):
         else:
             msg = _("Your wallet file is encrypted.")
         msg += "\n" + _(
-            "Note: If you enable this setting, you will need your hardware device to open your wallet."
+            "Note: If you enable this setting, you will need your hardware device to"
+            " open your wallet."
         )
         msg += "\n" + _("Use this dialog to toggle encryption.")
         self.playout = PasswordLayoutForHW(msg)

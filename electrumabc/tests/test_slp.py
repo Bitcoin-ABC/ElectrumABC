@@ -504,8 +504,8 @@ class SLPTests(unittest.TestCase):
                         self.assertIn(
                             255,
                             expected_codes,
-                            "UnsupportedSlpTokenType exception raised (code 255) but not in expected reasons (%r)"
-                            % (expected_codes,),
+                            "UnsupportedSlpTokenType exception raised (code 255) but"
+                            " not in expected reasons (%r)" % (expected_codes,),
                         )
                     else:
                         raise
@@ -514,8 +514,8 @@ class SLPTests(unittest.TestCase):
                     self.assertIn(
                         None,
                         expected_codes,
-                        "Script was found valid but should have been invalid, for a reason code in %r."
-                        % (expected_codes,),
+                        "Script was found valid but should have been invalid, for a"
+                        " reason code in %r." % (expected_codes,),
                     )
 
     def test_opreturn_build(self):

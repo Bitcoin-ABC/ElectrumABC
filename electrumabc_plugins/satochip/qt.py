@@ -112,11 +112,9 @@ class SatochipSettingsDialog(WindowModalDialog):
         grid.setColumnStretch(3, 1)
 
         # see <http://doc.qt.io/archives/qt-4.8/richtext-html-subset.html>
-        title = QtWidgets.QLabel(
-            """<center>
+        title = QtWidgets.QLabel("""<center>
 <span style="font-size: x-large">Satochip Wallet</span>
-<br><a href="https://satochip.io">satochip.io</a>"""
-        )
+<br><a href="https://satochip.io">satochip.io</a>""")
         title.setTextInteractionFlags(Qt.LinksAccessibleByMouse)
 
         grid.addWidget(title, 0, 0, 1, 2, Qt.AlignHCenter)
@@ -235,9 +233,11 @@ class SatochipSettingsDialog(WindowModalDialog):
 
             # is_seeded?
             if len(response) >= 10:
-                self.is_seeded.setText("<tt>%s" % "yes") if d[
-                    "is_seeded"
-                ] else self.is_seeded.setText("<tt>%s" % "no")
+                (
+                    self.is_seeded.setText("<tt>%s" % "yes")
+                    if d["is_seeded"]
+                    else self.is_seeded.setText("<tt>%s" % "no")
+                )
             else:  # for earlier versions
                 try:
                     client.cc.card_bip32_get_authentikey()
@@ -301,10 +301,12 @@ class SatochipSettingsDialog(WindowModalDialog):
             [
                 _("WARNING!\n"),
                 _(
-                    "You are about to reset the seed of your Satochip. This process is irreversible!\n"
+                    "You are about to reset the seed of your Satochip. This process is"
+                    " irreversible!\n"
                 ),
                 _(
-                    "Please be sure that your wallet is empty and that you have a backup of the seed as a precaution.\n\n"
+                    "Please be sure that your wallet is empty and that you have a"
+                    " backup of the seed as a precaution.\n\n"
                 ),
                 _("To proceed, enter the PIN for your Satochip:"),
             ]
@@ -345,7 +347,10 @@ class SatochipSettingsDialog(WindowModalDialog):
                 reply_encrypt = d["reply_encrypt"]
             except Exception:
                 self.give_error(
-                    "No response received from 2FA.\nPlease ensure that the Satochip-2FA plugin is enabled in Tools>Optional Features",
+                    (
+                        "No response received from 2FA.\nPlease ensure that the"
+                        " Satochip-2FA plugin is enabled in Tools>Optional Features"
+                    ),
                     True,
                 )
             reply_decrypt = client.cc.card_crypt_transaction_2FA(reply_encrypt, False)
@@ -358,13 +363,15 @@ class SatochipSettingsDialog(WindowModalDialog):
         (response, sw1, sw2) = client.cc.card_reset_seed(pin, hmac)
         if sw1 == 0x90 and sw2 == 0x00:
             msg = _(
-                "Seed reset successfully!\nYou should close this wallet and launch the wizard to generate a new wallet."
+                "Seed reset successfully!\nYou should close this wallet and launch the"
+                " wizard to generate a new wallet."
             )
             client.handler.show_message(msg)
             # to do: close client?
         elif sw1 == 0x9C and sw2 == 0x0B:
             msg = _(
-                f"Failed to reset seed: request rejected by 2FA device (error code: {hex(256*sw1+sw2)})"
+                "Failed to reset seed: request rejected by 2FA device (error code:"
+                f" {hex(256*sw1+sw2)})"
             )
             client.handler.show_message(msg)
             # to do: close client?
@@ -397,7 +404,8 @@ class SatochipSettingsDialog(WindowModalDialog):
                 # the secret must be shared with the second factor app (eg on a smartphone)
                 try:
                     help_txt = (
-                        "Scan the QR-code with your Satochip-2FA app and make a backup of the following secret: "
+                        "Scan the QR-code with your Satochip-2FA app and make a backup"
+                        " of the following secret: "
                         + secret_2FA_hex
                     )
                     d = QRDialog(
@@ -466,7 +474,8 @@ class SatochipSettingsDialog(WindowModalDialog):
                 client.handler.show_message(msg)
             elif sw1 == 0x9C and sw2 == 0x17:
                 msg = _(
-                    f"Failed to reset 2FA: \nyou must reset the seed first (error code {hex(256*sw1+sw2)})"
+                    "Failed to reset 2FA: \nyou must reset the seed first (error code"
+                    f" {hex(256*sw1+sw2)})"
                 )
                 client.handler.show_error(msg)
             else:
@@ -519,7 +528,10 @@ class SatochipSettingsDialog(WindowModalDialog):
             txt_error = "".join(
                 [
                     "Unable to get device certificate: feature unsupported! \n",
-                    "Authenticity validation is only available starting with Satochip v0.12 and higher",
+                    (
+                        "Authenticity validation is only available starting with"
+                        " Satochip v0.12 and higher"
+                    ),
                 ]
             )
         except CardNotPresentError:

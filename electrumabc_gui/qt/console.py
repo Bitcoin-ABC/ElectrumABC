@@ -44,9 +44,7 @@ class ConsoleWarningOverlay(QtWidgets.QWidget):
     QLabel, QLabel link {{
         border-radius: {0}px;
     }}
-    """.format(
-        BORDER_RADIUS
-    )
+    """.format(BORDER_RADIUS)
 
     CONFIRM_TEXT = _("I UNDERSTAND THE RISK").upper()
 
@@ -57,16 +55,20 @@ class ConsoleWarningOverlay(QtWidgets.QWidget):
 
         util.finalization_print_error(self)
 
-        warning_fmt = '<h1 align="center">{0}</h1><p align=center>{1} {2}<br/><a href="{3}" {5}>{3}</a><p align="center"><font size=+1>{4}</font></p>'
+        warning_fmt = (
+            '<h1 align="center">{0}</h1><p align=center>{1} {2}<br/><a href="{3}"'
+            ' {5}>{3}</a><p align="center"><font size=+1>{4}</font></p>'
+        )
         warning_text = warning_fmt.format(
             _("WARNING"),
             _(
-                "Do not enter code here that you don't understand. Executing the wrong code could "
-                "lead to your coins being irreversibly lost."
+                "Do not enter code here that you don't understand. Executing the wrong"
+                " code could lead to your coins being irreversibly lost."
             ),
             _(
-                "If someone you do not trust wants you to enter something here, that person might "
-                "be attempting a social engineering / phishing attack on you."
+                "If someone you do not trust wants you to enter something here, that"
+                " person might be attempting a social engineering / phishing attack on"
+                " you."
             ),
             "https://en.wikipedia.org/wiki/Social_engineering_(security)",
             _("Type: '{}' below to proceed").format("<b>" + self.CONFIRM_TEXT + "</b>"),
@@ -367,7 +369,7 @@ class Console(QtWidgets.QWidget):
             else:
                 return ""
         else:
-            if command and command[-1] == (":"):
+            if command and command[-1] == ":":
                 self.construct.append(command)
                 return ""
             else:
@@ -431,7 +433,7 @@ class Console(QtWidgets.QWidget):
             if callable(self.namespace.get(command)):
                 self.editor.appendPlainText(
                     f"'{command}' is a function. Type '{command}()' to use it in the "
-                    f"Python console."
+                    "Python console."
                 )
                 self.newPrompt()
                 return

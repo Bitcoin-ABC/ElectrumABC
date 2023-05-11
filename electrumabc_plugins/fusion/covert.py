@@ -294,7 +294,8 @@ class CovertSubmitter(PrintError):
             self.failure_exception = _exception
             self.stopping = True
             self.print_error(
-                f"stopping; connections will close in ~{self.stop_tstart - time.monotonic():.3f}s"
+                "stopping; connections will close in"
+                f" ~{self.stop_tstart - time.monotonic():.3f}s"
             )
             self.wake_all()
 
@@ -417,7 +418,8 @@ class CovertSubmitter(PrintError):
                 self.count_established += 1
             tend = time.monotonic()
             self.print_error(
-                f"[{covconn.conn_number}] connection established after {(tend-tbegin):.3f}s"
+                f"[{covconn.conn_number}] connection established after"
+                f" {(tend-tbegin):.3f}s"
             )
 
             covconn.delay = rand_trap(self.rng) * self.randspan
@@ -504,7 +506,8 @@ class CovertSubmitter(PrintError):
         num_missing = sum(1 for s in self.slots if s.covconn.connection is None)
         if num_missing > 0:
             raise FusionError(
-                f"Covert connections were too slow ({num_missing} incomplete out of {len(self.slots)})."
+                f"Covert connections were too slow ({num_missing} incomplete out of"
+                f" {len(self.slots)})."
             )
 
     def check_done(self):
@@ -513,5 +516,6 @@ class CovertSubmitter(PrintError):
         num_missing = sum(1 for s in self.slots if not s.done)
         if num_missing > 0:
             raise FusionError(
-                f"Covert submissions were too slow ({num_missing} incomplete out of {len(self.slots)})."
+                f"Covert submissions were too slow ({num_missing} incomplete out of"
+                f" {len(self.slots)})."
             )

@@ -132,7 +132,8 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QtWidgets.QDialog):
 
         self.lowres_label = QtWidgets.QLabel(
             _(
-                "Note: This camera generates frames of relatively low resolution; QR scanning accuracy may be affected"
+                "Note: This camera generates frames of relatively low resolution; QR"
+                " scanning accuracy may be affected"
             )
         )
         self.lowres_label.setWordWrap(True)
@@ -218,7 +219,8 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QtWidgets.QDialog):
 
         if not ideal_resolutions:
             self.print_error(
-                "Warning: No ideal resolutions found, falling back to less-than-ideal resolutions -- QR recognition may fail!"
+                "Warning: No ideal resolutions found, falling back to less-than-ideal"
+                " resolutions -- QR recognition may fail!"
             )
             candidate_resolutions = less_than_ideal_resolutions
             is_ideal = False
@@ -262,7 +264,9 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QtWidgets.QDialog):
             return (
                 "\n\n"
                 + _(
-                    "If you indeed do have a usable camera connected, then this error may be caused by bugs in previous PyQt5 versions on Linux. Try installing the latest PyQt5:"
+                    "If you indeed do have a usable camera connected, then this error"
+                    " may be caused by bugs in previous PyQt5 versions on Linux. Try"
+                    " installing the latest PyQt5:"
                 )
                 + "\n\n"
                 + "python3 -m pip install --user -I pyqt5"
@@ -450,7 +454,8 @@ class QrReaderCameraDialog(PrintError, MessageBoxMixin, QtWidgets.QDialog):
 
         if frame.size() != self.resolution:
             self.print_error(
-                "Getting video data at {}x{} instead of the requested {}x{}, switching resolution.".format(
+                "Getting video data at {}x{} instead of the requested {}x{}, switching"
+                " resolution.".format(
                     frame.size().width(),
                     frame.size().height(),
                     self.resolution.width(),

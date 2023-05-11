@@ -291,7 +291,7 @@ class CoinGecko(ExchangeBase):
     def request_history(self, ccy):
         history = self.get_json(
             "api.coingecko.com",
-            f"/api/v3/coins/ecash/market_chart?" f"vs_currency={ccy}&days=max",
+            f"/api/v3/coins/ecash/market_chart?vs_currency={ccy}&days=max",
         )
 
         return {
@@ -437,7 +437,6 @@ def get_exchanges_by_ccy(history=True):
 
 
 class FxThread(ThreadJob):
-
     default_currency = DEFAULT_CURRENCY
     default_exchange = DEFAULT_EXCHANGE
 

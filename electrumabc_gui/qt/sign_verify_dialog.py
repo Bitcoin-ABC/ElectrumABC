@@ -172,14 +172,14 @@ class SignVerifyDialog(QDialog, MessageBoxMixin):
         if addr.kind != addr.ADDR_P2PKH:
             msg_sign = (
                 _(
-                    "Signing with an address actually means signing with the corresponding "
-                    "private key, and verifying with the corresponding public key. The "
-                    "address you have entered does not have a unique public key, so these "
-                    "operations cannot be performed."
+                    "Signing with an address actually means signing with the"
+                    " corresponding private key, and verifying with the corresponding"
+                    " public key. The address you have entered does not have a unique"
+                    " public key, so these operations cannot be performed."
                 )
                 + "\n\n"
                 + _(
-                    f"The operation is undefined. Not just in "
+                    "The operation is undefined. Not just in "
                     f"{PROJECT_NAME}, but in general."
                 )
             )

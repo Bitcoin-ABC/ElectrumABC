@@ -84,9 +84,10 @@ class SPV(ThreadJob):
     """Simple Payment Verification"""
 
     def __init__(self, network, wallet):
-        assert isinstance(
-            wallet, SPVDelegate
-        ), "Verifier instance needs to be passed a wallet that is an object implementing the SPVDelegate interface."
+        assert isinstance(wallet, SPVDelegate), (
+            "Verifier instance needs to be passed a wallet that is an object"
+            " implementing the SPVDelegate interface."
+        )
         self.wallet = wallet  # despite the name, might not always be a wallet instance, may be SPVDelete (CashAcct)
         self.network = network
         self.blockchain = network.blockchain()
@@ -219,9 +220,8 @@ class SPV(ThreadJob):
             return
         if header.get("merkle_root") != merkle_root:
             self.print_error(
-                "merkle verification failed for {} (merkle root mismatch {} != {})".format(
-                    tx_hash, header.get("merkle_root"), merkle_root
-                )
+                "merkle verification failed for {} (merkle root mismatch {} != {})"
+                .format(tx_hash, header.get("merkle_root"), merkle_root)
             )
             return
         # we passed all the tests

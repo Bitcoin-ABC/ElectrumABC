@@ -126,7 +126,7 @@ class ScanQRTextEdit(_QrCodeTextEdit, MessageBoxMixin):
             return
         if len(scanned_qrs) > 1:
             self.show_error(
-                _("More than one QR code was found ion the" " current screen."),
+                _("More than one QR code was found ion the current screen."),
                 title=_("More than one QR code found"),
             )
             return

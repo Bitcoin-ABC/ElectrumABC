@@ -245,10 +245,14 @@ class Plugin(FusionPlugin, QObject):
                 fuse_depth,
             ).format(min=fuse_depth)
             tooltip = ngettext(
-                "If checked, only spend coins that have been anonymized by\n"
-                "CashFusion, after having been fused at least {min} time.",
-                "If checked, only spend coins that have been anonymized by\n"
-                "CashFusion, after having been fused at least {min} times.",
+                (
+                    "If checked, only spend coins that have been anonymized by\n"
+                    "CashFusion, after having been fused at least {min} time."
+                ),
+                (
+                    "If checked, only spend coins that have been anonymized by\n"
+                    "CashFusion, after having been fused at least {min} times."
+                ),
                 fuse_depth,
             ).format(min=fuse_depth)
         else:
@@ -327,7 +331,9 @@ class Plugin(FusionPlugin, QObject):
             d = PasswordDialog(
                 wallet,
                 _(
-                    "Previously you had auto-fusion enabled on this wallet. If you would like to keep auto-fusing in the background, enter your password."
+                    "Previously you had auto-fusion enabled on this wallet. If you"
+                    " would like to keep auto-fusing in the background, enter your"
+                    " password."
                 ),
                 callback_ok=callback,
             )
@@ -412,7 +418,8 @@ class Plugin(FusionPlugin, QObject):
             item.setToolTip(
                 col,
                 _(
-                    "This coin shares an address with a fused coin. Do not spend separately."
+                    "This coin shares an address with a fused coin. Do not spend"
+                    " separately."
                 ),
             )
         elif utxo["height"] <= 0:
@@ -638,7 +645,8 @@ class Plugin(FusionPlugin, QObject):
             return window.top_level_window()
         else:
             raise TypeError(
-                f"Expected a wallet or a window instance, instead got {type(wallet_or_window)}"
+                "Expected a wallet or a window instance, instead got"
+                f" {type(wallet_or_window)}"
             )
 
     @classmethod
@@ -653,7 +661,8 @@ class Plugin(FusionPlugin, QObject):
         window = cls.window_for_wallet(wallet)
         if not window:
             raise RuntimeError(
-                f"Wallet {wallet.diagnostic_name()} lacks a valid ElectrumWindow instance!"
+                f"Wallet {wallet.diagnostic_name()} lacks a valid ElectrumWindow"
+                " instance!"
             )
         pw = window.gui_object.get_cached_password(wallet)
         if pw is not None:
@@ -787,8 +796,9 @@ class Plugin(FusionPlugin, QObject):
                         _("The Tor client has been successfully started."),
                         detail_text=(
                             _(
-                                "The Tor client can be stopped at any time from the Network Settings -> Proxy Tab"
-                                ", however CashFusion does require Tor in order to operate correctly."
+                                "The Tor client can be stopped at any time from the"
+                                " Network Settings -> Proxy Tab, however CashFusion"
+                                " does require Tor in order to operate correctly."
                             )
                         ),
                         icon=icon_pm,
@@ -1071,7 +1081,8 @@ class FusionButton(StatusBarButton):
                 pd = PasswordDialog(
                     self.wallet,
                     _(
-                        "To perform auto-fusion in the background, please enter your password."
+                        "To perform auto-fusion in the background, please enter your"
+                        " password."
                     ),
                 )
                 # just in case this plugin is unloaded while this dialog is up
@@ -1093,8 +1104,8 @@ class FusionButton(StatusBarButton):
                     Plugin.get_suitable_dialog_window_parent(self.wallet),
                     _("Disabling automatic Cash Fusions"),
                     _(
-                        "New automatic fusions will not be started, but you have {num} currently in progress."
-                        " Would you like to signal them to stop?"
+                        "New automatic fusions will not be started, but you have {num}"
+                        " currently in progress. Would you like to signal them to stop?"
                     ).format(num=len(running)),
                 )
                 if res == QtWidgets.QMessageBox.Yes:

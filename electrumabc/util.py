@@ -788,7 +788,8 @@ class JSONSocketPipe(PrintError):
                 and len(self.recv_buf) > self.max_message_bytes
             ):
                 raise self.Closed(
-                    f"Message limit is: {self.max_message_bytes}; receive buffer exceeded this limit!"
+                    f"Message limit is: {self.max_message_bytes}; receive buffer"
+                    " exceeded this limit!"
                 )
 
     def send(self, request):
@@ -844,7 +845,6 @@ def setup_thread_excepthook():
     init_original = threading.Thread.__init__
 
     def init(self, *args, **kwargs):
-
         init_original(self, *args, **kwargs)
         run_original = self.run
 
@@ -877,9 +877,11 @@ class Handlers:
         this_thread = threading.current_thread()
         if this_thread is not threading.main_thread():
             print_stderr(
-                f"Warning: do_in_main_thread called with the default handler"
-                f" from outside the main thread (thr: {this_thread.name});"
-                " such usage may lead to undefined behavior.  Traceback:\n",
+                (
+                    "Warning: do_in_main_thread called with the default handler"
+                    f" from outside the main thread (thr: {this_thread.name});"
+                    " such usage may lead to undefined behavior.  Traceback:\n"
+                ),
                 "".join(traceback.format_stack()),
             )
         func(*args, **kwargs)
@@ -1027,8 +1029,10 @@ class Weak:
             else:
                 print_error(
                     self,
-                    f"MethodProxy for '{self.qname}' called on a dead reference. "
-                    f"Referent was: {self.sname})",
+                    (
+                        f"MethodProxy for '{self.qname}' called on a dead reference. "
+                        f"Referent was: {self.sname})"
+                    ),
                 )
 
 

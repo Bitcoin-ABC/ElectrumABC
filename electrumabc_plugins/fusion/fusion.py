@@ -486,7 +486,8 @@ class Fusion(threading.Thread, PrintError):
                 self.print_error("Connect failed:", repr(e))
                 sslstr = " SSL " if self.server_ssl else ""
                 raise FusionError(
-                    f"Could not connect to {sslstr}{self.server_host}:{self.server_port}"
+                    "Could not connect to"
+                    f" {sslstr}{self.server_host}:{self.server_port}"
                 ) from e
 
             with self.connection:
@@ -648,8 +649,8 @@ class Fusion(threading.Thread, PrintError):
         min_outputs = max(MIN_TX_COMPONENTS - num_distinct, 1)
         if max_outputs < min_outputs:
             raise FusionError(
-                "Too few distinct inputs selected (%d); cannot satisfy output count constraint (>=%d, <=%d)"
-                % (num_distinct, min_outputs, max_outputs)
+                "Too few distinct inputs selected (%d); cannot satisfy output count"
+                " constraint (>=%d, <=%d)" % (num_distinct, min_outputs, max_outputs)
             )
 
         # how much input value do we bring to the table (after input & player fees)
@@ -735,7 +736,8 @@ class Fusion(threading.Thread, PrintError):
 
         if not tier_outputs:
             raise FusionError(
-                "No outputs available at any tier (selected inputs were too small / too large)."
+                "No outputs available at any tier (selected inputs were too small / too"
+                " large)."
             )
 
         self.print_error(f"registering for tiers: {tiers_sorted}")
@@ -870,7 +872,8 @@ class Fusion(threading.Thread, PrintError):
         self.outputs = list(zip(out_amounts, out_addrs))
         self.safety_excess_fee = self.safety_excess_fees[self.tier]
         self.print_error(
-            f"starting fusion rounds at tier {self.tier}: {len(self.inputs)} inputs and {len(self.outputs)} outputs"
+            f"starting fusion rounds at tier {self.tier}: {len(self.inputs)} inputs and"
+            f" {len(self.outputs)} outputs"
         )
 
     def start_covert(
@@ -914,7 +917,11 @@ class Fusion(threading.Thread, PrintError):
                 )
                 self.status = (
                     "running",
-                    f"Setting up Tor connections ({num_connected}+{num_spare_connected} out of {self.num_components})",
+                    (
+                        "Setting up Tor connections"
+                        f" ({num_connected}+{num_spare_connected} out of"
+                        f" {self.num_components})"
+                    ),
                 )
                 time.sleep(1)
 
@@ -954,7 +961,8 @@ class Fusion(threading.Thread, PrintError):
             lag = covert_T0 - self.t_fusionbegin - Protocol.WARMUP_TIME
             if abs(lag) > Protocol.WARMUP_SLOP:
                 raise FusionError(
-                    f"Warmup period too different from expectation (|{lag:.3f}s| > {Protocol.WARMUP_SLOP:.3f}s)."
+                    f"Warmup period too different from expectation (|{lag:.3f}s| >"
+                    f" {Protocol.WARMUP_SLOP:.3f}s)."
                 )
             self.t_fusionbegin = None
 
@@ -1187,7 +1195,10 @@ class Fusion(threading.Thread, PrintError):
                 wallets = set(self.source_wallet_info.keys())
                 wallets.add(self.target_wallet)
                 if len(wallets) > 1:
-                    label += f" {sorted(str(w) for w in self.source_wallet_info.keys())!r} ➡ {str(self.target_wallet)!r}"
+                    label += (
+                        f" {sorted(str(w) for w in self.source_wallet_info.keys())!r} ➡"
+                        f" {str(self.target_wallet)!r}"
+                    )
 
                 # If we have any sweep-inputs, should also modify label
                 # If we have any send-outputs, should also modify label
@@ -1246,7 +1257,8 @@ class Fusion(threading.Thread, PrintError):
                 bad_components = set(msg.bad_components)
                 if not bad_components.isdisjoint(mycomponent_idxes):
                     self.print_error(
-                        f"bad components: {sorted(bad_components)} mine: {sorted(mycomponent_idxes)}"
+                        f"bad components: {sorted(bad_components)} mine:"
+                        f" {sorted(mycomponent_idxes)}"
                     )
                     raise FusionError("server thinks one of my components is bad!")
         else:  # skip_signatures True
@@ -1351,7 +1363,8 @@ class Fusion(threading.Thread, PrintError):
                     check_input_electrumx(self.network, inpcomp)
                 except ValidationError as e:
                     self.print_error(
-                        f"found a bad input [{rp.src_commitment_idx}]: {e.args[0]} ({inpcomp.prev_txid[::-1].hex()}:{inpcomp.prev_index})"
+                        f"found a bad input [{rp.src_commitment_idx}]:"
+                        f" {e.args[0]} ({inpcomp.prev_txid[::-1].hex()}:{inpcomp.prev_index})"
                     )
                     blames.append(
                         pb.Blames.BlameProof(
@@ -1364,7 +1377,8 @@ class Fusion(threading.Thread, PrintError):
                     )
                 except Exception as e:
                     self.print_error(
-                        f"verified an input internally, but was unable to check it against blockchain: {repr(e)}"
+                        "verified an input internally, but was unable to check it"
+                        f" against blockchain: {repr(e)}"
                     )
         self.print_error(
             f"checked {len(msg.proofs)} proofs, {count_inputs} of them inputs"

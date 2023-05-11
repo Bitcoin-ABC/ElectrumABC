@@ -165,7 +165,6 @@ if TYPE_CHECKING:
 
 
 class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
-
     # Note: self.clean_up_connections automatically detects signals named XXX_signal
     # and disconnects them on window close.
     payment_request_ok_signal = pyqtSignal()
@@ -630,8 +629,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                     _("This wallet is watching-only."),
                     _(f"This means you will not be able to spend {CURRENCY} with it."),
                     _(
-                        f"Make sure you own the seed phrase or the private keys, before you "
-                        f"request {CURRENCY} to be sent to this wallet."
+                        "Make sure you own the seed phrase or the private keys, before"
+                        f" you request {CURRENCY} to be sent to this wallet."
                     ),
                 ]
             )
@@ -671,11 +670,13 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 [
                     _("This testnet wallet has an invalid master key format."),
                     _(
-                        f"(Old versions of {PROJECT_NAME} before 3.3.6 produced invalid testnet wallets)."
+                        f"(Old versions of {PROJECT_NAME} before 3.3.6 produced invalid"
+                        " testnet wallets)."
                     ),
                     "<br><br>",
                     _(
-                        "In order to use this wallet without errors with this version of EC, please <b>re-generate this wallet from seed</b>."
+                        "In order to use this wallet without errors with this version"
+                        " of EC, please <b>re-generate this wallet from seed</b>."
                     ),
                     "<br><br><em><i>~SPV stopped~</i></em>",
                 ]
@@ -730,7 +731,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 self.show_critical(
                     _(
                         f"{PROJECT_NAME} was unable to copy your wallet file to"
-                        f" the specified location."
+                        " the specified location."
                     )
                     + "\n"
                     + str(reason),
@@ -1038,24 +1039,23 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             + "</p>"
             + '<span style="font-size:11pt; font-weight:500;"><p>'
             + f"Copyright © {year_start}-{year_end} Bitcoin ABC and the {PROJECT_NAME} "
-            f"developers."
+            "developers."
             + "</p><p>"
             + _(
                 f"Copyright © {year_start_ec}-{year_end_ec} Electron Cash LLC "
-                f"and the Electron Cash developers."
+                "and the Electron Cash developers."
             )
             + "</p><p>"
             + _("darkdetect for macOS © 2019 Alberto Sottile")
-            + "</p>"
-            "</span>"
+            + "</p></span>"
             + '<span style="font-weight:200;"><p>'
             + _(
                 f"{PROJECT_NAME}'s focus is speed, with low resource usage and"
                 f" simplifying {CURRENCY}. You do not need to perform regular "
-                f"backups, because your wallet can be recovered from a secret "
-                f"phrase that you can memorize or write on paper. Startup times "
-                f"are instant because it operates in conjunction with "
-                f"high-performance servers that handle the most complicated "
+                "backups, because your wallet can be recovered from a secret "
+                "phrase that you can memorize or write on paper. Startup times "
+                "are instant because it operates in conjunction with "
+                "high-performance servers that handle the most complicated "
                 f"parts of the {CURRENCY} system."
             )
             + "</p></span>",
@@ -1065,12 +1065,14 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         msg = " ".join(
             [
                 _("Please report any bugs as issues on github:<br/>"),
-                f'<a href="{REPOSITORY_URL}/issues">'
-                f"{REPOSITORY_URL}/issues</a><br/><br/>",
+                (
+                    f'<a href="{REPOSITORY_URL}/issues">'
+                    f"{REPOSITORY_URL}/issues</a><br/><br/>"
+                ),
                 _(
-                    f"Before reporting a bug, upgrade to the most recent version of "
+                    "Before reporting a bug, upgrade to the most recent version of "
                     f"{PROJECT_NAME} (latest release or git HEAD), and include the "
-                    f"version number in your report."
+                    "version number in your report."
                 ),
                 _("Try to explain not only what the bug is, but how it occurs."),
             ]
@@ -1427,14 +1429,21 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         # OP_RETURN requests
         self.receive_opreturn_e = QtWidgets.QLineEdit()
         msg = _(
-            "You may optionally append an OP_RETURN message to the payment URI and/or QR you generate.\n\nNote: Not all wallets yet support OP_RETURN parameters, so make sure the other party's wallet supports OP_RETURN URIs."
+            "You may optionally append an OP_RETURN message to the payment URI and/or"
+            " QR you generate.\n\nNote: Not all wallets yet support OP_RETURN"
+            " parameters, so make sure the other party's wallet supports OP_RETURN"
+            " URIs."
         )
         self.receive_opreturn_label = label = HelpLabel(_("&OP_RETURN"), msg)
         label.setBuddy(self.receive_opreturn_e)
         self.receive_opreturn_rawhex_cb = QtWidgets.QCheckBox(_("Raw &hex script"))
         self.receive_opreturn_rawhex_cb.setToolTip(
             _(
-                "If unchecked, the textbox contents are UTF8-encoded into a single-push script: <tt>OP_RETURN PUSH &lt;text&gt;</tt>. If checked, the text contents will be interpreted as a raw hexadecimal script to be appended after the OP_RETURN opcode: <tt>OP_RETURN &lt;script&gt;</tt>."
+                "If unchecked, the textbox contents are UTF8-encoded into a single-push"
+                " script: <tt>OP_RETURN PUSH &lt;text&gt;</tt>. If checked, the text"
+                " contents will be interpreted as a raw hexadecimal script to be"
+                " appended after the OP_RETURN opcode: <tt>OP_RETURN"
+                " &lt;script&gt;</tt>."
             )
         )
         grid.addWidget(label, 3, 0)
@@ -1687,10 +1696,12 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 msg = [
                     _("No more addresses in your wallet."),
                     _(
-                        "You are using a non-deterministic wallet, which cannot create new addresses."
+                        "You are using a non-deterministic wallet, which cannot create"
+                        " new addresses."
                     ),
                     _(
-                        "If you want to create new addresses, use a deterministic wallet instead."
+                        "If you want to create new addresses, use a deterministic"
+                        " wallet instead."
                     ),
                 ]
                 self.show_message(" ".join(msg))
@@ -1700,7 +1711,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 # Warn if past gap limit.
                 if not self.question(
                     _(
-                        "Warning: The next address will not be recovered automatically if you restore your wallet from seed; you may need to add it manually.\n\nThis occurs because you have too many unused addresses in your wallet. To avoid this situation, use the existing addresses first.\n\nCreate anyway?"
+                        "Warning: The next address will not be recovered automatically"
+                        " if you restore your wallet from seed; you may need to add it"
+                        " manually.\n\nThis occurs because you have too many unused"
+                        " addresses in your wallet. To avoid this situation, use the"
+                        " existing addresses first.\n\nCreate anyway?"
                     )
                 ):
                     return
@@ -1889,7 +1904,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             _("Description of the transaction (not mandatory).")
             + "\n\n"
             + _(
-                "The description is not sent to the recipient of the funds. It is stored in your wallet file, and displayed in the 'History' tab."
+                "The description is not sent to the recipient of the funds. It is"
+                " stored in your wallet file, and displayed in the 'History' tab."
             )
         )
         description_label = HelpLabel(_("&Description"), msg)
@@ -1903,12 +1919,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             + "\n\n"
             + _(
                 f"Posts a PERMANENT note to the {CURRENCY} "
-                f"blockchain as part of this transaction."
+                "blockchain as part of this transaction."
             )
             + "\n\n"
             + _(
-                "If you specify OP_RETURN text, you may leave the"
-                " 'Pay to' field blank."
+                "If you specify OP_RETURN text, you may leave the 'Pay to' field blank."
             )
         )
         self.opreturn_label = HelpLabel(_("&OP_RETURN"), msg_opreturn)
@@ -1920,7 +1935,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.opreturn_rawhex_cb = QtWidgets.QCheckBox(_("&Raw hex script"))
         self.opreturn_rawhex_cb.setToolTip(
             _(
-                "If unchecked, the textbox contents are UTF8-encoded into a single-push script: <tt>OP_RETURN PUSH &lt;text&gt;</tt>. If checked, the text contents will be interpreted as a raw hexadecimal script to be appended after the OP_RETURN opcode: <tt>OP_RETURN &lt;script&gt;</tt>."
+                "If unchecked, the textbox contents are UTF8-encoded into a single-push"
+                " script: <tt>OP_RETURN PUSH &lt;text&gt;</tt>. If checked, the text"
+                " contents will be interpreted as a raw hexadecimal script to be"
+                " appended after the OP_RETURN opcode: <tt>OP_RETURN"
+                " &lt;script&gt;</tt>."
             )
         )
         hbox.addWidget(self.opreturn_rawhex_cb)
@@ -1946,11 +1965,13 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             _("Amount to be sent.")
             + "\n\n"
             + _(
-                "The amount will be displayed in red if you do not have enough funds in your wallet."
+                "The amount will be displayed in red if you do not have enough funds in"
+                " your wallet."
             )
             + " "
             + _(
-                "Note that if you have frozen some of your addresses, the available funds will be lower than your total balance."
+                "Note that if you have frozen some of your addresses, the available"
+                " funds will be lower than your total balance."
             )
             + "\n\n"
             + _('Keyboard shortcut: type "!" to send all your coins.')
@@ -1978,8 +1999,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         msg = (
             _(
-                f"{CURRENCY} transactions are in general not free. A transaction fee is "
-                f"  paid by the sender of the funds."
+                f"{CURRENCY} transactions are in general not free. A transaction fee is"
+                "   paid by the sender of the funds."
             )
             + "\n\n"
             + _(
@@ -2011,11 +2032,13 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             _("This is the fee rate that will be used for this transaction.")
             + "\n\n"
             + _(
-                "It is calculated from the Custom Fee Rate in preferences, but can be overridden from the manual fee edit on this form (if enabled)."
+                "It is calculated from the Custom Fee Rate in preferences, but can be"
+                " overridden from the manual fee edit on this form (if enabled)."
             )
             + "\n\n"
             + _(
-                "Generally, a fee of 1.0 sats/B is a good minimal rate to ensure your transaction will make it into the next block."
+                "Generally, a fee of 1.0 sats/B is a good minimal rate to ensure your"
+                " transaction will make it into the next block."
             ),
         )
         self.fee_custom_lbl.setFixedWidth(self.amount_e.width())
@@ -2101,7 +2124,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 opret_color = ColorScheme.RED
                 text = (
                     _(
-                        "OP_RETURN message too large, needs to be no longer than 220 bytes"
+                        "OP_RETURN message too large, needs to be no longer than 220"
+                        " bytes"
                     )
                     + (", " if text else "")
                     + text
@@ -2393,8 +2417,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 alias = self.payto_e.toPlainText()
                 msg = (
                     _(
-                        'WARNING: the alias "{}" could not be validated via an additional '
-                        "security check, DNSSEC, and thus may not be correct."
+                        'WARNING: the alias "{}" could not be validated via an'
+                        " additional security check, DNSSEC, and thus may not be"
+                        " correct."
                     ).format(alias)
                     + "\n"
                 )
@@ -2460,10 +2485,14 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 segwits.add(line)
         if segwits:
             msg = ngettext(
-                "Possible BTC Segwit address in 'Pay to' field. "
-                "Please use CashAddr format for p2sh addresses.\n\n{segwit_addresses}",
-                "Possible BTC Segwit addresses in 'Pay to' field. "
-                "Please use CashAddr format for p2sh addresses.\n\n{segwit_addresses}",
+                (
+                    "Possible BTC Segwit address in 'Pay to' field. Please use CashAddr"
+                    " format for p2sh addresses.\n\n{segwit_addresses}"
+                ),
+                (
+                    "Possible BTC Segwit addresses in 'Pay to' field. Please use"
+                    " CashAddr format for p2sh addresses.\n\n{segwit_addresses}"
+                ),
                 len(segwits),
             ).format(segwit_addresses="\n".join(segwits))
             detail = _(
@@ -2587,7 +2616,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 _("Warning")
                 + ": "
                 + _(
-                    "You're using a fee of less than 1.0 sats/B. It may take a very long time to confirm."
+                    "You're using a fee of less than 1.0 sats/B. It may take a very"
+                    " long time to confirm."
                 )
             )
             tx.ephemeral["warned_low_fee_already"] = True
@@ -2595,7 +2625,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         if self.config.get("enable_opreturn") and self.message_opreturn_e.text():
             msg.append(
                 _(
-                    "You are using an OP_RETURN message. This gets permanently written to the blockchain."
+                    "You are using an OP_RETURN message. This gets permanently written"
+                    " to the blockchain."
                 )
             )
 
@@ -2709,7 +2740,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 _("Warning")
                 + ": "
                 + _(
-                    "You're using a fee of less than 1.0 sats/B. It may take a very long time to confirm."
+                    "You're using a fee of less than 1.0 sats/B. It may take a very"
+                    " long time to confirm."
                 )
                 + "\n\n"
                 + _("Proceed?")
@@ -2991,7 +3023,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         self.update_fee()
 
     def create_converter_tab(self):
-
         source_address = QtWidgets.QLineEdit()
         cash_address = ButtonsLineEdit()
         cash_address.addCopyButton()
@@ -3055,8 +3086,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         label = WWLabel(
             _(
                 f"This tool helps convert between address formats for {CURRENCY} "
-                f"addresses.\nYou are encouraged to use the 'Cash address' "
-                f"format."
+                "addresses.\nYou are encouraged to use the 'Cash address' "
+                "format."
             )
         )
 
@@ -3177,7 +3208,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             if self.contacts.has(contact):
                 self.show_error(
                     _(
-                        f"A contact named {contact.name} with the same address and type already exists."
+                        f"A contact named {contact.name} with the same address and type"
+                        " already exists."
                     )
                 )
                 self.contact_list.update()
@@ -3207,7 +3239,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         )
         if not self.question(
             _(
-                "Remove {list_of_contacts_OR_count_of_contacts_plus_the_word_count} from your list of contacts?"
+                "Remove {list_of_contacts_OR_count_of_contacts_plus_the_word_count}"
+                " from your list of contacts?"
             ).format(
                 list_of_contacts_OR_count_of_contacts_plus_the_word_count=contact_str
             )
@@ -3506,7 +3539,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                     _("Delete wallet file?"),
                     "%s" % self.wallet.storage.path,
                     _(
-                        "If your wallet contains funds, make sure you have saved its seed."
+                        "If your wallet contains funds, make sure you have saved its"
+                        " seed."
                     ),
                 ]
             )
@@ -3594,12 +3628,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             )
             border_color = ColorScheme.DEFAULT.as_color(False)
             border_color.setAlphaF(0.65)
-            encrypt_but_ss_en = keys_e.styleSheet() + (
-                (
-                    "QPushButton { border: 1px solid %s; border-radius: 6px; padding: 2px; margin: 2px; } "
-                    "QPushButton:hover { border: 1px solid #3daee9; } "
-                    "QPushButton:disabled { border: 1px solid transparent; "
-                )
+            encrypt_but_ss_en = (
+                keys_e.styleSheet()
+                + "QPushButton { border: 1px solid %s; border-radius: 6px; padding:"
+                " 2px; margin: 2px; } QPushButton:hover { border: 1px solid #3daee9;"
+                " } QPushButton:disabled { border: 1px solid transparent; "
                 % (border_color.name(QColor.HexArgb))
             )
             encrypt_but_ss_dis = keys_e.styleSheet()
@@ -3613,7 +3646,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                         _("Specify a passphrase to use for BIP38 encryption.")
                         + "\n"
                         + _(
-                            "Save this passphrase if you save the generated key so you may decrypt it later."
+                            "Save this passphrase if you save the generated key so you"
+                            " may decrypt it later."
                         )
                     )
                 )
@@ -3627,10 +3661,12 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                     pk_lbl.setText(_("BIP38 Key") + ":")
                     self.show_message(
                         _(
-                            "WIF key has been encrypted using BIP38.\n\n"
-                            "You may save this encrypted key to a file or print out its QR code and/or text.\n\n"
-                            "It is strongly encrypted with the passphrase you specified and safe to store electronically. "
-                            "However, the passphrase should be stored securely and not shared with anyone."
+                            "WIF key has been encrypted using BIP38.\n\nYou may save"
+                            " this encrypted key to a file or print out its QR code"
+                            " and/or text.\n\nIt is strongly encrypted with the"
+                            " passphrase you specified and safe to store"
+                            " electronically. However, the passphrase should be stored"
+                            " securely and not shared with anyone."
                         )
                     )
                 except Exception as e:
@@ -3839,7 +3875,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 self.show_transaction(tx)
         except SerializationError as e:
             self.show_critical(
-                _(f"{PROJECT_NAME} was unable to deserialize the " f"transaction:")
+                _(f"{PROJECT_NAME} was unable to deserialize the transaction:")
                 + "\n"
                 + str(e)
             )
@@ -3854,7 +3890,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 self.show_transaction(tx)
         except SerializationError as e:
             self.show_critical(
-                _(f"{PROJECT_NAME} was unable to deserialize the" f" transaction:")
+                _(f"{PROJECT_NAME} was unable to deserialize the transaction:")
                 + "\n"
                 + str(e)
             )
@@ -3875,7 +3911,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             except SerializationError as e:
                 self.show_critical(
                     f"{PROJECT_NAME} was unable to deserialize the"
-                    f" transaction in file {filename}:\n" + str(e)
+                    f" transaction in file {filename}:\n"
+                    + str(e)
                 )
         if not transactions:
             return
@@ -4001,14 +4038,15 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                     _(
                         "BIP38 Encryption is not available. Please install "
                         f"'pycryptodomex' and restart {PROJECT_NAME} to enable"
-                        f"BIP38."
+                        "BIP38."
                     )
                 )
                 return
             passphrase = self.get_passphrase_dialog(
                 msg=(
                     _(
-                        "You are exporting your wallet's private keys as BIP38 encrypted keys."
+                        "You are exporting your wallet's private keys as BIP38"
+                        " encrypted keys."
                     )
                     + "\n\n"
                     + _("You must specify a passphrase to use for encryption.")
@@ -4038,7 +4076,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             _("WARNING: ALL your private keys are secret."),
             _("Exposing a single private key can compromise your entire wallet!"),
             _(
-                "In particular, DO NOT use 'redeem private key' services proposed by third parties."
+                "In particular, DO NOT use 'redeem private key' services proposed by"
+                " third parties."
             ),
         ]
         if bip38:
@@ -4052,17 +4091,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             def set_ww_txt(pf_shown=False):
                 if pf_shown:
                     pf_text = (
-                        (
-                            "<font face='{monoface}' size=+1><b>".format(
-                                monoface=MONOSPACE_FONT
-                            )
+                        "<font face='{monoface}' size=+1><b>".format(
+                            monoface=MONOSPACE_FONT
                         )
                         + bip38
-                        + (
-                            '</b></font> <a href="hide">{link}</a>'.format(
-                                link=_("Hide")
-                            )
-                        )
+                        + '</b></font> <a href="hide">{link}</a>'.format(link=_("Hide"))
                     )
                 else:
                     pf_text = '<a href="show">{link}</a>'.format(
@@ -4070,8 +4103,10 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                     )
                 wwlbl.setText(
                     _(
-                        "The below keys are BIP38 <i>encrypted</i> using the passphrase: {passphrase}<br>"
-                        "Please <i>write this passphrase down</i> and store it in a secret place, separate from these encrypted keys."
+                        "The below keys are BIP38 <i>encrypted</i> using the"
+                        " passphrase: {passphrase}<br>Please <i>write this passphrase"
+                        " down</i> and store it in a secret place, separate from these"
+                        " encrypted keys."
                     ).format(passphrase=pf_text)
                 )
 
@@ -4204,7 +4239,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         except (IOError, os.error) as reason:
             txt = "\n".join(
                 [
-                    _(f"{PROJECT_NAME} was unable to produce a private" f"key-export."),
+                    _(f"{PROJECT_NAME} was unable to produce a privatekey-export."),
                     str(reason),
                 ]
             )
@@ -4305,14 +4340,16 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         fee_dl_chk.setEnabled(bool(self.wallet.network))
         fee_dl_chk.setToolTip(
             _(
-                "If this is checked, accurate fee and input value data will be retrieved from the network"
+                "If this is checked, accurate fee and input value data will be"
+                " retrieved from the network"
             )
         )
         vbox.addWidget(fee_dl_chk)
         fee_time_w = QtWidgets.QWidget()
         fee_time_w.setToolTip(
             _(
-                "The amount of overall time in seconds to allow for downloading fee data before giving up"
+                "The amount of overall time in seconds to allow for downloading fee"
+                " data before giving up"
             )
         )
         hbox = QtWidgets.QHBoxLayout(fee_time_w)
@@ -4450,9 +4487,9 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                     lines.append(cols)
                 else:
                     if has_fiat_columns and ccy:
-                        item[
-                            "fiat_currency"
-                        ] = ccy  # add the currency to each entry in the json. this wastes space but json is bloated anyway so this won't hurt too much, we hope
+                        item["fiat_currency"] = (
+                            ccy  # add the currency to each entry in the json. this wastes space but json is bloated anyway so this won't hurt too much, we hope
+                        )
                     elif not has_fiat_columns:
                         # No need to include these fields as they will always be 'No Data'
                         item.pop("fiat_value", None)
@@ -4523,7 +4560,10 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         vbox = QtWidgets.QVBoxLayout(d)
         bip38_warn_label = QtWidgets.QLabel(
             _(
-                "<b>BIP38 support is disabled because a requisite library is not installed.</b> Please install 'cryptodomex' or omit BIP38 private keys (private keys starting in 6P...). Decrypt keys to WIF format (starting with 5, K, or L) in order to sweep."
+                "<b>BIP38 support is disabled because a requisite library is not"
+                " installed.</b> Please install 'cryptodomex' or omit BIP38 private"
+                " keys (private keys starting in 6P...). Decrypt keys to WIF format"
+                " (starting with 5, K, or L) in order to sweep."
             )
         )
         bip38_warn_label.setWordWrap(True)
@@ -4666,7 +4706,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                     [key],
                     parent=self.top_level_window(),
                     message=_(
-                        "A BIP38 key was specified, please enter a password to decrypt it"
+                        "A BIP38 key was specified, please enter a password to"
+                        " decrypt it"
                     ),
                     show_count=False,
                 )
@@ -5156,11 +5197,13 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         msg = " ".join(
             [
                 _(
-                    "This feature is intended to allow you to rebuild a wallet if it has become corrupted."
+                    "This feature is intended to allow you to rebuild a wallet if it"
+                    " has become corrupted."
                 ),
                 "\n\n"
                 + _(
-                    "Your entire transaction history will be downloaded again from the server and verified from the blockchain."
+                    "Your entire transaction history will be downloaded again from the"
+                    " server and verified from the blockchain."
                 ),
                 _("Just to be safe, back up your wallet file first!"),
                 "\n\n" + _("Rebuild this wallet's history now?"),
@@ -5383,7 +5426,8 @@ class TxUpdateMgr(QObject, PrintError):
             parent.update_status()
             if parent.history_list.has_unknown_balances:
                 self.print_error(
-                    "History tab: 'Unknown' balances detected, will schedule a GUI refresh after wallet settles"
+                    "History tab: 'Unknown' balances detected, will schedule a GUI"
+                    " refresh after wallet settles"
                 )
                 self._full_refresh_ctr = 0
                 self.full_hist_refresh_timer.start()
@@ -5397,7 +5441,8 @@ class TxUpdateMgr(QObject, PrintError):
         if self._full_refresh_ctr > 60:
             # Too many retries. Give up.
             self.print_error(
-                "History tab: Full refresh scheduler timed out.. wallet hasn't settled in 1 minute. Giving up."
+                "History tab: Full refresh scheduler timed out.. wallet hasn't settled"
+                " in 1 minute. Giving up."
             )
             self.full_hist_refresh_timer.stop()
         elif parent and parent.history_list.has_unknown_balances:
@@ -5405,7 +5450,8 @@ class TxUpdateMgr(QObject, PrintError):
             if self.need_process_v or not parent.wallet.is_fully_settled_down():
                 # Wallet not fully settled down yet... schedule this function to run later
                 self.print_error(
-                    "History tab: Wallet not yet settled.. will try again in 1 second..."
+                    "History tab: Wallet not yet settled.. will try again in 1"
+                    " second..."
                 )
             else:
                 # Wallet has settled. Schedule an update. Note this function may be called again

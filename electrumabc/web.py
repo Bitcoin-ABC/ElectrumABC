@@ -150,7 +150,8 @@ def create_URI(addr, amount, message, *, op_return=None, op_return_raw=None, net
         return ""
     if op_return is not None and op_return_raw is not None:
         raise ValueError(
-            "Must specify exactly one of op_return or op_return_hex as kwargs to create_URI"
+            "Must specify exactly one of op_return or op_return_hex as kwargs to"
+            " create_URI"
         )
     scheme, path = addr.to_URI_components(net=net)
     query = []

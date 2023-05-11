@@ -703,7 +703,8 @@ class FusionPlugin(BasePlugin):
                         max_outputs = CONSOLIDATE_MAX_OUTPUTS
                         if len(chosen_buckets) < (MIN_TX_COMPONENTS - max_outputs):
                             self.print_error(
-                                "consolidating auto-fusion skipped due to lack of unrelated coins"
+                                "consolidating auto-fusion skipped due to lack of"
+                                " unrelated coins"
                             )
                             continue
                     else:
@@ -852,8 +853,8 @@ class FusionPlugin(BasePlugin):
                 return True
             # Failure -- this tx has the lokad but no inputs are "from me".
             wallet.print_error(
-                f'CashFusion: txid "{txid}" has a CashFusion-style OP_RETURN but none of the '
-                f"inputs are from this wallet. This is UNEXPECTED!"
+                f'CashFusion: txid "{txid}" has a CashFusion-style OP_RETURN but none'
+                " of the inputs are from this wallet. This is UNEXPECTED!"
             )
             return False
 
@@ -880,7 +881,7 @@ class FusionPlugin(BasePlugin):
                 # this should never happen
                 wallet.print_error(
                     f'CashFusion: WARNING txid "{txid}" has inconsistent state in '
-                    f"the _cashfusion_is_fuz_txid_cache"
+                    "the _cashfusion_is_fuz_txid_cache"
                 )
             if answer:
                 # remember this address as being a "fuzed" address and cache the positive reply

@@ -73,9 +73,9 @@ class Level(SerializableObject):
         sig = stream.read(64)
         if len(sig) != 64:
             raise DeserializationError(
-                f"Could not deserialize delegation Level data. Not enough data left "
+                "Could not deserialize delegation Level data. Not enough data left "
                 f"for a complete Schnorr signature (found {len(sig)} bytes, expected "
-                f"64 bytes)."
+                "64 bytes)."
             )
 
         return Level(pubkey, sig)
@@ -166,7 +166,7 @@ class Delegation(SerializableObject):
 
     def __repr__(self) -> str:
         return (
-            f"Delegation("
+            "Delegation("
             f"limited_proofid={self.limited_proofid}, "
             f"proof_master={self.proof_master}, "
             f"levels={self.levels})"

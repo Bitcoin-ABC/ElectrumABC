@@ -11,15 +11,17 @@ from electrumabc_gui.qt.util import PasswordLineEdit
 
 helpTxt = [
     _(
-        "Your Ledger Wallet wants to tell you a one-time PIN code.<br><br>"
-        "For best security you should unplug your device, open a text editor on another computer, "
-        "put your cursor into it, and plug your device into that computer. "
-        "It will output a summary of the transaction being signed and a one-time PIN.<br><br>"
-        "Verify the transaction summary and type the PIN code here.<br><br>"
-        "Before pressing enter, plug the device back into this computer.<br>"
+        "Your Ledger Wallet wants to tell you a one-time PIN code.<br><br>For best"
+        " security you should unplug your device, open a text editor on another"
+        " computer, put your cursor into it, and plug your device into that computer."
+        " It will output a summary of the transaction being signed and a one-time"
+        " PIN.<br><br>Verify the transaction summary and type the PIN code"
+        " here.<br><br>Before pressing enter, plug the device back into this"
+        " computer.<br>"
     ),
     _(
-        "Verify the address below.<br>Type the character from your security card corresponding to the <u><b>BOLD</b></u> character."
+        "Verify the address below.<br>Type the character from your security card"
+        " corresponding to the <u><b>BOLD</b></u> character."
     ),
 ]
 
@@ -101,7 +103,8 @@ class LedgerAuthDialog(QtWidgets.QDialog):
         self.cardbox.setLayout(card)
         self.addrtext = QtWidgets.QTextEdit()
         self.addrtext.setStyleSheet(
-            "QTextEdit { color:blue; background-color:lightgray; padding:15px 10px; border:none; font-size:20pt; }"
+            "QTextEdit { color:blue; background-color:lightgray; padding:15px 10px;"
+            " border:none; font-size:20pt; }"
         )
         self.addrtext.setReadOnly(True)
         self.addrtext.setMaximumHeight(120)
@@ -168,8 +171,10 @@ class LedgerAuthDialog(QtWidgets.QDialog):
         self.helpmsg.setVisible(True)
         self.pinbox.setVisible(self.cfg["mode"] == 0)
         self.cardbox.setVisible(self.cfg["mode"] == 1)
-        self.pintxt.setFocus(True) if self.cfg["mode"] == 0 else self.cardtxt.setFocus(
-            True
+        (
+            self.pintxt.setFocus(True)
+            if self.cfg["mode"] == 0
+            else self.cardtxt.setFocus(True)
         )
         self.setMaximumHeight(200)
 

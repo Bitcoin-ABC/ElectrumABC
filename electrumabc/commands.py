@@ -121,7 +121,7 @@ def command(s):
                 raise RuntimeError("Daemon offline")  # Same wording as in daemon.py.
             if c.requires_wallet and wallet is None:
                 raise RuntimeError(
-                    f"Wallet not loaded. Use '{SCRIPT_NAME}" f" daemon load_wallet'"
+                    f"Wallet not loaded. Use '{SCRIPT_NAME} daemon load_wallet'"
                 )
             if (
                 c.requires_password
@@ -522,9 +522,9 @@ class Commands:
     def dumpprivkeys(self):
         """Deprecated."""
         return (
-            f"This command is deprecated. Use a pipe instead: "
+            "This command is deprecated. Use a pipe instead: "
             f"'{SCRIPT_NAME} listaddresses | {SCRIPT_NAME} "
-            f"getprivatekeys - '"
+            "getprivatekeys - '"
         )
 
     @command("")
@@ -600,7 +600,10 @@ class Commands:
     def importprivkey(self, privkey, password=None):
         """Import a private key."""
         if not self.wallet.can_import_privkey():
-            return "Error: This type of wallet cannot import private keys. Try to create a new wallet with that key."
+            return (
+                "Error: This type of wallet cannot import private keys. Try to create a"
+                " new wallet with that key."
+            )
         try:
             addr = self.wallet.import_private_key(privkey, password)
             out = "Keypair imported: " + addr
@@ -846,9 +849,7 @@ class Commands:
                     q.get(timeout=min(max(time_remaining() / 2.0, 0.001), 10.0))
                 except queue.Empty:
                     pass
-                kwargs[
-                    "fee_calc_timeout"
-                ] = (
+                kwargs["fee_calc_timeout"] = (
                     time_remaining()
                 )  # since we blocked above, recompute time_remaining for kwargs
         return self.wallet.export_history(**kwargs)
@@ -1010,7 +1011,8 @@ class Commands:
     @command("w")
     def getunusedaddress(self):
         """Returns the first unused address of the wallet, or None if all addresses are used.
-        An address is considered as used if it has received a transaction, or if it is used in a payment request."""
+        An address is considered as used if it has received a transaction, or if it is used in a payment request.
+        """
         return self.wallet.get_unused_address().to_ui_string()
 
     @command("w")
@@ -1128,8 +1130,9 @@ param_descriptions = {
     "pubkey": "Public key",
     "message": "Clear text message. Use quotes if it contains spaces.",
     "encrypted": "Encrypted message",
-    "amount": f"Amount to be sent (in {XEC.ticker}). Type '!' "
-    f"to send the maximum available.",
+    "amount": (
+        f"Amount to be sent (in {XEC.ticker}). Type '!' to send the maximum available."
+    ),
     "requested_amount": f"Requested amount (in {XEC.ticker}).",
     "outputs": 'list of ["address", amount]',
     "redeem_script": "redeem script (hexadecimal)",
@@ -1138,13 +1141,19 @@ param_descriptions = {
 command_options = {
     "addtransaction": (
         None,
-        "Whether transaction is to be used for broadcasting afterwards. Adds transaction to the wallet",
+        (
+            "Whether transaction is to be used for broadcasting afterwards. Adds"
+            " transaction to the wallet"
+        ),
     ),
     "balance": ("-b", "Show the balances of listed addresses"),
     "change": (None, "Show only change addresses"),
     "change_addr": (
         "-c",
-        "Change address. Default is a spare address, or the source address if it's not in the wallet",
+        (
+            "Change address. Default is a spare address, or the source address if it's"
+            " not in the wallet"
+        ),
     ),
     "domain": ("-D", "List of addresses"),
     "encrypt_file": (
@@ -1162,14 +1171,20 @@ command_options = {
     ),
     "from_addr": (
         "-F",
-        "Source address (must be a wallet address; use sweep to spend from non-wallet address).",
+        (
+            "Source address (must be a wallet address; use sweep to spend from"
+            " non-wallet address)."
+        ),
     ),
     "frozen": (None, "Show only frozen addresses"),
     "funded": (None, "Show only funded addresses"),
     "imax": (None, "Maximum number of inputs"),
     "index_url": (
         None,
-        "Override the URL where you would like users to be shown the BIP70 Payment Request",
+        (
+            "Override the URL where you would like users to be shown the BIP70 Payment"
+            " Request"
+        ),
     ),
     "labels": ("-l", "Show the labels of listed addresses"),
     "language": ("-L", "Default language for wordlist"),
@@ -1184,7 +1199,11 @@ command_options = {
     ),
     "op_return_raw": (
         None,
-        "Specify raw hex data to add to the transaction as an OP_RETURN output (0x6a aka the OP_RETURN byte will be auto-prepended for you so do not include it)",
+        (
+            "Specify raw hex data to add to the transaction as an OP_RETURN output"
+            " (0x6a aka the OP_RETURN byte will be auto-prepended for you so do not"
+            " include it)"
+        ),
     ),
     "paid": (None, "Show only paid requests."),
     "passphrase": (None, "Seed extension"),
@@ -1198,19 +1217,29 @@ command_options = {
     "receiving": (None, "Show only receiving addresses"),
     "seed_type": (
         None,
-        "The type of seed to create, currently: 'electrum' and 'bip39' is supported. Default 'bip39'.",
+        (
+            "The type of seed to create, currently: 'electrum' and 'bip39' is"
+            " supported. Default 'bip39'."
+        ),
     ),
     "show_addresses": (None, "Show input and output addresses"),
     "show_fiat": (None, "Show fiat value of transactions"),
     "timeout": (
         None,
-        "Timeout in seconds to wait for the overall operation to complete. Defaults to 30.0.",
+        (
+            "Timeout in seconds to wait for the overall operation to complete. Defaults"
+            " to 30.0."
+        ),
     ),
     "unsigned": ("-u", "Do not sign transaction"),
     "unused": (None, "Show only unused addresses"),
     "use_net": (
         None,
-        "Go out to network for accurate fiat value and/or fee calculations for history. If not specified only the wallet's cache is used which may lead to inaccurate/missing fees and/or FX rates.",
+        (
+            "Go out to network for accurate fiat value and/or fee calculations for"
+            " history. If not specified only the wallet's cache is used which may lead"
+            " to inaccurate/missing fees and/or FX rates."
+        ),
     ),
     "wallet_path": (None, "Wallet path(create/restore commands)"),
     "year": (None, "Show history for a given year"),
@@ -1241,11 +1270,22 @@ config_variables = {
     "addrequest": {
         "requests_dir": "directory where a bip70 file will be written.",
         "ssl_privkey": "Path to your SSL private key, needed to sign the request.",
-        "ssl_chain": "Chain of SSL certificates, needed for signed requests. Put your certificate at the top and the root CA at the end",
-        "url_rewrite": "Parameters passed to str.replace(), in order to create the r= part of ecash: URIs. Example: \"('file:///var/www/','https://electron-cash.org/')\"",
+        "ssl_chain": (
+            "Chain of SSL certificates, needed for signed requests. Put your"
+            " certificate at the top and the root CA at the end"
+        ),
+        "url_rewrite": (
+            "Parameters passed to str.replace(), in order to create the r= part of"
+            " ecash: URIs. Example:"
+            " \"('file:///var/www/','https://electron-cash.org/')\""
+        ),
     },
     "listrequests": {
-        "url_rewrite": "Parameters passed to str.replace(), in order to create the r= part of ecash: URIs. Example: \"('file:///var/www/','https://electron-cash.org/')\"",
+        "url_rewrite": (
+            "Parameters passed to str.replace(), in order to create the r= part of"
+            " ecash: URIs. Example:"
+            " \"('file:///var/www/','https://electron-cash.org/')\""
+        ),
     },
 }
 
@@ -1264,7 +1304,9 @@ def add_network_options(parser):
         "--server",
         dest="server",
         default=None,
-        help="set server host:port:protocol, where protocol is either t (tcp) or s (ssl)",
+        help=(
+            "set server host:port:protocol, where protocol is either t (tcp) or s (ssl)"
+        ),
     )
     parser.add_argument(
         "-p",
@@ -1279,7 +1321,11 @@ def add_network_options(parser):
         action="store_false",
         dest="whitelist_servers_only",
         default=None,
-        help="Disables 'preferred servers only' for this session. This must be used in conjunction with --server or --oneserver for them to work if they are outside the whitelist in servers.json (or the user-specified whitelist).",
+        help=(
+            "Disables 'preferred servers only' for this session. This must be used in"
+            " conjunction with --server or --oneserver for them to work if they are"
+            " outside the whitelist in servers.json (or the user-specified whitelist)."
+        ),
     )
 
 
@@ -1390,7 +1436,10 @@ def get_parser():
             "--qt_opengl",
             dest="qt_opengl",
             default=None,
-            help="(Windows only) If using Qt gui, override the QT_OPENGL env-var with this value (angle,software,desktop are possible overrides)",
+            help=(
+                "(Windows only) If using Qt gui, override the QT_OPENGL env-var with"
+                " this value (angle,software,desktop are possible overrides)"
+            ),
         )
     if sys.platform not in ("darwin",):
         # Qt High DPI scaling can not be disabled on macOS since it is never
@@ -1408,7 +1457,10 @@ def get_parser():
     parser_daemon.add_argument(
         "subcommand",
         nargs="?",
-        help="start, stop, status, load_wallet, close_wallet. Other commands may be added by plugins.",
+        help=(
+            "start, stop, status, load_wallet, close_wallet. Other commands may be"
+            " added by plugins."
+        ),
     )
     parser_daemon.add_argument(
         "subargs",

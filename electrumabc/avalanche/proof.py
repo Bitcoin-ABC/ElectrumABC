@@ -196,9 +196,9 @@ class Proof(SerializableObject):
         signature = stream.read(64)
         if len(signature) != 64:
             raise DeserializationError(
-                f"Could not deserialize proof data. Not enough data left for a "
+                "Could not deserialize proof data. Not enough data left for a "
                 f"complete Schnorr signature (found {len(signature)} bytes, expected "
-                f"64 bytes)."
+                "64 bytes)."
             )
         return Proof(
             sequence,

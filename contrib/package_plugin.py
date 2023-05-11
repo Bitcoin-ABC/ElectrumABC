@@ -164,7 +164,8 @@ class App(QtWidgets.QWidget):
         groupLayout.addRow("Project Url", self.projectUrlEdit)
         self.descriptionEdit = QtWidgets.QTextEdit()
         self.descriptionEdit.setPlaceholderText(
-            "Add scheduled payments at a fixed time either on a given day every week, or a specific day every month."
+            "Add scheduled payments at a fixed time either on a given day every week,"
+            " or a specific day every month."
         )
         self.descriptionEdit.setAcceptRichText(False)
         groupLayout.addRow("Description", self.descriptionEdit)
@@ -172,7 +173,8 @@ class App(QtWidgets.QWidget):
         self.minimumElectronCashVersionEdit.setPlaceholderText("3.2")
         self.minimumElectronCashVersionEdit.setMaximumWidth(50)
         self.minimumElectronCashVersionEdit.setToolTip(
-            "This is the lowest version of Electrum ABC which this plugin can be installed with."
+            "This is the lowest version of Electrum ABC which this plugin can be"
+            " installed with."
         )
         groupLayout.addRow(
             "Minimum Electrum ABC Version", self.minimumElectronCashVersionEdit
@@ -188,7 +190,9 @@ class App(QtWidgets.QWidget):
         self.packageNameEdit = QtWidgets.QLineEdit()
         self.packageNameEdit.setEnabled(False)
         self.packageNameEdit.setToolTip(
-            "This is the name of the folder in the zip archve that contains the Python plugin package.\nIt is necessary in the case that there are other folders containing Python code, or other supporting data like images."
+            "This is the name of the folder in the zip archve that contains the Python"
+            " plugin package.\nIt is necessary in the case that there are other folders"
+            " containing Python code, or other supporting data like images."
         )
         self.selectDirectoryButton = QtWidgets.QPushButton("Select Package Directory")
         contentsVLayout = QtWidgets.QVBoxLayout()

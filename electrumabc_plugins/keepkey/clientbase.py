@@ -20,8 +20,7 @@ class GuiMixin(object):
         6: _("Confirm on your {} that you want to wipe it clean"),
         7: _("Confirm on your {} device the message to sign"),
         8: _(
-            "Confirm the total amount spent and the transaction fee on your "
-            "{} device"
+            "Confirm the total amount spent and the transaction fee on your {} device"
         ),
         10: _("Confirm wallet address on your {} device"),
         "default": _("Check your {} device to continue"),
@@ -92,7 +91,7 @@ class GuiMixin(object):
 
     def callback_WordRequest(self, msg):
         self.step += 1
-        msg = _("Step {}/24.  Enter seed word as explained on " "your {}:").format(
+        msg = _("Step {}/24.  Enter seed word as explained on your {}:").format(
             self.step, self.device
         )
         word = self.handler.get_word(msg)

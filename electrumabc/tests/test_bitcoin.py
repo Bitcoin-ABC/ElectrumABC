@@ -44,7 +44,8 @@ try:
     import ecdsa
 except ImportError:
     sys.exit(
-        "Error: python-ecdsa does not seem to be installed. Try 'sudo pip install ecdsa'"
+        "Error: python-ecdsa does not seem to be installed. Try 'sudo pip install"
+        " ecdsa'"
     )
 
 
@@ -313,7 +314,6 @@ class TestBitcoinTestnet(unittest.TestCase):
 
 
 class TestXprvXpub(unittest.TestCase):
-
     xprv_xpub = (
         # Taken from test vectors in https://en.bitcoin.it/wiki/BIP_0032_TestVectors
         {
@@ -411,7 +411,6 @@ class TestXprvXpub(unittest.TestCase):
 
 
 class TestKeyImport(unittest.TestCase):
-
     priv_pub_addr = (
         {
             "priv": "KzMFjMC2MPadjvX5Cd7b8AKKjjpBSoRKUTpoAtN6B3J9ezWYyXS6",
@@ -421,7 +420,9 @@ class TestKeyImport(unittest.TestCase):
             "txin_type": "p2pkh",
             "compressed": True,
             "addr_encoding": "base58",
-            "scripthash": "c9aecd1fef8d661a42c560bf75c8163e337099800b8face5ca3d1393a30508a7",
+            "scripthash": (
+                "c9aecd1fef8d661a42c560bf75c8163e337099800b8face5ca3d1393a30508a7"
+            ),
         },
         {
             "priv": "5Hxn5C4SQuiV6e62A1MtZmbSeQyrLFhu5uYks62pU5VBUygK2KD",
@@ -431,7 +432,9 @@ class TestKeyImport(unittest.TestCase):
             "txin_type": "p2pkh",
             "compressed": False,
             "addr_encoding": "base58",
-            "scripthash": "f5914651408417e1166f725a5829ff9576d0dbf05237055bf13abd2af7f79473",
+            "scripthash": (
+                "f5914651408417e1166f725a5829ff9576d0dbf05237055bf13abd2af7f79473"
+            ),
         },
         # from http://bitscan.com/articles/security/spotlight-on-mini-private-keys
         {
@@ -442,7 +445,9 @@ class TestKeyImport(unittest.TestCase):
             "txin_type": "p2pkh",
             "compressed": False,  # this is Casascius coins... issue #2748
             "addr_encoding": "base58",
-            "scripthash": "5b07ddfde826f5125ee823900749103cea37808038ecead5505a766a07c34445",
+            "scripthash": (
+                "5b07ddfde826f5125ee823900749103cea37808038ecead5505a766a07c34445"
+            ),
         },
     )
 

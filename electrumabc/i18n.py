@@ -110,7 +110,7 @@ def match_language(language_code: str) -> str:
     if not language_code:
         return None
 
-    for (code, ldef) in languages.items():
+    for code, ldef in languages.items():
         if ldef.matches(language_code) and not ldef.excludes(language_code):
             return code
 

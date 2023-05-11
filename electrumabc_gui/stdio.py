@@ -274,7 +274,8 @@ class ElectrumGui:
 
     def network_dialog(self):
         print(
-            f"use '{SCRIPT_NAME} setconfig server/proxy' to change your network settings"
+            f"use '{SCRIPT_NAME} setconfig server/proxy' to change your network"
+            " settings"
         )
         return True
 

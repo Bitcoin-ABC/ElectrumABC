@@ -182,8 +182,10 @@ class StatusBar(QtWidgets.QStatusBar):
         if b:
             ShowPopupLabel(
                 name="Update Available",
-                text=f'<center><b>{_("Update Available")}</b><br>'
-                f'<small>{_("Click for details")}</small></center>',
+                text=(
+                    f'<center><b>{_("Update Available")}</b><br>'
+                    f'<small>{_("Click for details")}</small></center>'
+                ),
                 target=self.update_available_button,
                 timeout=20000,
                 onClick=self.update_available_button.click,

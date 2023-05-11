@@ -71,7 +71,8 @@ def test_pin_unlocked(func):
                     _("Your {} is locked. Please unlock it.").format(self.device)
                     + "\n\n"
                     + _(
-                        "After unlocking, may also need to re-open this wallet window as well."
+                        "After unlocking, may also need to re-open this wallet window"
+                        " as well."
                     )
                 ) from e
             else:
@@ -218,7 +219,8 @@ class LedgerClient(HardwareClientBase):
                 self.close()
                 raise Exception(
                     _(
-                        "{} firmware version too old. Please update at https://www.ledgerwallet.com"
+                        "{} firmware version too old. Please update at"
+                        " https://www.ledgerwallet.com"
                     ).format(self.device)
                 )
             try:
@@ -242,13 +244,15 @@ class LedgerClient(HardwareClientBase):
                     )
                 else:
                     msg = _(
-                        "Enter your {} PIN - WARNING: LAST ATTEMPT. If the PIN is not correct, the {} will be wiped."
+                        "Enter your {} PIN - WARNING: LAST ATTEMPT. If the PIN is not"
+                        " correct, the {} will be wiped."
                     ).format(self.device, self.device)
                 confirmed, p, pin = self.password_dialog(msg)
                 if not confirmed:
                     raise Exception(
                         _(
-                            "Aborted by user - please unplug the {hw_device_name} and plug it in again before retrying"
+                            "Aborted by user - please unplug the {hw_device_name} and"
+                            " plug it in again before retrying"
                         ).format(hw_device_name=self.device)
                     )
                 pin = pin.encode()
@@ -260,16 +264,18 @@ class LedgerClient(HardwareClientBase):
             if e.sw == 0x6FAA:
                 raise Exception(
                     _(
-                        "{hw_device_name} is temporarily locked - please unplug and plug it in again."
-                        "\n\nIf this problem persists please exit and restart the Bitcoin Cash "
-                        "application running on the device.\n\nYou may also need to re-open this "
-                        "wallet window as well."
+                        "{hw_device_name} is temporarily locked - please unplug and"
+                        " plug it in again.\n\nIf this problem persists please exit and"
+                        " restart the Bitcoin Cash application running on the"
+                        " device.\n\nYou may also need to re-open this wallet window as"
+                        " well."
                     ).format(hw_device_name=self.device)
                 ) from e
             if (e.sw & 0xFFF0) == 0x63C0:
                 raise Exception(
                     _(
-                        "Invalid PIN - please unplug the {hw_device_name} and plug it in again before retrying"
+                        "Invalid PIN - please unplug the {hw_device_name} and plug it"
+                        " in again before retrying"
                     ).format(hw_device_name=self.device)
                 ) from e
             if e.sw == 0x6F00 and e.message == "Invalid channel":
@@ -278,7 +284,8 @@ class LedgerClient(HardwareClientBase):
                     _("Invalid channel.")
                     + "\n"
                     + _(
-                        "Please make sure that 'Browser support' is disabled on your {}."
+                        "Please make sure that 'Browser support' is disabled on"
+                        " your {}."
                     ).format(self.device)
                 ) from e
             if e.sw == 0x6702:
@@ -403,7 +410,10 @@ class LedgerKeyStore(HardwareKeyStore):
             if e.sw == 0x6A80:
                 self.give_error(
                     _(
-                        "Unfortunately, this message cannot be signed by the {}. Only alphanumerical messages shorter than 140 characters are supported. Please remove any extra characters (tab, carriage return) and retry."
+                        "Unfortunately, this message cannot be signed by the {}. Only"
+                        " alphanumerical messages shorter than 140 characters are"
+                        " supported. Please remove any extra characters (tab, carriage"
+                        " return) and retry."
                     ).format(self.device)
                 )
             elif e.sw == 0x6985:  # cancelled by user
@@ -499,7 +509,8 @@ class LedgerKeyStore(HardwareKeyStore):
                 if txin["type"] != "p2sh":
                     self.give_error(
                         _(
-                            "P2SH / regular input mixed in same transaction not supported"
+                            "P2SH / regular input mixed in same transaction not"
+                            " supported"
                         )
                     )  # should never happen
 

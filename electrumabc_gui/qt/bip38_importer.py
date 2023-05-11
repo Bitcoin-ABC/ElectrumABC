@@ -123,7 +123,8 @@ class Bip38Importer(WindowModalDialog, PrintError):
         pw_tit = HelpLabel(
             _("Password:"),
             _(
-                "BIP38 keys are strongly encrypted with a password. To decode this key, please specify the password you used when creating the key."
+                "BIP38 keys are strongly encrypted with a password. To decode this key,"
+                " please specify the password you used when creating the key."
             ),
         )
         self.pw_le = PasswordLineEdit()
@@ -164,7 +165,8 @@ class Bip38Importer(WindowModalDialog, PrintError):
         grid.addWidget(self.pw_le, 2, 1)
 
         hlp = _(
-            "The decrypted private key (WIF key) originally used to create this BIP38 key."
+            "The decrypted private key (WIF key) originally used to create this BIP38"
+            " key."
         )
         wif_tit = HelpLabel(_("Decrypted Private Key:"), hlp)
         self.wif_lbl = QtWidgets.QLabel("     ", self)
@@ -258,7 +260,8 @@ class Bip38Importer(WindowModalDialog, PrintError):
         if self.cur == num:
             if set(self.bip38_keys) != set(self.decoded_keys.keys()):
                 raise RuntimeError(
-                    "Dialog finished but something's wrong -- not all passed-in keys are in the decoded keys dict. FIXME!"
+                    "Dialog finished but something's wrong -- not all passed-in keys"
+                    " are in the decoded keys dict. FIXME!"
                 )
             self.decrypter = None  # just in case a decrypter was running
             super().accept()
@@ -287,7 +290,8 @@ class Bip38Importer(WindowModalDialog, PrintError):
         b38key = sender.key
         if b38key != self.bip38_keys[self.cur]:
             self.print_error(
-                "Warning: Got a result from decrypter but decrypter.key != self.cur. FIXME!"
+                "Warning: Got a result from decrypter but decrypter.key != self.cur."
+                " FIXME!"
             )
             return
         if tup:

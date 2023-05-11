@@ -161,7 +161,8 @@ def _load_library():
             return None
     except (OSError, AttributeError):
         print_stderr(
-            "[secp256k1] warning: libsecp256k1 library was found and loaded but there was an error when using it"
+            "[secp256k1] warning: libsecp256k1 library was found and loaded but there"
+            " was an error when using it"
         )
         return None
 

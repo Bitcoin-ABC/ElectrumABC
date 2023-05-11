@@ -46,46 +46,40 @@ from electrumabc.version import PACKAGE_VERSION
 from .main_window import ElectrumWindow
 from .util import destroyed_print_error
 
-issue_template_html = (
-    """<h2>Traceback</h2>
+issue_template_html = f"""<h2>Traceback</h2>
 <pre>
-{traceback}
+{{traceback}}
 </pre>
 
 <h2>Additional information</h2>
 <ul>
-  <li>%s version: {app_version}</li>
-  <li>Python version: {python_version}</li>
-  <li>Operating system: {os}</li>
-  <li>Wallet type: {wallet_type}</li>
-  <li>Locale: {locale}</li>
+  <li>{PROJECT_NAME} version: {{app_version}}</li>
+  <li>Python version: {{python_version}}</li>
+  <li>Operating system: {{os}}</li>
+  <li>Wallet type: {{wallet_type}}</li>
+  <li>Locale: {{locale}}</li>
 </ul>
 """
-    % PROJECT_NAME
-)
 
-issue_template_markdown = (
-    """
+issue_template_markdown = f"""
 # Description
 <!--- Please add under this line additional information, such as a description
  of what action led to the error--->
 
 # Traceback
 ```
-{traceback}
+{{traceback}}
 ```
 
 # System information
 
-- %s version: {app_version}
-- Python version: {python_version}
-- Operating system: {os}
-- Wallet type: {wallet_type}
-- Locale: {locale}
+- {PROJECT_NAME} version: {{app_version}}
+- Python version: {{python_version}}
+- Operating system: {{os}}
+- Wallet type: {{wallet_type}}
+- Locale: {{locale}}
 
 """
-    % PROJECT_NAME
-)
 
 
 class ExceptionDialog(QtWidgets.QDialog):

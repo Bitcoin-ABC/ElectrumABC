@@ -131,22 +131,25 @@ class NetworkDialog(MessageBoxMixin, QtWidgets.QDialog):
                 detail_text="".join(
                     [
                         _(
-                            "All of your traffic to the blockchain servers will be sent unencrypted."
+                            "All of your traffic to the blockchain servers will be sent"
+                            " unencrypted."
                         ),
                         " ",
                         _(
-                            "Additionally, you may also be vulnerable to man-in-the-middle attacks."
+                            "Additionally, you may also be vulnerable to"
+                            " man-in-the-middle attacks."
                         ),
                         " ",
                         _(
-                            "It is strongly recommended that you go back and enable SSL mode."
+                            "It is strongly recommended that you go back and enable SSL"
+                            " mode."
                         ),
                     ]
                 ),
                 rich_text=False,
                 title=_("Security Warning"),
                 icon=QtWidgets.QMessageBox.Critical,
-                checkbox_text=("Don't ask me again"),
+                checkbox_text="Don't ask me again",
             )
             if chk:
                 self.nlayout.config.set_key("non_ssl_noprompt", True)
@@ -422,7 +425,8 @@ class ServerListWidget(QtWidgets.QTreeWidget):
                 elif flagval & ServerFlag.BadCertificate:
                     flag = ServerFlag.Symbol[ServerFlag.BadCertificate]
                     tt = _(
-                        "This server's pinned certificate mismatches its current certificate"
+                        "This server's pinned certificate mismatches its current"
+                        " certificate"
                     )
                 elif flagval & ServerFlag.Preferred:
                     flag = ServerFlag.Symbol[ServerFlag.Preferred]
@@ -525,7 +529,7 @@ class NetworkChoiceLayout(QObject, PrintError):
             [
                 _(
                     f"If auto-connect is enabled, {PROJECT_NAME} will always use a "
-                    f"server that is on the longest blockchain."
+                    "server that is on the longest blockchain."
                 ),
                 _(
                     "If it is disabled, you have to choose a server you want to use."
@@ -545,7 +549,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         self.preferred_only_cb.setToolTip(
             _(
                 f"If enabled, restricts {PROJECT_NAME} to connecting to "
-                f"servers only marked as 'preferred'."
+                "servers only marked as 'preferred'."
             )
         )
 
@@ -556,7 +560,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         msg = "\n\n".join(
             [
                 _(
-                    f"If 'Connect only to preferred servers' is enabled, "
+                    "If 'Connect only to preferred servers' is enabled, "
                     f"{PROJECT_NAME} will only connect to servers marked as "
                     f"'preferred' servers ({ServerFlag.Symbol[ServerFlag.Preferred]})."
                 ),
@@ -579,11 +583,13 @@ class NetworkChoiceLayout(QObject, PrintError):
         grid.addWidget(self.ssl_cb, 2, 0, 1, 3)
         self.ssl_help = HelpButton(
             _(
-                "SSL is used to authenticate and encrypt your connections with the blockchain servers."
+                "SSL is used to authenticate and encrypt your connections with the"
+                " blockchain servers."
             )
             + "\n\n"
             + _(
-                "Due to potential security risks, you may only disable SSL when using a Tor Proxy."
+                "Due to potential security risks, you may only disable SSL when using a"
+                " Tor Proxy."
             )
         )
         grid.addWidget(self.ssl_help, 2, 4)
@@ -607,7 +613,8 @@ class NetworkChoiceLayout(QObject, PrintError):
         msg = " ".join(
             [
                 _(
-                    "Preferred servers ({}) are servers you have designated as reliable and/or trustworthy."
+                    "Preferred servers ({}) are servers you have designated as reliable"
+                    " and/or trustworthy."
                 ).format(ServerFlag.Symbol[ServerFlag.Preferred]),
                 _(
                     "Initially, the preferred list is the hard-coded list of "
@@ -635,7 +642,8 @@ class NetworkChoiceLayout(QObject, PrintError):
         self.proxy_cb = QtWidgets.QCheckBox(_("Use proxy"))
         self.proxy_cb.setToolTip(
             _(
-                "If enabled, all connections application-wide will be routed through this proxy."
+                "If enabled, all connections application-wide will be routed through"
+                " this proxy."
             )
         )
         self.proxy_cb.clicked.connect(self.check_disable_proxy)
@@ -669,9 +677,10 @@ class NetworkChoiceLayout(QObject, PrintError):
             tor_proxy_tooltip
             + "\n\n"
             + _(
-                "Depending on your configuration and preferences as a user, this may or may not be ideal.  "
-                "In general, connections routed through Tor hide your IP address from servers, at the expense of "
-                "performance and network throughput."
+                "Depending on your configuration and preferences as a user, this may or"
+                " may not be ideal.  In general, connections routed through Tor hide"
+                " your IP address from servers, at the expense of performance and"
+                " network throughput."
             )
             + "\n\n"
             + _(
@@ -745,7 +754,7 @@ class NetworkChoiceLayout(QObject, PrintError):
             HelpButton(
                 _(
                     f"Proxy settings apply to all connections: with {PROJECT_NAME}"
-                    f" servers, but also with third-party services."
+                    " servers, but also with third-party services."
                 )
             ),
             4,
@@ -766,7 +775,7 @@ class NetworkChoiceLayout(QObject, PrintError):
             [
                 _(
                     f"{PROJECT_NAME} connects to several nodes in order to "
-                    f"download block headers and find out the longest blockchain."
+                    "download block headers and find out the longest blockchain."
                 ),
                 _(
                     "This blockchain is used to verify the transactions sent by "
@@ -790,7 +799,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         )
         msg = _(
             f"{PROJECT_NAME} sends your wallet addresses to a single "
-            f"server, in order to receive your transaction history."
+            "server, in order to receive your transaction history."
         )
         grid.addWidget(QtWidgets.QLabel(_("Server") + ":"), row, 0)
         grid.addWidget(self.server_label, row, 1, 1, 3)
@@ -915,7 +924,7 @@ class NetworkChoiceLayout(QObject, PrintError):
 
         tor_enabled_tooltip = [
             _(
-                f"This will start a private instance of the Tor proxy "
+                "This will start a private instance of the Tor proxy "
                 f"controlled by {PROJECT_NAME}."
             )
         ]
@@ -929,9 +938,10 @@ class NetworkChoiceLayout(QObject, PrintError):
             tor_enabled_tooltip_text
             + "\n\n"
             + _(
-                "If unsure, it's safe to enable this feature, and leave 'Use Tor Proxy' disabled.  "
-                "In that situation, only certain plugins (such as CashFusion) will use Tor, but your "
-                "regular SPV server connections will remain unaffected."
+                "If unsure, it's safe to enable this feature, and leave 'Use Tor Proxy'"
+                " disabled.  In that situation, only certain plugins (such as"
+                " CashFusion) will use Tor, but your regular SPV server connections"
+                " will remain unaffected."
             )
         )
 
@@ -1287,7 +1297,8 @@ class NetworkChoiceLayout(QObject, PrintError):
         if controller.status == TorController.Status.ERRORED and self.tabs.isVisible():
             tbname = self._tor_client_names[self.network.tor_controller.tor_binary_type]
             msg = _(
-                "The {tor_binary_name} client experienced an error or could not be started."
+                "The {tor_binary_name} client experienced an error or could not be"
+                " started."
             ).format(tor_binary_name=tbname)
             QtWidgets.QMessageBox.critical(None, _("Tor Client Error"), msg)
 

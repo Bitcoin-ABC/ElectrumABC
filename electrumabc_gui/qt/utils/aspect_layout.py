@@ -76,12 +76,16 @@ class FixedAspectRatioLayout(QtWidgets.QLayout):
         item_rect = QRect(
             QPoint(0, 0),
             QSize(
-                contents.width()
-                if c_aratio < s_aratio
-                else int(contents.height() * s_aratio),
-                contents.height()
-                if c_aratio > s_aratio
-                else int(contents.width() / s_aratio),
+                (
+                    contents.width()
+                    if c_aratio < s_aratio
+                    else int(contents.height() * s_aratio)
+                ),
+                (
+                    contents.height()
+                    if c_aratio > s_aratio
+                    else int(contents.width() / s_aratio)
+                ),
             ),
         )
 

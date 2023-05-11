@@ -36,7 +36,6 @@ from .util import Buttons, ButtonsLineEdit, CloseButton, ColorScheme, WindowModa
 
 
 class AddressDialog(WindowModalDialog):
-
     MIN_WIDTH_NO_FX_HIST = 700
     MIN_WIDTH_FX_HIST = MIN_WIDTH_NO_FX_HIST + 75
 

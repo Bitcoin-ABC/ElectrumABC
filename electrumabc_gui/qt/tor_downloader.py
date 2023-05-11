@@ -191,7 +191,7 @@ class DownloadTorDialog(QtWidgets.QDialog):
             if msg.startswith(WRONG_CHECKSUM_MSG):
                 expected, actual = msg[len(WRONG_CHECKSUM_MSG) + 1 :].split()
                 error += (
-                    f"Download failed: File has wrong checksum<br>"
+                    "Download failed: File has wrong checksum<br>"
                     f"<br>Expected sha256sum:<br>    {expected}"
                     f"<br>Actual sha256sum:<br>    {actual}"
                 )

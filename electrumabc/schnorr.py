@@ -469,9 +469,10 @@ class BlindSignatureRequest:
             *(cast(x, c_void_p) for x in (R_buf, A_buf, pubkey_buf))
         )
         res = seclib.secp256k1_ec_pubkey_combine(ctx, Rnew_buf, publist, 3)
-        assert (
-            res == 1
-        ), "fails with 2^-256 chance (if sum is point at infinity), in which case we have cracked the key"
+        assert res == 1, (
+            "fails with 2^-256 chance (if sum is point at infinity), in which case we"
+            " have cracked the key"
+        )
 
         # serialize the new R point
         Rnew_serialized = create_string_buffer(65)

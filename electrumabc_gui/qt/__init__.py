@@ -41,19 +41,17 @@ try:
 except Exception:
     if sys.platform.startswith("win"):
         msg = (
-            "\n\nError: Could not import PyQt5.\n"
-            "If you are running the release .exe, this is a bug (please"
-            " contact the developers in that case).\n"
-            "If you are running from source, then you may try this from the command-line:\n\n"
-            "    python -m pip install pyqt5\n\n"
+            "\n\nError: Could not import PyQt5.\nIf you are running the release .exe,"
+            " this is a bug (please contact the developers in that case).\nIf you are"
+            " running from source, then you may try this from the command-line:\n\n   "
+            " python -m pip install pyqt5\n\n"
         )
     elif sys.platform.startswith("darw"):
         msg = (
-            "\n\nError: Could not import PyQt5.\n"
-            "If you are running the release .app, this is a bug (please"
-            " contact the developers in that case).\n"
-            "If you are running from source, then you may try this from the command-line:\n\n"
-            "    python3 -m pip install --user -I pyqt5\n\n"
+            "\n\nError: Could not import PyQt5.\nIf you are running the release .app,"
+            " this is a bug (please contact the developers in that case).\nIf you are"
+            " running from source, then you may try this from the command-line:\n\n   "
+            " python3 -m pip install --user -I pyqt5\n\n"
         )
     else:
         msg = (
@@ -196,9 +194,10 @@ class ElectrumGui(QtCore.QObject, PrintError):
 
     def __init__(self, config: SimpleConfig, daemon: Daemon, plugins: Plugins):
         super(__class__, self).__init__()
-        assert (
-            __class__.instance is None
-        ), "ElectrumGui is a singleton, yet an instance appears to already exist! FIXME!"
+        assert __class__.instance is None, (
+            "ElectrumGui is a singleton, yet an instance appears to already exist!"
+            " FIXME!"
+        )
         __class__.instance = self
 
         self.gui_thread = threading.current_thread()
@@ -329,15 +328,18 @@ class ElectrumGui(QtCore.QObject, PrintError):
             # Closes #1436 -- Some "Run from source" Linux users lack QtSvg
             # (partial PyQt5 install)
             msg = _(
-                "A required Qt module, QtSvg was not found. Please fully install all of PyQt5 5.12 or above to resolve this issue."
+                "A required Qt module, QtSvg was not found. Please fully install all of"
+                " PyQt5 5.12 or above to resolve this issue."
             )
             if sys.platform == "linux":
                 msg += "\n\n" + _(
-                    "On Linux, you may try:\n\n    python3 -m pip install --user -I pyqt5"
+                    "On Linux, you may try:\n\n    python3 -m pip install --user -I"
+                    " pyqt5"
                 )
                 if shutil.which("apt"):
                     msg += "\n\n" + _(
-                        "On Debian-based distros, you can run:\n\n    sudo apt install python3-pyqt5.qtsvg"
+                        "On Debian-based distros, you can run:\n\n    sudo apt install"
+                        " python3-pyqt5.qtsvg"
                     )
 
             QtWidgets.QMessageBox.critical(
@@ -893,7 +895,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
                 message=_(
                     f"You are using {PROJECT_NAME} in offline "
                     f"mode; restart {PROJECT_NAME} if you want "
-                    f"to get connected"
+                    "to get connected"
                 ),
                 title=_("Offline"),
                 parent=parent,
@@ -910,7 +912,8 @@ class ElectrumGui(QtCore.QObject, PrintError):
 
         Pass message (rich text) to provide a custom message.
 
-        Note that the URL link to the HOWTO will always be appended to the custom message."""
+        Note that the URL link to the HOWTO will always be appended to the custom message.
+        """
         from electrumabc import ecc_fast
 
         has_secp = ecc_fast.is_using_fast_ecc()
@@ -923,13 +926,12 @@ class ElectrumGui(QtCore.QObject, PrintError):
             message
             or _(
                 f"{PROJECT_NAME} was unable to find the secp256k1 library on this "
-                f"system. Elliptic curve cryptography operations will be performed"
-                f" in slow Python-only mode."
+                "system. Elliptic curve cryptography operations will be performed"
+                " in slow Python-only mode."
             ),
         )
         url_blurb = _(
-            "Please visit this page for instructions on how to "
-            "correct the situation:"
+            "Please visit this page for instructions on how to correct the situation:"
         )
         msg = f"""
         <html><body>
@@ -1012,9 +1014,9 @@ class ElectrumGui(QtCore.QObject, PrintError):
             if is_lin:
                 msg = (
                     _(
-                        f"Automatic high DPI scaling has been enabled for "
+                        "Automatic high DPI scaling has been enabled for "
                         f"{PROJECT_NAME}, which should result in improved "
-                        f"graphics quality."
+                        "graphics quality."
                     )
                     + "\n\n"
                     + _(
@@ -1032,9 +1034,9 @@ class ElectrumGui(QtCore.QObject, PrintError):
             else:  # is_win
                 msg = (
                     _(
-                        f"Automatic high DPI scaling has been enabled for "
+                        "Automatic high DPI scaling has been enabled for "
                         f"{PROJECT_NAME}, which should result in improved "
-                        f"graphics quality."
+                        "graphics quality."
                     )
                     + "\n\n"
                     + _(

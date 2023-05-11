@@ -40,20 +40,22 @@ from .util import Buttons, CloseButton, MessageBoxMixin, WindowModalDialog
 
 INSTALL_ERROR_MESSAGES = {
     ExternalPluginCodes.MISSING_MANIFEST: _(
-        "The plugin archive you selected is missing a manifest. It was therefore not possible to install it."
+        "The plugin archive you selected is missing a manifest. It was therefore not"
+        " possible to install it."
     ),
     ExternalPluginCodes.NAME_ALREADY_IN_USE: _(
-        "There is already a plugin installed using the internal package name of the plugin you selected. It was therefore not possible to install it."
+        "There is already a plugin installed using the internal package name of the"
+        " plugin you selected. It was therefore not possible to install it."
     ),
     ExternalPluginCodes.UNABLE_TO_COPY_FILE: _(
-        f"It was not possible to copy the plugin archive into "
+        "It was not possible to copy the plugin archive into "
         f"{PROJECT_NAME}'s plugin storage location. It was "
-        f"therefore not possible to install it."
+        "therefore not possible to install it."
     ),
     ExternalPluginCodes.INSTALLED_BUT_FAILED_LOAD: _(
         "The plugin is installed, but in the process of enabling "
         f"and loading it, an error occurred. Restart {PROJECT_NAME} and"
-        f" try again, or uninstall it and report it to it's developers."
+        " try again, or uninstall it and report it to it's developers."
     ),
     ExternalPluginCodes.INCOMPATIBLE_VERSION: _(
         f"The plugin is targeted at a later version of {PROJECT_NAME}."
@@ -74,7 +76,7 @@ INSTALL_ERROR_MESSAGES = {
         "The plugin manifest lacks a valid version."
     ),
     ExternalPluginCodes.INVALID_MAMIFEST_MINIMUM_EC_VERSION: _(
-        f"The plugin manifest lacks a valid minimum {PROJECT_NAME} " f"version."
+        f"The plugin manifest lacks a valid minimum {PROJECT_NAME} version."
     ),
     ExternalPluginCodes.INVALID_MAMIFEST_PACKAGE_NAME: _(
         "The plugin manifest lacks a valid package name."
@@ -150,7 +152,8 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
         self.checksumLabel = QtWidgets.QLabel()
         self.checksumLabel.setToolTip(
             _(
-                "If the official source for this plugin has a checksum for this plugin, ensure that the value shown here is the same."
+                "If the official source for this plugin has a checksum for this plugin,"
+                " ensure that the value shown here is the same."
             )
         )
         self.checksumLabel.setTextInteractionFlags(Qt.TextSelectableByMouse)
@@ -164,20 +167,23 @@ class ExternalPluginsPreviewDialog(WindowModalDialog):
             confirmGroupBox = QtWidgets.QGroupBox(_("Risks and Dangers"))
             liabilityLabel = QtWidgets.QLabel(
                 _(
-                    "I accept responsibility for any harm that comes from installing this plugin, and acknowledge:"
+                    "I accept responsibility for any harm that comes from installing"
+                    " this plugin, and acknowledge:"
                 )
             )
             self.liabilityCheckbox1 = QtWidgets.QCheckBox(
-                _(f"The {PROJECT_NAME} Developers do NOT audit or vet " f"any plugins.")
+                _(f"The {PROJECT_NAME} Developers do NOT audit or vet any plugins.")
             )
             self.liabilityCheckbox2 = QtWidgets.QCheckBox(
                 _(
-                    "Plugins are risky.  They can steal funds or even damage your computer."
+                    "Plugins are risky.  They can steal funds or even damage your"
+                    " computer."
                 )
             )
             self.liabilityCheckbox3 = QtWidgets.QCheckBox(
                 _(
-                    "I should only install the most reputable plugins trusted by the community."
+                    "I should only install the most reputable plugins trusted by the"
+                    " community."
                 )
             )
             confirmLayout.addWidget(liabilityLabel)
@@ -339,7 +345,7 @@ class ExternalPluginsDialog(WindowModalDialog, MessageBoxMixin):
         self.descriptionGroupBox.setLayout(descriptionGroupLayout)
         self.descriptionLabel = QtWidgets.QLabel(
             _(
-                f"Install plugins at your own risk.\nThey have almost complete"
+                "Install plugins at your own risk.\nThey have almost complete"
                 f" access to {PROJECT_NAME}'s internals."
             )
         )

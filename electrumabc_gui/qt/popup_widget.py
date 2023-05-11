@@ -30,7 +30,6 @@ from .util import destroyed_print_error
 
 
 class PopupWidget(QtWidgets.QWidget):
-
     #   enum PointerPosition
     LeftSide = 0
     RightSide = 1
@@ -215,7 +214,8 @@ class PopupWidget(QtWidgets.QWidget):
     def moveRelativeTo(self, w):
         if not w:
             print(
-                "INTERNAL ERROR: PopupWidget::showRelativeTo got passed a NULL widget pointer! Ignoring.. FIXME!"
+                "INTERNAL ERROR: PopupWidget::showRelativeTo got passed a NULL widget"
+                " pointer! Ignoring.. FIXME!"
             )
             return
 

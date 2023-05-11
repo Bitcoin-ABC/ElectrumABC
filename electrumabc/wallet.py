@@ -168,7 +168,8 @@ def sweep_preparations(privkeys, network, imax=100):
             elif txin_type == "p2sh":
                 raise ValueError(
                     _(
-                        "The specified WIF key '{}' is a p2sh WIF key. These key types cannot be swept."
+                        "The specified WIF key '{}' is a p2sh WIF key. These key types"
+                        " cannot be swept."
                     ).format(sec)
                 )
     except InputsMaxxed:
@@ -829,7 +830,10 @@ class AbstractWallet(PrintError, SPVDelegate):
 
     TxInfo = namedtuple(
         "TxInfo",
-        "tx_hash, status, label, can_broadcast, amount, fee, height, conf, timestamp, exp_n",
+        (
+            "tx_hash, status, label, can_broadcast, amount, fee, height, conf,"
+            " timestamp, exp_n"
+        ),
     )
 
     class StatusEnum(Enum):
@@ -967,8 +971,9 @@ class AbstractWallet(PrintError, SPVDelegate):
                 "prevout_hash": prevout_hash,
                 "height": tx_height,
                 "coinbase": is_cb,
-                "is_frozen_coin": txo in self.frozen_coins
-                or txo in self.frozen_coins_tmp,
+                "is_frozen_coin": (
+                    txo in self.frozen_coins or txo in self.frozen_coins_tmp
+                ),
                 "slp_token": self.slp.token_info_for_txo(
                     txo
                 ),  # (token_id_hex, qty) tuple or None
@@ -1362,8 +1367,10 @@ class AbstractWallet(PrintError, SPVDelegate):
         if not tx.inputs():
             # bad tx came in off the wire -- all 0's or something, see #987
             self.print_error(
-                "add_transaction: WARNING a tx came in from the network with 0 inputs!"
-                " Bad server? Ignoring tx:",
+                (
+                    "add_transaction: WARNING a tx came in from the network with 0"
+                    " inputs! Bad server? Ignoring tx:"
+                ),
                 tx_hash,
             )
             return
@@ -1795,9 +1802,9 @@ class AbstractWallet(PrintError, SPVDelegate):
 
             fee = do_get_fee(tx_hash)
             if fee is not None:
-                self.tx_fees[
-                    tx_hash
-                ] = fee  # save fee to wallet if we bothered to dl/calculate it.
+                self.tx_fees[tx_hash] = (
+                    fee  # save fee to wallet if we bothered to dl/calculate it.
+                )
             return fee
 
         def fmt_amt(v, is_diff):
@@ -2719,7 +2726,8 @@ class AbstractWallet(PrintError, SPVDelegate):
         assert isinstance(addr, Address)
         if op_return and op_return_raw:
             raise ValueError(
-                "both op_return and op_return_raw cannot be specified as arguments to make_payment_request"
+                "both op_return and op_return_raw cannot be specified as arguments to"
+                " make_payment_request"
             )
         timestamp = int(time.time())
         _id = bh2u(bitcoin.Hash(addr.to_storage_string() + "%d" % timestamp))[0:10]
@@ -3070,7 +3078,8 @@ class AbstractWallet(PrintError, SPVDelegate):
 
     def is_retired_change_addr(self, addr: Address) -> bool:
         """Returns True if the address in question is in the "retired change address" set (set maintained by
-        the synchronizer).  If the network is not started (offline mode), will always return False."""
+        the synchronizer).  If the network is not started (offline mode), will always return False.
+        """
         assert isinstance(addr, Address)
         if not self.synchronizer:
             return False
@@ -3100,7 +3109,6 @@ class SimpleWallet(AbstractWallet):
 
 
 class ImportedWalletBase(SimpleWallet):
-
     txin_type = "p2pkh"
 
     def get_txin_type(self, address):
@@ -3717,7 +3725,10 @@ def create_new_wallet(
     wallet = Wallet(storage)
     wallet.update_password(old_pw=None, new_pw=password, encrypt_storage=encrypt_file)
     wallet.synchronize()
-    msg = "Please keep your seed in a safe place; if you lose it, you will not be able to restore your wallet."
+    msg = (
+        "Please keep your seed in a safe place; if you lose it, you will not be able to"
+        " restore your wallet."
+    )
 
     wallet.storage.write()
     return {"seed": seed, "wallet": wallet, "msg": msg}
@@ -3771,8 +3782,8 @@ def restore_wallet_from_text(
     wallet.update_password(old_pw=None, new_pw=password, encrypt_storage=encrypt_file)
     wallet.synchronize()
     msg = (
-        "This wallet was restored offline. It may contain more addresses than displayed. "
-        "Start a daemon and use load_wallet to sync its history."
+        "This wallet was restored offline. It may contain more addresses than"
+        " displayed. Start a daemon and use load_wallet to sync its history."
     )
 
     wallet.storage.write()

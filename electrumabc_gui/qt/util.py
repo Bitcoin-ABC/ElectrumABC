@@ -331,9 +331,10 @@ class MessageBoxMixin:
             # defaultButton must match which button to be default
             # Return value will be the index of the button push in this list!
             for b in buttons:
-                assert isinstance(
-                    b, (str, QtWidgets.QAbstractButton)
-                ), "MessageBoxMixin msg_box API usage error: expected a list of str's or QAbstractButtons!"
+                assert isinstance(b, (str, QtWidgets.QAbstractButton)), (
+                    "MessageBoxMixin msg_box API usage error: expected a list of str's"
+                    " or QAbstractButtons!"
+                )
                 role = (
                     QtWidgets.QMessageBox.AcceptRole
                     if defaultButton == b
@@ -391,7 +392,10 @@ class MessageBoxMixin:
         except RuntimeError as e:
             # C++ object deleted -- can happen with misbehaving client code that kills parent from dialog ok
             print_error(
-                "MsgBoxMixin WARNING: client code is killing the dialog box's parent before function return:",
+                (
+                    "MsgBoxMixin WARNING: client code is killing the dialog box's"
+                    " parent before function return:"
+                ),
                 str(e),
             )
         return ret
@@ -587,7 +591,6 @@ def address_combo(addresses):
 
 
 def filename_field(config, defaultname, select_msg):
-
     gb = QtWidgets.QGroupBox(_("Format"))
     vbox = QtWidgets.QVBoxLayout()
     gb.setLayout(vbox)
@@ -614,9 +617,7 @@ def filename_field(config, defaultname, select_msg):
         _filter = (
             "*.csv"
             if text.endswith(".csv")
-            else "*.json"
-            if text.endswith(".json")
-            else None
+            else "*.json" if text.endswith(".json") else None
         )
         p, __ = QtWidgets.QFileDialog.getSaveFileName(None, select_msg, text, _filter)
         if p:
@@ -1012,7 +1013,8 @@ class OverlayControlMixin:
             button.setText(text)
         if not icon_name and not text:
             raise AssertionError(
-                "OverlayControlMixin.addButton: Button must have either icon_name or text defined!"
+                "OverlayControlMixin.addButton: Button must have either icon_name or"
+                " text defined!"
             )
         button.clicked.connect(on_click)
         self.addWidget(button, index)
@@ -1267,9 +1269,10 @@ class RateLimiter(PrintError):
         assert args and isinstance(
             args[0], object
         ), "@rate_limited decorator may only be used with object instance methods"
-        assert (
-            threading.current_thread() is threading.main_thread()
-        ), "@rate_limited decorator may only be used with functions called in the main thread"
+        assert threading.current_thread() is threading.main_thread(), (
+            "@rate_limited decorator may only be used with functions called in the main"
+            " thread"
+        )
         obj = args[0]
         a_name = cls.attr_name(func)
         # print_error("*** a_name =",a_name,"obj =",obj)
@@ -1347,9 +1350,8 @@ class RateLimiter(PrintError):
         else:
             if time_taken > float(self.rate):
                 self.print_error(
-                    "method took too long: {} > {}. Fudging timestamps to compensate.".format(
-                        time_taken, self.rate
-                    )
+                    "method took too long: {} > {}. Fudging timestamps to compensate."
+                    .format(time_taken, self.rate)
                 )
                 self.last_ts = tf  # Hmm. This function takes longer than its rate to complete. so mark its last run time as 'now'. This breaks the rate but at least prevents this function from starving the CPU (benforces a delay).
             else:
@@ -1481,7 +1483,8 @@ debug_destroyed = False  # Set this to True to debug QObject "destroyed" signals
 
 def destroyed_print_error(qobject, msg=None):
     """Supply a message to be printed via print_error when obj is destroyed (Qt C++ deleted).
-    This is useful for debugging memory leaks. Note that this function is a no-op unless debug_destroyed is True."""
+    This is useful for debugging memory leaks. Note that this function is a no-op unless debug_destroyed is True.
+    """
     assert isinstance(
         qobject, QObject
     ), "destroyed_print_error can only be used on QObject instances!"

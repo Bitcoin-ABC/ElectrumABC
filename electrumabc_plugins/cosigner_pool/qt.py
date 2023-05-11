@@ -188,7 +188,6 @@ class _Dead:
 
 
 class Plugin(BasePlugin):
-
     Instance_ref = Weak.ref(
         _Dead()
     )  # Make sure Instance_ref is always defined, defaults to dead object
@@ -215,9 +214,8 @@ class Plugin(BasePlugin):
         except AttributeError:
             # this can happen if wallet is not started up properly
             self.print_error(
-                "WARNING: Window {} lacks a wallet -- startup race condition likely. FIXME!".format(
-                    window.diagnostic_name()
-                )
+                "WARNING: Window {} lacks a wallet -- startup race condition likely."
+                " FIXME!".format(window.diagnostic_name())
             )
             return
         if isinstance(wallet, MultisigWallet):
@@ -391,8 +389,9 @@ class Plugin(BasePlugin):
                 _("An encrypted transaction was retrieved from cosigning pool.")
                 + "\n"
                 + _(
-                    "However, hardware wallets do not support message decryption, "
-                    "which makes them not compatible with the current design of cosigner pool."
+                    "However, hardware wallets do not support message decryption, which"
+                    " makes them not compatible with the current design of cosigner"
+                    " pool."
                 )
             )
             return
@@ -408,11 +407,14 @@ class Plugin(BasePlugin):
         else:
             details = (
                 _(
-                    "If you choose 'Yes', it will be decrypted and a transaction window will be shown, giving you the opportunity to sign the transaction."
+                    "If you choose 'Yes', it will be decrypted and a transaction window"
+                    " will be shown, giving you the opportunity to sign the"
+                    " transaction."
                 )
                 + "\n\n"
                 + _(
-                    "If you choose 'No', you will be asked again later (the next time this wallet window is opened)."
+                    "If you choose 'No', you will be asked again later (the next time"
+                    " this wallet window is opened)."
                 )
             )
             ret = window.msg_box(

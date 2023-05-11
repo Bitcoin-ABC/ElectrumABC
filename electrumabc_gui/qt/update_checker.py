@@ -267,7 +267,7 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
             self.pb.setValue(max(0, min(int(prog), 100)))
         else:
             self.print_error(
-                "Warning: on_downloading called with a req that is not " "'active'!"
+                "Warning: on_downloading called with a req that is not 'active'!"
             )
 
     def _update_view(self, latest_version=None):
@@ -301,7 +301,7 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
             else:
                 self.heading_label.setText("<h2>" + _("Already up to date") + "</h2>")
                 self.detail_label.setText(
-                    _(f"You are already on the latest version of " f"{PROJECT_NAME}.")
+                    _(f"You are already on the latest version of {PROJECT_NAME}.")
                 )
                 self.cancel_or_check_button.setEnabled(True)
         else:
@@ -312,7 +312,7 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
             self.latest_version_label.setText("")
             self.heading_label.setText("<h2>" + _("Checking for updates...") + "</h2>")
             self.detail_label.setText(
-                _(f"Please wait while {PROJECT_NAME} checks for " f"available updates.")
+                _(f"Please wait while {PROJECT_NAME} checks for available updates.")
             )
 
     def cancel_active(self):

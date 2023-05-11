@@ -50,7 +50,8 @@ try:
 except ImportError:
     LIBS_AVAILABLE = False
     print_error(
-        "[satochip] failed to import requisite libraries, please install the 'pyscard' and 'pysatochip' libraries"
+        "[satochip] failed to import requisite libraries, please install the 'pyscard'"
+        " and 'pysatochip' libraries"
     )
     print_error("[satochip] satochip will not not be available")
     raise
@@ -152,7 +153,10 @@ class SatochipClient(HardwareClientBase, PrintError):
                 )
         except Exception as e:  # attributeError?
             self.print_error(
-                "get_xpub(): exception when getting authentikey from self.handler.win.wallet.storage:",
+                (
+                    "get_xpub(): exception when getting authentikey from"
+                    " self.handler.win.wallet.storage:"
+                ),
                 str(e),
             )
 
@@ -259,14 +263,12 @@ class SatochipClient(HardwareClientBase, PrintError):
             (is_PIN, pin) = self.PIN_dialog(msg)
             if not is_PIN:
                 # return (False, None)
-                raise RuntimeError(
-                    ("A PIN code is required to initialize the Satochip!")
-                )
+                raise RuntimeError("A PIN code is required to initialize the Satochip!")
             (is_PIN, pin_confirm) = self.PIN_dialog(msg_confirm)
             if not is_PIN:
                 # return (False, None)
                 raise RuntimeError(
-                    ("A PIN confirmation is required to initialize the Satochip!")
+                    "A PIN confirmation is required to initialize the Satochip!"
                 )
             if pin != pin_confirm:
                 self.request("show_error", msg_error)
@@ -380,7 +382,10 @@ class SatochipKeyStore(HardwareKeyStore):
             except Exception:
                 # Note the below give_error call will itself raise Message. :/
                 self.give_error(
-                    "No response received from 2FA.\nPlease ensure that the Satochip-2FA plugin is enabled in Tools>Optional Features",
+                    (
+                        "No response received from 2FA.\nPlease ensure that the"
+                        " Satochip-2FA plugin is enabled in Tools>Optional Features"
+                    ),
                     True,
                 )
                 return
@@ -476,7 +481,8 @@ class SatochipKeyStore(HardwareKeyStore):
                     tx_hash_hex = bytearray(tx_hash).hex()
                     if pre_hash_hex != tx_hash_hex:
                         raise RuntimeError(
-                            f"[Satochip_KeyStore] Tx preimage mismatch: {pre_hash_hex} vs {tx_hash_hex}"
+                            "[Satochip_KeyStore] Tx preimage mismatch:"
+                            f" {pre_hash_hex} vs {tx_hash_hex}"
                         )
 
                     # sign tx
@@ -508,7 +514,8 @@ class SatochipKeyStore(HardwareKeyStore):
 
                         # do challenge-response with 2FA device...
                         client.handler.show_message(
-                            "2FA request sent! Approve or reject request on your second device."
+                            "2FA request sent! Approve or reject request on your second"
+                            " device."
                         )
                         Satochip2FA.do_challenge_response(d)
                         # decrypt and parse reply to extract challenge response
@@ -518,7 +525,11 @@ class SatochipKeyStore(HardwareKeyStore):
                         except Exception:
                             # Note: give_error here will raise again.. :/
                             self.give_error(
-                                "No response received from 2FA.\nPlease ensure that the Satochip-2FA plugin is enabled in Tools>Optional Features",
+                                (
+                                    "No response received from 2FA.\nPlease ensure that"
+                                    " the Satochip-2FA plugin is enabled in"
+                                    " Tools>Optional Features"
+                                ),
                                 True,
                             )
                             break
@@ -672,20 +683,22 @@ class SatochipPlugin(HWPluginBase):
                 v_supported = SATOCHIP_PROTOCOL_VERSION
                 v_applet = d["protocol_version"]
                 self.print_error(
-                    f"[SatochipPlugin] setup_device(): Satochip version={hex(v_applet)} Electrum supported version= {hex(v_supported)}"
+                    "[SatochipPlugin] setup_device(): Satochip"
+                    f" version={hex(v_applet)} Electrum supported version="
+                    f" {hex(v_supported)}"
                 )
                 if v_supported < v_applet:
                     msg = (
                         _(
-                            f"The version of your Satochip is higher than "
+                            "The version of your Satochip is higher than "
                             f"supported by {PROJECT_NAME}. You should update"
                             f" {PROJECT_NAME} to ensure correct functioning!"
                         )
                         + "\n"
-                        + f"    Satochip version: "
-                        f'{d["protocol_major_version"]}.{d["protocol_minor_version"]}'
+                        + "    Satochip version: "
+                        f"{d['protocol_major_version']}.{d['protocol_minor_version']}"
                         + "\n"
-                        + f"    Supported version: "
+                        + "    Supported version: "
                         f"{SATOCHIP_PROTOCOL_MAJOR_VERSION}.{SATOCHIP_PROTOCOL_MINOR_VERSION}"
                     )
                     client.handler.show_error(msg)
@@ -760,7 +773,6 @@ class SatochipPlugin(HWPluginBase):
             try:
                 authentikey = client.cc.card_bip32_get_authentikey()
             except UninitializedSeedError:
-
                 # Option: setup 2-Factor-Authentication (2FA)
                 if not client.cc.needs_2FA:
                     use_2FA = False  # we put 2FA activation in advanced options as it confuses some users
@@ -771,7 +783,8 @@ class SatochipPlugin(HWPluginBase):
                         # the secret must be shared with the second factor app (eg on a smartphone)
                         try:
                             help_txt = (
-                                "Scan the QR-code with your Satochip-2FA app and make a backup of the following secret: "
+                                "Scan the QR-code with your Satochip-2FA app and make a"
+                                " backup of the following secret: "
                                 + secret_2FA_hex
                             )
                             d = QRDialog(
@@ -793,10 +806,12 @@ class SatochipPlugin(HWPluginBase):
                         )
                         if sw1 != 0x90 or sw2 != 0x00:
                             self.print_error(
-                                f"setup_device(): unable to set 2FA!  sw12={hex(sw1)},{hex(sw2)}"
+                                "setup_device(): unable to set 2FA! "
+                                f" sw12={hex(sw1)},{hex(sw2)}"
                             )
                             raise RuntimeError(
-                                f"Unable to setup 2FA with error code: {hex(sw1)} {hex(sw2)}"
+                                "Unable to setup 2FA with error code:"
+                                f" {hex(sw1)} {hex(sw2)}"
                             )
 
                 # seed dialog...
@@ -851,7 +866,8 @@ class SatochipPlugin(HWPluginBase):
         if type(wallet) is not StandardWallet:
             keystore.handler.show_error(
                 _(
-                    "This function is only available for standard wallets when using {}."
+                    "This function is only available for standard wallets when"
+                    " using {}."
                 ).format(self.device)
             )
             return
@@ -864,7 +880,8 @@ class SatochipPlugin(HWPluginBase):
     def choose_seed(self, wizard):
         title = _("Create or restore")
         message = _(
-            "Do you want to create a new seed, or to restore a wallet using an existing seed?"
+            "Do you want to create a new seed, or to restore a wallet using an existing"
+            " seed?"
         )
         choices = [
             ("create_seed", _("Create a new BIP39 seed")),
@@ -940,19 +957,25 @@ class SatochipPlugin(HWPluginBase):
             message = "  ".join(
                 [
                     _(
-                        "You are trying to import an Electrum seed to a Satochip hardware wallet."
+                        "You are trying to import an Electrum seed to a Satochip"
+                        " hardware wallet."
                     ),
                     _(
-                        "\n\nElectrum seeds are not compatible with the BIP39 seeds typically used in hardware wallets."
+                        "\n\nElectrum seeds are not compatible with the BIP39 seeds"
+                        " typically used in hardware wallets."
                     ),
                     _(
-                        "This means you may have difficulty to import this seed in another wallet in the future."
+                        "This means you may have difficulty to import this seed in"
+                        " another wallet in the future."
                     ),
                     _(
-                        "\n\nProceed with caution! If you are not sure, click on 'Back', enable BIP39 in 'Options' and introduce a BIP39 seed instead."
+                        "\n\nProceed with caution! If you are not sure, click on"
+                        " 'Back', enable BIP39 in 'Options' and introduce a BIP39 seed"
+                        " instead."
                     ),
                     _(
-                        "You can also generate a new random BIP39 seed by clicking on 'Back' twice."
+                        "You can also generate a new random BIP39 seed by clicking on"
+                        " 'Back' twice."
                     ),
                 ]
             )

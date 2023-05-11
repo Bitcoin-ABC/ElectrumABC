@@ -632,7 +632,9 @@ class FusionController(threading.Thread, PrintError):
             covert_server.start()
 
             self.print_error(
-                f"Covert server started @ {covert_server.host}:{covert_server.port} (announcing as: {annhost_b}:{annport})"
+                "Covert server started @"
+                f" {covert_server.host}:{covert_server.port} (announcing as:"
+                f" {annhost_b}:{annport})"
             )
 
             begin_time = round(time.time())
@@ -751,7 +753,8 @@ class FusionController(threading.Thread, PrintError):
         self.clients = [c for c, _, _ in results]
         self.check_client_count()
         self.print_error(
-            f"got commitments from {len(self.clients)} clients (dropped {prev_client_count - len(self.clients)})"
+            f"got commitments from {len(self.clients)} clients (dropped"
+            f" {prev_client_count - len(self.clients)})"
         )
 
         total_excess_fees = sum(f for _, _, f in results)
@@ -791,7 +794,8 @@ class FusionController(threading.Thread, PrintError):
 
         component_master_list = list(covert_server.end_components().items())
         self.print_error(
-            f"ending covert component acceptance. {len(component_master_list)} received."
+            "ending covert component acceptance."
+            f" {len(component_master_list)} received."
         )
 
         # Sort the components & contribs list, then separate it out.
@@ -867,7 +871,8 @@ class FusionController(threading.Thread, PrintError):
 
             ###
             self.print_error(
-                f"ending covert signature acceptance. {missing_sigs} missing :{'(' if missing_sigs else ')'}"
+                f"ending covert signature acceptance. {missing_sigs} missing"
+                f" :{'(' if missing_sigs else ')'}"
             )
 
             # mark all missing-signature components as bad.
@@ -907,7 +912,8 @@ class FusionController(threading.Thread, PrintError):
                     self.print_error(f"could not broadcast the transaction! {nice_msg}")
                 except TimeoutException:
                     self.print_error(
-                        "timed out while trying to broadcast transaction! misconfigured?"
+                        "timed out while trying to broadcast transaction!"
+                        " misconfigured?"
                     )
                     # This probably indicates misconfiguration since fusion server ought
                     # to have a good connection to the EC server. Report this back to clients
@@ -1060,7 +1066,8 @@ class FusionController(threading.Thread, PrintError):
                             + repr(blame.blame_reason)
                         )
                         client.kill(
-                            f"bad blame message: {e} (you claimed: {blame.blame_reason!r})"
+                            f"bad blame message: {e} (you claimed:"
+                            f" {blame.blame_reason!r})"
                         )
                         continue
 
@@ -1090,7 +1097,8 @@ class FusionController(threading.Thread, PrintError):
                         continue
                     except Exception as e:
                         self.print_error(
-                            f"player indicated bad input but checking failed with exception {repr(e)}  ({outpoint})"
+                            "player indicated bad input but checking failed with"
+                            f" exception {repr(e)}  ({outpoint})"
                         )
                     else:
                         self.print_error(

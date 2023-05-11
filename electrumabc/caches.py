@@ -71,9 +71,9 @@ class ExpiringCache:
         res = self.d.get(key)
         if res is not None:
             # cache hit
-            res[
-                0
-            ] = _ExpiringCacheMgr.tick  # update tick access time for this cache hit
+            res[0] = (
+                _ExpiringCacheMgr.tick
+            )  # update tick access time for this cache hit
             return res[1]
         # cache miss
         return default
@@ -109,7 +109,10 @@ class ExpiringCache:
                 else self.timeout_ticks
             ),
         )
-        return f'<{__class__.__name__} "{name}" at {address}, {length} item{"s" if length != 1 else ""} (maxlen={maxlen} timeout={timeout})>'
+        return (
+            f'<{__class__.__name__} "{name}" at {address},'
+            f' {length} item{"s" if length != 1 else ""} (maxlen={maxlen} timeout={timeout})>'
+        )
 
 
 class _ExpiringCacheMgr(PrintError):
@@ -188,7 +191,8 @@ class _ExpiringCacheMgr(PrintError):
                     thread2join = slf.thread
                 elif cls.debug:
                     slf.print_error(
-                        "Warning: Cache thread was stoppped before we had a chance to kill it"
+                        "Warning: Cache thread was stoppped before we had a chance to"
+                        " kill it"
                     )
                 cls._instance = None  # kill self.
         if thread2join and thread2join is not threading.current_thread():
@@ -252,7 +256,8 @@ class _ExpiringCacheMgr(PrintError):
         if len(d) < num or num <= 0:
             # cache modified from underneath our feet. We abort gracefully and complain.
             print_error(
-                f"[{__class__.__name__}] Cache data may have been removed by another thread. Aborting flush operation and will try again later..."
+                f"[{__class__.__name__}] Cache data may have been removed by another"
+                " thread. Aborting flush operation and will try again later..."
             )
             return 0
 
@@ -295,7 +300,8 @@ class _ExpiringCacheMgr(PrintError):
         if not len(d) or tick_cutoff < 0:
             # cache modified from underneath our feet. We abort gracefully and complain.
             print_error(
-                f"[{__class__.__name__}] Cache data may have been removed by another thread. Aborting flush operation and will try again later..."
+                f"[{__class__.__name__}] Cache data may have been removed by another"
+                " thread. Aborting flush operation and will try again later..."
             )
             return 0
 
@@ -349,7 +355,10 @@ def get_object_size(obj_0):
                     )
                 except Exception as e:
                     warnings.warn(
-                        f"warning: unable to process object '{obj}' due to exception: {repr(e)}",
+                        (
+                            f"warning: unable to process object '{obj}' due to"
+                            f" exception: {repr(e)}"
+                        ),
                         RuntimeWarning,
                         stacklevel=2,
                     )

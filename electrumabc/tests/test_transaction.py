@@ -95,7 +95,9 @@ class TestTransaction(unittest.TestCase):
                         "1MYXdf4moacvaEKZ57ozerpJ3t9xSeN6LK"
                     ),
                     "prevout_n": 0,
-                    "scriptPubKey": "76a914e158fb15c888037fdc40fb9133b4c1c3c688706488ac",
+                    "scriptPubKey": (
+                        "76a914e158fb15c888037fdc40fb9133b4c1c3c688706488ac"
+                    ),
                     "type": 0,
                     "value": 20112408,
                 }
@@ -174,7 +176,9 @@ class TestTransaction(unittest.TestCase):
                         "1MYXdf4moacvaEKZ57ozerpJ3t9xSeN6LK"
                     ),
                     "prevout_n": 0,
-                    "scriptPubKey": "76a914e158fb15c888037fdc40fb9133b4c1c3c688706488ac",
+                    "scriptPubKey": (
+                        "76a914e158fb15c888037fdc40fb9133b4c1c3c688706488ac"
+                    ),
                     "type": 0,
                     "value": 20112408,
                 }
@@ -227,7 +231,9 @@ class TestTransaction(unittest.TestCase):
                         "034a29987f30ad5d23d79ed5215e034c51f6825bdb2aa595c2bdeb37902960b3d1"
                     ),
                     "prevout_n": 0,
-                    "scriptPubKey": "76a914480d1be8ab76f8cdd85ce4077f51d35b0baaa25a88ac",
+                    "scriptPubKey": (
+                        "76a914480d1be8ab76f8cdd85ce4077f51d35b0baaa25a88ac"
+                    ),
                     "type": 0,
                     "value": 814,
                 }

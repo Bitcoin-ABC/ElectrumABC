@@ -256,7 +256,8 @@ class PayToEdit(PrintError, ScanQRTextEdit):
             and value != vb.minimum()
         ):
             self.print_error(
-                f"Workaround #1521: forcing scrollbar value back to {vb.minimum()} for single line payto_e."
+                f"Workaround #1521: forcing scrollbar value back to {vb.minimum()} for"
+                " single line payto_e."
             )
             vb.setValue(vb.minimum())
 

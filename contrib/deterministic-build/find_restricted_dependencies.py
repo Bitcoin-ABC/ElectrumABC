@@ -42,8 +42,10 @@ for p in sys.stdin.read().split():
             if check_restriction(dep, restricted):
                 print(dep_basename, sep=" ")
                 print(
-                    f"Installing {dep} from {p} although it is only needed for "
-                    f"{restricted}",
+                    (
+                        f"Installing {dep} from {p} although it is only needed for "
+                        f"{restricted}"
+                    ),
                     file=sys.stderr,
                 )
     except TypeError:

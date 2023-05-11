@@ -68,8 +68,8 @@ else:
 
     sys.exit(
         f'{PROJECT_NAME} uses "assert" statements for its normal control'
-        f' flow.\nPlease run this application without the python "-O" '
-        f"(optimize) flag."
+        ' flow.\nPlease run this application without the python "-O" '
+        "(optimize) flag."
     )
 # /End -O check
 
@@ -1422,7 +1422,9 @@ class Bip38Key:
         ECMult = 0x43
         Unknown = 0x0
 
-    enc = ""  # string // bip38 base58 encoded key (as the user would see it in a paper wallet)
+    enc = (  # string // bip38 base58 encoded key (as the user would see it in a paper wallet)
+        ""
+    )
     dec = b""  # []byte // key decoded to bytes (still in encrypted form)
     flag = 0x0  # byte // the flag byte
     compressed = False  # bool // boolean flag determining if compressed
@@ -1459,7 +1461,8 @@ class Bip38Key:
         ), "Bip38Key must be instantiated with an encrypted bip38 key string!"
         if not enc.startswith("6P"):
             raise Bip38Key.DecodeError(
-                "Provided bip38 key string appears to not be valid. Expected a '6P' prefix!"
+                "Provided bip38 key string appears to not be valid. Expected a '6P'"
+                " prefix!"
             )
         self.net = networks.net if net is None else net
         self.enc = enc
@@ -1470,9 +1473,8 @@ class Bip38Key:
             )
         if len(self.dec) != 39:
             raise Bip38Key.DecodeError(
-                "Cannot decode bip38 key: Resulting decoded bytes are of the wrong length (should be 39, is {})".format(
-                    len(self.dec)
-                )
+                "Cannot decode bip38 key: Resulting decoded bytes are of the wrong"
+                " length (should be 39, is {})".format(len(self.dec))
             )
         if self.dec[0] == 0x01 and self.dec[1] == 0x42:
             self.typ = Bip38Key.Type.NonECMult
@@ -1588,20 +1590,24 @@ class Bip38Key:
                     password=password, salt=salt, N=N, r=r, p=p, key_len=dkLen
                 )
             raise RuntimeError(
-                "INTERNAL ERROR -- neither _scrypt_1 or _scrypt_2 are defined, but isFast()==True... FIXME!"
+                "INTERNAL ERROR -- neither _scrypt_1 or _scrypt_2 are defined, but"
+                " isFast()==True... FIXME!"
             )
         try:
             import pyscrypt
         except ImportError:
             raise Bip38Key.Error(
-                "We lack a module to decrypt BIP38 Keys.  Install either: Cryptodome (fast), Python + OpenSSL 1.1 (fast), or pyscrypt (slow)"
+                "We lack a module to decrypt BIP38 Keys.  Install either: Cryptodome"
+                " (fast), Python + OpenSSL 1.1 (fast), or pyscrypt (slow)"
             )
         print_error("[{}] using slow pyscrypt.hash... :(".format(__class__.__name__))
         return pyscrypt.hash(password=password, salt=salt, N=N, r=r, p=p, dkLen=dkLen)
 
     def _decryptNoEC(
         self, passphrase: str
-    ) -> tuple:  # returns the (WIF private key, Address)  on success, raises Error on failure.
+    ) -> (
+        tuple
+    ):  # returns the (WIF private key, Address)  on success, raises Error on failure.
         scryptBuf = Bip38Key._scrypt(
             password=passphrase, salt=self.salt, N=16384, r=8, p=8, dkLen=64
         )

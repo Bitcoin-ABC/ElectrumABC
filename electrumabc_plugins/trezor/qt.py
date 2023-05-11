@@ -122,7 +122,6 @@ class MatrixDialog(WindowModalDialog):
 
 
 class QtHandler(QtHandlerBase):
-
     pin_signal = pyqtSignal(object)
     matrix_signal = pyqtSignal(object)
     close_matrix_dialog_signal = pyqtSignal()
@@ -496,14 +495,16 @@ class SettingsDialog(WindowModalDialog):
                     # For now I couldn't get Grayscale TOIG to work on any device, disabled
                     handler.show_error(
                         _(
-                            "Grayscale TOI files are not currently supported. Try a PNG or JPG file instead."
+                            "Grayscale TOI files are not currently supported. Try a PNG"
+                            " or JPG file instead."
                         )
                     )
                     return
                 if not is_model_T:
                     handler.show_error(
                         _(
-                            "At this time, only the Trezor Model T supports the direct loading of TOIF files. Try a PNG or JPG file instead."
+                            "At this time, only the Trezor Model T supports the direct"
+                            " loading of TOIF files. Try a PNG or JPG file instead."
                         )
                     )
                     return
@@ -530,7 +531,8 @@ class SettingsDialog(WindowModalDialog):
                     if img.isNull():
                         handler.show_error(
                             _(
-                                "Could not load the image {} -- unknown format or other error"
+                                "Could not load the image {} -- unknown format or other"
+                                " error"
                             ).format(os.path.basename(filename))
                         )
                         return
@@ -596,7 +598,8 @@ class SettingsDialog(WindowModalDialog):
                     if img.isNull():
                         handler.show_error(
                             _(
-                                "Could not load the image {} -- unknown format or other error"
+                                "Could not load the image {} -- unknown format or other"
+                                " error"
                             ).format(os.path.basename(filename))
                         )
                         return
@@ -639,7 +642,8 @@ class SettingsDialog(WindowModalDialog):
                         except ImportError as e:
                             handler.show_error(
                                 _(
-                                    "Could not convert image, a required library is missing: {}"
+                                    "Could not convert image, a required library is"
+                                    " missing: {}"
                                 ).format(e)
                             )
                             return

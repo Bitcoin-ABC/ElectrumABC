@@ -64,7 +64,8 @@ MSG_HW_STORAGE_ENCRYPTION = (
     + _("It also contains your master public key that allows watching your addresses.")
     + "\n\n"
     + _(
-        "Note: If you enable this setting, you will need your hardware device to open your wallet."
+        "Note: If you enable this setting, you will need your hardware device to open"
+        " your wallet."
     )
 )
 
@@ -134,7 +135,6 @@ class WalletAlreadyOpenInMemory(Exception):
 
 # WindowModalDialog must come first as it overrides show_error
 class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
-
     accept_signal = pyqtSignal()
 
     def __init__(
@@ -264,7 +264,8 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
                         _("This file does not exist.")
                         + "\n"
                         + _(
-                            "Press 'Next' to create this wallet, or choose another file."
+                            "Press 'Next' to create this wallet, or choose another"
+                            " file."
                         )
                     )
                 elif not wallet_from_memory:
@@ -366,8 +367,9 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         if storage.requires_split():
             self.hide()
             msg = _(
-                "The wallet '{}' contains multiple accounts, which are no longer supported since Electrum 2.7.\n\n"
-                "Do you want to split your wallet into multiple files?"
+                "The wallet '{}' contains multiple accounts, which are no longer"
+                " supported since Electrum 2.7.\n\nDo you want to split your wallet"
+                " into multiple files?"
             ).format(path)
             if not self.question(msg):
                 return
@@ -494,7 +496,8 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
             [
                 _("Please enter the master public key (xpub) of your cosigner."),
                 _(
-                    "Enter their master private key (xprv) if you want to be able to sign for them."
+                    "Enter their master private key (xprv) if you want to be able to"
+                    " sign for them."
                 ),
             ]
         )
@@ -520,7 +523,8 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
                 _("Your seed is important!"),
                 _("If you lose your seed, your money will be permanently lost."),
                 _(
-                    "To make sure that you have properly saved your seed, please retype it here."
+                    "To make sure that you have properly saved your seed, please retype"
+                    " it here."
                 ),
             ]
         )
@@ -804,7 +808,8 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         vbox.addWidget(
             WWLabel(
                 _(
-                    "Choose the number of signatures needed to unlock funds in your wallet:"
+                    "Choose the number of signatures needed to unlock funds in your"
+                    " wallet:"
                 )
             )
         )
@@ -838,7 +843,6 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
 
 
 class DerivationPathScanner(QThread):
-
     DERIVATION_PATHS = [
         keystore.bip44_derivation_xec(0),
         keystore.bip44_derivation_xec_tokens(0),

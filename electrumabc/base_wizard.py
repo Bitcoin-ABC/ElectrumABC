@@ -182,7 +182,8 @@ class BaseWizard(PrintError):
         )
         if self.wallet_type == "standard" or i == 0:
             message = _(
-                "Do you want to create a new seed, or to restore a wallet using an existing seed?"
+                "Do you want to create a new seed, or to restore a wallet using an"
+                " existing seed?"
             )
             choices = [
                 ("create_standard_seed", _("Create a new seed")),
@@ -213,7 +214,7 @@ class BaseWizard(PrintError):
         title = _(f"Import {CURRENCY} Addresses")
         message = _(
             f"Enter a list of {CURRENCY} addresses (this will create a"
-            f" watching-only wallet), or a list of private keys."
+            " watching-only wallet), or a list of private keys."
         )
         if bitcoin.is_bip38_available():
             message += " " + _("BIP38 encrypted keys are supported.")
@@ -274,10 +275,12 @@ class BaseWizard(PrintError):
             message = " ".join(
                 [
                     _(
-                        "To create a watching-only wallet, please enter your master public key (xpub/ypub/zpub)."
+                        "To create a watching-only wallet, please enter your master"
+                        " public key (xpub/ypub/zpub)."
                     ),
                     _(
-                        "To create a spending wallet, please enter a master private key (xprv/yprv/zprv)."
+                        "To create a spending wallet, please enter a master private key"
+                        " (xprv/yprv/zprv)."
                     ),
                 ]
             )
@@ -311,7 +314,8 @@ class BaseWizard(PrintError):
                 [
                     _("No hardware wallet support found on your system."),
                     _(
-                        "Please install the relevant libraries (eg python-trezor for Trezor)."
+                        "Please install the relevant libraries (eg python-trezor for"
+                        " Trezor)."
                     ),
                 ]
             )
@@ -344,7 +348,8 @@ class BaseWizard(PrintError):
             if sys.platform in ("win32", "win64", "windows"):
                 msgs.append(
                     _(
-                        'Go to "Settings", "Devices", "Connected devices", and do "Remove device". Then, plug your device again.'
+                        'Go to "Settings", "Devices", "Connected devices", and do'
+                        ' "Remove device". Then, plug your device again.'
                     )
                     + "\n"
                 )
@@ -477,17 +482,11 @@ class BaseWizard(PrintError):
             _("Enter your wallet derivation here."),
             _("If you are not sure what this is, leave this field unchanged."),
             _(
-                f"If you want the wallet to use legacy Bitcoin addresses use "
+                "If you want the wallet to use legacy Bitcoin addresses use "
                 f"{bip44_btc}"
             ),
-            _(
-                f"If you want the wallet to use Bitcoin Cash addresses use "
-                f"{bip44_bch}"
-            ),
-            _(
-                f"If you want the wallet to use {CURRENCY} addresses use "
-                f"{bip44_xec}"
-            ),
+            _(f"If you want the wallet to use Bitcoin Cash addresses use {bip44_bch}"),
+            _(f"If you want the wallet to use {CURRENCY} addresses use {bip44_xec}"),
         ]
         if is_hw_wallet and default_derivation == bip44_bch:
             lines.append(

@@ -162,7 +162,6 @@ class HWPluginBase(BasePlugin):
 
 
 class HardwareClientBase:
-
     handler: Optional[HardwareHandlerBase]
 
     def __init__(self, *, plugin: HWPluginBase):

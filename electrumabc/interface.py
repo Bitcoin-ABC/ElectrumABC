@@ -197,7 +197,10 @@ class TcpConnection(threading.Thread, PrintError):
                     try:
                         os.remove(cert_path)
                         self.print_error(
-                            "Server is now using a CA-signed certificate, deleted previous self-signed certificate:",
+                            (
+                                "Server is now using a CA-signed certificate, deleted"
+                                " previous self-signed certificate:"
+                            ),
                             cert_path,
                         )
                     except OSError:

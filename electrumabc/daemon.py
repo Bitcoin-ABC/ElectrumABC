@@ -79,8 +79,7 @@ def get_fd_or_server(
             return os.open(lockfile, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644), None
         except PermissionError as e:
             sys.exit(
-                f"Unable to create lockfile due to file system "
-                f"permission problems: {e}"
+                f"Unable to create lockfile due to file system permission problems: {e}"
             )
         except NotADirectoryError as e:
             lockdir = os.path.dirname(lockfile)
@@ -159,7 +158,6 @@ def get_rpc_credentials(config):
         config.set_key("rpcuser", rpc_user)
         config.set_key("rpcpassword", rpc_password, save=True)
     elif rpc_password == "":
-
         print_stderr("WARNING: RPC authentication is disabled.")
     return rpc_user, rpc_password
 
@@ -254,7 +252,10 @@ class Daemon(DaemonThread):
             else:
                 response = "error: current GUI does not support multiple windows"
         else:
-            response = f"Error: {PROJECT_NAME} is running in daemon mode. Please stop the daemon first."
+            response = (
+                f"Error: {PROJECT_NAME} is running in daemon mode. Please stop the"
+                " daemon first."
+            )
         return response
 
     def load_wallet(self, path, password):
@@ -311,7 +312,10 @@ class Daemon(DaemonThread):
             if wallet is None:
                 wallet_name = os.path.basename(path)
                 return {
-                    "error": f'Wallet "{wallet_name}" is not loaded. Use "{SCRIPT_NAME} daemon load_wallet"'
+                    "error": (
+                        f'Wallet "{wallet_name}" is not loaded. Use'
+                        f' "{SCRIPT_NAME} daemon load_wallet"'
+                    )
                 }
         else:
             wallet = None

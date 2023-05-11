@@ -158,13 +158,14 @@ class Plugins(DaemonThread):
                 val = _(val)  # retranslate
             if not isinstance(val, str):
                 self.print_error(
-                    f'Warning: plugin "{name}" metadata key "{key}" expected str, instead got {type(val)}'
+                    f'Warning: plugin "{name}" metadata key "{key}" expected str,'
+                    f" instead got {type(val)}"
                 )
             else:
                 d[key] = val  # rewrite translated string
-                d[
-                    ut_key
-                ] = ut_val  # save untranslated metadata for later so that this function may be called again from GUI
+                d[ut_key] = (
+                    ut_val  # save untranslated metadata for later so that this function may be called again from GUI
+                )
 
     def load_internal_plugins(self):
         for loader, name, ispkg in pkgutil.iter_modules(
@@ -446,8 +447,8 @@ class Plugins(DaemonThread):
                     v = version.parse_package_version(v)
                 except ValueError:
                     self.print_error(
-                        "metadata %s = %s, expected a.b.c version string (zip plugin %s)"
-                        % (k, v, file_name)
+                        "metadata %s = %s, expected a.b.c version string (zip"
+                        " plugin %s)" % (k, v, file_name)
                     )
                     return None, error_code
             elif type(metadata[k]) is not expected_type:
@@ -652,10 +653,12 @@ def run_hook(name, *args, **kwargs):
     this_thread = threading.current_thread()
     if this_thread is not threading.main_thread():
         warn(
-            f'run_hook "{name}" being called from outside the main'
-            f" thread (thr: {this_thread.name}) may lead to undefined"
-            " behavior. Please use util.do_in_main_thread to call run_hook"
-            " if the hook in question does not return any results.",
+            (
+                f'run_hook "{name}" being called from outside the main'
+                f" thread (thr: {this_thread.name}) may lead to undefined"
+                " behavior. Please use util.do_in_main_thread to call run_hook"
+                " if the hook in question does not return any results."
+            ),
             stacklevel=2,
         )
     f_list = hooks.get(name)
@@ -741,7 +744,8 @@ class BasePlugin(PrintError):
             except (KeyError, AttributeError):
                 origclass = "unknown"
             print_stderr(
-                f"Ignoring plugin daemon command {repr(c)} from {type(self)} (already exists from {origclass})"
+                f"Ignoring plugin daemon command {repr(c)} from {type(self)} (already"
+                f" exists from {origclass})"
             )
         self.parent.daemon_commands.update(
             {cmdname: getattr(self, cmdname) for cmdname in self._daemon_commands}

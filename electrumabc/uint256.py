@@ -60,8 +60,7 @@ class BaseBlob:
         """Deserialize into an existing instance from bytes"""
         if len(data) != self.WIDTH:
             raise DeserializationError(
-                f"Wrong data size, expected {self.WIDTH} bytes but received "
-                f"{len(data)}"
+                f"Wrong data size, expected {self.WIDTH} bytes but received {len(data)}"
             )
         self.data = data
 

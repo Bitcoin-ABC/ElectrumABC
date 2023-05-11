@@ -48,16 +48,23 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
             + _("Scanning Beyond the Gap")
             + "</i></b></font></p><p>"
             + _(
-                "Deterministic wallets can contain a nearly infinite number of addresses. However, usually only a relatively small block of addresses at the beginning are ever used."
+                "Deterministic wallets can contain a nearly infinite number of"
+                " addresses. However, usually only a relatively small block of"
+                " addresses at the beginning are ever used."
             )
             + "</p><p>"
             + _(
-                "Normally, when you (re)generate a wallet from its seed, addresses are derived and added to the wallet until a block of addresses is found without a history. This is referred to as the gap."
+                "Normally, when you (re)generate a wallet from its seed, addresses are"
+                " derived and added to the wallet until a block of addresses is found"
+                " without a history. This is referred to as the gap."
             )
             # + "</p><p>" + _("Addresses beyond this gap are not scanned for a balance (since they would normally not have one for most users).")
             + "</p><p>"
             + _(
-                "If you think this wallet may have a transaction history for addresses beyond the gap, use this tool to search for them. If any history for an address is found, those addresses (plus all intervening addresses), will be added to your wallet."
+                "If you think this wallet may have a transaction history for addresses"
+                " beyond the gap, use this tool to search for them. If any history for"
+                " an address is found, those addresses (plus all intervening"
+                " addresses), will be added to your wallet."
             )
             + "</p>"
         )
@@ -185,13 +192,15 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
         if added:
             self.show_message(
                 _(
-                    "{} address(es) with a history and {} in-between address(es) were added to your wallet."
+                    "{} address(es) with a history and {} in-between address(es) were"
+                    " added to your wallet."
                 ).format(len(found), added)
             )
         else:
             self.show_message(
                 _(
-                    "No addresses with transaction histories were found in the specified scan range."
+                    "No addresses with transaction histories were found in the"
+                    " specified scan range."
                 )
             )
         self.accept()

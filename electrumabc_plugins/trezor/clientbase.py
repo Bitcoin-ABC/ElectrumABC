@@ -291,8 +291,9 @@ class TrezorClientBase(HardwareClientBase, PrintError):
                 self.print_error("Exception during cancel call:", repr(e))
                 self.handler.show_error(
                     _(
-                        "The {} device is now in an inconsistent state."
-                        "\n\nYou may have to unplug the device and plug it back in and restart what you were doing."
+                        "The {} device is now in an inconsistent state.\n\nYou may have"
+                        " to unplug the device and plug it back in and restart what you"
+                        " were doing."
                     ).format(self.device)
                 )
             finally:

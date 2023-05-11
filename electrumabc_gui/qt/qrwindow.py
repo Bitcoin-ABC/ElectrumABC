@@ -103,7 +103,8 @@ class QRWindow(QtWidgets.QWidget, MessageBoxMixin):
     ):
         if op_return is not None and op_return_raw is not None:
             raise ValueError(
-                "Must specify exactly one of op_return or op_return_hex as kwargs to QR_Window.set_content"
+                "Must specify exactly one of op_return or op_return_hex as kwargs to"
+                " QR_Window.set_content"
             )
         self.address_label.setText(address_text)
         if amount:

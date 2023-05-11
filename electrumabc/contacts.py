@@ -172,7 +172,8 @@ class Contacts(PrintError):
                 d = json.loads(f.read())
                 if not isinstance(d, dict):
                     raise RuntimeError(
-                        f"Expected a JSON dict in file {os.path.basename(path)}, instead got {str(type(d))}"
+                        f"Expected a JSON dict in file {os.path.basename(path)},"
+                        f" instead got {str(type(d))}"
                     )
                 if "contacts" not in d and "contacts2" not in d:
                     # was old-style export from pre 4.0.8 EC JSON dict

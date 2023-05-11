@@ -22,7 +22,6 @@ def _(x):
 
 class ElectrumGui:
     def __init__(self, config, daemon, plugins):
-
         self.config = config
         self.network = daemon.network
         storage = WalletStorage(config.get_wallet_path())
@@ -106,7 +105,6 @@ class ElectrumGui:
         self.refresh()
 
     def print_history(self):
-
         width = [20, 40, 14, 14]
         delta = (self.maxx - sum(width) - 4) / 3
         format_str = (
@@ -394,7 +392,6 @@ class ElectrumGui:
         pass
 
     def main(self):
-
         tty.setraw(sys.stdin)
         while self.tab != -1:
             self.run_tab(0, self.print_history, self.run_history_tab)
@@ -577,9 +574,11 @@ class ElectrumGui:
                         2 + interval * i,
                         15,
                         value,
-                        curses.A_REVERSE
-                        if self.popup_pos % numpos == i
-                        else curses.color_pair(1),
+                        (
+                            curses.A_REVERSE
+                            if self.popup_pos % numpos == i
+                            else curses.color_pair(1)
+                        ),
                     )
                 else:
                     w.addstr(
@@ -594,17 +593,21 @@ class ElectrumGui:
                     5 + interval * i,
                     10,
                     "[  ok  ]",
-                    curses.A_REVERSE
-                    if self.popup_pos % numpos == (numpos - 2)
-                    else curses.color_pair(2),
+                    (
+                        curses.A_REVERSE
+                        if self.popup_pos % numpos == (numpos - 2)
+                        else curses.color_pair(2)
+                    ),
                 )
                 w.addstr(
                     5 + interval * i,
                     25,
                     "[cancel]",
-                    curses.A_REVERSE
-                    if self.popup_pos % numpos == (numpos - 1)
-                    else curses.color_pair(2),
+                    (
+                        curses.A_REVERSE
+                        if self.popup_pos % numpos == (numpos - 1)
+                        else curses.color_pair(2)
+                    ),
                 )
 
             w.refresh()

@@ -41,7 +41,9 @@ try:
     from . import paymentrequest_pb2 as pb2
 except ImportError:
     sys.exit(
-        "Error: could not find paymentrequest_pb2.py. Create it with 'protoc --proto_path=electrumabc/ --python_out=electrumabc/ electrumabc/paymentrequest.proto'"
+        "Error: could not find paymentrequest_pb2.py. Create it with 'protoc"
+        " --proto_path=electrumabc/ --python_out=electrumabc/"
+        " electrumabc/paymentrequest.proto'"
     )
 
 from . import bitcoin, rsakey, transaction, util, x509
@@ -121,7 +123,10 @@ def get_payment_request(url):
                     or response.headers["Content-Type"]
                     != "application/ecash-paymentrequest"
                 ):
-                    error = "payment URL not pointing to a ecash payment request handling server"
+                    error = (
+                        "payment URL not pointing to a ecash payment request handling"
+                        " server"
+                    )
                 else:
                     data = response.content
                 print_error("fetched payment request", url, len(response.content))
@@ -336,7 +341,10 @@ class PaymentRequest:
         except Exception:
             return (
                 False,
-                "PaymentACK could not be processed. Payment was sent; please manually verify that payment was received.",
+                (
+                    "PaymentACK could not be processed. Payment was sent; please"
+                    " manually verify that payment was received."
+                ),
             )
         return True, paymntack.memo
 
@@ -652,7 +660,10 @@ class PaymentRequestBitPay20(PaymentRequest, PrintError):
 
     Details = namedtuple(
         "BitPay20Details",
-        "outputs, memo, payment_url, time, expires, network, currency, required_fee_rate",
+        (
+            "outputs, memo, payment_url, time, expires, network, currency,"
+            " required_fee_rate"
+        ),
     )
 
     class Raw:
@@ -664,7 +675,8 @@ class PaymentRequestBitPay20(PaymentRequest, PrintError):
             if resp:
                 if not isinstance(resp, requests.Response):
                     raise ValueError(
-                        "Expected a Response object in PaymentRequest_BitPay20.Raw constructor"
+                        "Expected a Response object in PaymentRequest_BitPay20.Raw"
+                        " constructor"
                     )
                 self.status_code = resp.status_code
                 self.headers = resp.headers
@@ -732,7 +744,10 @@ class PaymentRequestBitPay20(PaymentRequest, PrintError):
         if self.error:
             return
         if not isinstance(r, self.Raw):  # BitPay2.0 requires 'raw' be a Raw instance
-            self.error = "Argument not of the proper type (expected PaymentRequest_BitPay20.Raw instance)"
+            self.error = (
+                "Argument not of the proper type (expected PaymentRequest_BitPay20.Raw"
+                " instance)"
+            )
             return
         (
             self.data,
@@ -922,7 +937,10 @@ class PaymentRequestBitPay20(PaymentRequest, PrintError):
                 else:
                     # TODO: Fixme -- for now this branch will always be taken because we turned off key download in _get_signing_keys() above
                     self.print_error(
-                        "Warning: Could not verify whether signing public key is valid:",
+                        (
+                            "Warning: Could not verify whether signing public key is"
+                            " valid:"
+                        ),
                         pubkey.hex(),
                         "(PGP verification is currently disabled)",
                     )

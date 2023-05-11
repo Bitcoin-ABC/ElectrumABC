@@ -79,8 +79,9 @@ class InvoiceDialog(QtWidgets.QDialog):
         self.id_edit = QtWidgets.QLineEdit()
         self.id_edit.setToolTip(
             _(
-                "Invoice identifier or invoice number. This should be a unique identifier, "
-                "preferably a string without white-spaces or exotic unicode characters."
+                "Invoice identifier or invoice number. This should be a unique"
+                " identifier, preferably a string without white-spaces or exotic"
+                " unicode characters."
             )
         )
         layout.addWidget(self.id_edit, alignment=QtCore.Qt.AlignLeft)
@@ -371,8 +372,8 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
         self.keys_edit = QtWidgets.QLineEdit()
         self.keys_edit.setToolTip(
             _(
-                "Comma separated list of JSON keys used to find the exchange rate in the "
-                "data sent by the API."
+                "Comma separated list of JSON keys used to find the exchange rate in"
+                " the data sent by the API."
             )
         )
         layout.addWidget(self.keys_edit)
@@ -430,9 +431,11 @@ class ExchangeRateAPIWidget(QtWidgets.QWidget):
             QtWidgets.QMessageBox.critical(
                 self,
                 "Error fetching exchange rate",
-                f"Unable to fetch the XEC/{self._currency} exchange rate using the "
-                f"specified API parameters.\n\nThe error message was:\n\n"
-                f"{type(e).__name__}: {e}",
+                (
+                    f"Unable to fetch the XEC/{self._currency} exchange rate using the "
+                    "specified API parameters.\n\nThe error message was:\n\n"
+                    f"{type(e).__name__}: {e}"
+                ),
             )
             return
 

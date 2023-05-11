@@ -601,7 +601,6 @@ class Blockchain(PrintError):
 
         # Mon Nov 13 19:06:40 2017 DAA HF
         if prevheight >= networks.net.CW144_HEIGHT:
-
             if networks.net.TESTNET:
                 # testnet 20 minute rule
                 if header["timestamp"] - prior["timestamp"] > 20 * 60:

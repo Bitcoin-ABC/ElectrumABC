@@ -256,12 +256,14 @@ class TestUtil(unittest.TestCase):
         )
 
         self._do_test_parse_URI(
-            "ecash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?"
-            "amount=10.04&"
-            "label=electrum-test&"
-            "message=electrum%20test&"
-            "test=none&"
-            "r=http://domain.tld/page",
+            (
+                "ecash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?"
+                "amount=10.04&"
+                "label=electrum-test&"
+                "message=electrum%20test&"
+                "test=none&"
+                "r=http://domain.tld/page"
+            ),
             {
                 "address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma",
                 "amount": 1004,
@@ -302,8 +304,10 @@ class TestUtil(unittest.TestCase):
         self.assertRaises(
             Exception,
             parse_URI,
-            "ecash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?amount=0.0003&label=test&"
-            "amount=30.0",
+            (
+                "ecash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?amount=0.0003&label=test&"
+                "amount=30.0"
+            ),
         )
 
 

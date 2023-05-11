@@ -392,9 +392,8 @@ def parse_input(vds):
             parse_scriptSig(d, scriptSig)
         except Exception as e:
             print_error(
-                "{}: Failed to parse tx input {}:{}, probably a p2sh (non multisig?). Exception was: {}".format(
-                    __name__, prevout_hash, prevout_n, repr(e)
-                )
+                "{}: Failed to parse tx input {}:{}, probably a p2sh (non multisig?)."
+                " Exception was: {}".format(__name__, prevout_hash, prevout_n, repr(e))
             )
             # that whole heuristic codepath is fragile; just ignore it when it dies.
             # failing tx examples:
@@ -446,7 +445,6 @@ def multisig_script(public_keys, m):
 
 
 class Transaction:
-
     SIGHASH_FORKID = 0x40  # do not use this; deprecated
     FORKID = 0x000000  # do not use this; deprecated
 
@@ -582,9 +580,8 @@ class Transaction:
             if not added:
                 resn = ", ".join(reversed(reason)) if reason else ""
                 print_error(
-                    "failed to add signature {} for any pubkey for reason(s): '{}' ; pubkey(s) / sig / pre_hash = ".format(
-                        i, resn
-                    ),
+                    "failed to add signature {} for any pubkey for reason(s): '{}' ;"
+                    " pubkey(s) / sig / pre_hash = ".format(i, resn),
                     pubkeys,
                     "/",
                     sig,
@@ -1110,7 +1107,8 @@ class Transaction:
                 else:
                     continue
                 print_error(
-                    f"adding signature for input#{i} sig#{j}; {kname}: {_pubkey} schnorr: {self._sign_schnorr}"
+                    f"adding signature for input#{i} sig#{j}; {kname}:"
+                    f" {_pubkey} schnorr: {self._sign_schnorr}"
                 )
                 sec, compressed = keypairs.get(_pubkey)
                 self._sign_txin(i, j, sec, compressed, use_cache=use_cache)
@@ -1134,7 +1132,8 @@ class Transaction:
         reason = []
         if not self.verify_signature(bfh(pubkey), sig, pre_hash, reason=reason):
             print_error(
-                f"Signature verification failed for input#{i} sig#{j}, reason: {str(reason)}"
+                f"Signature verification failed for input#{i} sig#{j}, reason:"
+                f" {str(reason)}"
             )
             return None
         txin = self._inputs[i]
@@ -1242,9 +1241,7 @@ class Transaction:
             # we already have results, don't do anything.
             return False
         eph = self.ephemeral
-        eph[
-            "fetched_inputs"
-        ] = (
+        eph["fetched_inputs"] = (
             inps
         ) = inps.copy()  # paranoia: in case another thread is running on this list
         # Lazy imports to keep this functionality very self-contained
@@ -1330,17 +1327,15 @@ class Transaction:
                                 #    print_error("fetch_input_data: cached prevout_hash {} != tx.txid() {}, ignoring.".format(prevout_hash, txid))
                             except Exception as e:
                                 print_error(
-                                    "fetch_input_data: WARNING failed to deserialize {}: {}".format(
-                                        prevout_hash, repr(e)
-                                    )
+                                    "fetch_input_data: WARNING failed to deserialize"
+                                    " {}: {}".format(prevout_hash, repr(e))
                                 )
                                 tx = None
                         else:
                             tx = None
                             print_error(
-                                "fetch_input_data: WARNING cached tx lacked any 'raw' bytes for {}".format(
-                                    prevout_hash
-                                )
+                                "fetch_input_data: WARNING cached tx lacked any 'raw'"
+                                " bytes for {}".format(prevout_hash)
                             )
                     # now, examine the deserialized tx, if it's still good
                     if tx:
@@ -1354,7 +1349,8 @@ class Transaction:
                             )
                         else:
                             print_error(
-                                "fetch_input_data: ** FIXME ** should never happen -- n={} >= len(tx.outputs())={} for prevout {}".format(
+                                "fetch_input_data: ** FIXME ** should never happen --"
+                                " n={} >= len(tx.outputs())={} for prevout {}".format(
                                     n, len(tx.outputs()), prevout_hash
                                 )
                             )
@@ -1402,7 +1398,9 @@ class Transaction:
                             txid = r["params"][0]
                             assert txid == cls._txid(
                                 tx.raw
-                            ), "txid-is-sane-check"  # protection against phony responses
+                            ), (  # protection against phony responses
+                                "txid-is-sane-check"
+                            )
                             cls.tx_cache_put(tx=tx, txid=txid)  # save tx to cache here
                         except Exception as e:
                             # response was not valid, ignore (don't cache)
@@ -1411,7 +1409,10 @@ class Transaction:
                             ):  # txid may be '' if KeyError from r['result'] above
                                 bad_txids.add(txid)
                             print_error(
-                                "fetch_input_data: put_in_queue_and_cache fail for txid:",
+                                (
+                                    "fetch_input_data: put_in_queue_and_cache fail for"
+                                    " txid:"
+                                ),
                                 txid,
                                 repr(e),
                             )
@@ -1449,7 +1450,8 @@ class Transaction:
                                     )
                                 else:
                                     print_error(
-                                        "fetch_input_data: tx block height could not be determined"
+                                        "fetch_input_data: tx block height could not be"
+                                        " determined"
                                     )
                             except Exception as e:
                                 print_error("fetch_input_data: get_bh fail:", str(e), r)
@@ -1490,7 +1492,9 @@ class Transaction:
                             txid = r["params"][0]
                             assert (
                                 txid not in bad_txids
-                            ), "txid marked bad"  # skip if was marked bad by our callback code
+                            ), (  # skip if was marked bad by our callback code
+                                "txid marked bad"
+                            )
                             tx = Transaction(rawhex)
                             tx.deserialize()
                             for item in need_dl_txids[txid]:
@@ -1509,7 +1513,8 @@ class Transaction:
                             prog(i, q_ct)  # tell interested code of progress
                         except queue.Empty:
                             print_error(
-                                "fetch_input_data: timed out after 10.0s fetching from network, giving up."
+                                "fetch_input_data: timed out after 10.0s fetching from"
+                                " network, giving up."
                             )
                             break
                         except Exception as e:

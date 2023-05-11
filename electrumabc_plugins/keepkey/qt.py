@@ -146,7 +146,6 @@ class CharacterDialog(WindowModalDialog):
 
 
 class QtHandler(QtHandlerBase):
-
     char_signal = pyqtSignal(object)
     pin_signal = pyqtSignal(object)
     close_char_dialog_signal = pyqtSignal()

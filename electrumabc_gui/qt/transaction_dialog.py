@@ -69,7 +69,6 @@ def show_transaction(tx, parent, desc=None, prompt_if_unsaved=False):
 
 
 class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
-
     # connected to self.throttled_update -- emit from thread to do update in main thread
     throttled_update_sig = pyqtSignal()
 
@@ -177,7 +176,8 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
                 else:
                     self.show_error(
                         _(
-                            "Unable to open in block explorer. Please be sure your block explorer is configured correctly in preferences."
+                            "Unable to open in block explorer. Please be sure your"
+                            " block explorer is configured correctly in preferences."
                         )
                     )
 
@@ -700,7 +700,8 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         chk.clicked.connect(self.set_fetch_input_data)
         chk.setToolTip(
             _(
-                "If this is checked, accurate fee and input value data will be retrieved from the network"
+                "If this is checked, accurate fee and input value data will be"
+                " retrieved from the network"
             )
         )
         hbox.addWidget(chk)

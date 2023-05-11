@@ -104,7 +104,8 @@ class Processor(threading.Thread, PrintError):
             self.print_error("Exception encountered, stopping plugin thread:", repr(e))
             self.on_error(
                 _(
-                    "Email plugin could not connect to {server} as {username}, IMAP receive thread stopped."
+                    "Email plugin could not connect to {server} as {username}, IMAP"
+                    " receive thread stopped."
                 ).format(server=self.imap_server, username=self.username)
             )
             return
@@ -207,7 +208,9 @@ class Plugin(BasePlugin):
         if not self.processor:
             window.show_warning(
                 _(
-                    "The email plugin is enabled but not configured. Please go to its settings and configure it, or disable it if you do not wish to use it."
+                    "The email plugin is enabled but not configured. Please go to its"
+                    " settings and configure it, or disable it if you do not wish to"
+                    " use it."
                 )
             )
             return

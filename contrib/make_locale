@@ -41,7 +41,11 @@ with open("app.fil", "w") as f:
 # Generate fresh translation template
 if not os.path.exists("electrumabc/locale"):
     os.mkdir("electrumabc/locale")
-cmd = "xgettext -s --from-code UTF-8 --language Python --no-wrap -f app.fil --keyword=pgettext:1c,2 --keyword=npgettext:1c,2,3 -c --output=electrumabc/locale/messages.pot"
+cmd = (
+    "xgettext -s --from-code UTF-8 --language Python --no-wrap -f app.fil"
+    " --keyword=pgettext:1c,2 --keyword=npgettext:1c,2,3 -c"
+    " --output=electrumabc/locale/messages.pot"
+)
 print("Generate template")
 os.system(cmd)
 

@@ -108,7 +108,7 @@ class SettingsDialog(WindowModalDialog):
 
         language_names = []
         self.language_keys = []
-        for (lang_code, lang_def) in languages.items():
+        for lang_code, lang_def in languages.items():
             self.language_keys.append(lang_code)
             lang_name = [lang_def.name]
             if lang_code == "":
@@ -602,16 +602,16 @@ class SettingsDialog(WindowModalDialog):
         limit_change_w.setToolTip(
             "<p>"
             + _(
-                "If checked, change addresses with no balance and trivial history which are"
-                " sufficiently old will not be subscribed-to on the server, in order"
-                " to save resources."
+                "If checked, change addresses with no balance and trivial history which"
+                " are sufficiently old will not be subscribed-to on the server, in"
+                " order to save resources."
             )
             + "</p>"
             + "<p>"
             + _(
-                "Disable this option if you plan on receiving funds using your old change"
-                " addresses or if you suspect your old change addresses"
-                " may have unseen funds on them."
+                "Disable this option if you plan on receiving funds using your old"
+                " change addresses or if you suspect your old change addresses may have"
+                " unseen funds on them."
             )
             + "</p>"
         )

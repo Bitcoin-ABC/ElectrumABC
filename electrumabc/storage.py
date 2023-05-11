@@ -40,9 +40,9 @@ TMP_SUFFIX = ".tmp.{}".format(os.getpid())
 
 
 def get_derivation_used_for_hw_device_encryption():
-    return (
-        "m" "/4541509'" "/1112098098'"  # ascii 'ELE'  as decimal ("BIP43 purpose")
-    )  # ascii 'BIE2' as decimal
+    return (  # ascii 'ELE'  as decimal ("BIP43 purpose")  # ascii 'BIE2' as decimal
+        "m/4541509'/1112098098'"
+    )
 
 
 # storage encryption version

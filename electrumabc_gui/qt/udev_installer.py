@@ -67,10 +67,10 @@ class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
 
         info_label = QtWidgets.QLabel()
         info_label.setText(
-            _('This tool installs hardware wallet "udev rules" on your ' "system.")
+            _('This tool installs hardware wallet "udev rules" on your system.')
             + " "
             + _(
-                f"Correct udev rules are required in order for a hardware wallet"
+                "Correct udev rules are required in order for a hardware wallet"
                 f" to be accessed by {PROJECT_NAME}."
             )
             + "\n\n"
@@ -151,7 +151,10 @@ class InstallHardwareWalletSupportDialog(PrintError, WindowModalDialog):
         self.setStatus(_("Installed"), False)
 
     def generateRulesFile(self) -> str:
-        line_format = 'SUBSYSTEMS=="usb", ATTRS{{idVendor}}=="{:04x}", ATTRS{{idProduct}}=="{:04x}"'
+        line_format = (
+            'SUBSYSTEMS=="usb", ATTRS{{idVendor}}=="{:04x}",'
+            ' ATTRS{{idProduct}}=="{:04x}"'
+        )
 
         try:
             # Add the plugdev group if it exists

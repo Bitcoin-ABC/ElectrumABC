@@ -125,7 +125,8 @@ class DigitalBitboxClient(HardwareClientBase):
         if "ping" not in reply:
             raise Exception(
                 _(
-                    "Device communication error. Please unplug and replug your Digital Bitbox."
+                    "Device communication error. Please unplug and replug your Digital"
+                    " Bitbox."
                 )
             )
         if reply["ping"] == "password":
@@ -191,7 +192,8 @@ class DigitalBitboxClient(HardwareClientBase):
         major_version = int(match.group(1))
         if major_version < MIN_MAJOR_VERSION:
             raise Exception(
-                "Please upgrade to the newest firmware using the BitBox Desktop app: https://shiftcrypto.ch/start"
+                "Please upgrade to the newest firmware using the BitBox Desktop app:"
+                " https://shiftcrypto.ch/start"
             )
 
         # Set password if fresh device
@@ -258,7 +260,8 @@ class DigitalBitboxClient(HardwareClientBase):
             (_("Create a wallet using the current seed")),
             (
                 _(
-                    "Load a wallet from the micro SD card (the current seed is overwritten)"
+                    "Load a wallet from the micro SD card (the current seed is"
+                    " overwritten)"
                 )
             ),
             (_("Erase the Digital Bitbox")),
@@ -350,8 +353,8 @@ class DigitalBitboxClient(HardwareClientBase):
             "utf8"
         )
         msg = (
-            b'{"seed":{"source": "create", "key": "%s", "filename": "%s", "entropy": "%s"}}'
-            % (key, filename, to_hexstr(os.urandom(32)))
+            b'{"seed":{"source": "create", "key": "%s", "filename": "%s", "entropy":'
+            b' "%s"}}' % (key, filename, to_hexstr(os.urandom(32)))
         )
         reply = self.hid_send_encrypt(msg)
         if "error" in reply:
@@ -420,7 +423,7 @@ class DigitalBitboxClient(HardwareClientBase):
                     b"\0"
                     + struct.pack(">IBH", HWW_CID, HWW_CMD, data_len & 0xFFFF)
                     + write
-                    + b"\xEE" * (self.usbReportSize - 7 - len(write))
+                    + b"\xee" * (self.usbReportSize - 7 - len(write))
                 )
             else:
                 # CONT frame
@@ -429,7 +432,7 @@ class DigitalBitboxClient(HardwareClientBase):
                     b"\0"
                     + struct.pack(">IB", HWW_CID, seq)
                     + write
-                    + b"\xEE" * (self.usbReportSize - 5 - len(write))
+                    + b"\xee" * (self.usbReportSize - 5 - len(write))
                 )
                 seq += 1
             idx += len(write)
@@ -560,11 +563,13 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
                 _("Signing message ...")
                 + "\n\n"
                 + _(
-                    "To continue, touch the Digital Bitbox's blinking light for 3 seconds."
+                    "To continue, touch the Digital Bitbox's blinking light for 3"
+                    " seconds."
                 )
                 + "\n\n"
                 + _(
-                    "To cancel, briefly touch the blinking light or wait for the timeout."
+                    "To cancel, briefly touch the blinking light or wait for the"
+                    " timeout."
                 )
             )
             reply = dbb_client.hid_send_encrypt(
@@ -720,13 +725,15 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
                         _("Signing large transaction. Please be patient ...")
                         + "\n\n"
                         + _(
-                            "To continue, touch the Digital Bitbox's blinking light for 3 seconds."
+                            "To continue, touch the Digital Bitbox's blinking light for"
+                            " 3 seconds."
                         )
                         + " "
                         + _("(Touch {} of {})").format((step + 1), steps)
                         + "\n\n"
                         + _(
-                            "To cancel, briefly touch the blinking light or wait for the timeout."
+                            "To cancel, briefly touch the blinking light or wait for"
+                            " the timeout."
                         )
                         + "\n\n"
                     )
@@ -735,11 +742,13 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
                         _("Signing transaction...")
                         + "\n\n"
                         + _(
-                            "To continue, touch the Digital Bitbox's blinking light for 3 seconds."
+                            "To continue, touch the Digital Bitbox's blinking light for"
+                            " 3 seconds."
                         )
                         + "\n\n"
                         + _(
-                            "To cancel, briefly touch the blinking light or wait for the timeout."
+                            "To cancel, briefly touch the blinking light or wait for"
+                            " the timeout."
                         )
                     )
 
@@ -798,7 +807,6 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
 
 
 class DigitalBitboxPlugin(HWPluginBase):
-
     libraries_available = DIGIBOX
     keystore_class = DigitalBitboxKeyStore
     client = None

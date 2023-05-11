@@ -6,7 +6,6 @@ from ..address import Address, PublicKey
 
 
 class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
-
     gap_limit = 1  # make tests run faster
 
     def _check_seeded_keystore_sanity(self, ks):
@@ -44,7 +43,10 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
 
     @mock.patch.object(storage.WalletStorage, "_write")
     def test_electrum_seed_standard(self, mock_write):
-        seed_words = "cycle rocket west magnet parrot shuffle foot correct salt library feed song"
+        seed_words = (
+            "cycle rocket west magnet parrot shuffle foot correct salt library feed"
+            " song"
+        )
         self.assertEqual(mnemo.seed_type_name(seed_words), "electrum")
 
         ks = keystore.from_seed(seed_words, "")
@@ -70,7 +72,10 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
 
     @mock.patch.object(storage.WalletStorage, "_write")
     def test_electrum_seed_old(self, mock_write):
-        seed_words = "powerful random nobody notice nothing important anyway look away hidden message over"
+        seed_words = (
+            "powerful random nobody notice nothing important anyway look away hidden"
+            " message over"
+        )
         self.assertEqual(mnemo.seed_type_name(seed_words), "old")
 
         ks = keystore.from_seed(seed_words, "")
@@ -141,7 +146,10 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
 
     @mock.patch.object(storage.WalletStorage, "_write")
     def test_electrum_multisig_seed_standard(self, mock_write):
-        seed_words = "blast uniform dragon fiscal ensure vast young utility dinosaur abandon rookie sure"
+        seed_words = (
+            "blast uniform dragon fiscal ensure vast young utility dinosaur abandon"
+            " rookie sure"
+        )
         self.assertEqual(mnemo.seed_type_name(seed_words), "electrum")
 
         ks1 = keystore.from_seed(seed_words, "")

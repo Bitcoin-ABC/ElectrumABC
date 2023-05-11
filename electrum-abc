@@ -286,7 +286,8 @@ def init_cmdline(config_options: dict, server):
     if cmd.requires_wallet and not storage.file_exists():
         print_msg("Error: Wallet file not found.")
         print_msg(
-            f"Type '{SCRIPT_NAME} create' to create a new wallet, or provide a path to a wallet with the -w option"
+            f"Type '{SCRIPT_NAME} create' to create a new wallet, or provide a path to"
+            " a wallet with the -w option"
         )
         sys.exit(0)
 

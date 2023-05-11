@@ -6,7 +6,6 @@ import unittest
 
 # some unit tests are modifying globals...
 class SequentialTestCase(unittest.TestCase):
-
     test_lock = threading.Lock()
 
     def setUp(self):

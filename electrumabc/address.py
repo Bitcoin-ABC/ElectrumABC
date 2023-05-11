@@ -118,7 +118,6 @@ class UnknownAddress:
 
 
 class PublicKey(namedtuple("PublicKeyTuple", "pubkey")):
-
     TO_ADDRESS_OPS = [
         OpCodes.OP_DUP,
         OpCodes.OP_HASH160,
@@ -153,13 +152,13 @@ class PublicKey(namedtuple("PublicKeyTuple", "pubkey")):
             # try and generate a helpful error message as this propagates up to the UI if they are creating a new wallet.
             extra = inv_dict(SCRIPT_TYPES).get(int(raw[0] - net.WIF_PREFIX), "")
             if extra:
-                extra = "; this corresponds to a key of type: '{}' which is unsupported for importing from WIF key.".format(
-                    extra
+                extra = (
+                    "; this corresponds to a key of type: '{}' which is unsupported for"
+                    " importing from WIF key.".format(extra)
                 )
             raise ValueError(
-                "Private key has invalid WIF version byte (expected: 0x{:x} got: 0x{:x}){}".format(
-                    net.WIF_PREFIX, raw[0], extra
-                )
+                "Private key has invalid WIF version byte (expected: 0x{:x} got:"
+                " 0x{:x}){}".format(net.WIF_PREFIX, raw[0], extra)
             )
         if len(raw) == 34 and raw[-1] == 1:
             return raw[1:33], True
@@ -343,7 +342,6 @@ class ScriptOutput(namedtuple("ScriptAddressTuple", "script")):
 
 # A namedtuple for easy comparison and unique hashing
 class Address(namedtuple("AddressTuple", "hash160 kind")):
-
     # Address kinds
     ADDR_P2PKH = 0
     ADDR_P2SH = 1
@@ -435,8 +433,10 @@ class Address(namedtuple("AddressTuple", "hash160 kind")):
                     break
             if len(errors) >= len(whitelisted_prefixes):
                 raise AddressError(
-                    "Unable to decode CashAddr with supported prefixes.\n"
-                    "\n".join([f"{err}" for err in errors]) + "\n"
+                    "Unable to decode CashAddr with supported prefixes.\n\n".join(
+                        [f"{err}" for err in errors]
+                    )
+                    + "\n"
                 )
 
         if kind == cashaddr.PUBKEY_TYPE:

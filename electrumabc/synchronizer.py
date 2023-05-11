@@ -178,9 +178,9 @@ class Synchronizer(ThreadJob):
             ctr -= 1
         if unsubs:
             self.print_error(
-                f"change_subs limit reached ({self.limit_change_subs}), unsubscribing from"
-                f" {len(unsubs)} old change scripthashes,"
-                f" change scripthash subs ct now: {len(self.change_subs)}"
+                f"change_subs limit reached ({self.limit_change_subs}), unsubscribing"
+                f" from {len(unsubs)} old change scripthashes, change scripthash subs"
+                f" ct now: {len(self.change_subs)}"
             )
             self.network.unsubscribe_from_scripthashes(unsubs, self._on_address_status)
 
@@ -213,8 +213,9 @@ class Synchronizer(ThreadJob):
             self._check_change_subs_limits()
             if skipped_ct:
                 self.print_error(
-                    f"Skipped {skipped_ct} change address scripthashes because they are in the"
-                    f' "retired" set (set size: {len(self.change_scripthashes_that_are_retired)})'
+                    f"Skipped {skipped_ct} change address scripthashes because they are"
+                    ' in the "retired" set (set size:'
+                    f" {len(self.change_scripthashes_that_are_retired)})"
                 )
 
     @staticmethod
@@ -357,9 +358,8 @@ class Synchronizer(ThreadJob):
             chk_txid = tx.txid_fast()
             if tx_hash != chk_txid:
                 self.print_error(
-                    "received tx does not match expected txid ({} != {}), skipping".format(
-                        tx_hash, chk_txid
-                    )
+                    "received tx does not match expected txid ({} != {}), skipping"
+                    .format(tx_hash, chk_txid)
                 )
                 return
             del chk_txid
@@ -496,9 +496,9 @@ class Synchronizer(ThreadJob):
             # See #1164
             if networks.net.TESTNET:
                 self.print_stderr(
-                    "*** ERROR *** Bad format testnet xkey detected. Synchronizer will no longer"
-                    " proceed to synchronize. Please regenerate this testnet wallet from seed to"
-                    " fix this error."
+                    "*** ERROR *** Bad format testnet xkey detected. Synchronizer will"
+                    " no longer proceed to synchronize. Please regenerate this testnet"
+                    " wallet from seed to fix this error."
                 )
                 self._release()
             else:

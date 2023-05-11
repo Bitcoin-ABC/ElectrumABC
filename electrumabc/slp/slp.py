@@ -753,9 +753,10 @@ class WalletData(PrintError):
         try:
             assert isinstance(data, dict), "missing or invalid 'slp' dictionary"
             ver = data["version"]
-            assert (
-                ver == self.DATA_VERSION
-            ), f"incompatible or missing slp data version '{ver}', expected '{self.DATA_VERSION}'"
+            assert ver == self.DATA_VERSION, (
+                f"incompatible or missing slp data version '{ver}', expected"
+                f" '{self.DATA_VERSION}'"
+            )
             # dict of txid -> int
             self.validity = {k.lower(): int(v) for k, v in data["validity"].items()}
             # dict of "token_id_hex" -> dict of ["txo_name"] -> qty (int)

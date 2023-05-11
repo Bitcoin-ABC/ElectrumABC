@@ -47,7 +47,6 @@ class SimpleConfig(PrintError):
     def __init__(
         self, options=None, read_user_config_function=None, read_user_dir_function=None
     ):
-
         if options is None:
             options = {}
 
@@ -183,10 +182,8 @@ class SimpleConfig(PrintError):
             return False
         elif cur_version < min_version:
             raise RuntimeError(
-                (
-                    "config upgrade: unexpected version %d (should be %d-%d)"
-                    % (cur_version, min_version, max_version)
-                )
+                "config upgrade: unexpected version %d (should be %d-%d)"
+                % (cur_version, min_version, max_version)
             )
         else:
             return True
