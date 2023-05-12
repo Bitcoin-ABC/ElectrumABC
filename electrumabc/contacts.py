@@ -91,6 +91,9 @@ class Contacts(PrintError):
             name, address, typ = d.get("name"), d.get("address"), d.get("type")
             if not all(isinstance(a, str) for a in (name, address, typ)):
                 continue  # skip invalid-looking data
+            # Filter out invalid or no longer supported types (e.g cashacct)
+            if typ not in contact_types:
+                continue
             if typ == "address" and not Address.is_valid(address):
                 continue
             out.append(Contact(name, address, typ))
