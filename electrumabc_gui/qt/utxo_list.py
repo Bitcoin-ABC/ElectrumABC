@@ -415,7 +415,7 @@ class UTXOList(MyTreeWidget):
         else:
             # multi-selection
             menu.addSeparator()
-            selected_outpoints = [coin.get_name for coin in selected_coins]
+            selected_outpoints = [coin.get_name() for coin in selected_coins]
             if any(not coin.is_frozen for coin in selected_coins):
                 # they have some coin-level non-frozen in the selection, so add the
                 # menu action "Freeze coins"
