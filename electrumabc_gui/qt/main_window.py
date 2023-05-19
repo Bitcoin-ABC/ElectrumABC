@@ -1944,11 +1944,30 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             )
         )
         hbox.addWidget(self.opreturn_rawhex_cb)
+        self.opreturn_shuffle_outputs_cb = QtWidgets.QCheckBox(_("Shuffle outputs"))
+        self.opreturn_shuffle_outputs_cb.setChecked(True)
+        self.opreturn_shuffle_outputs_cb.setEnabled(
+            self.message_opreturn_e.text() != ""
+        )
+        self.opreturn_shuffle_outputs_cb.setToolTip(
+            _(
+                "<p>For some OP_RETURN use cases such as SLP, the order of the outputs"
+                " in the transaction matters, so you might want to uncheck this. By"
+                " default, outputs are shuffled for privacy reasons. This setting is "
+                "ignored if the OP_RETURN data is empty.</p>"
+            )
+        )
+        hbox.addWidget(self.opreturn_shuffle_outputs_cb)
         grid.addLayout(hbox, 3, 1, 1, -1)
+
+        self.message_opreturn_e.textChanged.connect(
+            lambda text: self.opreturn_shuffle_outputs_cb.setEnabled(bool(text))
+        )
 
         self.send_tab_opreturn_widgets = [
             self.message_opreturn_e,
             self.opreturn_rawhex_cb,
+            self.opreturn_shuffle_outputs_cb,
             self.opreturn_label,
         ]
 
@@ -2573,8 +2592,17 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         if not r:
             return
         outputs, fee, tx_desc, coins = r
+        shuffle_outputs = True
+        if (
+            self.message_opreturn_e.isVisible()
+            and self.message_opreturn_e.text()
+            and not self.opreturn_shuffle_outputs_cb.isChecked()
+        ):
+            shuffle_outputs = False
         try:
-            tx = self.wallet.make_unsigned_transaction(coins, outputs, self.config, fee)
+            tx = self.wallet.make_unsigned_transaction(
+                coins, outputs, self.config, fee, shuffle_outputs=shuffle_outputs
+            )
         except NotEnoughFunds:
             self.show_message(_("Insufficient funds"))
             return

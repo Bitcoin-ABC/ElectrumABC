@@ -808,7 +808,9 @@ class Transaction:
     def shuffle_inputs(self):
         random.shuffle(self._inputs)
 
-    def shuffle_outputs(self):
+    def sort_outputs(self, shuffle: bool = True):
+        """Put the op_return output first, and then shuffle the other outputs unless
+        this behavior is explicitely disabled."""
         op_returns = []
         other_outputs = []
         for txo in self._outputs:
@@ -816,8 +818,8 @@ class Transaction:
                 op_returns.append(txo)
             else:
                 other_outputs.append(txo)
-
-        random.shuffle(other_outputs)
+        if shuffle:
+            random.shuffle(other_outputs)
         self._outputs = op_returns + other_outputs
 
     def serialize_output(self, output):

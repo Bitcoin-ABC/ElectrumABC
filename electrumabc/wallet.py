@@ -214,7 +214,7 @@ def sweep(
         inputs, outputs, locktime=locktime, sign_schnorr=sign_schnorr
     )
     tx.shuffle_inputs()
-    tx.shuffle_outputs()
+    tx.sort_outputs()
     tx.sign(keypairs)
     return tx
 
@@ -2057,6 +2057,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         fixed_fee=None,
         change_addr=None,
         sign_schnorr=None,
+        shuffle_outputs=True,
     ):
         """sign_schnorr flag controls whether to mark the tx as signing with
         schnorr or not. Specify either a bool, or set the flag to 'None' to use
@@ -2169,7 +2170,8 @@ class AbstractWallet(PrintError, SPVDelegate):
             raise ExcessiveFee()
 
         tx.shuffle_inputs()
-        tx.shuffle_outputs()
+        tx.sort_outputs(shuffle=shuffle_outputs)
+
         # Timelock tx to current height.
         locktime = 0
         if config.is_current_block_locktime_enabled():
