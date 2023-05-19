@@ -44,6 +44,7 @@ from .address import (
     ScriptOutput,
     UnknownAddress,
 )
+from .bitcoin import TYPE_SCRIPT
 from .bitcoin import OpCodes as opcodes
 from .caches import ExpiringCache
 from .constants import DEFAULT_TXIN_SEQUENCE
@@ -74,6 +75,15 @@ class TxOutput(NamedTuple):
     destination: DestinationType
     # str when the output is set to max: '!'
     value: Union[int, str]
+
+    def is_opreturn(self) -> bool:
+        if not self.type == TYPE_SCRIPT or not isinstance(
+            self.destination, ScriptOutput
+        ):
+            return False
+
+        ops = Script.get_ops(self.destination.script)
+        return len(ops) >= 1 and ops[0][0] == opcodes.OP_RETURN
 
 
 class BCDataStream(object):
@@ -799,7 +809,16 @@ class Transaction:
         random.shuffle(self._inputs)
 
     def shuffle_outputs(self):
-        random.shuffle(self._outputs)
+        op_returns = []
+        other_outputs = []
+        for txo in self._outputs:
+            if txo.is_opreturn():
+                op_returns.append(txo)
+            else:
+                other_outputs.append(txo)
+
+        random.shuffle(other_outputs)
+        self._outputs = op_returns + other_outputs
 
     def serialize_output(self, output):
         output_type, addr, amount = output
