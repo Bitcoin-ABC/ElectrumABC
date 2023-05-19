@@ -28,8 +28,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Iterable, Optional, Sequence, Type
 
-from electrumabc.address import OpCodes, Script
-from electrumabc.bitcoin import TYPE_SCRIPT
+from electrumabc.address import OpCodes, Script, ScriptOutput
 from electrumabc.i18n import _, ngettext
 from electrumabc.plugins import BasePlugin, Device, DeviceInfo, DeviceMgr, hook
 from electrumabc.transaction import Transaction
@@ -262,16 +261,13 @@ def is_any_tx_output_on_change_branch(tx: Transaction) -> bool:
 
 # will return address.script[2:] (everyting after the first OP_RETURN & PUSH bytes)
 def validate_op_return_output_and_get_data(
-    # tuple(typ, 'address', amount)
-    output: tuple,
+    script_output: ScriptOutput,
     # in bytes
     max_size: int = 220,
     # number of pushes supported after the OP_RETURN, most HW wallets support only 1
     # push, some more than 1.  Specify None to omit the number-of-pushes check.
     max_pushes: int = 1,
 ) -> bytes:
-    _type, address, _amount = output
-
     if max_pushes is None:
         # Caller says "no limit", so just to keep the below code simple, we
         # do this and effectively sets the limit on pushes to "unlimited",
@@ -280,10 +276,7 @@ def validate_op_return_output_and_get_data(
 
     assert max_pushes >= 1
 
-    if _type != TYPE_SCRIPT:
-        raise Exception("Unexpected output type: {}".format(_type))
-
-    ops = Script.get_ops(address.script)
+    ops = Script.get_ops(script_output.script)
 
     num_pushes = len(ops) - 1
 
@@ -303,17 +296,13 @@ def validate_op_return_output_and_get_data(
             ).format(max_pushes=max_pushes)
         )
 
-    data = address.script[
-        2:
-    ]  # caller expects everything after the OP_RETURN and PUSHDATA op
+    # caller expects everything after the OP_RETURN and PUSHDATA op
+    data = script_output.script[2:]
 
     if len(data) > max_size:
         raise RuntimeError(
             _("OP_RETURN data size exceeds the maximum of {} bytes.".format(max_size))
         )
-
-    if _amount != 0:
-        raise RuntimeError(_("Amount for OP_RETURN output must be zero."))
 
     return data
 

@@ -12,6 +12,7 @@ from electrumabc.bitcoin import CASH, TYPE_ADDRESS
 from electrumabc.constants import SCRIPT_NAME
 from electrumabc.printerror import set_verbosity
 from electrumabc.storage import WalletStorage
+from electrumabc.transaction import TxOutput
 from electrumabc.util import format_satoshis
 from electrumabc.wallet import Wallet
 
@@ -436,7 +437,14 @@ class ElectrumGui:
             password = None
         try:
             tx = self.wallet.mktx(
-                [(TYPE_ADDRESS, self.str_recipient, amount)], password, self.config, fee
+                [
+                    TxOutput(
+                        TYPE_ADDRESS, Address.from_string(self.str_recipient), amount
+                    )
+                ],
+                password,
+                self.config,
+                fee,
             )
         except Exception as e:
             self.show_message(str(e))

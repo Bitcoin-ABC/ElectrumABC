@@ -28,7 +28,7 @@ from math import floor, log10
 
 from .bitcoin import CASH, TYPE_ADDRESS, sha256
 from .printerror import PrintError
-from .transaction import Transaction
+from .transaction import Transaction, TxOutput
 from .util import NotEnoughFunds
 
 
@@ -167,7 +167,8 @@ class CoinChooserBase(PrintError):
         dust = sum(amount for amount in amounts if amount < dust_threshold)
         amounts = [amount for amount in amounts if amount >= dust_threshold]
         change = [
-            (TYPE_ADDRESS, addr, amount) for addr, amount in zip(change_addrs, amounts)
+            TxOutput(TYPE_ADDRESS, addr, amount)
+            for addr, amount in zip(change_addrs, amounts)
         ]
         self.print_error("change:", change)
         if dust:

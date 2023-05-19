@@ -89,7 +89,7 @@ from .plugins import plugin_loaders, run_hook
 from .printerror import PrintError
 from .storage import STO_EV_PLAINTEXT, STO_EV_USER_PW, STO_EV_XPUB_PW, WalletStorage
 from .synchronizer import Synchronizer
-from .transaction import InputValueMissing, Transaction
+from .transaction import InputValueMissing, Transaction, TxOutput
 from .util import (
     ExcessiveFee,
     InvalidPassword,
@@ -191,7 +191,7 @@ def sweep(
     inputs, keypairs = sweep_preparations(privkeys, network, imax)
     total = sum(i.get("value") for i in inputs)
     if fee is None:
-        outputs = [(bitcoin.TYPE_ADDRESS, recipient, total)]
+        outputs = [TxOutput(bitcoin.TYPE_ADDRESS, recipient, total)]
         tx = Transaction.from_io(inputs, outputs, sign_schnorr=sign_schnorr)
         fee = config.estimate_fee(tx.estimated_size())
     if total - fee < 0:
@@ -205,7 +205,7 @@ def sweep(
             + f"\nTotal: {total} satoshis\nFee: {fee}\nDust Threshold: {DUST_THRESHOLD}"
         )
 
-    outputs = [(bitcoin.TYPE_ADDRESS, recipient, total - fee)]
+    outputs = [TxOutput(bitcoin.TYPE_ADDRESS, recipient, total - fee)]
     locktime = 0
     if config.is_current_block_locktime_enabled():
         locktime = network.get_local_height()
@@ -802,10 +802,10 @@ class AbstractWallet(PrintError, SPVDelegate):
                 is_partial = True
         if not is_mine:
             is_partial = False
-        for _type, addr, value in tx.outputs():
-            v_out += value
-            if self.is_mine(addr):
-                v_out_mine += value
+        for txo in tx.outputs():
+            v_out += txo.value
+            if self.is_mine(txo.destination):
+                v_out_mine += txo.value
                 is_relevant = True
         if is_pruned:
             # some inputs are mine:
@@ -1483,22 +1483,21 @@ class AbstractWallet(PrintError, SPVDelegate):
             self.txo[tx_hash] = d = {}
             for n, txo in enumerate(tx.outputs()):
                 ser = tx_hash + ":%d" % n
-                _type, addr, v = txo
                 mine = False
-                if self.is_mine(addr):
+                if self.is_mine(txo.destination):
                     # add coin to self.txo since it's mine.
                     mine = True
-                    coins = d.get(addr)
+                    coins = d.get(txo.destination)
                     if coins is None:
-                        d[addr] = coins = []
-                    coins.append((n, v, is_coinbase))
+                        d[txo.destination] = coins = []
+                    coins.append((n, txo.value, is_coinbase))
                     del coins
                     # invalidate cache entry
-                    self._addr_bal_cache.pop(addr, None)
-                # give v to txi that spends me
+                    self._addr_bal_cache.pop(txo.destination, None)
+                # give value to txi that spends me
                 next_tx = pop_pruned_txo(ser)
                 if next_tx is not None and mine:
-                    add_to_self_txi(next_tx, addr, ser, v)
+                    add_to_self_txi(next_tx, txo.destination, ser, txo.value)
             # don't keep empty entries in self.txo
             if not d:
                 self.txo.pop(tx_hash, None)
@@ -1877,8 +1876,8 @@ class AbstractWallet(PrintError, SPVDelegate):
                     if addr is None:
                         continue
                     input_addresses.append(addr.to_ui_string())
-                for _type, addr, v in tx.outputs():
-                    output_addresses.append(addr.to_ui_string())
+                for txo in tx.outputs():
+                    output_addresses.append(txo.destination.to_ui_string())
                 item["input_addresses"] = input_addresses
                 item["output_addresses"] = output_addresses
             if fx is not None:
@@ -2053,7 +2052,7 @@ class AbstractWallet(PrintError, SPVDelegate):
     def make_unsigned_transaction(
         self,
         inputs,
-        outputs,
+        outputs: List[TxOutput],
         config: SimpleConfig,
         fixed_fee=None,
         change_addr=None,
@@ -2067,9 +2066,8 @@ class AbstractWallet(PrintError, SPVDelegate):
         )
         # check outputs
         i_max = None
-        for i, o in enumerate(outputs):
-            _type, data, value = o
-            if value == "!":
+        for i, txo in enumerate(outputs):
+            if txo.value == "!":
                 if i_max is not None:
                     raise RuntimeError("More than one output set to spend max")
                 i_max = i
@@ -2156,12 +2154,11 @@ class AbstractWallet(PrintError, SPVDelegate):
             )
         else:
             sendable = sum(map(lambda x: x["value"], inputs))
-            _type, data, value = outputs[i_max]
-            outputs[i_max] = (_type, data, 0)
+            outputs[i_max] = outputs[i_max]._replace(value=0)
             tx = Transaction.from_io(inputs, outputs, sign_schnorr=sign_schnorr)
             fee = fee_estimator(tx.estimated_size())
             amount = max(0, sendable - tx.output_value() - fee)
-            outputs[i_max] = (_type, data, amount)
+            outputs[i_max] = outputs[i_max]._replace(value=amount)
             tx = Transaction.from_io(inputs, outputs, sign_schnorr=sign_schnorr)
 
         # If user tries to send too big of a fee (more than 50 sat/byte), stop them from shooting themselves in the foot
@@ -2435,19 +2432,18 @@ class AbstractWallet(PrintError, SPVDelegate):
             self.is_schnorr_enabled() if sign_schnorr is None else bool(sign_schnorr)
         )
         txid = tx.txid()
-        for i, o in enumerate(tx.outputs()):
-            otype, address, value = o
-            if otype == bitcoin.TYPE_ADDRESS and self.is_mine(address):
+        for i, txo in enumerate(tx.outputs()):
+            if txo.type == bitcoin.TYPE_ADDRESS and self.is_mine(txo.destination):
                 break
         else:
             return
-        coins = self.get_addr_utxo(address)
+        coins = self.get_addr_utxo(txo.destination)
         item = coins.get(txid + ":%d" % i)
         if not item:
             return
         self.add_input_info(item)
         inputs = [item]
-        outputs = [(bitcoin.TYPE_ADDRESS, address, value - fee)]
+        outputs = [TxOutput(bitcoin.TYPE_ADDRESS, txo.destination, txo.value - fee)]
         locktime = 0
         if enable_current_block_locktime:
             locktime = self.get_local_height()
@@ -2526,13 +2522,12 @@ class AbstractWallet(PrintError, SPVDelegate):
         info = {}
         xpubs = self.get_master_public_keys()
         for txout in tx.outputs():
-            _type, addr, amount = txout
-            if self.is_change(addr):
-                index = self.get_address_index(addr)
-                pubkeys = self.get_public_keys(addr)
+            if self.is_change(txout.destination):
+                index = self.get_address_index(txout.destination)
+                pubkeys = self.get_public_keys(txout.destination)
                 # sort xpubs using the order of pubkeys
                 sorted_pubkeys, sorted_xpubs = zip(*sorted(zip(pubkeys, xpubs)))
-                info[addr] = (
+                info[txout.destination] = (
                     index,
                     sorted_xpubs,
                     self.m if isinstance(self, MultisigWallet) else None,

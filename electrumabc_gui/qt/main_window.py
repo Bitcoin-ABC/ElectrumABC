@@ -66,6 +66,7 @@ from electrumabc.transaction import (
     OPReturn,
     SerializationError,
     Transaction,
+    TxOutput,
     tx_from_str,
 )
 from electrumabc.util import (
@@ -2203,7 +2204,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             outputs = self.payto_e.get_outputs(self.max_button.isChecked())
             if not outputs:
                 _type, addr = self.get_payto_or_dummy()
-                outputs = [(_type, addr, amount)]
+                outputs = [TxOutput(_type, addr, amount)]
             try:
                 opreturn_message = (
                     self.message_opreturn_e.text()
@@ -2446,8 +2447,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.show_error(_("No outputs"))
             return
 
-        for _type, addr, amount in outputs:
-            if amount is None:
+        for o in outputs:
+            if o.value is None:
                 self.show_error(_("Invalid Amount"))
                 return
 

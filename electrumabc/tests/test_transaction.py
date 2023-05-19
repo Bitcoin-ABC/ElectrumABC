@@ -113,22 +113,27 @@ class TestTransaction(unittest.TestCase):
             tx.as_dict(), {"hex": unsigned_blob, "complete": False, "final": True}
         )
         self.assertEqual(
-            tx.get_outputs(),
+            [(o.destination, o.value) for o in tx.outputs()],
             [(Address.from_string("1MYXdf4moacvaEKZ57ozerpJ3t9xSeN6LK"), 20112408)],
         )
         self.assertEqual(
-            tx.get_output_addresses(),
+            [o.destination for o in tx.outputs()],
             [Address.from_string("1MYXdf4moacvaEKZ57ozerpJ3t9xSeN6LK")],
         )
 
+        def tx_has_address(addr: Address) -> bool:
+            return any(addr == o.destination for o in tx.outputs()) or (
+                addr in (inp.get("address") for inp in tx.inputs())
+            )
+
         self.assertTrue(
-            tx.has_address(Address.from_string("1MYXdf4moacvaEKZ57ozerpJ3t9xSeN6LK"))
+            tx_has_address(Address.from_string("1MYXdf4moacvaEKZ57ozerpJ3t9xSeN6LK"))
         )
         self.assertTrue(
-            tx.has_address(Address.from_string("13Vp8Y3hD5Cb6sERfpxePz5vGJizXbWciN"))
+            tx_has_address(Address.from_string("13Vp8Y3hD5Cb6sERfpxePz5vGJizXbWciN"))
         )
         self.assertFalse(
-            tx.has_address(Address.from_string("1CQj15y1N7LDHp7wTt28eoD1QhHgFgxECH"))
+            tx_has_address(Address.from_string("1CQj15y1N7LDHp7wTt28eoD1QhHgFgxECH"))
         )
 
         self.assertEqual(tx.serialize(), unsigned_blob)

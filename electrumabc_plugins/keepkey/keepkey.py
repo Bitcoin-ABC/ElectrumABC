@@ -1,4 +1,5 @@
 from binascii import unhexlify
+from typing import TYPE_CHECKING
 
 from electrumabc import networks
 from electrumabc.address import Address
@@ -20,6 +21,9 @@ from ..hw_wallet.plugin import (
     is_any_tx_output_on_change_branch,
     validate_op_return_output_and_get_data,
 )
+
+if TYPE_CHECKING:
+    from electrumabc.transaction import Transaction
 
 # TREZOR initialization methods
 TIM_NEW, TIM_RECOVER, TIM_MNEMONIC, TIM_PRIVKEY = range(0, 4)
@@ -491,7 +495,7 @@ class KeepKeyPlugin(HWPluginBase):
 
         return inputs
 
-    def tx_outputs(self, derivation, tx):
+    def tx_outputs(self, derivation, tx: Transaction):
         def create_output_by_derivation():
             keepkey_script_type = self.get_keepkey_output_script_type(script_type)
             if len(xpubs) == 1:
@@ -523,7 +527,7 @@ class KeepKeyPlugin(HWPluginBase):
             if _type == TYPE_SCRIPT:
                 txoutputtype.script_type = self.types.PAYTOOPRETURN
                 txoutputtype.op_return_data = validate_op_return_output_and_get_data(
-                    o, max_pushes=1
+                    o.destination, max_pushes=1
                 )
             elif _type == TYPE_ADDRESS:
                 txoutputtype.script_type = self.types.PAYTOADDRESS
@@ -537,7 +541,7 @@ class KeepKeyPlugin(HWPluginBase):
         any_output_on_change_branch = is_any_tx_output_on_change_branch(tx)
 
         for o in tx.outputs():
-            _type, address, amount = o
+            _type, address, amount = o.type, o.destination, o.value
             use_create_by_derivation = False
 
             info = tx.output_info.get(address)

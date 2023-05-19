@@ -27,13 +27,14 @@ import hashlib
 import random
 import struct
 import warnings
-from typing import Optional, Tuple, Union
+from typing import List, NamedTuple, Optional, Tuple, Union
 
 import ecdsa
 
 from . import bitcoin, schnorr
 from .address import (
     Address,
+    DestinationType,
     P2PKH_prefix,
     P2PKH_suffix,
     P2SH_prefix,
@@ -66,6 +67,13 @@ class SerializationError(Exception):
 
 class InputValueMissing(ValueError):
     """thrown when the value of an input is needed but not present"""
+
+
+class TxOutput(NamedTuple):
+    type: int
+    destination: DestinationType
+    # str when the output is set to max: '!'
+    value: Union[int, str]
 
 
 class BCDataStream(object):
@@ -324,7 +332,7 @@ def parse_redeemScript(s):
 
 def get_address_from_output_script(
     _bytes: bytes,
-) -> Tuple[int, Union[Address, PublicKey, ScriptOutput]]:
+) -> Tuple[int, Union[PublicKey, DestinationType]]:
     """Return the type of the output and the address"""
     scriptlen = len(_bytes)
 
@@ -408,7 +416,7 @@ def parse_input(vds):
     return d
 
 
-def parse_output(vds, i):
+def parse_output(vds: BCDataStream, i: int):
     d = {}
     d["value"] = vds.read_int64()
     scriptPubKey = vds.read_bytes(vds.read_compact_size())
@@ -463,7 +471,7 @@ class Transaction:
         else:
             raise RuntimeError("cannot initialize transaction", raw)
         self._inputs = None
-        self._outputs = None
+        self._outputs: Optional[List[TxOutput]] = None
         self.locktime = 0
         self.version = 2
         self._sign_schnorr = sign_schnorr
@@ -511,7 +519,7 @@ class Transaction:
             self.deserialize()
         return self._inputs
 
-    def outputs(self):
+    def outputs(self) -> List[TxOutput]:
         if self._outputs is None:
             self.deserialize()
         return self._outputs
@@ -615,7 +623,9 @@ class Transaction:
         d = deserialize(self.raw)
         self.invalidate_common_sighash_cache()
         self._inputs = d["inputs"]
-        self._outputs = [(x["type"], x["address"], x["value"]) for x in d["outputs"]]
+        self._outputs = [
+            TxOutput(x["type"], x["address"], x["value"]) for x in d["outputs"]
+        ]
         assert all(
             isinstance(output[1], (PublicKey, Address, ScriptOutput))
             for output in self._outputs
@@ -625,7 +635,14 @@ class Transaction:
         return d
 
     @classmethod
-    def from_io(klass, inputs, outputs, locktime=0, sign_schnorr=False, version=None):
+    def from_io(
+        klass,
+        inputs,
+        outputs: List[TxOutput],
+        locktime=0,
+        sign_schnorr=False,
+        version=None,
+    ):
         assert all(
             isinstance(output[1], (PublicKey, Address, ScriptOutput))
             for output in outputs
@@ -1143,21 +1160,6 @@ class Transaction:
         txin["pubkeys"][j] = pubkey  # needed for fd keys
         return txin
 
-    def get_outputs(self):
-        """convert pubkeys to addresses"""
-        o = []
-        for type, addr, v in self.outputs():
-            o.append((addr, v))  # consider using yield (addr, v)
-        return o
-
-    def get_output_addresses(self):
-        return [addr for addr, val in self.get_outputs()]
-
-    def has_address(self, addr):
-        return (addr in self.get_output_addresses()) or (
-            addr in (tx.get("address") for tx in self.inputs())
-        )
-
     def is_final(self):
         return not any(
             [
@@ -1641,7 +1643,7 @@ class OPReturn:
         op_return_payload = op_return_encoded.hex()
         script = op_return_code + op_return_payload
         amount = 0
-        return bitcoin.TYPE_SCRIPT, ScriptOutput.from_string(script), amount
+        return TxOutput(bitcoin.TYPE_SCRIPT, ScriptOutput.from_string(script), amount)
 
     @staticmethod
     def output_for_rawhex(op_return):
@@ -1660,7 +1662,7 @@ class OPReturn:
                 _("OP_RETURN script too large, needs to be no longer than 223 bytes")
             )
         amount = 0
-        return (
+        return TxOutput(
             bitcoin.TYPE_SCRIPT,
             ScriptOutput.protocol_factory(op_return_script),
             amount,

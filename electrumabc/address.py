@@ -25,6 +25,7 @@
 # Many of the functions in this file are copied from ElectrumX
 from __future__ import annotations
 
+import abc
 import hashlib
 import struct
 from collections import namedtuple
@@ -45,6 +46,14 @@ from .util import cachedproperty, inv_dict
 
 _sha256 = hashlib.sha256
 hex_to_bytes = bytes.fromhex
+
+
+class DestinationType(abc.ABC):
+    """Base class for TxOutput destination types"""
+
+    @abc.abstractmethod
+    def to_ui_string(self) -> str:
+        pass
 
 
 class AddressError(Exception):
@@ -106,7 +115,7 @@ def double_sha256(x):
     return sha256(sha256(x))
 
 
-class UnknownAddress:
+class UnknownAddress(DestinationType):
     def to_ui_string(self):
         return "<UnknownAddress>"
 
@@ -233,7 +242,7 @@ class PublicKey(namedtuple("PublicKeyTuple", "pubkey")):
         return "<PubKey {}>".format(self.__str__())
 
 
-class ScriptOutput(namedtuple("ScriptAddressTuple", "script")):
+class ScriptOutput(namedtuple("ScriptAddressTuple", "script"), DestinationType):
     @classmethod
     def from_string(self, string):
         """Instantiate from a mixture of opcodes and raw data."""
@@ -341,7 +350,7 @@ class ScriptOutput(namedtuple("ScriptAddressTuple", "script")):
 
 
 # A namedtuple for easy comparison and unique hashing
-class Address(namedtuple("AddressTuple", "hash160 kind")):
+class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
     # Address kinds
     ADDR_P2PKH = 0
     ADDR_P2SH = 1

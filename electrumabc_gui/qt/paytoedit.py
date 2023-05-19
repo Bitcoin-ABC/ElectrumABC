@@ -27,6 +27,7 @@
 import re
 import sys
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
+from typing import List
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
@@ -36,6 +37,7 @@ from electrumabc import bitcoin, networks, web
 from electrumabc.address import Address, AddressError, ScriptOutput
 from electrumabc.contacts import Contact
 from electrumabc.printerror import PrintError
+from electrumabc.transaction import TxOutput
 
 from . import util
 from .qrtextedit import ScanQRTextEdit
@@ -121,11 +123,11 @@ class PayToEdit(PrintError, ScanQRTextEdit):
             self._original_style_sheet + util.ColorScheme.RED.as_stylesheet(True)
         )
 
-    def parse_address_and_amount(self, line):
+    def parse_address_and_amount(self, line) -> TxOutput:
         x, y = line.split(",")
         out_type, out = self.parse_output(x)
         amount = self.parse_amount(y)
-        return out_type, out, amount
+        return TxOutput(out_type, out, amount)
 
     @classmethod
     def parse_output(cls, x):
@@ -176,16 +178,16 @@ class PayToEdit(PrintError, ScanQRTextEdit):
         is_max = False
         for i, line in enumerate(lines):
             try:
-                _type, to_address, amount = self.parse_address_and_amount(line)
+                output = self.parse_address_and_amount(line)
             except (AddressError, ArithmeticError, ValueError):
                 self.errors.append((i, line.strip()))
                 continue
 
-            outputs.append((_type, to_address, amount))
-            if amount == "!":
+            outputs.append(output)
+            if output.value == "!":
                 is_max = True
             else:
-                total += amount
+                total += output.value
 
         self.win.max_button.setChecked(is_max)
         self.outputs = outputs
@@ -203,7 +205,7 @@ class PayToEdit(PrintError, ScanQRTextEdit):
     def get_recipient(self):
         return self.payto_address
 
-    def get_outputs(self, is_max):
+    def get_outputs(self, is_max) -> List[TxOutput]:
         if self.payto_address:
             if is_max:
                 amount = "!"
@@ -211,7 +213,7 @@ class PayToEdit(PrintError, ScanQRTextEdit):
                 amount = self.amount_edit.get_amount()
 
             _type, addr = self.payto_address
-            self.outputs = [(_type, addr, amount)]
+            self.outputs = [TxOutput(_type, addr, amount)]
 
         return self.outputs[:]
 

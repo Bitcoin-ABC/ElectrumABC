@@ -45,7 +45,7 @@ from .paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNKNOWN, PR_
 from .plugins import run_hook
 from .printerror import print_error
 from .simple_config import SimpleConfig
-from .transaction import OPReturn, Transaction, multisig_script, tx_from_str
+from .transaction import OPReturn, Transaction, TxOutput, multisig_script, tx_from_str
 from .util import format_satoshis, json_decode, to_bytes
 from .version import PACKAGE_VERSION
 from .wallet import create_new_wallet, restore_wallet_from_text
@@ -427,7 +427,7 @@ class Commands:
                 txin["num_sig"] = 1
 
         outputs = [
-            (TYPE_ADDRESS, Address.from_string(x["address"]), int(x["value"]))
+            TxOutput(TYPE_ADDRESS, Address.from_string(x["address"]), int(x["value"]))
             for x in outputs
         ]
         tx = Transaction.from_io(
@@ -696,7 +696,7 @@ class Commands:
         for address, amount in outputs:
             address = self._resolver(address)
             amount = satoshis(amount)
-            final_outputs.append((TYPE_ADDRESS, address, amount))
+            final_outputs.append(TxOutput(TYPE_ADDRESS, address, amount))
 
         coins = self.wallet.get_spendable_coins(domain, self.config)
         if feerate is not None:

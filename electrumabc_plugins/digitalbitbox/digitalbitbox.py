@@ -655,8 +655,8 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
                     )  # should never happen
 
             # Build pubkeyarray from outputs
-            for _type, address, amount in tx.outputs():
-                info = tx.output_info.get(address)
+            for o in tx.outputs():
+                info = tx.output_info.get(o.destination)
                 if info is not None:
                     index, xpubs, m, script_type = info
                     changePath = self.get_derivation() + "/%d/%d" % index

@@ -51,7 +51,7 @@ from .address import Address, PublicKey
 from .bitcoin import TYPE_ADDRESS
 from .constants import PROJECT_NAME, PROJECT_NAME_NO_SPACES, XEC
 from .printerror import PrintError, print_error
-from .transaction import Transaction
+from .transaction import Transaction, TxOutput
 from .util import FileImportFailed, FileImportFailedEncrypted, bfh, bh2u
 from .version import PACKAGE_VERSION
 
@@ -164,7 +164,7 @@ class PaymentRequest:
         self.outputs = []
         for o in self.details.outputs:
             addr = transaction.get_address_from_output_script(o.script)[1]
-            self.outputs.append((TYPE_ADDRESS, addr, o.amount))
+            self.outputs.append(TxOutput(TYPE_ADDRESS, addr, o.amount))
         self.memo = self.details.memo
         self.payment_url = self.details.payment_url
 
@@ -272,10 +272,10 @@ class PaymentRequest:
     def get_amount(self):
         return sum(map(lambda x: x[2], self.outputs))
 
-    def get_address(self):
+    def get_address(self) -> str:
         o = self.outputs[0]
-        assert o[0] == TYPE_ADDRESS
-        return o[1].to_ui_string()
+        assert o.type == TYPE_ADDRESS
+        return o.destination.to_ui_string()
 
     def get_requestor(self):
         return self.requestor if self.requestor else self.get_address()

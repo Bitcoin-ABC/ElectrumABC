@@ -448,7 +448,7 @@ class LedgerKeyStore(HardwareKeyStore):
 
     @test_pin_unlocked
     @set_and_unset_signing
-    def sign_transaction(self, tx, password, *, use_cache=False):
+    def sign_transaction(self, tx: Transaction, password, *, use_cache=False):
         if tx.is_complete():
             return
         inputs = []
@@ -516,9 +516,8 @@ class LedgerKeyStore(HardwareKeyStore):
 
         txOutput = var_int(len(tx.outputs()))
         for txout in tx.outputs():
-            output_type, addr, amount = txout
-            txOutput += int_to_hex(amount, 8)
-            script = tx.pay_script(addr)
+            txOutput += int_to_hex(txout.value, 8)
+            script = tx.pay_script(txout.destination)
             txOutput += var_int(len(script) // 2)
             txOutput += script
         txOutput = bfh(txOutput)
@@ -531,22 +530,21 @@ class LedgerKeyStore(HardwareKeyStore):
                     ).format(self.device)
                 )
         for o in tx.outputs():
-            _type, address, amount = o
             if client_electrum.is_hw1():
-                if not _type == TYPE_ADDRESS:
+                if not o.type == TYPE_ADDRESS:
                     self.give_error(
                         _("Only address outputs are supported by {}").format(
                             self.device
                         )
                     )
             else:
-                if _type not in [TYPE_ADDRESS, TYPE_SCRIPT]:
+                if o.type not in [TYPE_ADDRESS, TYPE_SCRIPT]:
                     self.give_error(
                         _("Only address and script outputs are supported by {}").format(
                             self.device
                         )
                     )
-                if _type == TYPE_SCRIPT:
+                if o.type == TYPE_SCRIPT:
                     try:
                         # Ledger has a maximum output size of 200 bytes:
                         # https://github.com/LedgerHQ/ledger-app-btc/commit/3a78dee9c0484821df58975803e40d58fbfc2c38#diff-c61ccd96a6d8b54d48f54a3bc4dfa7e2R26
@@ -555,7 +553,7 @@ class LedgerKeyStore(HardwareKeyStore):
                         # max_pushes, so we specify max_pushes=None so as
                         # to bypass that check.
                         validate_op_return_output_and_get_data(
-                            o, max_size=187, max_pushes=None
+                            o.destination, max_size=187, max_pushes=None
                         )
                     except RuntimeError as e:
                         self.give_error("{}: {}".format(self.device, str(e)))
@@ -572,8 +570,8 @@ class LedgerKeyStore(HardwareKeyStore):
                     )
             has_change = False
             any_output_on_change_branch = is_any_tx_output_on_change_branch(tx)
-            for _type, address, amount in tx.outputs():
-                info = tx.output_info.get(address)
+            for o in tx.outputs():
+                info = tx.output_info.get(o.destination)
                 if (info is not None) and len(tx.outputs()) > 1 and not has_change:
                     index, xpubs, m, script_type = info
                     on_change_branch = index[0] == 1
@@ -585,9 +583,9 @@ class LedgerKeyStore(HardwareKeyStore):
                         )
                         has_change = True
                     else:
-                        output = address
+                        output = o.destination
                 else:
-                    output = address
+                    output = o.destination
 
         try:
             # Get trusted inputs from the original transactions

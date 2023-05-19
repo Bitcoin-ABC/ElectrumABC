@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import sys
 import traceback
 from binascii import unhexlify
+from typing import TYPE_CHECKING
 
 from electrumabc.base_wizard import HWD_SETUP_NEW_WALLET
 from electrumabc.bitcoin import (
@@ -18,6 +21,9 @@ from electrumabc.transaction import deserialize
 from electrumabc.util import UserCancelled, bfh, bh2u, versiontuple
 
 from ..hw_wallet import HWPluginBase
+
+if TYPE_CHECKING:
+    from electrumabc.transaction import Transaction
 
 try:
     import trezorlib
@@ -492,7 +498,7 @@ class TrezorPlugin(HWPluginBase):
 
         return MultisigRedeemScriptType(pubkeys=pubkeys, signatures=signatures, m=m)
 
-    def tx_outputs(self, derivation, tx, client):
+    def tx_outputs(self, derivation, tx: Transaction, client):
         def create_output_by_derivation():
             deriv = parse_path("/%d/%d" % index)
             multisig = self._make_multisig(m, [(xpub, deriv) for xpub in xpubs])
@@ -552,7 +558,8 @@ class TrezorPlugin(HWPluginBase):
         has_change = False
         any_output_on_change_branch = self.is_any_tx_output_on_change_branch(tx)
 
-        for _type, address, amount in tx.outputs():
+        for o in tx.outputs():
+            _type, address, amount = o.type, o.destination, o.value
             use_create_by_derivation = False
             info = tx.output_info.get(address)
             if info is not None and not has_change:
