@@ -213,7 +213,8 @@ def sweep(
     tx = Transaction.from_io(
         inputs, outputs, locktime=locktime, sign_schnorr=sign_schnorr
     )
-    tx.shuffle_inputs_outputs()
+    tx.shuffle_inputs()
+    tx.shuffle_outputs()
     tx.sign(keypairs)
     return tx
 
@@ -2170,7 +2171,8 @@ class AbstractWallet(PrintError, SPVDelegate):
         if sats_per_byte > 100:
             raise ExcessiveFee()
 
-        tx.shuffle_inputs_outputs()
+        tx.shuffle_inputs()
+        tx.shuffle_outputs()
         # Timelock tx to current height.
         locktime = 0
         if config.is_current_block_locktime_enabled():
@@ -2449,7 +2451,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         locktime = 0
         if enable_current_block_locktime:
             locktime = self.get_local_height()
-        # note: no need to call tx.shuffle_inputs_outputs here - single input/output
+        # note: no need to shuffle inputs or outputs here - single input/output
         return Transaction.from_io(
             inputs, outputs, locktime=locktime, sign_schnorr=sign_schnorr
         )

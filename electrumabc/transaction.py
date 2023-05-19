@@ -778,8 +778,10 @@ class Transaction:
             s += bitcoin.int_to_hex(txin["value"], 8)
         return s
 
-    def shuffle_inputs_outputs(self):
+    def shuffle_inputs(self):
         random.shuffle(self._inputs)
+
+    def shuffle_outputs(self):
         random.shuffle(self._outputs)
 
     def serialize_output(self, output):
