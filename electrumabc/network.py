@@ -274,7 +274,7 @@ class Network(util.DaemonThread):
         self.num_server = 10 if not self.config.get("oneserver") else 0
         self.blockchains = blockchain.read_blockchains(self.config)
         self.print_error("blockchains", self.blockchains.keys())
-        self.blockchain_index = config.get("blockchain_index", 0)
+        self.blockchain_index = self.config.get("blockchain_index", 0)
         if self.blockchain_index not in self.blockchains.keys():
             self.blockchain_index = 0
         # Server for addresses and transactions
