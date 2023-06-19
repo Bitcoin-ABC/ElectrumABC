@@ -6,6 +6,17 @@ Electron Cash, electroncash.org, Electrum or electrum.org.
 
 # Release notes
 
+## Release 5.2.4
+
+- Fix integer overflow for displaying the amount for selected coins (#291).
+- Fix a bug when loading an wallet file containing CashAccount contacts (#295).
+- Fix bug preventing to freeze or unfreeze multiple coins at once (#297).
+- Allow preserving the order of outputs in a transaction when it has an
+  OP_RETURN output, for advanced use cases such as manually building SLP
+  transactions (#298).
+- Code and build toolchain cleanup (#292, #293, #294, #299).
+
+
 ## Release 5.2.3
 
 - Fix `--portable` command line option (#288).
