@@ -1,4 +1,4 @@
-ThomasV - Creator and maintainer.
+ThomasV - Creator and maintainer of Electrum.
 Animazing / Tachikoma - Styled the new GUI. Mac version.
 Azelphur - GUI stuff.
 Coblee - Alternate coin support and py2app support.
@@ -11,7 +11,7 @@ Julian Toash (Tuxavant) - Various fixes to the client.
 rdymac - Website and translations.
 kyuupichan - Miscellaneous.
 Sombernight - many fixes
-Jonald Fyookball - Imperator
+Jonald Fyookball - Imperator of Electron Cash
 Calin Culianu - MacOS packaging, MacOS QRScanner, miscellaneous
 Malcolm Smith - tuneups and fixups
 Roger Taylor - new version 1.4 blockchain synch code, external plugin system, miscellanous
@@ -24,3 +24,4 @@ imaginaryusername - UI and privacy recommendations
 emergent_reasons - Code review and uncanny bug detection
 Axel Gembe - Ledger fixes, Windows Qt woes, miscellaneous
 Alexander Schlarb - macOS ctypes bindings
+PiRK - Electrum ABC fork, miscellaneous
