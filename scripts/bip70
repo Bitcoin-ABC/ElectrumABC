@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # create a BIP70 payment request signed with a certificate
 
+# Note that the tlslite package has not been updated since 2015, and no longer works
+# with recent python versions.
+# tlslite-ng is a drop-in replacement (`pip install tlslite-ng`)
 import tlslite
 
 from electrumabc import paymentrequest

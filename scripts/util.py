@@ -3,8 +3,7 @@ import select
 import time
 from collections import defaultdict
 
-from electrumabc import Connection  # fixme
-from electrumabc.interface import Interface
+from electrumabc.interface import Connection, Interface
 from electrumabc.network import parse_servers
 from electrumabc.simple_config import SimpleConfig
 
