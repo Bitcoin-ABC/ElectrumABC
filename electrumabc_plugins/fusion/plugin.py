@@ -381,7 +381,7 @@ class FusionPlugin(BasePlugin):
     def get_torport(
         self,
     ):
-        """Retreive either manual port or autodetected port; may return None
+        """Retrieve either manual port or autodetected port; may return None
         if 'auto' mode and no Tor port has been autodetected. (this is non-blocking)"""
         if self.has_auto_torport():
             return self.tor_port_good

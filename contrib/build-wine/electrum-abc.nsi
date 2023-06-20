@@ -17,7 +17,7 @@
 ;--------------------------------
 ;Includes
   !include "LogicLib.nsh"
-  !include "TextFunc.nsh" ;Needed for the $GetSize fuction. I know, doesn't sound logical, it isn't.
+  !include "TextFunc.nsh" ;Needed for the $GetSize function. I know, doesn't sound logical, it isn't.
   !include "MUI2.nsh"
   !include "AdvUninstLog.nsh"
 

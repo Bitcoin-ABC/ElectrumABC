@@ -141,7 +141,7 @@ class Plugin(FusionPlugin):
                         network.tor_controller.status_changed.remove(on_status)
                     if controller.status != controller.Status.STARTED:
                         # OSError can happen when printing from a daemon command
-                        # after the terminal in which the deamon was started was closed.
+                        # after the terminal in which the daemon was started was closed.
                         with suppress(OSError):
                             print("There was an error starting the Tor client")
 

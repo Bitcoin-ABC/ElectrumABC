@@ -1,5 +1,7 @@
 #!/bin/sh
 
+export LC_ALL=C.UTF-8
+
 set -e
 
 VIRUSTOTAL_API_URL="https://www.virustotal.com/vtapi"

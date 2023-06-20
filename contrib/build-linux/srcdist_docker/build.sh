@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+export LC_ALL=C.UTF-8
 
 here=$(dirname "$0")
 test -n "$here" -a -d "$here" || (echo "Cannot determine build dir. FIXME!" && exit 1)
@@ -37,6 +39,7 @@ mkdir "${ELECTRUM_ROOT}/contrib/build-linux/home" || fail "Failed to create home
     docker run $DOCKER_RUN_TTY \
     -e HOME="$MAPPED_DIR/contrib/build-linux/home" \
     -e BUILD_DEBUG="$BUILD_DEBUG" \
+    -e ELECTRUM_ROOT=${MAPPED_DIR} \
     --name $CONTAINERNAME \
     -v ${ELECTRUM_ROOT}:$MAPPED_DIR:delegated \
     --rm \

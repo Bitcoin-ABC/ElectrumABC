@@ -51,7 +51,7 @@ class FeeSlider(QtWidgets.QSlider):
         self.setToolTip(tooltip)
 
     # configuraing this as is done is here still required, can't just set range 0,0 to deactivate.
-    # chose to make this a seperate function from update for easier code maintainence
+    # chose to make this a separate function from update for easier code maintenance
     def update_has_custom_fee_rate(self):
         self.fee_step = self.config.max_slider_fee / self.config.slider_steps
         fee_rate = self.config.fee_per_kb()

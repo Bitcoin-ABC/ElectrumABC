@@ -349,7 +349,7 @@ class AddressList(MyTreeWidget):
                 # This address cannot be used for a payment request because
                 # the receive tab will refuse to display it and will instead
                 # create a request with a new address, if we were to call
-                # self.main_window.receive_at(addr). This is because the recieve tab
+                # self.main_window.receive_at(addr). This is because the receive tab
                 # now strongly enforces no-address-reuse. See #1552.
                 a.setDisabled(True)
             a = menu.addAction(
