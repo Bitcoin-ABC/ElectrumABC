@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+export LC_ALL=C.UTF-8
 
 here=$(dirname "$0")
 test -n "$here" -a -d "$here" || (echo "Cannot determine build dir. FIXME!" && exit 1)
@@ -19,14 +21,9 @@ export BUILD_TYPE="wine"
 export GCC_TRIPLET_BUILD="x86_64-pc-linux-gnu"
 export GCC_STRIP_BINARIES="1"
 
-# On some systems git complains about permissions here. This fixes it.
-git config --global --add safe.directory $(readlink -f "$here"/../..)  # /homedir/wine/drive_c/electrumabc
-
 . "$here"/../base.sh # functions we use below (fail, et al)
 
 set -e
-
-GIT_COMMIT_HASH=$(git rev-parse HEAD)
 
 info "Clearing $here/build and $here/dist..."
 rm "$here"/build/* -fr
@@ -213,9 +210,7 @@ build_the_app() {
 
         pushd "$here"/../..  # go to top level
 
-
-        VERSION=`git describe --tags`
-        info "Version to release: $VERSION"
+        info "Version to release: ${ELECTRUM_VERSION}"
         info "Fudging timestamps on all files for determinism ..."
         find -exec touch -d '2000-11-11T11:11:11+00:00' {} +
         popd  # go back to $here
@@ -246,8 +241,8 @@ build_the_app() {
 
         # rename the output files
         pushd dist
-        mv $NAME_ROOT.exe $NAME_ROOT-$VERSION.exe
-        mv $NAME_ROOT-portable.exe $NAME_ROOT-$VERSION-portable.exe
+        mv $NAME_ROOT.exe $NAME_ROOT-${ELECTRUM_VERSION}.exe
+        mv $NAME_ROOT-portable.exe $NAME_ROOT-${ELECTRUM_VERSION}-portable.exe
         popd
 
         # set timestamps in dist, in order to make the installer reproducible
@@ -259,10 +254,10 @@ build_the_app() {
         # build NSIS installer
         info "Running makensis to build setup .exe version ..."
         # $VERSION could be passed to the electrum-abc.nsi script, but this would require some rewriting in the script iself.
-        wine "$WINEPREFIX/drive_c/Program Files/NSIS/makensis.exe" /DPRODUCT_VERSION=$VERSION electrum-abc.nsi || fail "makensis failed"
+        wine "$WINEPREFIX/drive_c/Program Files/NSIS/makensis.exe" /DPRODUCT_VERSION=${ELECTRUM_VERSION} electrum-abc.nsi || fail "makensis failed"
 
         cd dist
-        mv $NAME_ROOT-setup.exe $NAME_ROOT-$VERSION-setup.exe  || fail "Failed to move $NAME_ROOT-$VERSION-setup.exe to the output dist/ directory"
+        mv $NAME_ROOT-setup.exe $NAME_ROOT-${ELECTRUM_VERSION}-setup.exe  || fail "Failed to move $NAME_ROOT-${ELECTRUM_VERSION}-setup.exe to the output dist/ directory"
 
         ls -la *.exe
         sha256sum *.exe

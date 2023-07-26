@@ -364,7 +364,7 @@ class TrezorPlugin(HWPluginBase):
 
     def setup_device(self, device_info, wizard, purpose):
         """Called when creating a new wallet.  Select the device to use.  If
-        the device is uninitialized, go through the intialization
+        the device is uninitialized, go through the initialization
         process."""
         device_id = device_info.device.id_
         client = self.scan_and_create_client_for_device(

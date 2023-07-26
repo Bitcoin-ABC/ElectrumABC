@@ -1,5 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Run this after a new release to update dependencies
+
+export LC_ALL=C.UTF-8
 
 set -e
 

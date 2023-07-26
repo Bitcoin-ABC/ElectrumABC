@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+export LC_ALL=C.UTF-8
 
 here=$(dirname "$0")
 test -n "$here" -a -d "$here" || (echo "Cannot determine build dir. FIXME!" && exit 1)
@@ -46,15 +48,20 @@ sudo docker build -t $IMGNAME \
             contrib/build-wine/docker \
     || fail "Failed to create docker image"
 
+MAPPED_DIR=/homedir/wine/drive_c/electrumabc
+
 (
     docker run $DOCKER_RUN_TTY \
     -u $USER_ID:$GROUP_ID \
     -e HOME=/homedir \
+    -e ELECTRUM_ROOT=${MAPPED_DIR} \
+    -e ELECTRUM_VERSION=$(get_electrum_version) \
+    -e GIT_COMMIT_HASH=$(git rev-parse HEAD) \
     -e WIN_ARCH="$WIN_ARCH" \
     -e BUILD_DEBUG="$BUILD_DEBUG" \
     -e PYI_SKIP_TAG="$PYI_SKIP_TAG" \
     --name ec-wine-builder-cont \
-    -v "${ELECTRUM_ROOT}":/homedir/wine/drive_c/electrumabc:delegated \
+    -v "${ELECTRUM_ROOT}":${MAPPED_DIR}:delegated \
     --rm \
     --workdir /homedir/wine/drive_c/electrumabc/contrib/build-wine \
     $IMGNAME \

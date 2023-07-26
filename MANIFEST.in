@@ -1,3 +1,6 @@
+# Note that LICENSE duplicates the MIT license that is already in COPYING,
+# but for now we keep it to avoid hacks such as copying the file in
+# contrib/make_linux_sdist
 include LICENCE RELEASE-NOTES.md AUTHORS
 include README.rst
 include electrum-abc.desktop

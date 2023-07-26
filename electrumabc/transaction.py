@@ -810,7 +810,7 @@ class Transaction:
 
     def sort_outputs(self, shuffle: bool = True):
         """Put the op_return output first, and then shuffle the other outputs unless
-        this behavior is explicitely disabled."""
+        this behavior is explicitly disabled."""
         op_returns = []
         other_outputs = []
         for txo in self._outputs:

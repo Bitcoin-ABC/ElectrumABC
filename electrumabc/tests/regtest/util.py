@@ -84,11 +84,11 @@ def bitcoind_rpc_connection() -> AuthServiceProxy:
 
 
 # Creates a temp directory on disk for wallet storage
-# Starts a deamon, creates and loads a wallet
+# Starts a daemon, creates and loads a wallet
 def start_ec_daemon() -> None:
     """
     Creates a temp directory on disk for wallet storage
-    Starts a deamon, creates and loads a wallet
+    Starts a daemon, creates and loads a wallet
     """
     if _datadir is None:
         assert False

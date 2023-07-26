@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 
-"""Reference tests for cashaddr adresses"""
+"""Reference tests for cashaddr addresses"""
 
 import random
 import unittest

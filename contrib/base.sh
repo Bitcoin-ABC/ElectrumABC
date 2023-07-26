@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+export LC_ALL=C.UTF-8
+
 # Set BUILD_DEBUG=1 to enable additional build output
 if [ "${BUILD_DEBUG:-0}" -ne 0 ] ; then
     set -x # Enable shell command logging
@@ -231,7 +233,7 @@ export PY_VER_MAJOR="3.9"  # as it appears in fs paths
 export PYTHON_SRC_TARBALL_HASH="125b0c598f1e15d2aa65406e83f792df7d171cdf38c16803b149994316a3080f"
 export PYTHON_MACOS_BINARY_HASH="351fe18f4fb03be7afac5e4012fc0a51345f43202af43ef620cf1eee5ee36578"
 
-: "${ELECTRUM_ROOT:=$(git rev-parse --show-toplevel)}"
+: "${ELECTRUM_ROOT:=$(git rev-parse --show-toplevel)/electrum}"
 export ELECTRUM_ROOT
 export CONTRIB="${ELECTRUM_ROOT}/contrib"
 export DISTDIR="${ELECTRUM_ROOT}/dist"
@@ -298,3 +300,8 @@ fi
 
 # This variable is set to avoid sourcing base.sh multiple times
 export _BASE_SH_SOURCED=1
+
+function get_electrum_version()
+{
+    grep ^VERSION_TUPLE ${ELECTRUM_ROOT}/electrumabc/version.py | sed 's/.*(\([0-9, ]*\))/\1/' | sed 's/, /./g'
+}

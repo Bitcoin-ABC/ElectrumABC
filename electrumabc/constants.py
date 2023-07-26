@@ -5,11 +5,11 @@ PROJECT_NAME: str = "Electrum ABC"
 PROJECT_NAME_NO_SPACES = "ElectrumABC"
 SCRIPT_NAME: str = "electrum-abc"
 REPOSITORY_OWNER: str = "Bitcoin-ABC"
-REPOSITORY_NAME: str = "ElectrumABC"
+REPOSITORY_NAME: str = "bitcoin-abc"
 REPOSITORY_URL: str = f"https://github.com/{REPOSITORY_OWNER}/{REPOSITORY_NAME}"
 RELEASES_JSON_URL: str = (
     f"https://raw.githubusercontent.com/{REPOSITORY_OWNER}/"
-    f"{REPOSITORY_NAME}/master/contrib/update_checker"
+    f"{REPOSITORY_NAME}/master/electrum/contrib/update_checker"
     "/releases.json"
 )
 

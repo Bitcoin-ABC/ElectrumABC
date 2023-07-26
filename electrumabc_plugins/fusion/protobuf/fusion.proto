@@ -106,7 +106,7 @@ message JoinPools { // from client
 message TierStatusUpdate { // from server
     message TierStatus {
         // in future, we will want server to indicate 'remaining time' and mask number of players.
-        // note: if player is in queue then a status will be ommitted.
+        // note: if player is in queue then a status will be omitted.
         optional uint32 players = 1;
         optional uint32 min_players = 2; // minimum required to start (may have delay to allow extra)
         optional uint32 max_players = 3; // maximum allowed (immediate start)

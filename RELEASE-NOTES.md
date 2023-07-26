@@ -107,7 +107,7 @@ Electron Cash, electroncash.org, Electrum or electrum.org.
 
 ## Release 5.1.3
 
-- Add deamon commands `enable_autofuse` and `fusion_status` to run Cash Fusion
+- Add daemon commands `enable_autofuse` and `fusion_status` to run Cash Fusion
   in command line mode (#219).
 - Fix unit for amounts in the output of the `history` command (#220).
 - Warn users about insufficient numbers of confirmations when using a UTXO to build

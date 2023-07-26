@@ -13,13 +13,13 @@ services:
     image: cculianu/fulcrum:v1.9.0
     command: "Fulcrum /conf/fulcrum.conf"
     networks:
-     - bitcoin
+      - bitcoin
     ports:
       - 51001:51001
       - 51002:51002
       - 8081:8080
     depends_on:
-    - bitcoind
+      - bitcoind
     volumes:
       - conf-files:/conf
 

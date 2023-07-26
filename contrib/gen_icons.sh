@@ -1,5 +1,7 @@
 #!/bin/sh
 
+export LC_ALL=C.UTF-8
+
 set -e
 
 #RASTERIZE="clock1 clock2 clock3 clock4 clock5"

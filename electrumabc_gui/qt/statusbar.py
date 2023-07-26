@@ -176,7 +176,7 @@ class StatusBar(QtWidgets.QStatusBar):
 
         # The popup label won't really be shown unless this window is
         # on top.. but regardless we give each label a unique internal name
-        # so they dont interfere with each other.
+        # so they don't interfere with each other.
         lblName = f"UpdateAvailable_{id(self)}"
 
         if b:
