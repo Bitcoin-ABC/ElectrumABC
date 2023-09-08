@@ -89,15 +89,16 @@ class ExternalPluginCodes(IntEnum):
 INTERNAL_USE_PREFIX = "use_"
 EXTERNAL_USE_PREFIX = "use_external_"
 
+internal_plugins_namespace = __import__("electrumabc_plugins")
+
 
 class Plugins(DaemonThread):
+    _all_found_plugins: Optional[dict[str, dict]] = None
+    internal_plugins_pkgpath = os.path.dirname(internal_plugins_namespace.__file__)
+
     @profiler
     def __init__(self, config, gui_name):
         DaemonThread.__init__(self)
-        internal_plugins_namespace = __import__("electrumabc_plugins")
-        self.internal_plugins_pkgpath = os.path.dirname(
-            internal_plugins_namespace.__file__
-        )
         self.config = config
         self.gui_name = gui_name
         self.hw_wallets = {}
@@ -161,10 +162,16 @@ class Plugins(DaemonThread):
                 # called again from GUI
                 d[ut_key] = ut_val
 
-    def load_internal_plugins(self):
-        for loader, name, ispkg in pkgutil.iter_modules(
-            [self.internal_plugins_pkgpath]
-        ):
+    @classmethod
+    def find_all_plugins(cls) -> dict[str, dict]:
+        """Return a map of all found plugins: name -> description.
+        Note that plugins not available for the current GUI are also included.
+        """
+        if cls._all_found_plugins is not None:
+            return cls._all_found_plugins
+
+        cls._all_found_plugins = {}
+        for loader, name, ispkg in pkgutil.iter_modules([cls.internal_plugins_pkgpath]):
             # we don't  have a server for cosigner_pool
             if name == "cosigner_pool":
                 continue
@@ -182,6 +189,12 @@ class Plugins(DaemonThread):
             except Exception as e:
                 raise Exception(f"Error pre-loading {full_name}: {repr(e)}") from e
             d = module.__dict__
+            assert name not in cls._all_found_plugins
+            cls._all_found_plugins[name] = d
+        return cls._all_found_plugins
+
+    def load_internal_plugins(self):
+        for name, d in self.find_all_plugins().items():
             if not self.register_plugin(name, d):
                 continue
             self.internal_plugin_metadata[name] = d
