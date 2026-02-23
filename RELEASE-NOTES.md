@@ -1,5 +1,17 @@
 # Release notes
 
+## Release 5.5.0
+
+- Build 64-bit binaries for Windows (D19530, D19577).
+- Improve the performance of the Address tab for wallets with many addresses (D19541).
+- Improve the performance of the Coins tab for wallets with many coins (D19578).
+- Improve the performance of hardware wallet detection when many USB devices are
+  connected (D19850).
+- Improve the performance of change-address reservation for CashFusion (D19582).
+- Support recent Ledger firmware versions (D19579).
+- Fix the difficulty target for regtest (D19203).
+
+
 ## Release 5.4.4
 
 - Fix the context menu in the Contacts tab, broken in v5.4.3 (D19006).
