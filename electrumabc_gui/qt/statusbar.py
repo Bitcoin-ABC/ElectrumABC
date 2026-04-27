@@ -157,7 +157,7 @@ class StatusBar(QtWidgets.QStatusBar):
             self.balance_label.setHidden(True)
             self.insertWidget(0, self._search_box_spacer)
             self._search_box_spacer.show()
-            self.search_box.setFocus(True)
+            self.search_box.setFocus()
             if self.search_box.text():
                 self.search_box.textChanged.emit(self.search_box.text())
         else:
