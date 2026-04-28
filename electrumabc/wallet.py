@@ -300,7 +300,6 @@ class AbstractWallet(PrintError, SPVDelegate):
         # checks are O(logN) rather than O(N). This creates/resets that cache.
         self.invalidate_address_set_cache()
 
-        self.gap_limit_for_change = 20  # constant
         # saved fields
         self.use_change = storage.get("use_change", True)
         self.multiple_change = storage.get("multiple_change", False)
@@ -1984,9 +1983,7 @@ class AbstractWallet(PrintError, SPVDelegate):
             return []
 
         with self.lock:
-            last_change_addrs = self.get_change_addresses()[
-                -self.gap_limit_for_change :
-            ]
+            last_change_addrs = self.get_change_addresses()[-self.gap_limit :]
             if not last_change_addrs:
                 # this happens in non-deterministic wallets but the above
                 # hasattr check should have caught those.
@@ -2158,9 +2155,7 @@ class AbstractWallet(PrintError, SPVDelegate):
                         # to picking first max_change change_addresses that have
                         # no history
                         change_addrs = []
-                        for addr in self.get_change_addresses()[
-                            -self.gap_limit_for_change :
-                        ]:
+                        for addr in self.get_change_addresses()[-self.gap_limit :]:
                             if self.get_num_tx(addr) == 0:
                                 change_addrs.append(addr)
                                 if len(change_addrs) >= max_change:
@@ -3029,7 +3024,7 @@ class AbstractWallet(PrintError, SPVDelegate):
                 # reset the address list to default too, just in case. New synchronizer will pick up the addresses again.
                 self.receiving_addresses, self.change_addresses = (
                     self.receiving_addresses[: self.gap_limit],
-                    self.change_addresses[: self.gap_limit_for_change],
+                    self.change_addresses[: self.gap_limit],
                 )
                 do_addr_save = True
             self.change_reserved.clear()
@@ -3431,16 +3426,14 @@ class DeterministicWallet(AbstractWallet):
         with self.lock:
             if value < self.gap_limit and value < self.min_acceptable_gap():
                 return False
-
             if value < self.gap_limit:
                 # when lowering the gap limit, trim trailing unused addresses to
                 # keep only the new gap limit
-                addresses = self.get_receiving_addresses()
-                k = self.num_unused_trailing_addresses(addresses)
-                n = len(addresses) - k + value
-                del self.receiving_addresses[n:]
+                for addresses in (self.change_addresses, self.receiving_addresses):
+                    k = self.num_unused_trailing_addresses(addresses)
+                    n = len(addresses) - k + value
+                    del addresses[n:]
                 self.save_addresses()
-
             self.gap_limit = value
             self.storage.put(StorageKeys.GAP_LIMIT, self.gap_limit)
 
@@ -3463,14 +3456,14 @@ class DeterministicWallet(AbstractWallet):
         Caller needs to hold self.lock otherwise bad things may happen."""
         n = 0
         nmax = 0
-        addresses = self.get_receiving_addresses()
-        k = self.num_unused_trailing_addresses(addresses)
-        for a in addresses[0:-k]:
-            if self._history.get(a):
-                n = 0
-                continue
-            n += 1
-            nmax = max(nmax, n)
+        for addresses in (self.get_receiving_addresses(), self.get_change_addresses()):
+            k = self.num_unused_trailing_addresses(addresses)
+            for a in addresses[0:-k]:
+                if self._history.get(a):
+                    n = 0
+                    continue
+                n += 1
+                nmax = max(nmax, n)
         return nmax + 1
 
     def create_new_address(self, for_change=False, save=True):
@@ -3489,17 +3482,16 @@ class DeterministicWallet(AbstractWallet):
             return address
 
     def synchronize_sequence(self, for_change):
-        limit = self.gap_limit_for_change if for_change else self.gap_limit
         while True:
             addresses = (
                 self.get_change_addresses()
                 if for_change
                 else self.get_receiving_addresses()
             )
-            if len(addresses) < limit:
+            if len(addresses) < self.gap_limit:
                 self.create_new_address(for_change, save=False)
                 continue
-            if all(not self.address_is_old(a) for a in addresses[-limit:]):
+            if all(not self.address_is_old(a) for a in addresses[-self.gap_limit :]):
                 break
             else:
                 self.create_new_address(for_change, save=False)
