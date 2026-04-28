@@ -3422,50 +3422,55 @@ class DeterministicWallet(AbstractWallet):
         """Get a list of public keys (as hexadecimal strings)"""
         pass
 
-    def change_gap_limit(self, value):
-        """This method is not called in the code, it is kept for console use"""
+    def change_gap_limit(self, value) -> bool:
+        """This method is not called in the code, it is kept for console use.
+        Returns true if gap limit was successfully changed.
+        The function will refuse to lower the gap below the current max number
+        of consecutive unused addresses, this ensures that rebuilding the history will
+        not miss any funds the wallet currently is aware of."""
         with self.lock:
-            if value >= self.gap_limit:
-                self.gap_limit = value
-                self.storage.put(StorageKeys.GAP_LIMIT, self.gap_limit)
-                return True
-            elif value >= self.min_acceptable_gap():
+            if value < self.gap_limit and value < self.min_acceptable_gap():
+                return False
+
+            if value < self.gap_limit:
+                # when lowering the gap limit, trim trailing unused addresses to
+                # keep only the new gap limit
                 addresses = self.get_receiving_addresses()
                 k = self.num_unused_trailing_addresses(addresses)
                 n = len(addresses) - k + value
-                self.receiving_addresses = self.receiving_addresses[0:n]
-                self.gap_limit = value
-                self.storage.put(StorageKeys.GAP_LIMIT, self.gap_limit)
+                del self.receiving_addresses[n:]
                 self.save_addresses()
-                return True
-            else:
-                return False
+
+            self.gap_limit = value
+            self.storage.put(StorageKeys.GAP_LIMIT, self.gap_limit)
+
+        return True
 
     def num_unused_trailing_addresses(self, addresses):
-        """This method isn't called anywhere. Perhaps it is here for console use.
-        Can't be sure. -Calin"""
         with self.lock:
             k = 0
             for addr in reversed(addresses):
-                if addr in self._history:
+                if self._history.get(addr):
                     break
                 k = k + 1
             return k
 
     def min_acceptable_gap(self):
-        """Caller needs to hold self.lock otherwise bad things may happen."""
-        # fixme: this assumes wallet is synchronized
+        """Return the min acceptable gap limit that would still enable
+        restoring the full history of this wallet, assuming the wallet is
+        fully synchronized already (fixme: potentially unsafe assumption).
+
+        Caller needs to hold self.lock otherwise bad things may happen."""
         n = 0
         nmax = 0
         addresses = self.get_receiving_addresses()
         k = self.num_unused_trailing_addresses(addresses)
         for a in addresses[0:-k]:
-            if a in self._history:
+            if self._history.get(a):
                 n = 0
-            else:
-                n += 1
-                if n > nmax:
-                    nmax = n
+                continue
+            n += 1
+            nmax = max(nmax, n)
         return nmax + 1
 
     def create_new_address(self, for_change=False, save=True):
