@@ -41,13 +41,9 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Dict,
     Iterable,
-    List,
     NamedTuple,
     Optional,
-    Set,
-    Tuple,
     Union,
 )
 from warnings import warn
@@ -842,7 +838,7 @@ PLACEHOLDER_HW_CLIENT_LABELS = {None, "", " "}
 # For now, we use a dedicated thread to enumerate devices (_hid_executor),
 # and we synchronize all device opens/closes/enumeration (_hid_lock).
 # FIXME there are still probably threading issues with how we use hidapi...
-_hid_executor = None  # type: Optional[concurrent.futures.Executor]
+_hid_executor: Optional[concurrent.futures.Executor] = None
 _hid_lock = threading.Lock()
 
 
@@ -880,12 +876,12 @@ class DeviceMgr(ThreadJob):
     def __init__(self, config: SimpleConfig):
         super(DeviceMgr, self).__init__()
         # An xpub->id_ map. Item only present if we have active pairing. Needs self.lock.
-        self.xpub_ids: Dict[str, str] = {}
+        self.xpub_ids: dict[str, str] = {}
         # A client->id_ map. Needs self.lock.
-        self.clients: Dict[HardwareClientBase, str] = {}
+        self.clients: dict[HardwareClientBase, str] = {}
         # What we recognise.  (vendor_id, product_id) -> Plugin
-        self._recognised_hardware: Dict[Tuple[int, int], HWPluginBase] = {}
-        self._recognised_vendor: Dict[int, HWPluginBase] = {}
+        self._recognised_hardware: dict[tuple[int, int], HWPluginBase] = {}
+        self._recognised_vendor: dict[int, HWPluginBase] = {}
         """vendor_id -> Plugin"""
         # Custom enumerate functions for devices we don't know about.
         self.enumerate_func = set()
@@ -910,7 +906,7 @@ class DeviceMgr(ThreadJob):
 
         return func_wrapper
 
-    def get_recognized_hardware(self) -> Set[Tuple[int, int]]:
+    def get_recognized_hardware(self) -> set[tuple[int, int]]:
         return set(self._recognised_hardware.keys())
 
     def thread_jobs(self):
@@ -1093,8 +1089,8 @@ class DeviceMgr(ThreadJob):
         self,
         handler: Optional[HardwareHandlerBase],
         plugin: HWPluginBase,
-        devices: Optional[List[Device]] = None,
-    ) -> List["DeviceInfo"]:
+        devices: Optional[list[Device]] = None,
+    ) -> list[DeviceInfo]:
         """Returns a list of DeviceInfo objects: one for each connected,
         unpaired device accepted by the plugin."""
         if devices is None:
@@ -1123,7 +1119,7 @@ class DeviceMgr(ThreadJob):
         plugin: HWPluginBase,
         handler: HardwareHandlerBase,
         keystore: HardwareKeyStore,
-        devices: Optional[List["Device"]] = None,
+        devices: Optional[list[Device]] = None,
     ) -> DeviceInfo:
         """Ask the user to select a device to use if there is more than one,
         and return the DeviceInfo for the device."""
@@ -1178,7 +1174,7 @@ class DeviceMgr(ThreadJob):
         return info
 
     @with_scan_lock
-    def _scan_devices_with_hid(self) -> List[Device]:
+    def _scan_devices_with_hid(self) -> list[Device]:
         try:
             import hid
         except ImportError:
@@ -1213,7 +1209,7 @@ class DeviceMgr(ThreadJob):
         return devices
 
     @with_scan_lock
-    def scan_devices(self) -> List["Device"]:
+    def scan_devices(self) -> list[Device]:
         self.print_error("scanning devices...")
 
         # First see what's connected that we know about
