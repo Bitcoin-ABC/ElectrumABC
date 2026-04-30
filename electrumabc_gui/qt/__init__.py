@@ -68,6 +68,7 @@ from electrumabc.constants import PROJECT_NAME
 from electrumabc.i18n import _
 from electrumabc.plugins import run_hook
 from electrumabc.printerror import PrintError, print_error
+from electrumabc.simple_config import ConfigKeys, SimpleConfig
 from electrumabc.util import (
     BitcoinException,
     Handlers,
@@ -99,7 +100,6 @@ from .util import (
 if TYPE_CHECKING:
     from electrumabc.daemon import Daemon
     from electrumabc.plugins import Plugins
-    from electrumabc.simple_config import SimpleConfig
 
 
 def _pre_and_post_app_setup(config) -> Callable[[], None]:
@@ -139,7 +139,7 @@ def _pre_and_post_app_setup(config) -> Callable[[], None]:
         #
         # The default on Linux, Windows, etc is to enable high dpi
         disable_scaling = config.get("qt_disable_highdpi", False)
-        enable_scaling = config.get("qt_enable_highdpi", True)
+        enable_scaling = config.get(ConfigKeys.QT_ENABLE_HIGH_DPI, True)
         if not disable_scaling and enable_scaling:
             QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
     if hasattr(QtCore.Qt, "AA_UseHighDpiPixmaps"):
@@ -941,7 +941,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
             hasattr(QtCore.Qt, "AA_EnableHighDpiScaling")
             and self.app.testAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
             # first run check:
-            and self.config.get("qt_enable_highdpi", None) is None
+            and self.config.get(ConfigKeys.QT_ENABLE_HIGH_DPI) is None
             and (
                 is_lin  # we can't check pixel ratio on linux as apparently it's unreliable, so always show this message on linux
                 # on some windows systems running in highdpi causes
@@ -961,7 +961,7 @@ class ElectrumGui(QtCore.QObject, PrintError):
         ):
             # write to the config key to immediately suppress this warning in
             # the future -- it only appears on first-run if key was None
-            self.config.set_key("qt_enable_highdpi", True)
+            self.config.set_key(ConfigKeys.QT_ENABLE_HIGH_DPI, True)
             if is_lin:
                 msg = (
                     _(

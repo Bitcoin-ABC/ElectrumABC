@@ -38,7 +38,7 @@ import stem.socket
 
 from .. import version
 from ..printerror import PrintError, is_verbose
-from ..simple_config import SimpleConfig
+from ..simple_config import ConfigKeys, SimpleConfig
 from ..utils import Event
 
 # Python 3.10 workaround for stem package which is using collections.Iterable
@@ -52,13 +52,6 @@ if sys.version_info >= (3, 10):
         # monkey-patch collections.Iterable back since stem.control expects to see
         # this name
         stem.control.collections.Iterable = collections.abc.Iterable
-
-
-_TOR_ENABLED_KEY = "tor_enabled"
-_TOR_ENABLED_DEFAULT = False
-
-_TOR_SOCKS_PORT_KEY = "tor_socks_port"
-_TOR_SOCKS_PORT_DEFAULT = 0
 
 
 def check_proxy_bypass_tor_control(*args, **kwargs) -> bool:
@@ -117,10 +110,12 @@ class TorController(PrintError):
             self.print_error("Tor enabled but no usable Tor binary found, disabling")
             self.set_enabled(False)
 
-        socks_port = self._config.get(_TOR_SOCKS_PORT_KEY, _TOR_SOCKS_PORT_DEFAULT)
+        socks_port = self._config.get(ConfigKeys.TOR_SOCKS_PORT)
         if not self._check_port(int(socks_port)):
             # If no valid SOCKS port is set yet, we set the default
-            self._config.set_key(_TOR_SOCKS_PORT_KEY, _TOR_SOCKS_PORT_DEFAULT)
+            self._config.set_key(
+                ConfigKeys.TOR_SOCKS_PORT, ConfigKeys.TOR_SOCKS_PORT.default
+            )
 
     def __del__(self):
         self.status_changed.clear()
@@ -347,25 +342,25 @@ class TorController(PrintError):
         return isinstance(port, int) and (port == 0 or 1024 <= port <= 65535)
 
     def set_enabled(self, enabled: bool):
-        self._config.set_key(_TOR_ENABLED_KEY, enabled)
+        self._config.set_key(ConfigKeys.TOR_ENABLED, enabled)
         if enabled:
             self.start()
         else:
             self.stop()
 
     def is_enabled(self) -> bool:
-        return bool(self._config.get(_TOR_ENABLED_KEY, _TOR_ENABLED_DEFAULT))
+        return bool(self._config.get(ConfigKeys.TOR_ENABLED))
 
     def set_socks_port(self, port: int):
         if not self._check_port(port):
             raise AssertionError("TorController: invalid port")
 
         self.stop()
-        self._config.set_key(_TOR_SOCKS_PORT_KEY, port)
+        self._config.set_key(ConfigKeys.TOR_SOCKS_PORT, port)
         self.start()
 
     def get_socks_port(self) -> int:
-        socks_port = self._config.get(_TOR_SOCKS_PORT_KEY, _TOR_SOCKS_PORT_DEFAULT)
+        socks_port = self._config.get(ConfigKeys.TOR_SOCKS_PORT)
         if not self._check_port(int(socks_port)):
             raise AssertionError("TorController: invalid port")
         return int(socks_port)

@@ -20,10 +20,10 @@ from electrumabc.i18n import (
     match_language,
     pgettext,
 )
+from electrumabc.simple_config import ConfigKeys, SimpleConfig
 
 if TYPE_CHECKING:
     from electrumabc.exchange_rate import FxThread
-    from electrumabc.simple_config import SimpleConfig
     from electrumabc.wallet import AbstractWallet
 
     from . import ElectrumGui
@@ -364,7 +364,9 @@ class SettingsDialog(WindowModalDialog):
                         "glitches (such as dialog box text being cut off"
                     )
                 )
-            self.hidpi_chk.setChecked(bool(self.config.get("qt_enable_highdpi", True)))
+            self.hidpi_chk.setChecked(
+                bool(self.config.get(ConfigKeys.QT_ENABLE_HIGH_DPI, True))
+            )
             if self.config.get("qt_disable_highdpi"):
                 self.hidpi_chk.setToolTip(
                     _("Automatic high DPI scaling was disabled from the command-line")
@@ -805,7 +807,7 @@ class SettingsDialog(WindowModalDialog):
         self.qr_label.setToolTip(self.qr_label.help_text)
         for cam in system_cameras:
             self.qr_combo.addItem(cam.description(), get_camera_path(cam))
-        video_device = self.config.get("video_device")
+        video_device = self.config.get(ConfigKeys.VIDEO_DEVICE)
         video_device_index = 0
         if video_device:
             # if not found, default to 0 (the default item)
@@ -815,7 +817,9 @@ class SettingsDialog(WindowModalDialog):
 
     def on_video_device(self, x):
         if self.qr_combo.isEnabled():
-            self.config.set_key("video_device", self.qr_combo.itemData(x), True)
+            self.config.set_key(
+                ConfigKeys.VIDEO_DEVICE, self.qr_combo.itemData(x), True
+            )
 
     def on_colortheme(self, x, err_msg: str):
         item_data = self.colortheme_combo.itemData(x)
@@ -828,7 +832,7 @@ class SettingsDialog(WindowModalDialog):
             self.need_restart = True
 
     def on_hi_dpi_toggle(self):
-        self.config.set_key("qt_enable_highdpi", self.hidpi_chk.isChecked())
+        self.config.set_key(ConfigKeys.QT_ENABLE_HIGH_DPI, self.hidpi_chk.isChecked())
         self.need_restart = True
 
     def on_fontconfig_chk(self):

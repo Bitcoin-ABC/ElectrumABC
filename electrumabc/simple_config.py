@@ -3,7 +3,9 @@ import os
 import stat
 import threading
 from copy import deepcopy
+from dataclasses import dataclass
 from decimal import Decimal as PyDecimal
+from typing import Any, Optional, Union
 
 from . import util
 from .constants import XEC
@@ -11,6 +13,25 @@ from .printerror import PrintError, print_error
 from .util import get_user_dir, make_dir
 
 FINAL_CONFIG_VERSION = 2
+
+
+@dataclass
+class ConfigKey:
+    key: str
+    default: Optional[Any] = None
+
+    def __str__(self):
+        return self.key
+
+
+class ConfigKeys:
+    # For high dpi, the default value depends on context (OS...)
+    QT_ENABLE_HIGH_DPI = ConfigKey("qt_enable_highdpi")
+    TOR_ENABLED = ConfigKey("tor_enabled", False)
+    TOR_SOCKS_PORT = ConfigKey("tor_socks_port", 0)
+    TOR_USE = ConfigKey("tor_use", False)
+    VIDEO_DEVICE = ConfigKey("video_device", "default")
+    WHITHELIST_SERVERS_ONLY = ConfigKey("whitelist_servers_only", True)
 
 
 class SimpleConfig(PrintError):
@@ -112,7 +133,7 @@ class SimpleConfig(PrintError):
                 updated = True
         return updated
 
-    def set_key(self, key, value, save=True):
+    def set_key(self, key: Union[str, ConfigKey], value, save=True):
         if not self.is_modifiable(key):
             self.print_error(
                 "Warning: not changing config key '%s' set on the command line" % key
@@ -120,7 +141,9 @@ class SimpleConfig(PrintError):
             return
         self._set_key_in_user_config(key, value, save)
 
-    def _set_key_in_user_config(self, key, value, save=True):
+    def _set_key_in_user_config(self, key: Union[str, ConfigKey], value, save=True):
+        if isinstance(key, ConfigKey):
+            key = key.key
         with self.lock:
             if value is not None:
                 self.user_config[key] = value
@@ -129,7 +152,11 @@ class SimpleConfig(PrintError):
             if save:
                 self.save_user_config()
 
-    def get(self, key, default=None):
+    def get(self, key: Union[str, ConfigKey], default=None):
+        if isinstance(key, ConfigKey):
+            if default is None:
+                default = key.default
+            key = key.key
         with self.lock:
             out = self.cmdline_options.get(key)
             if out is None:
@@ -186,7 +213,9 @@ class SimpleConfig(PrintError):
             )
         return config_version
 
-    def is_modifiable(self, key):
+    def is_modifiable(self, key: Union[str, ConfigKey]) -> bool:
+        if isinstance(key, ConfigKey):
+            key = key.key
         return key not in self.cmdline_options
 
     def save_user_config(self):
@@ -305,7 +334,7 @@ class SimpleConfig(PrintError):
         return int(PyDecimal(fee_per_kb) * PyDecimal(size) / 1000)
 
     def get_video_device(self):
-        device = self.get("video_device", "default")
+        device = self.get(ConfigKeys.VIDEO_DEVICE)
         if device == "default":
             device = ""
         return device

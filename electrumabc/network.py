@@ -46,7 +46,7 @@ from .interface import Connection, Interface
 from .monotonic import Monotonic
 from .networks import parse_servers
 from .printerror import print_error
-from .simple_config import SimpleConfig
+from .simple_config import ConfigKeys, SimpleConfig
 from .tor import TorController, check_proxy_bypass_tor_control
 from .transaction import DUST_THRESHOLD
 from .utils import Event
@@ -58,12 +58,6 @@ called and takes the interface's response as a parameter.
 """
 
 DEFAULT_AUTO_CONNECT = True
-
-# Versions prior to 4.0.15 had this set to True, but EC opted for False to
-# promote network health by allowing clients to connect to new servers easily.
-# For now it is better to set it to True again to avoid having new users
-# start on the wrong chain.
-DEFAULT_WHITELIST_SERVERS_ONLY = True
 
 # Rate-limit the get_merkle requests sent to fulcrum servers.
 # This affects the speed of the initial verification of transactions in a wallet with
@@ -382,7 +376,7 @@ class Network(util.DaemonThread):
         if (
             not controller.active_socks_port
             or not controller.is_enabled()
-            or not self.config.get("tor_use", False)
+            or not self.config.get(ConfigKeys.TOR_USE)
         ):
             return
 
@@ -2509,15 +2503,13 @@ class Network(util.DaemonThread):
         return ret, servers_to_hostmap(ret)
 
     def is_whitelist_only(self):
-        return bool(
-            self.config.get("whitelist_servers_only", DEFAULT_WHITELIST_SERVERS_ONLY)
-        )
+        return bool(self.config.get(ConfigKeys.WHITHELIST_SERVERS_ONLY))
 
     def set_whitelist_only(self, b):
         if bool(b) == self.is_whitelist_only():
             # disallow redundant/noop calls
             return
-        self.config.set_key("whitelist_servers_only", b, True)
+        self.config.set_key(ConfigKeys.WHITHELIST_SERVERS_ONLY, b, True)
         if b:
             with self.interface_lock:
                 # now, disconnect from all non-whitelisted servers

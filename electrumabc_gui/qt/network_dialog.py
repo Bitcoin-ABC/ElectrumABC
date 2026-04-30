@@ -46,6 +46,7 @@ from electrumabc.network import (
 )
 from electrumabc.plugins import run_hook
 from electrumabc.printerror import PrintError, print_error
+from electrumabc.simple_config import ConfigKeys
 from electrumabc.tor import TorController
 from electrumabc.util import Weak, in_main_thread
 
@@ -545,7 +546,7 @@ class NetworkChoiceLayout(QObject, PrintError):
             _("Connect only to preferred servers")
         )
         self.preferred_only_cb.setEnabled(
-            self.config.is_modifiable("whitelist_servers_only")
+            self.config.is_modifiable(ConfigKeys.WHITHELIST_SERVERS_ONLY)
         )
         self.preferred_only_cb.setToolTip(
             _(
@@ -1162,7 +1163,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         # We need to restore the "Use tor" checkbox as its value is needed in the server
         # list, to determine whether to show .onion servers, before the TorDetector
         # has been started.
-        self._set_tor_use(self.config.get("tor_use", False))
+        self._set_tor_use(self.config.get(ConfigKeys.TOR_USE))
 
         b = proxy_config.get("mode") != "none"
         self.check_disable_proxy(b)
@@ -1288,7 +1289,7 @@ class NetworkChoiceLayout(QObject, PrintError):
 
     def _set_tor_use(self, use_it):
         self.tor_use = use_it
-        self.config.set_key("tor_use", self.tor_use)
+        self.config.set_key(ConfigKeys.TOR_USE, self.tor_use)
         self.tor_cb.setChecked(self.tor_use)
         self.proxy_cb.setEnabled(not self.tor_use)
         self.check_disable_proxy(not self.tor_use)
