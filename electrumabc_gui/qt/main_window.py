@@ -64,6 +64,7 @@ from electrumabc.ecc import ECPubkey
 from electrumabc.i18n import _
 from electrumabc.plugins import run_hook
 from electrumabc.printerror import is_verbose
+from electrumabc.simple_config import ConfigKeys
 from electrumabc.transaction import (
     SerializationError,
     Transaction,
@@ -721,7 +722,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 )
 
     def update_recently_visited(self, filename):
-        recent = self.config.get("recently_open", [])
+        recent = self.config.get(ConfigKeys.RECENTLY_OPEN_WALLETS)
         try:
             sorted(recent)
         except Exception:
@@ -731,7 +732,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         recent.insert(0, filename)
         recent = [path for path in recent if os.path.exists(path)]
         recent = recent[:5]
-        self.config.set_key("recently_open", recent)
+        self.config.set_key(ConfigKeys.RECENTLY_OPEN_WALLETS, recent)
         self.recently_visited_menu.clear()
         gui_object = self.gui_object
         for i, k in enumerate(sorted(recent)):

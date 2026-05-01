@@ -32,6 +32,11 @@ class ConfigKeys:
     PROXY = ConfigKey("proxy")
     # For high dpi, the default value depends on context (OS...)
     QT_ENABLE_HIGH_DPI = ConfigKey("qt_enable_highdpi")
+    RECENTLY_OPEN_WALLETS = ConfigKey("recently_open", [])
+    RPCHOST = ConfigKey("rpchost", "127.0.0.1")
+    RPCPASSWORD = ConfigKey("rpcpassword")
+    RPCPORT = ConfigKey("rpcport", 0)
+    RPCUSER = ConfigKey("rpcuser")
     SERVER = ConfigKey("server")
     # Session timeout for Trezor and Keepkey hardware wallets
     SESSION_TIMEOUT = ConfigKey("session_timeout", 300)
@@ -271,10 +276,10 @@ class SimpleConfig(PrintError):
         return new_path
 
     def remove_from_recently_open(self, filename):
-        recent = self.get("recently_open", [])
+        recent = self.get(ConfigKeys.RECENTLY_OPEN_WALLETS, [])
         if filename in recent:
             recent.remove(filename)
-            self.set_key("recently_open", recent)
+            self.set_key(ConfigKeys.RECENTLY_OPEN_WALLETS, recent)
 
     def set_session_timeout(self, seconds):
         self.set_key(ConfigKeys.SESSION_TIMEOUT, seconds)

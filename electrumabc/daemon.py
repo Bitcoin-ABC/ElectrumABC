@@ -40,7 +40,7 @@ from .json_util import json_decode
 from .jsonrpc import VerifyingJSONRPCServer
 from .network import Network
 from .printerror import print_error, print_stderr
-from .simple_config import SimpleConfig
+from .simple_config import ConfigKeys, SimpleConfig
 from .storage import WalletStorage
 from .util import DaemonThread, randrange, standardize_path, to_string
 from .wallet import Wallet
@@ -143,8 +143,8 @@ def get_server(config: SimpleConfig, timeout=2.0) -> Optional[jsonrpclib.Server]
 
 
 def get_rpc_credentials(config):
-    rpc_user = config.get("rpcuser", None)
-    rpc_password = config.get("rpcpassword", None)
+    rpc_user = config.get(ConfigKeys.RPCUSER)
+    rpc_password = config.get(ConfigKeys.RPCPASSWORD)
     if rpc_user is None or rpc_password is None:
         rpc_user = "electrumabcuser"
         bits = 128
@@ -152,8 +152,8 @@ def get_rpc_credentials(config):
         pw_int = randrange(pow(2, bits))
         pw_b64 = b64encode(pw_int.to_bytes(nbytes, "big"), b"-_")
         rpc_password = to_string(pw_b64, "ascii")
-        config.set_key("rpcuser", rpc_user)
-        config.set_key("rpcpassword", rpc_password, save=True)
+        config.set_key(ConfigKeys.RPCUSER, rpc_user)
+        config.set_key(ConfigKeys.RPCPASSWORD, rpc_password, save=True)
     elif rpc_password == "":
         print_stderr("WARNING: RPC authentication is disabled.")
     return rpc_user, rpc_password
@@ -187,8 +187,8 @@ class Daemon(DaemonThread):
             self.init_server(config, fd)
 
     def init_server(self, config: SimpleConfig, fd: int):
-        host = config.get("rpchost", "127.0.0.1")
-        port = config.get("rpcport", 0)
+        host = config.get(ConfigKeys.RPCHOST)
+        port = config.get(ConfigKeys.RPCPORT)
 
         rpc_user, rpc_password = get_rpc_credentials(config)
         try:
