@@ -25,8 +25,17 @@ class ConfigKey:
 
 
 class ConfigKeys:
+    # FIXME: auto_connect has a default value (True) defined in network.py, but we
+    #  cannot set it here because we rely on `config.get("auto_connect") is None`
+    #  as a heuristic to determine that the config file does not exist
+    AUTO_CONNECT = ConfigKey("auto_connect")
+    PROXY = ConfigKey("proxy")
     # For high dpi, the default value depends on context (OS...)
     QT_ENABLE_HIGH_DPI = ConfigKey("qt_enable_highdpi")
+    SERVER = ConfigKey("server")
+    # Session timeout for Trezor and Keepkey hardware wallets
+    SESSION_TIMEOUT = ConfigKey("session_timeout", 300)
+    SHOW_FEE = ConfigKey("show_fee", False)
     TOR_ENABLED = ConfigKey("tor_enabled", False)
     TOR_SOCKS_PORT = ConfigKey("tor_socks_port", 0)
     TOR_USE = ConfigKey("tor_use", False)
@@ -185,9 +194,9 @@ class SimpleConfig(PrintError):
             assert protocol in ("s", "t")
             int(port)  # Throw if cannot be converted to int
             server_str = str("{}:{}:s".format(host, port))
-            self._set_key_in_user_config("server", server_str)
+            self._set_key_in_user_config(ConfigKeys.SERVER, server_str)
         except Exception:
-            self._set_key_in_user_config("server", None)
+            self._set_key_in_user_config(ConfigKeys.SERVER, None)
 
         self.set_key("config_version", 2)
 
@@ -268,10 +277,10 @@ class SimpleConfig(PrintError):
             self.set_key("recently_open", recent)
 
     def set_session_timeout(self, seconds):
-        self.set_key("session_timeout", seconds)
+        self.set_key(ConfigKeys.SESSION_TIMEOUT, seconds)
 
     def get_session_timeout(self):
-        return self.get("session_timeout", 300)
+        return self.get(ConfigKeys.SESSION_TIMEOUT)
 
     def open_last_wallet(self):
         if self.get("wallet_path") is None:

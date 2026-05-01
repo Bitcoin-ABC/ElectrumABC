@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from io import StringIO
 
-from ..simple_config import SimpleConfig, read_user_config
+from ..simple_config import ConfigKeys, SimpleConfig, read_user_config
 
 
 class TestSimpleConfig(unittest.TestCase):
@@ -47,7 +47,7 @@ class TestSimpleConfig(unittest.TestCase):
             read_user_config_function=fake_read_user,
             read_user_dir_function=read_user_dir,
         )
-        self.assertEqual(config.get("auto_connect"), True)
+        self.assertEqual(config.get(ConfigKeys.AUTO_CONNECT), True)
         self.assertEqual(config.get("auto_cycle"), None)
 
         def fake_read_user(_):
@@ -58,7 +58,7 @@ class TestSimpleConfig(unittest.TestCase):
             read_user_config_function=fake_read_user,
             read_user_dir_function=read_user_dir,
         )
-        self.assertEqual(config.get("auto_connect"), False)
+        self.assertEqual(config.get(ConfigKeys.AUTO_CONNECT), False)
         self.assertEqual(config.get("auto_cycle"), None)
 
     def test_simple_config_command_line_overrides_everything(self):

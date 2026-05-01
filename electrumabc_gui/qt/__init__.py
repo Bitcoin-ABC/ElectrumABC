@@ -810,7 +810,8 @@ class ElectrumGui(QtCore.QObject, PrintError):
     def init_network(self):
         # Show network dialog if config does not exist
         if self.daemon.network:
-            if self.config.get("auto_connect") is None:
+            # fixme: figure out a better way to determine that the config does not exist
+            if self.config.get(ConfigKeys.AUTO_CONNECT) is None:
                 wizard = InstallWizard(
                     self.config, self.app, self.plugins, gui_object=self
                 )

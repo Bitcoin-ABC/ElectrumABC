@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from electrumabc.interface import Connection, Interface  # noqa: E402
 from electrumabc.networks import parse_servers  # noqa: E402
-from electrumabc.simple_config import SimpleConfig  # noqa: E402
+from electrumabc.simple_config import ConfigKeys, SimpleConfig  # noqa: E402
 from electrumabc.util import get_user_dir, make_dir  # noqa: E402
 
 # Make sure the data directory for pinned self-signed certificates exists, or the
@@ -67,7 +67,7 @@ def get_peers():
     config = SimpleConfig()
     peers = {}
     # 1. get connected interfaces
-    server = config.get("server")
+    server = config.get(ConfigKeys.SERVER)
     interfaces = get_interfaces([server])
     if not interfaces:
         print("No connection to", server)

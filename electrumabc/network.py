@@ -354,7 +354,9 @@ class Network(util.DaemonThread):
         The dict key is a "<host>:<port>:<protocol>" string.
         Requires self.interface_lock.
         """
-        self.auto_connect: bool = self.config.get("auto_connect", DEFAULT_AUTO_CONNECT)
+        self.auto_connect: bool = self.config.get(
+            ConfigKeys.AUTO_CONNECT, DEFAULT_AUTO_CONNECT
+        )
         self.connecting: Set[str] = set()
         """Set of servers as "<host>:<port>:<protocol>" strings."""
         self.requested_chunks: Set[int] = set()
@@ -369,7 +371,7 @@ class Network(util.DaemonThread):
         Network.INSTANCE = self
         self.start_network(
             deserialize_server(self.default_server)[2],
-            deserialize_proxy(self.config.get("proxy")),
+            deserialize_proxy(self.config.get(ConfigKeys.PROXY)),
         )
 
     def on_tor_port_changed(self, controller: TorController):
@@ -380,12 +382,12 @@ class Network(util.DaemonThread):
         ):
             return
 
-        proxy = deserialize_proxy(self.config.get("proxy"))
+        proxy = deserialize_proxy(self.config.get(ConfigKeys.PROXY))
         port = str(controller.active_socks_port)
         if proxy["port"] == port:
             return
         proxy["port"] = port
-        self.config.set_key("proxy", serialize_proxy(proxy))
+        self.config.set_key(ConfigKeys.PROXY, serialize_proxy(proxy))
         # This handler can run before `proxy` is present and `load_parameters` needs it
         if hasattr(self, "proxy"):
             self.load_parameters()
@@ -742,17 +744,22 @@ class Network(util.DaemonThread):
         except Exception:
             raise ValueError("invalid server or proxy")
 
-        self.config.set_key("auto_connect", auto_connect, False)
-        self.config.set_key("proxy", proxy_str, False)
-        self.config.set_key("server", server, True)
-        if self.config.get("server") != server or self.config.get("proxy") != proxy_str:
+        self.config.set_key(ConfigKeys.AUTO_CONNECT, auto_connect, False)
+        self.config.set_key(ConfigKeys.PROXY, proxy_str, False)
+        self.config.set_key(ConfigKeys.SERVER, server, True)
+        if (
+            self.config.get(ConfigKeys.SERVER) != server
+            or self.config.get(ConfigKeys.PROXY) != proxy_str
+        ):
             raise ValueError("changes were not allowed by config")
 
     def load_parameters(self):
         server = self.get_config_server()
         protocol = deserialize_server(server)[2]
-        proxy = deserialize_proxy(self.config.get("proxy"))
-        self.auto_connect = self.config.get("auto_connect", DEFAULT_AUTO_CONNECT)
+        proxy = deserialize_proxy(self.config.get(ConfigKeys.PROXY))
+        self.auto_connect = self.config.get(
+            ConfigKeys.AUTO_CONNECT, DEFAULT_AUTO_CONNECT
+        )
         if self.proxy != proxy or self.protocol != protocol:
             # Restart the network defaulting to the given server
             self.stop_network()
@@ -765,7 +772,7 @@ class Network(util.DaemonThread):
             self.notify("blockchain_updated")
 
     def get_config_server(self):
-        server = self.config.get("server", None)
+        server = self.config.get(ConfigKeys.SERVER)
         if server:
             try:
                 deserialize_server(server)

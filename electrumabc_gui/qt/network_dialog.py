@@ -512,7 +512,9 @@ class NetworkChoiceLayout(QObject, PrintError):
         self.server_port.setValidator(PortValidator(self.server_port))
         self.ssl_cb = QtWidgets.QCheckBox(_("Use SSL"))
         self.autoconnect_cb = QtWidgets.QCheckBox(_("Select server automatically"))
-        self.autoconnect_cb.setEnabled(self.config.is_modifiable("auto_connect"))
+        self.autoconnect_cb.setEnabled(
+            self.config.is_modifiable(ConfigKeys.AUTO_CONNECT)
+        )
 
         weakSelf = Weak.ref(
             self
@@ -998,7 +1000,7 @@ class NetworkChoiceLayout(QObject, PrintError):
         self.update()
 
     def check_disable_proxy(self, b):
-        if not self.config.is_modifiable("proxy"):
+        if not self.config.is_modifiable(ConfigKeys.PROXY):
             b = False
         if self.tor_use:
             # Disallow changing the proxy settings when Tor is in use
@@ -1014,7 +1016,7 @@ class NetworkChoiceLayout(QObject, PrintError):
 
     def get_set_server_flags(self):
         return (
-            self.config.is_modifiable("server"),
+            self.config.is_modifiable(ConfigKeys.SERVER),
             (
                 not self.autoconnect_cb.isChecked()
                 and not self.preferred_only_cb.isChecked()

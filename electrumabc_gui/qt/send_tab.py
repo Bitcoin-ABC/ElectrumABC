@@ -53,6 +53,7 @@ from electrumabc.invoice import ExchangeRateApiError
 from electrumabc.paymentrequest import PR_PAID
 from electrumabc.plugins import run_hook
 from electrumabc.printerror import PrintError
+from electrumabc.simple_config import ConfigKeys, SimpleConfig
 from electrumabc.transaction import (
     OPReturn,
     Transaction,
@@ -87,7 +88,6 @@ from .util import (
 if TYPE_CHECKING:
     from electrumabc.exchange_rate import FxThread
     from electrumabc.network import Network
-    from electrumabc.simple_config import SimpleConfig
     from electrumabc.wallet import AbstractWallet
 
     from .main_window import ElectrumWindow
@@ -333,7 +333,7 @@ class SendTab(QtWidgets.QWidget, MessageBoxMixin, PrintError):
         self.fee_slider_mogrifier()
 
         self.fee_e = XECAmountEdit(self.window.get_decimal_point())
-        if not self.config.get("show_fee", False):
+        if not self.config.get(ConfigKeys.SHOW_FEE):
             self.fee_e.setVisible(False)
         self.fee_e.textEdited.connect(self.update_fee)
         # This is so that when the user blanks the fee and moves on,

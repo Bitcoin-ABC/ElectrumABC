@@ -172,7 +172,7 @@ class SettingsDialog(WindowModalDialog):
         fee_lo.addWidget(self.customfee_e, 0, 1, 1, 1, Qt.AlignmentFlag.AlignLeft)
 
         feebox_cb = QtWidgets.QCheckBox(_("Edit fees manually"))
-        feebox_cb.setChecked(self.config.get("show_fee", False))
+        feebox_cb.setChecked(self.config.get(ConfigKeys.SHOW_FEE))
         feebox_cb.setToolTip(_("Show fee edit box in send tab."))
 
         feebox_cb.stateChanged.connect(self.on_feebox)
@@ -753,7 +753,7 @@ class SettingsDialog(WindowModalDialog):
         self.custom_fee_changed.emit()
 
     def on_feebox(self, x):
-        self.config.set_key("show_fee", x == Qt.Checked)
+        self.config.set_key(ConfigKeys.SHOW_FEE, x == Qt.Checked)
         self.show_fee_changed.emit(bool(x))
 
     def on_alias_edit(self):

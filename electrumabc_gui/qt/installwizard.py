@@ -20,6 +20,7 @@ from electrumabc.base_wizard import HWD_SETUP_DECRYPT_WALLET, BaseWizard, GoBack
 from electrumabc.constants import PROJECT_NAME
 from electrumabc.i18n import _
 from electrumabc.network import Network
+from electrumabc.simple_config import ConfigKeys, SimpleConfig
 from electrumabc.storage import WalletStorage
 from electrumabc.util import (
     InvalidPassword,
@@ -48,7 +49,6 @@ from .util import (
 
 if TYPE_CHECKING:
     from electrumabc.plugins import Plugins
-    from electrumabc.simple_config import SimpleConfig
 
     from . import ElectrumGui
 
@@ -775,7 +775,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
         self.exec_layout(clayout.layout(), title)
         r = clayout.selected_index()
         network.auto_connect = r == 0
-        self.config.set_key("auto_connect", network.auto_connect, True)
+        self.config.set_key(ConfigKeys.AUTO_CONNECT, network.auto_connect, True)
         if r == 1:
             nlayout = NetworkChoiceLayout(self, network, self.config, wizard=True)
             if self.exec_layout(nlayout.layout()):

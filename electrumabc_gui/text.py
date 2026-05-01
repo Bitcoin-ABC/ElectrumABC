@@ -12,6 +12,7 @@ from electrumabc.amount import format_satoshis
 from electrumabc.bitcoin import CASH, TYPE_ADDRESS
 from electrumabc.constants import SCRIPT_NAME
 from electrumabc.printerror import set_verbosity
+from electrumabc.simple_config import ConfigKeys, SimpleConfig
 from electrumabc.storage import WalletStorage
 from electrumabc.transaction import TxOutput
 from electrumabc.wallet import Wallet
@@ -23,7 +24,7 @@ def _(x):
 
 class ElectrumGui:
     def __init__(self, config, daemon, plugins):
-        self.config = config
+        self.config: SimpleConfig = config
         self.network = daemon.network
         storage = WalletStorage(config.get_wallet_path())
         if not storage.file_exists():
@@ -496,7 +497,7 @@ class ElectrumGui:
                 {
                     "label": "proxy",
                     "type": "str",
-                    "value": self.config.get("proxy", ""),
+                    "value": self.config.get(ConfigKeys.PROXY, ""),
                 },
             ],
             buttons=1,
