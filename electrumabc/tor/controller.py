@@ -118,7 +118,7 @@ class TorController(PrintError):
             self.set_enabled(False)
 
         socks_port = self._config.get(_TOR_SOCKS_PORT_KEY, _TOR_SOCKS_PORT_DEFAULT)
-        if not socks_port or not self._check_port(int(socks_port)):
+        if not self._check_port(int(socks_port)):
             # If no valid SOCKS port is set yet, we set the default
             self._config.set_key(_TOR_SOCKS_PORT_KEY, _TOR_SOCKS_PORT_DEFAULT)
 
@@ -343,15 +343,8 @@ class TorController(PrintError):
             self.status_changed(self)
 
     def _check_port(self, port: int) -> bool:
-        if not isinstance(port, int):
-            return False
-        if port is None:
-            return False
         # Port 0 is automatic
-        if port != 0:
-            if port < 1024 or port > 65535:
-                return False
-        return True
+        return isinstance(port, int) and (port == 0 or 1024 <= port <= 65535)
 
     def set_enabled(self, enabled: bool):
         self._config.set_key(_TOR_ENABLED_KEY, enabled)
