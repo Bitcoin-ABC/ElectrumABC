@@ -102,11 +102,6 @@ class SimpleConfig(PrintError):
             # avoid new config getting upgraded
             self.user_config = {"config_version": FINAL_CONFIG_VERSION}
 
-        # config "upgrade" - CLI options
-        self.rename_config_keys(
-            self.cmdline_options, {"auto_cycle": "auto_connect"}, True
-        )
-
         # config upgrade - user config
         if self.requires_upgrade():
             self.upgrade()
@@ -130,22 +125,6 @@ class SimpleConfig(PrintError):
         if os.path.exists(obsolete_file):
             os.remove(obsolete_file)
         return path
-
-    def rename_config_keys(self, config, keypairs, deprecation_warning=False):
-        """Migrate old key names to new ones"""
-        updated = False
-        for old_key, new_key in keypairs.items():
-            if old_key in config:
-                if new_key not in config:
-                    config[new_key] = config[old_key]
-                    if deprecation_warning:
-                        self.print_stderr(
-                            "Note that the {} variable has been deprecated. "
-                            "You should use {} instead.".format(old_key, new_key)
-                        )
-                del config[old_key]
-                updated = True
-        return updated
 
     def set_key(self, key: Union[str, ConfigKey], value, save=True):
         if not self.is_modifiable(key):
@@ -190,7 +169,9 @@ class SimpleConfig(PrintError):
         if not self._is_upgrade_method_needed(1, 1):
             return
 
-        self.rename_config_keys(self.user_config, {"auto_cycle": "auto_connect"})
+        do_auto_connect = self.user_config.pop("auto_cycle", None)
+        if do_auto_connect is not None and "auto_connect" not in self.user_config:
+            self.user_config["auto_connect"] = do_auto_connect
 
         try:
             # change server string FROM host:port:proto TO host:port:s
