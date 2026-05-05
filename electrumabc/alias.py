@@ -34,9 +34,8 @@ from dns.exception import DNSException
 from . import dnssec
 from .address import Address, AddressError
 from .printerror import print_error
-from .simple_config import SimpleConfig
+from .simple_config import ConfigKeys, SimpleConfig
 
-DEFAULT_ENABLE_ALIASES = False
 ALIAS_SERVER = "https://alias.etokens.cash"
 
 ALIAS_VALIDATOR_REGEXP = "[a-z0-9]{1,21}"
@@ -98,7 +97,7 @@ def resolve(k: str, config: SimpleConfig) -> Dict:
             "type": "openalias",
             "validated": validated,
         }
-    if config.get("enable_aliases", DEFAULT_ENABLE_ALIASES) and k.endswith(".xec"):
+    if config.get(ConfigKeys.ENABLE_ALIASES) and k.endswith(".xec"):
         # strip .xec suffix
         alias = k[:-4]
         address = resolve_ecash_alias(alias)

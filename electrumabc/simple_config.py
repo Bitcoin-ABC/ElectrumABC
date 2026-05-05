@@ -29,6 +29,9 @@ class ConfigKeys:
     #  cannot set it here because we rely on `config.get("auto_connect") is None`
     #  as a heuristic to determine that the config file does not exist
     AUTO_CONNECT = ConfigKey("auto_connect")
+    CURRENCY = ConfigKey("currency", "USD")
+    ENABLE_ALIASES = ConfigKey("enable_aliases", False)
+    PASSPHRASE = ConfigKey("passphrase", "")
     PROXY = ConfigKey("proxy")
     # For high dpi, the default value depends on context (OS...)
     QT_ENABLE_HIGH_DPI = ConfigKey("qt_enable_highdpi")
@@ -37,6 +40,7 @@ class ConfigKeys:
     RPCPASSWORD = ConfigKey("rpcpassword")
     RPCPORT = ConfigKey("rpcport", 0)
     RPCUSER = ConfigKey("rpcuser")
+    SEED_TYPE = ConfigKey("seed_type", "bip39")
     SERVER = ConfigKey("server")
     # Session timeout for Trezor and Keepkey hardware wallets
     SESSION_TIMEOUT = ConfigKey("session_timeout", 300)
@@ -44,6 +48,8 @@ class ConfigKeys:
     TOR_ENABLED = ConfigKey("tor_enabled", False)
     TOR_SOCKS_PORT = ConfigKey("tor_socks_port", 0)
     TOR_USE = ConfigKey("tor_use", False)
+    USE_EXCHANGE = ConfigKey("use_exchange", "CoinGecko")
+    USE_EXCHANGE_RATE = ConfigKey("use_exchange_rate", False)
     VIDEO_DEVICE = ConfigKey("video_device", "default")
     WHITHELIST_SERVERS_ONLY = ConfigKey("whitelist_servers_only", True)
 

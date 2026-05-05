@@ -19,12 +19,8 @@ import requests
 from .constants import BASE_UNITS_BY_DECIMALS, PROJECT_NAME
 from .i18n import _
 from .printerror import PrintError, print_error
+from .simple_config import ConfigKeys
 from .util import ThreadJob
-
-DEFAULT_ENABLED = False
-DEFAULT_CURRENCY = "USD"
-# Note the exchange here should ideally also support history rates
-DEFAULT_EXCHANGE = "CoinGecko"
 
 # See https://en.wikipedia.org/wiki/ISO_4217
 CCY_PRECISIONS = {
@@ -436,9 +432,6 @@ def get_exchanges_by_ccy(history=True):
 
 
 class FxThread(ThreadJob):
-    default_currency = DEFAULT_CURRENCY
-    default_exchange = DEFAULT_EXCHANGE
-
     def __init__(self, config, network):
         self.config = config
         self.network = network
@@ -495,10 +488,10 @@ class FxThread(ThreadJob):
                 self.timeout = time.time() + 150
 
     def is_enabled(self):
-        return self.config.get("use_exchange_rate", DEFAULT_ENABLED)
+        return self.config.get(ConfigKeys.USE_EXCHANGE_RATE)
 
     def set_enabled(self, b):
-        return self.config.set_key("use_exchange_rate", bool(b))
+        return self.config.set_key(ConfigKeys.USE_EXCHANGE_RATE, bool(b))
 
     def get_history_config(self):
         return bool(self.config.get("history_rates"))
@@ -514,10 +507,10 @@ class FxThread(ThreadJob):
 
     def get_currency(self):
         """Use when dynamic fetching is needed"""
-        return self.config.get("currency", self.default_currency)
+        return self.config.get(ConfigKeys.CURRENCY)
 
     def config_exchange(self):
-        return self.config.get("use_exchange", self.default_exchange)
+        return self.config.get(ConfigKeys.USE_EXCHANGE)
 
     def show_history(self):
         return (
@@ -529,15 +522,16 @@ class FxThread(ThreadJob):
     def set_currency(self, ccy):
         self.ccy = ccy
         if self.get_currency() != ccy:
-            self.config.set_key("currency", ccy, True)
+            self.config.set_key(ConfigKeys.CURRENCY, ccy, True)
         self.timeout = 0  # Force update because self.ccy changes
         self.on_quotes()
 
     def set_exchange(self, name):
-        default_class = globals().get(self.default_exchange)
+        default_exchange_name = ConfigKeys.USE_EXCHANGE.default
+        default_class = globals().get(ConfigKeys.USE_EXCHANGE.default)
         class_ = globals().get(name, default_class)
         if self.config_exchange() != name:
-            self.config.set_key("use_exchange", name, True)
+            self.config.set_key(ConfigKeys.USE_EXCHANGE, name, True)
         self.exchange = class_(self.on_quotes, self.on_history)
         if (
             self.get_history_config()
@@ -549,7 +543,7 @@ class FxThread(ThreadJob):
             # situation where the checkbox is checked but they see no history
             # Note this code is here to migrate users from previous history
             # API exchanges in config that are no longer serving histories.
-            self.set_exchange(self.default_exchange)
+            self.set_exchange(default_exchange_name)
             return
         self.print_error("using exchange", name)
         # A new exchange means new fx quotes, initially empty.

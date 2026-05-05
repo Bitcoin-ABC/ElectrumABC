@@ -60,7 +60,7 @@ from electrumabc.keystore import bip44_derivation_xec
 from electrumabc.network import Network
 from electrumabc.plugins import Plugins
 from electrumabc.printerror import print_msg, print_stderr, set_verbosity
-from electrumabc.simple_config import SimpleConfig
+from electrumabc.simple_config import ConfigKeys, SimpleConfig
 from electrumabc.storage import WalletStorage
 from electrumabc.update import update_config
 from electrumabc.util import InvalidPassword
@@ -183,7 +183,7 @@ def restore_wallet(
 ) -> AbstractWallet:
     """Restore an existing wallet"""
     text = simple_config.get("text").strip()
-    passphrase = simple_config.get("passphrase", "")
+    passphrase = simple_config.get(ConfigKeys.PASSPHRASE)
     password = None
     if keystore.is_private(text):
         password = prompt_create_wallet_password()
@@ -235,13 +235,16 @@ def restore_wallet(
 def create_wallet(simple_config: SimpleConfig) -> AbstractWallet:
     """Create a new wallet"""
     password = prompt_create_wallet_password()
-    seed_type = simple_config.get("seed_type", "bip39")
+    # Note that nothing in this codebase sets that config options. So maybe it could be
+    # hardcoded, unless someone has an obscure use case relying on setting this via
+    # the command line, to create legacy wallet types on the command line?
+    seed_type = simple_config.get(ConfigKeys.SEED_TYPE)
     if seed_type == "standard":
         seed_type = "electrum"
 
     d = create_new_wallet(
         path=simple_config.get_wallet_path(),
-        passphrase=simple_config.get("passphrase", ""),
+        passphrase=simple_config.get(ConfigKeys.PASSPHRASE),
         password=password,
         encrypt_file=True,
         seed_type=seed_type,
